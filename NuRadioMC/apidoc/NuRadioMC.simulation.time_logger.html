@@ -678,13 +678,13 @@
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span> <span class="o">=</span> <span class="n">TimeLogger</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span><span class="o">.</span><span class="n">__pretty_time_delta</span><span class="p">(</span><span class="mi">3665</span><span class="p">)</span>
-<span class="go">&#39;0d1h1m5s&#39;</span>
+<span class="go">'0d1h1m5s'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span><span class="o">.</span><span class="n">__pretty_time_delta</span><span class="p">(</span><span class="mi">7200</span><span class="p">)</span>
-<span class="go">&#39;0d2h0m0s&#39;</span>
+<span class="go">'0d2h0m0s'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span><span class="o">.</span><span class="n">__pretty_time_delta</span><span class="p">(</span><span class="mi">120</span><span class="p">)</span>
-<span class="go">&#39;0d0h2m0s&#39;</span>
+<span class="go">'0d0h2m0s'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span><span class="o">.</span><span class="n">__pretty_time_delta</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
-<span class="go">&#39;0d0h0m30s&#39;</span>
+<span class="go">'0d0h0m30s'</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -778,7 +778,7 @@ to zero. It also updates the total start time and the last update time.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span> <span class="o">=</span> <span class="n">TimeLogger</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span><span class="o">.</span><span class="n">reset_times</span><span class="p">()</span>  <span class="c1"># Reset all categories</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span><span class="o">.</span><span class="n">reset_times</span><span class="p">([</span><span class="s1">&#39;category1&#39;</span><span class="p">,</span> <span class="s1">&#39;category2&#39;</span><span class="p">])</span>  <span class="c1"># Reset specific categories</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span><span class="o">.</span><span class="n">reset_times</span><span class="p">([</span><span class="s1">'category1'</span><span class="p">,</span> <span class="s1">'category2'</span><span class="p">])</span>  <span class="c1"># Reset specific categories</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -800,7 +800,7 @@ to zero. It also updates the total start time and the last update time.</p>
 <p>If the category does not exist in the time log, it will be added and the timer will be reset to zero.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span> <span class="o">=</span> <span class="n">TimeLogger</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">&#39;simulation&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">'simulation'</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd></dl>

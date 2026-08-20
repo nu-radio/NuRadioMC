@@ -650,13 +650,13 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.framework.parameters</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Provides an interface to store simulated and reconstructed quantities</span>
 
 <span class="sd">The parameters module provides access to store and read simulated or</span>
 <span class="sd">reconstructed quantities in the different custom classes used in NuRadioMC.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">aenum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
 
@@ -705,16 +705,16 @@
     <span class="n">azimuth</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1">#: azimuth angle of the incoming signal direction</span>
     <span class="n">maximum_amplitude</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1">#: the maximum ampliude of the magnitude of the trace</span>
     <span class="n">SNR</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1">#: a dictionary with the following signal-to-noise ratio definitions:</span>
-    <span class="c1"># &#39;integrated_power&#39;:</span>
+    <span class="c1"># 'integrated_power':</span>
         <span class="c1"># Difference of the sum of the squared amplitudes in the signal window and in the noise window</span>
         <span class="c1"># SNR = sum_sig(V_i^2) - sum_noise(V_i^2)</span>
-    <span class="c1"># &#39;peak_amplitude&#39;:</span>
+    <span class="c1"># 'peak_amplitude':</span>
         <span class="c1"># Maximum amplitude of the absolute signal trace divided by the rms of the noise window</span>
         <span class="c1"># SNR = max(abs(V_sig))/V_rms_noise</span>
-    <span class="c1"># &#39;peak_2_peak_amplitude&#39;:</span>
+    <span class="c1"># 'peak_2_peak_amplitude':</span>
         <span class="c1"># Difference between max and min of the signal trace divided by twice the rms value in the noise window</span>
         <span class="c1"># SNR = (max(V_sig)-min(V_sig))/2*V_rms_noise</span>
-    <span class="c1"># &#39;peak_2_peak_amplitude_split_noise_rms&#39;:</span>
+    <span class="c1"># 'peak_2_peak_amplitude_split_noise_rms':</span>
         <span class="c1"># Peak to peak amplitude in the trace divided by twice the noise rms value, where the latter is calculated by splitting the trace into segments and taking the mean of the lowest few segment rms values</span>
         <span class="c1"># SNR = V_p2p/2*V_rms_noise</span>
     <span class="n">maximum_amplitude_envelope</span> <span class="o">=</span> <span class="mi">6</span>  <span class="c1">#: the maximum ampliude of the hilbert envelope of the trace</span>
@@ -729,7 +729,7 @@
     <span class="n">signal_receiving_zenith</span> <span class="o">=</span> <span class="mi">15</span>    <span class="c1">#: the zenith angle of direction at which the radio signal arrived at the antenna</span>
     <span class="n">signal_ray_type</span> <span class="o">=</span> <span class="mi">16</span>        <span class="c1">#: type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted</span>
     <span class="n">signal_receiving_azimuth</span> <span class="o">=</span> <span class="mi">17</span>   <span class="c1">#: the azimuth angle of direction at which the radio signal arrived at the antenna</span>
-    <span class="n">block_offsets</span> <span class="o">=</span> <span class="mi">18</span> <span class="c1">#: &#39;block&#39; or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`</span>
+    <span class="n">block_offsets</span> <span class="o">=</span> <span class="mi">18</span> <span class="c1">#: 'block' or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`</span>
     <span class="n">Vrms_NuRadioMC_simulation</span> <span class="o">=</span> <span class="mi">19</span>  <span class="c1">#: the noise rms used in the MC simulation</span>
     <span class="n">bandwidth_NuRadioMC_simulation</span> <span class="o">=</span> <span class="mi">20</span>  <span class="c1">#: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation</span>
     <span class="n">Vrms_trigger_NuRadioMC_simulation</span> <span class="o">=</span> <span class="mi">21</span>  <span class="c1">#: the noise rms of the trigger channels (optional) used in the MC simulation</span>
@@ -744,7 +744,7 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">channelParametersRNOG</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="c1"># RNO-G specific channel parameters</span>
     <span class="c1"># FS: I did not start with a negative parameter on the 1, hence I chose 100</span>
-    <span class="n">glitch</span> <span class="o">=</span> <span class="mi">100</span> <span class="c1">#: True if channel is likely to have a glitch. See &#39;NuRadioReco.modules.RNO_G.channelGlitchDetector&#39;</span>
+    <span class="n">glitch</span> <span class="o">=</span> <span class="mi">100</span> <span class="c1">#: True if channel is likely to have a glitch. See 'NuRadioReco.modules.RNO_G.channelGlitchDetector'</span>
     <span class="n">glitch_test_statistic</span> <span class="o">=</span> <span class="mi">101</span> <span class="c1">#: Numerical value delivered by the glitch detector. Positive values indicate a likely glitch.</span></div>
 
 
@@ -761,11 +761,11 @@
 <div class="viewcode-block" id="electricFieldParameters">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.electricFieldParameters">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">electricFieldParameters</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
-    <span class="n">ray_path_type</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1">#: the type of the ray tracing solution (&#39;direct&#39;, &#39;refracted&#39; or &#39;reflected&#39;)</span>
+    <span class="n">ray_path_type</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1">#: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')</span>
     <span class="n">polarization_angle</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1">#: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi</span>
     <span class="n">polarization_angle_expectation</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1">#: expected polarization based on shower geometry. Defined analogous to polarization_angle</span>
     <span class="n">signal_energy_fluence</span> <span class="o">=</span> <span class="mi">4</span>  <span class="c1">#: Energy/area in the radio signal</span>
-    <span class="n">cr_spectrum_slope</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1">#: Slope of the radio signal&#39;s spectrum as reconstructed by the voltageToAnalyticEfieldConverter</span>
+    <span class="n">cr_spectrum_slope</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1">#: Slope of the radio signal's spectrum as reconstructed by the voltageToAnalyticEfieldConverter</span>
     <span class="n">zenith</span> <span class="o">=</span> <span class="mi">7</span>  <span class="c1">#: zenith angle of the signal. Note that refraction at the air/ice boundary is not taken into account</span>
     <span class="n">azimuth</span> <span class="o">=</span> <span class="mi">8</span>  <span class="c1">#: azimuth angle of the signal. Note that refraction at the air/ice boundary is not taken into account</span>
     <span class="n">signal_time</span> <span class="o">=</span> <span class="mi">9</span>
@@ -821,7 +821,7 @@
     <span class="n">observation_level</span> <span class="o">=</span> <span class="mi">104</span>  <span class="c1">#: altitude a.s.l where the particles are stored</span>
 
     <span class="n">charge_excess_profile_id</span> <span class="o">=</span> <span class="mi">105</span>  <span class="c1">#: the id of the charge-excess profile used in the ARZ Askaryan calculation</span>
-    <span class="nb">type</span> <span class="o">=</span> <span class="mi">106</span>  <span class="c1">#: for neutrino induces showers in ice: can be &quot;HAD&quot; or &quot;EM&quot;</span>
+    <span class="nb">type</span> <span class="o">=</span> <span class="mi">106</span>  <span class="c1">#: for neutrino induces showers in ice: can be "HAD" or "EM"</span>
     <span class="n">vertex</span> <span class="o">=</span> <span class="mi">107</span>  <span class="c1">#: the interaction vertex (for air showers this corresponds to the point of X0)</span>
     <span class="n">vertex_time</span> <span class="o">=</span> <span class="mi">108</span>  <span class="c1">#: the propagation time relative to the first interactions</span>
     <span class="n">interaction_type</span> <span class="o">=</span> <span class="mi">109</span>  <span class="c1">#: the interaction type, e.g. cc or nc</span>

@@ -656,7 +656,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">cross_sections</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.fluxes&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioMC.fluxes'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_limit_from_aeff">
@@ -667,7 +667,7 @@
                         <span class="n">energyBinsPerDecade</span><span class="o">=</span><span class="mf">1.000</span><span class="p">,</span>
                         <span class="n">upperLimOnEvents</span><span class="o">=</span><span class="mf">2.44</span><span class="p">):</span>
 
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Limit from effective volume</span>
 
 <span class="sd">    Parameters</span>
@@ -685,7 +685,7 @@
 <span class="sd">    upperLimOnEvents: float</span>
 <span class="sd">        2.3 for Neyman UL w/ 0 background,</span>
 <span class="sd">        2.44 for F-C UL w/ 0 background, etc</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">evtsPerFluxPerEnergy</span> <span class="o">=</span> <span class="n">aeff</span> <span class="o">*</span> <span class="n">signalEff</span>
     <span class="n">evtsPerFluxPerEnergy</span> <span class="o">*=</span> <span class="n">livetime</span>
@@ -706,10 +706,10 @@
         <span class="n">signalEff</span><span class="o">=</span><span class="mf">1.00</span><span class="p">,</span>
         <span class="n">energyBinsPerDecade</span><span class="o">=</span><span class="mf">1.000</span><span class="p">,</span>
         <span class="n">upperLimOnEvents</span><span class="o">=</span><span class="mf">2.44</span><span class="p">,</span>
-        <span class="n">nuCrsScn</span><span class="o">=</span><span class="s1">&#39;hedis_bgr18&#39;</span><span class="p">,</span>
-        <span class="n">inttype</span><span class="o">=</span><span class="s2">&quot;total&quot;</span><span class="p">):</span>
+        <span class="n">nuCrsScn</span><span class="o">=</span><span class="s1">'hedis_bgr18'</span><span class="p">,</span>
+        <span class="n">inttype</span><span class="o">=</span><span class="s2">"total"</span><span class="p">):</span>
 
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Limit from effective volume</span>
 
 <span class="sd">    Parameters</span>
@@ -739,7 +739,7 @@
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
 <span class="sd">    NuRadioMC.utilities.cross_sections.get_nu_cross_section : For options for argument `nuCrsScn` and `inttype`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">evtsPerFluxPerEnergy</span> <span class="o">=</span> <span class="n">veff_sr</span> <span class="o">*</span> <span class="n">signalEff</span>
     <span class="n">evtsPerFluxPerEnergy</span> <span class="o">*=</span> <span class="n">livetime</span>
@@ -756,9 +756,9 @@
 <span class="c1">#                               livetime,</span>
 <span class="c1">#                               signalEff = 1.00,</span>
 <span class="c1">#                               upperLimOnEvents=2.44,</span>
-<span class="c1">#                               nuCrsScn=&#39;hedis_bgr18&#39;):</span>
+<span class="c1">#                               nuCrsScn='hedis_bgr18'):</span>
 <span class="c1">#</span>
-<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     """</span>
 <span class="c1">#     Limit from effective volume on E^2 flux plot</span>
 <span class="c1">#</span>
 <span class="c1">#     Parameters:</span>
@@ -780,7 +780,7 @@
 <span class="c1">#         type of neutrino cross-section</span>
 <span class="c1">#</span>
 <span class="c1">#</span>
-<span class="c1">#     &quot;&quot;&quot;</span>
+<span class="c1">#     """</span>
 <span class="c1">#     energy = np.array(energy)</span>
 <span class="c1">#     veff = np.array(veff)</span>
 <span class="c1">#     logE = np.log10(energy)</span>
@@ -800,10 +800,10 @@
                     <span class="n">signalEff</span><span class="o">=</span><span class="mf">1.00</span><span class="p">,</span>
                     <span class="n">energyBinsPerDecade</span><span class="o">=</span><span class="mf">1.000</span><span class="p">,</span>
                     <span class="n">upperLimOnEvents</span><span class="o">=</span><span class="mf">2.44</span><span class="p">,</span>
-                    <span class="n">nuCrsScn</span><span class="o">=</span><span class="s1">&#39;hedis_bgr18&#39;</span><span class="p">,</span>
-                    <span class="n">inttype</span><span class="o">=</span><span class="s2">&quot;total&quot;</span><span class="p">):</span>
+                    <span class="n">nuCrsScn</span><span class="o">=</span><span class="s1">'hedis_bgr18'</span><span class="p">,</span>
+                    <span class="n">inttype</span><span class="o">=</span><span class="s2">"total"</span><span class="p">):</span>
 
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Limit from effective volume on E^1 flux plot</span>
 
 <span class="sd">    Parameters</span>
@@ -833,7 +833,7 @@
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
 <span class="sd">    NuRadioMC.utilities.cross_sections.get_nu_cross_section : For options for argument `nuCrsScn` and `inttype`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">evtsPerFluxPerEnergy</span> <span class="o">=</span> <span class="n">veff_sr</span> <span class="o">*</span> <span class="n">signalEff</span>
     <span class="n">evtsPerFluxPerEnergy</span> <span class="o">*=</span> <span class="n">livetime</span>
     <span class="n">evtsPerFluxPerEnergy</span> <span class="o">/=</span> <span class="n">cross_sections</span><span class="o">.</span><span class="n">get_interaction_length</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="n">nuCrsScn</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="n">inttype</span><span class="p">)</span>
@@ -852,9 +852,9 @@
                     <span class="n">signalEff</span><span class="o">=</span><span class="mf">1.00</span><span class="p">,</span>
                     <span class="n">energyBinsPerDecade</span><span class="o">=</span><span class="mf">1.000</span><span class="p">,</span>
                     <span class="n">upperLimOnEvents</span><span class="o">=</span><span class="mf">2.44</span><span class="p">,</span>
-                    <span class="n">nuCrsScn</span><span class="o">=</span><span class="s1">&#39;hedis_bgr18&#39;</span><span class="p">,</span>
-                    <span class="n">inttype</span><span class="o">=</span><span class="s2">&quot;total&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+                    <span class="n">nuCrsScn</span><span class="o">=</span><span class="s1">'hedis_bgr18'</span><span class="p">,</span>
+                    <span class="n">inttype</span><span class="o">=</span><span class="s2">"total"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Limit from effective volume on E^2 flux plot</span>
 
 <span class="sd">    Parameters</span>
@@ -884,7 +884,7 @@
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
 <span class="sd">    NuRadioMC.utilities.cross_sections.get_nu_cross_section : For options for argument `nuCrsScn` and `inttype`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">energy</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">get_limit_flux</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">veff_sr</span><span class="p">,</span> <span class="n">livetime</span><span class="p">,</span> <span class="n">signalEff</span><span class="p">,</span> <span class="n">energyBinsPerDecade</span><span class="p">,</span> <span class="n">upperLimOnEvents</span><span class="p">,</span>
                                         <span class="n">nuCrsScn</span><span class="p">,</span> <span class="n">inttype</span><span class="p">)</span></div>
 
@@ -893,9 +893,9 @@
 <div class="viewcode-block" id="get_number_of_events_for_flux">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.fluxes.html#NuRadioMC.utilities.fluxes.get_number_of_events_for_flux">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_number_of_events_for_flux</span><span class="p">(</span>
-        <span class="n">energies</span><span class="p">,</span> <span class="n">flux</span><span class="p">,</span> <span class="n">Veff</span><span class="p">,</span> <span class="n">livetime</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;hedis_bgr18&#39;</span><span class="p">,</span>
-        <span class="n">inttype</span><span class="o">=</span><span class="s2">&quot;total&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="n">energies</span><span class="p">,</span> <span class="n">flux</span><span class="p">,</span> <span class="n">Veff</span><span class="p">,</span> <span class="n">livetime</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">'hedis_bgr18'</span><span class="p">,</span>
+        <span class="n">inttype</span><span class="o">=</span><span class="s2">"total"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    calculates the number of expected neutrinos for a certain flux assumption</span>
 
 <span class="sd">    Parameters</span>
@@ -908,7 +908,7 @@
 <span class="sd">        the effective volume per energy logE</span>
 <span class="sd">    livetime: float</span>
 <span class="sd">        the livetime of the detector (including signal efficiency)</span>
-<span class="sd">    cross_section_type: str (default: &#39;hedis_bgr18&#39;)</span>
+<span class="sd">    cross_section_type: str (default: 'hedis_bgr18')</span>
 <span class="sd">        Defines model of cross-section.</span>
 <span class="sd">    inttype: str, array of str</span>
 <span class="sd">        Interaction type.</span>
@@ -920,7 +920,7 @@
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
 <span class="sd">    NuRadioMC.utilities.cross_sections.get_nu_cross_section : For options for argument `nuCrsScn` and `inttype`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">energies</span><span class="p">)</span>
     <span class="n">Veff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Veff</span><span class="p">)</span>
     <span class="n">logE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">energies</span><span class="p">)</span>
@@ -933,7 +933,7 @@
 <div class="viewcode-block" id="get_exposure">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.fluxes.html#NuRadioMC.utilities.fluxes.get_exposure">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_exposure</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">Veff</span><span class="p">,</span> <span class="n">field_of_view</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    calculate exposure from effective volume</span>
 
 <span class="sd">    Parameters</span>
@@ -948,7 +948,7 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    float: exposure</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">Veff</span> <span class="o">/</span> <span class="n">field_of_view</span> <span class="o">/</span> <span class="n">cross_sections</span><span class="o">.</span><span class="n">get_interaction_length</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span></div>
 
 
@@ -956,11 +956,11 @@
 <div class="viewcode-block" id="get_integrated_exposure">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.fluxes.html#NuRadioMC.utilities.fluxes.get_integrated_exposure">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_integrated_exposure</span><span class="p">(</span><span class="n">exp_func</span><span class="p">,</span> <span class="n">E_low</span><span class="p">,</span> <span class="n">E_high</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    calculates the integral int(E^-2 * exposure(E) dE)</span>
 
 <span class="sd">    integration is performed in log space</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="n">logE</span><span class="p">):</span>
         <span class="n">E</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">logE</span>
@@ -975,31 +975,31 @@
 <div class="viewcode-block" id="get_fluence_limit">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.fluxes.html#NuRadioMC.utilities.fluxes.get_fluence_limit">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_fluence_limit</span><span class="p">(</span><span class="n">int_exp</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    calculates the fluence limit for a integrated exposure</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="mf">2.39</span> <span class="o">/</span> <span class="n">int_exp</span></div>
 
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>  <span class="c1"># this part of the code gets only executed it the script is directly called</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>  <span class="c1"># this part of the code gets only executed it the script is directly called</span>
 
     <span class="n">energy</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="mi">18</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
     <span class="n">veff</span> <span class="o">=</span> <span class="mi">2150</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span> <span class="o">**</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span>
     <span class="n">livetime</span> <span class="o">=</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">year</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cross section: </span><span class="si">{}</span><span class="s2"> cm^2&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cross_sections</span><span class="o">.</span><span class="n">get_nu_cross_section</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;ctw&#39;</span><span class="p">)))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Cross section: </span><span class="si">{}</span><span class="s2"> cm^2"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cross_sections</span><span class="o">.</span><span class="n">get_nu_cross_section</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">'ctw'</span><span class="p">)))</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;interaction length: </span><span class="si">{}</span><span class="s2"> km&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cross_sections</span><span class="o">.</span><span class="n">get_interaction_length</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;ctw&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"interaction length: </span><span class="si">{}</span><span class="s2"> km"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cross_sections</span><span class="o">.</span><span class="n">get_interaction_length</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">'ctw'</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">))</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;calculating flux limit for </span><span class="si">{time}</span><span class="s2"> years and Veff of </span><span class="si">{veff}</span><span class="s2"> km^3 sr&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">livetime</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"calculating flux limit for </span><span class="si">{time}</span><span class="s2"> years and Veff of </span><span class="si">{veff}</span><span class="s2"> km^3 sr"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">livetime</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
                             <span class="n">veff</span><span class="o">=</span><span class="n">veff</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">km</span> <span class="o">**</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span><span class="p">)))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Flux limit: </span><span class="si">{}</span><span class="s2"> GeV/(cm^2 s sr)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_limit_e2_flux</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">veff</span><span class="p">,</span> <span class="n">livetime</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Flux limit: </span><span class="si">{}</span><span class="s2"> GeV/(cm^2 s sr)"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_limit_e2_flux</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">veff</span><span class="p">,</span> <span class="n">livetime</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
 
     <span class="n">aeff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0032</span><span class="p">,</span> <span class="mf">0.033</span><span class="p">,</span> <span class="mf">0.43</span><span class="p">,</span> <span class="mf">3.1</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">68</span><span class="p">,</span> <span class="mi">167</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span>
     <span class="n">energies</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">18</span><span class="p">,</span> <span class="mf">18.5</span><span class="p">,</span> <span class="mi">19</span><span class="p">,</span> <span class="mf">19.5</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mf">20.5</span><span class="p">,</span> <span class="mi">21</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Flux limit: </span><span class="si">{}</span><span class="s2"> GeV/(cm^2 s sr)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">energies</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">get_limit_from_aeff</span><span class="p">(</span><span class="n">energies</span><span class="p">,</span> <span class="n">aeff</span><span class="p">,</span> <span class="n">livetime</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Flux limit: </span><span class="si">{}</span><span class="s2"> GeV/(cm^2 s sr)"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">energies</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">get_limit_from_aeff</span><span class="p">(</span><span class="n">energies</span><span class="p">,</span> <span class="n">aeff</span><span class="p">,</span> <span class="n">livetime</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
 </pre></div>
 
            </div>

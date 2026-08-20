@@ -665,13 +665,13 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">cr_pulse_interpolator.signal_interpolation_fourier</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.coreasInterpolator&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.coreasInterpolator'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="coreasInterpolator">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">coreasInterpolator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Interface to interpolate the electric field traces, as for example provided by CoREAS.</span>
 
 <span class="sd">    For the best results, ensure that the electric fields are in on-sky coordinates (this is</span>
@@ -712,7 +712,7 @@
 <span class="sd">    in each frequency bin is then interpolated as a single value, as described above. The phases are also</span>
 <span class="sd">    interpolated, making the relative timings consistent. To also get an absolute timing, one can provide</span>
 <span class="sd">    the trace start times to also be interpolated (this is done in this implementation).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">corsika_evt</span><span class="p">):</span>
         <span class="c1"># These are set by self.initialize_star_shape()</span>
@@ -743,24 +743,24 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">initialize_star_shape</span><span class="p">()</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s1">&#39;Initialised star shape pattern for interpolation. &#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;The shower arrives from zenith=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">zenith</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">deg, &#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;azimuth=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">azimuth</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">deg &#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;The starshape has radius </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">starshape_radius</span><span class="si">:</span><span class="s1">.0f</span><span class="si">}</span><span class="s1">m in the shower plane &#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">starshape_radius_ground</span><span class="si">:</span><span class="s1">.0f</span><span class="si">}</span><span class="s1">m on ground. &#39;</span>
+            <span class="sa">f</span><span class="s1">'Initialised star shape pattern for interpolation. '</span>
+            <span class="sa">f</span><span class="s1">'The shower arrives from zenith=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">zenith</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">deg, '</span>
+            <span class="sa">f</span><span class="s1">'azimuth=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">azimuth</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">deg '</span>
+            <span class="sa">f</span><span class="s1">'The starshape has radius </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">starshape_radius</span><span class="si">:</span><span class="s1">.0f</span><span class="si">}</span><span class="s1">m in the shower plane '</span>
+            <span class="sa">f</span><span class="s1">'and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">starshape_radius_ground</span><span class="si">:</span><span class="s1">.0f</span><span class="si">}</span><span class="s1">m on ground. '</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="coreasInterpolator.initialize_star_shape">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_star_shape">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">initialize_star_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initializes the star shape pattern for interpolation, e.g. creates the arrays with the observer positions</span>
 <span class="sd">        in the shower plane and the electric field.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">core</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span>
-                <span class="s2">&quot;The shower core is not at the origin. &quot;</span>
-                <span class="s2">&quot;Be careful to adjust antenna positions accordingly when retrieving interpolated values.&quot;</span>
+                <span class="s2">"The shower core is not at the origin. "</span>
+                <span class="s2">"Be careful to adjust antenna positions accordingly when retrieving interpolated values."</span>
             <span class="p">)</span>
 
         <span class="n">obs_positions</span> <span class="o">=</span> <span class="p">[]</span>
@@ -786,56 +786,56 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">zenith</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The zenith of the shower axis&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The zenith of the shower axis"""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">azimuth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The azimuth of the shower axis&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The azimuth of the shower axis"""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">magnetic_field_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;The magnetic field vector stored inside the shower&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""The magnetic field vector stored inside the shower"""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">magnetic_field_vector</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">starshape_radius</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns the maximal radius of the star shape pattern in the shower plane</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">star_shape_initialized</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The interpolator was not initialized, call initialize_star_shape first&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">'The interpolator was not initialized, call initialize_star_shape first'</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_positions_showerplane</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">starshape_radius_ground</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns the maximal radius of the star shape pattern on ground</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">star_shape_initialized</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The interpolator was not initialized, call initialize_star_shape first&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">'The interpolator was not initialized, call initialize_star_shape first'</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_positions_ground</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">efields_rotation_angle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The angle with which the e_theta and e_phi components of the electric field were rotated</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__efields_rotation_angle</span>
 
 <div class="viewcode-block" id="coreasInterpolator.get_empty_efield">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_empty_efield">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_empty_efield</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get an array of zeros in the shape of the electric field on the sky</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">star_shape_initialized</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The interpolator was not initialized, call initialize_star_shape first&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">'The interpolator was not initialized, call initialize_star_shape first'</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">electric_field_on_sky</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:])</span></div>
@@ -844,7 +844,7 @@
 <div class="viewcode-block" id="coreasInterpolator.set_fluence_of_efields">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.set_fluence_of_efields">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_fluence_of_efields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function</span><span class="p">,</span> <span class="n">quantity</span><span class="o">=</span><span class="n">efp</span><span class="o">.</span><span class="n">signal_energy_fluence</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the fluence quantity of all electric fields in the SimStation of the interpolator.</span>
 
 <span class="sd">        Helper function to set the fluence of electric fields. These values can then be used for fluence interpolation.</span>
@@ -864,12 +864,12 @@
 <span class="sd">        NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence</span>
 <span class="sd">            Function that can be passed as ``function`` to obtain the energy fluence of</span>
 <span class="sd">            the electric fields in the SimStation.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">coreas</span><span class="o">.</span><span class="n">set_fluence_of_efields</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_station</span><span class="p">,</span> <span class="n">quantity</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__rotate_efield_polarizations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Rotate the electric field polarizations to make sure they do not align with vxB and vxvxB axes.</span>
 <span class="sd">        Otherwise the amplitudes will have zeros along the circles in the footprint, which makes the</span>
 <span class="sd">        interpolation unstable.</span>
@@ -881,7 +881,7 @@
 <span class="sd">        a total mix of vxB and vxvxB (ie sum them and normalize) maps to the on-sky CS and then rotate the</span>
 <span class="sd">        electric fields to align with this vector. This would (probably) ensure that both components always</span>
 <span class="sd">        have a reasonable amplitude.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">magnetic_field_normalized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">magnetic_field_vector</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">magnetic_field_vector</span><span class="p">)</span>
         <span class="n">v</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">hp</span><span class="o">.</span><span class="n">spherical_to_cartesian</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">zenith</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">azimuth</span>
@@ -899,8 +899,8 @@
         <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">vxB_on_sky</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="ow">or</span>
                 <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">vxB_on_sky</span><span class="p">),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-1</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">)):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s2">&quot;The coordinate axes in the on-sky coordinate system align too close with the vxB or vxvxB axes. &quot;</span>
-                <span class="s2">&quot;This can cause problems in interpolation, so I will rotate the electric fields polarisations... &quot;</span>
+                <span class="s2">"The coordinate axes in the on-sky coordinate system align too close with the vxB or vxvxB axes. "</span>
+                <span class="s2">"This can cause problems in interpolation, so I will rotate the electric fields polarisations... "</span>
             <span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">__efields_rotation_angle</span> <span class="o">=</span> <span class="mi">45</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
@@ -912,7 +912,7 @@
 <div class="viewcode-block" id="coreasInterpolator.initialize_efield_interpolator">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_efield_interpolator">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">initialize_efield_interpolator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interp_lowfreq</span><span class="p">,</span> <span class="n">interp_highfreq</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initialise the efield signal interpolator</span>
 
 <span class="sd">        If initialised correctly, this method returns the resulting efield interpolator (it is also stored</span>
@@ -939,8 +939,8 @@
 <span class="sd">        **kwargs : options to pass on to the `interp2d_signal` class</span>
 <span class="sd">            Default values are:</span>
 
-<span class="sd">            - phase_method : &#39;phasor&#39;</span>
-<span class="sd">            - radial_method : &#39;cubic&#39;</span>
+<span class="sd">            - phase_method : 'phasor'</span>
+<span class="sd">            - radial_method : 'cubic'</span>
 <span class="sd">            - upsample_factor : 5</span>
 <span class="sd">            - coherency_cutoff_threshold : 0.9</span>
 <span class="sd">            - allow_extrapolation : False</span>
@@ -951,17 +951,17 @@
 <span class="sd">        -------</span>
 <span class="sd">        efield_interpolator : interpolator object</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">interp_lowfreq</span> <span class="o">=</span> <span class="n">interp_lowfreq</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">interp_highfreq</span> <span class="o">=</span> <span class="n">interp_highfreq</span>
         <span class="n">interp_options_default</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;phase_method&quot;</span> <span class="p">:</span> <span class="s2">&quot;phasor&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;radial_method&quot;</span> <span class="p">:</span> <span class="s1">&#39;cubic&#39;</span><span class="p">,</span>
-            <span class="s2">&quot;upsample_factor&quot;</span> <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-            <span class="s2">&quot;coherency_cutoff_threshold&quot;</span> <span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
-            <span class="s2">&quot;allow_extrapolation&quot;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;ignore_cutoff_freq_in_timing&quot;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;verbose&quot;</span> <span class="p">:</span> <span class="kc">False</span>
+            <span class="s2">"phase_method"</span> <span class="p">:</span> <span class="s2">"phasor"</span><span class="p">,</span>
+            <span class="s2">"radial_method"</span> <span class="p">:</span> <span class="s1">'cubic'</span><span class="p">,</span>
+            <span class="s2">"upsample_factor"</span> <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="s2">"coherency_cutoff_threshold"</span> <span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span>
+            <span class="s2">"allow_extrapolation"</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"ignore_cutoff_freq_in_timing"</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"verbose"</span> <span class="p">:</span> <span class="kc">False</span>
         <span class="p">}</span>
         <span class="n">interp_options</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">interp_options_default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">}</span>  <span class="c1"># merge the dicts, making sure kwargs overwrite defaults</span>
 
@@ -970,9 +970,9 @@
         <span class="c1"># Use closest observer when geomagnetic angle is smaller than 15deg</span>
         <span class="k">if</span> <span class="n">geomagnetic_angle</span> <span class="o">&lt;</span> <span class="mi">15</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s1">&#39;The geomagnetic angle is </span><span class="si">{</span><span class="n">geomagnetic_angle</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> deg, &#39;</span>
-                <span class="sa">f</span><span class="s1">&#39;which is smaller than 15deg, which is the lower limit for the signal interpolation. &#39;</span>
-                <span class="sa">f</span><span class="s1">&#39;The closest observer is used instead.&#39;</span>
+                <span class="sa">f</span><span class="s1">'The geomagnetic angle is </span><span class="si">{</span><span class="n">geomagnetic_angle</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> deg, '</span>
+                <span class="sa">f</span><span class="s1">'which is smaller than 15deg, which is the lower limit for the signal interpolation. '</span>
+                <span class="sa">f</span><span class="s1">'The closest observer is used instead.'</span>
             <span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">efield_interpolator</span> <span class="o">=</span> <span class="n">cr_pulse_interpolator</span><span class="o">.</span><span class="n">interpolation_fourier</span><span class="o">.</span><span class="n">interp2d_fourier</span><span class="p">(</span>
@@ -982,11 +982,11 @@
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s1">&#39;Initialising electric field interpolator with lowfreq </span><span class="si">{</span><span class="n">interp_lowfreq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">}</span><span class="s1"> MHz &#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;and highfreq </span><span class="si">{</span><span class="n">interp_highfreq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">}</span><span class="s1"> MHz&#39;</span>
+            <span class="sa">f</span><span class="s1">'Initialising electric field interpolator with lowfreq </span><span class="si">{</span><span class="n">interp_lowfreq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">}</span><span class="s1"> MHz '</span>
+            <span class="sa">f</span><span class="s1">'and highfreq </span><span class="si">{</span><span class="n">interp_highfreq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">}</span><span class="s1"> MHz'</span>
         <span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s1">&#39;The following interpolation settings are used: </span><span class="si">{</span><span class="n">interp_options</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="sa">f</span><span class="s1">'The following interpolation settings are used: </span><span class="si">{</span><span class="n">interp_options</span><span class="si">}</span><span class="s1">'</span>
         <span class="p">)</span>
 
         <span class="c1"># Rotate the electric field polarizations if necessary</span>
@@ -1012,7 +1012,7 @@
 <div class="viewcode-block" id="coreasInterpolator.initialize_fluence_interpolator">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.initialize_fluence_interpolator">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">initialize_fluence_interpolator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">quantity</span><span class="o">=</span><span class="n">efp</span><span class="o">.</span><span class="n">signal_energy_fluence</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initialise fluence interpolator.</span>
 
 <span class="sd">        Initialize the fluence interpolator using the values stored in the ``quantity`` parameter of the electric</span>
@@ -1027,18 +1027,18 @@
 <span class="sd">        **kwargs: options to pass on to the `interp2d_fourier` class</span>
 <span class="sd">            Default values are:</span>
 
-<span class="sd">            - radial_method : &#39;cubic&#39;</span>
+<span class="sd">            - radial_method : 'cubic'</span>
 <span class="sd">            - fill_value : None</span>
 <span class="sd">            - recover_concentric_rings : False</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        fluence_interpolator : interpolator object</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">interp_options_default</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;radial_method&quot;</span> <span class="p">:</span> <span class="s1">&#39;cubic&#39;</span><span class="p">,</span>
-            <span class="s2">&quot;fill_value&quot;</span> <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="s2">&quot;recover_concentric_rings&quot;</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"radial_method"</span> <span class="p">:</span> <span class="s1">'cubic'</span><span class="p">,</span>
+            <span class="s2">"fill_value"</span> <span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">"recover_concentric_rings"</span> <span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
         <span class="p">}</span>
         <span class="n">interp_options</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">interp_options_default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">}</span>  <span class="c1"># merge the dicts, making sure kwargs overwrite defaults</span>
 
@@ -1046,8 +1046,8 @@
             <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">efield</span><span class="p">[</span><span class="n">quantity</span><span class="p">])</span> <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">()</span>
         <span class="p">]</span>  <span class="c1"># the fluence is calculated per polarization, so we need to sum them up</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Initialising fluence interpolator&#39;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The following interpolation settings are used: </span><span class="si">{</span><span class="n">interp_options</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Initialising fluence interpolator'</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">'The following interpolation settings are used: </span><span class="si">{</span><span class="n">interp_options</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">fluence_interpolator</span> <span class="o">=</span> <span class="n">cr_pulse_interpolator</span><span class="o">.</span><span class="n">interpolation_fourier</span><span class="o">.</span><span class="n">interp2d_fourier</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">obs_positions_showerplane</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
@@ -1063,7 +1063,7 @@
 <div class="viewcode-block" id="coreasInterpolator.get_position_showerplane">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_position_showerplane">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_position_showerplane</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_on_ground</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Transform the position of the antenna on ground to the shower plane.</span>
 
 <span class="sd">        Notes</span>
@@ -1078,20 +1078,20 @@
 <span class="sd">            Position of the antenna on ground</span>
 <span class="sd">            This value can either be a 2D array (x, y) or a 3D array (x, y, z). If the z-coordinate is missing, the</span>
 <span class="sd">            z-coordinate is automatically set to the observation level of the simulation.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">core</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">position_on_ground</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
             <span class="n">position_on_ground</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">position_on_ground</span><span class="p">,</span> <span class="n">core</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;The antenna position is given in 2D, assuming the antenna is on the ground. &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;The z-coordinate is set to the observation level </span><span class="si">{</span><span class="n">core</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">m&quot;</span>
+                <span class="sa">f</span><span class="s2">"The antenna position is given in 2D, assuming the antenna is on the ground. "</span>
+                <span class="sa">f</span><span class="s2">"The z-coordinate is set to the observation level </span><span class="si">{</span><span class="n">core</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">m"</span>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="nb">abs</span><span class="p">(</span><span class="n">position_on_ground</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">core</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;The antenna z-coordinate </span><span class="si">{</span><span class="n">position_on_ground</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2"> differs significantly from &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;the observation level </span><span class="si">{</span><span class="n">core</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">. This behaviour is not tested, so only proceed &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;if you know what you are doing.&quot;</span>
+                <span class="sa">f</span><span class="s2">"The antenna z-coordinate </span><span class="si">{</span><span class="n">position_on_ground</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2"> differs significantly from "</span>
+                <span class="sa">f</span><span class="s2">"the observation level </span><span class="si">{</span><span class="n">core</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">. This behaviour is not tested, so only proceed "</span>
+                <span class="sa">f</span><span class="s2">"if you know what you are doing."</span>
             <span class="p">)</span>
 
         <span class="n">antenna_pos_showerplane</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cs</span><span class="o">.</span><span class="n">transform_to_vxB_vxvxB</span><span class="p">(</span><span class="n">position_on_ground</span><span class="p">,</span> <span class="n">core</span><span class="o">=</span><span class="n">core</span><span class="p">)</span>
@@ -1101,8 +1101,8 @@
 
 <div class="viewcode-block" id="coreasInterpolator.get_interp_efield_value">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_efield_value">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_interp_efield_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_on_ground</span><span class="p">,</span> <span class="n">cs_transform</span><span class="o">=</span><span class="s1">&#39;no_transform&#39;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_interp_efield_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_on_ground</span><span class="p">,</span> <span class="n">cs_transform</span><span class="o">=</span><span class="s1">'no_transform'</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the interpolated electric field given an antenna position on ground.</span>
 
 <span class="sd">        Notes</span>
@@ -1121,11 +1121,11 @@
 <span class="sd">            Position of the antenna on ground</span>
 <span class="sd">            This value can either be a 2D array (x, y) or a 3D array (x, y, z). If the z-coordinate is missing, the</span>
 <span class="sd">            z-coordinate is automatically set to the observation level of the simulation.</span>
-<span class="sd">        cs_transform: {&#39;no_transform&#39;, &#39;sky_to_ground&#39;}, default=&#39;no_transform&#39;</span>
-<span class="sd">            Optional coordinate system transformation to apply to the interpolated electric field. If &#39;no_transform&#39;,</span>
+<span class="sd">        cs_transform: {'no_transform', 'sky_to_ground'}, default='no_transform'</span>
+<span class="sd">            Optional coordinate system transformation to apply to the interpolated electric field. If 'no_transform',</span>
 <span class="sd">            the default, the electric field is returned in the same coordinate system as it was stored in the Event</span>
 <span class="sd">            used for initialisation (usually on-sky).</span>
-<span class="sd">            If &#39;sky_to_ground&#39;, the electric field is transformed to the ground coordinate system using the</span>
+<span class="sd">            If 'sky_to_ground', the electric field is transformed to the ground coordinate system using the</span>
 <span class="sd">            `cstrafo.transform_from_onsky_to_ground()` function.</span>
 
 <span class="sd">        Returns</span>
@@ -1134,13 +1134,13 @@
 <span class="sd">            Interpolated efield value</span>
 <span class="sd">        trace_start_time : float</span>
 <span class="sd">            Start time of the trace</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Getting interpolated efield for antenna position </span><span class="si">{</span><span class="n">position_on_ground</span><span class="si">}</span><span class="s2"> on ground&quot;</span>
+            <span class="sa">f</span><span class="s2">"Getting interpolated efield for antenna position </span><span class="si">{</span><span class="n">position_on_ground</span><span class="si">}</span><span class="s2"> on ground"</span>
         <span class="p">)</span>
 
         <span class="n">antenna_pos_showerplane</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_position_showerplane</span><span class="p">(</span><span class="n">position_on_ground</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The antenna position in shower plane is </span><span class="si">{</span><span class="n">antenna_pos_showerplane</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The antenna position in shower plane is </span><span class="si">{</span><span class="n">antenna_pos_showerplane</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="c1"># interpolate electric field at antenna position in shower plane which are inside star pattern</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">efield_interpolator_initialized</span><span class="p">:</span>
@@ -1164,7 +1164,7 @@
                 <span class="n">efield_interp</span><span class="p">,</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">rot_x</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">__efields_rotation_angle</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">)</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">cs_transform</span> <span class="o">==</span> <span class="s1">&#39;sky_to_ground&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cs_transform</span> <span class="o">==</span> <span class="s1">'sky_to_ground'</span><span class="p">:</span>
             <span class="n">efield_interp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cs</span><span class="o">.</span><span class="n">transform_from_onsky_to_ground</span><span class="p">(</span><span class="n">efield_interp</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">efield_interp</span><span class="p">,</span> <span class="n">trace_start_time</span></div>
@@ -1173,7 +1173,7 @@
 <div class="viewcode-block" id="coreasInterpolator.get_interp_fluence_value">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_interp_fluence_value">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_interp_fluence_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_on_ground</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the interpolated fluence for a given position on the ground.</span>
 
 <span class="sd">        Notes</span>
@@ -1194,13 +1194,13 @@
 <span class="sd">        -------</span>
 <span class="sd">        fluence_interp : float</span>
 <span class="sd">            interpolated fluence value</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Getting interpolated fluence for antenna position </span><span class="si">{</span><span class="n">position_on_ground</span><span class="si">}</span><span class="s2"> on ground&quot;</span>
+            <span class="sa">f</span><span class="s2">"Getting interpolated fluence for antenna position </span><span class="si">{</span><span class="n">position_on_ground</span><span class="si">}</span><span class="s2"> on ground"</span>
         <span class="p">)</span>
 
         <span class="n">antenna_pos_showerplane</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_position_showerplane</span><span class="p">(</span><span class="n">position_on_ground</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The antenna position in shower plane is </span><span class="si">{</span><span class="n">antenna_pos_showerplane</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The antenna position in shower plane is </span><span class="si">{</span><span class="n">antenna_pos_showerplane</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="c1"># interpolate fluence at antenna position, letting interpolator handle extrapolation</span>
         <span class="n">fluence_interp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fluence_interpolator</span><span class="p">(</span><span class="n">antenna_pos_showerplane</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">antenna_pos_showerplane</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -1211,7 +1211,7 @@
 <div class="viewcode-block" id="coreasInterpolator.get_closest_observer_efield">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.get_closest_observer_efield">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_closest_observer_efield</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">antenna_pos_showerplane</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the electric field of the closest observer position for an antenna position in the shower plane.</span>
 
 <span class="sd">        The start time of the trace is also returned, by interpolating the start times of the electric field traces.</span>
@@ -1231,7 +1231,7 @@
 <span class="sd">            electric field, as an array shaped</span>
 <span class="sd">        efield_start_time: float</span>
 <span class="sd">            The start time of the selected electric field trace (in internal units)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">antenna_pos_showerplane</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_positions_showerplane</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
         <span class="n">efield</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">electric_field_on_sky</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
@@ -1239,8 +1239,8 @@
         <span class="c1"># is also in internal units, ie no need to multiply with units.second here</span>
         <span class="n">efield_start_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">efield_interpolator</span><span class="p">(</span><span class="o">*</span><span class="n">antenna_pos_showerplane</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s1">&#39;Returning the electric field of the closest observer position, &#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;which is </span><span class="si">{</span><span class="n">distances</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">m away from the antenna, the time is interpolated&#39;</span>
+            <span class="sa">f</span><span class="s1">'Returning the electric field of the closest observer position, '</span>
+            <span class="sa">f</span><span class="s1">'which is </span><span class="si">{</span><span class="n">distances</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">m away from the antenna, the time is interpolated'</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">efield</span><span class="p">,</span> <span class="n">efield_start_time</span></div>
 
@@ -1248,7 +1248,7 @@
 <div class="viewcode-block" id="coreasInterpolator.plot_fluence_footprint">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#NuRadioReco.modules.io.coreas.coreasInterpolator.coreasInterpolator.plot_fluence_footprint">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_fluence_footprint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        plots the interpolated values of the fluence in the shower plane</span>
 
 <span class="sd">        Parameters</span>
@@ -1260,9 +1260,9 @@
 <span class="sd">        -------</span>
 <span class="sd">        fig : figure object</span>
 <span class="sd">        ax : axis object</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fluence_interpolator_initialized</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;The fluence interpolator was not initialized, call initialize_fluence_interpolator first&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">'The fluence interpolator was not initialized, call initialize_fluence_interpolator first'</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
 
         <span class="c1"># Make color plot of f(x, y), using a meshgrid</span>
@@ -1279,12 +1279,12 @@
         <span class="n">mm</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">gnuplot2_r</span><span class="p">)</span>
         <span class="n">mm</span><span class="o">.</span><span class="n">set_array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">maxp</span><span class="p">])</span>
         <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mm</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
-        <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;energy fluence [eV/m^2]&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\vec</span><span class="si">{v}</span><span class="s1"> \times \vec</span><span class="si">{B}</span><span class="s1"> [m]&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\vec</span><span class="si">{v}</span><span class="s1"> \times (\vec</span><span class="si">{v}</span><span class="s1"> \times \vec</span><span class="si">{B}</span><span class="s1">)$ [m]&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="sa">r</span><span class="s1">'energy fluence [eV/m^2]'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">'$\vec</span><span class="si">{v}</span><span class="s1"> \times \vec</span><span class="si">{B}</span><span class="s1"> [m]'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">'$\vec</span><span class="si">{v}</span><span class="s1"> \times (\vec</span><span class="si">{v}</span><span class="s1"> \times \vec</span><span class="si">{B}</span><span class="s1">)$ [m]'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="n">radius</span><span class="p">,</span> <span class="n">radius</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">'equal'</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div>
 </div>
 

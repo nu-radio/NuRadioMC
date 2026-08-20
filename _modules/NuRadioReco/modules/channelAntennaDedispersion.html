@@ -656,45 +656,45 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector.antennapattern</span><span class="w"> </span><span class="kn">import</span> <span class="n">AntennaPatternProvider</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.channelAntennaDedispersion&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.channelAntennaDedispersion'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="channelAntennaDedispersion">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelAntennaDedispersion.html#NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelAntennaDedispersion</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    The goal of this module is to unfold the group delay (i.e., dedispersing the channel signal) introduced by the</span>
 <span class="sd">    antenna at a point where the direction of the incoming signal is not known. Hence, we choose the most sensitive</span>
 <span class="sd">    direction (and polarisation) for each antenna as a proxy. The goal is to improve the signal-to-noise ratio on</span>
 <span class="sd">    the channel level.</span>
 
 <span class="sd">    For a proper reconstruction of the electric field, please look at the voltage2EFieldConverter module.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">additional_antennas</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        additional_antennas: dict, optional</span>
 <span class="sd">            A dictionary with antenna names as keys and the most sensitive direction (zenith, azimuth) relative to the antenna orientation</span>
 <span class="sd">            as values to add to the default list of antennas.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span> <span class="o">=</span> <span class="n">AntennaPatternProvider</span><span class="p">()</span>
 
         <span class="c1"># relative to the antenna orientation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">antennas_most_sensitive_directions</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;LPDA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="c1"># the sensitive direction of an LPDA is the boresight direction</span>
-            <span class="s2">&quot;bicone&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="c1"># the sensitive direction of a dipole is perpendicular to its orientation</span>
-            <span class="s2">&quot;vpol&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="c1"># the sensitive direction of a dipole is perpendicular to its orientation</span>
-            <span class="s2">&quot;hpol&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="c1"># the sensitive direction of a dipole is along it&#39;s direction</span>
+            <span class="s2">"LPDA"</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="c1"># the sensitive direction of an LPDA is the boresight direction</span>
+            <span class="s2">"bicone"</span><span class="p">:</span> <span class="p">[</span><span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="c1"># the sensitive direction of a dipole is perpendicular to its orientation</span>
+            <span class="s2">"vpol"</span><span class="p">:</span> <span class="p">[</span><span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="c1"># the sensitive direction of a dipole is perpendicular to its orientation</span>
+            <span class="s2">"hpol"</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="c1"># the sensitive direction of a dipole is along it's direction</span>
         <span class="p">}</span>
 
         <span class="k">if</span> <span class="n">additional_antennas</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">additional_antennas</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;To add antennas provide a dictionary with antenna names as keys and direction arrays as values&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"To add antennas provide a dictionary with antenna names as keys and direction arrays as values"</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">ant_name</span><span class="p">,</span> <span class="n">direction</span> <span class="ow">in</span> <span class="n">additional_antennas</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Antenna direction for </span><span class="si">{</span><span class="n">ant_name</span><span class="si">}</span><span class="s2"> requires zenith and azimuth&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Antenna direction for </span><span class="si">{</span><span class="n">ant_name</span><span class="si">}</span><span class="s2"> requires zenith and azimuth"</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">antennas_most_sensitive_directions</span><span class="p">[</span><span class="n">ant_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">direction</span>
 
 
@@ -707,16 +707,16 @@
             <span class="p">(</span><span class="n">key_name</span> <span class="k">for</span> <span class="n">key_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">antennas_most_sensitive_directions</span> <span class="k">if</span> <span class="n">key_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">antenna_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()),</span> <span class="kc">None</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Antenna name </span><span class="si">{</span><span class="n">antenna_name</span><span class="si">}</span><span class="s2"> can&#39;t be interpreted. &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;Available names are: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">antennas_most_sensitive_directions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Antenna name </span><span class="si">{</span><span class="n">antenna_name</span><span class="si">}</span><span class="s2"> can't be interpreted. "</span>
+                <span class="sa">f</span><span class="s2">"Available names are: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">antennas_most_sensitive_directions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">zen</span> <span class="o">=</span> <span class="n">zen_ori</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">antennas_most_sensitive_directions</span><span class="p">[</span><span class="n">match</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">az</span> <span class="o">=</span> <span class="n">az_ori</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">antennas_most_sensitive_directions</span><span class="p">[</span><span class="n">match</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="n">VEL</span> <span class="o">=</span> <span class="n">antenna</span><span class="o">.</span><span class="n">get_antenna_response_vectorized</span><span class="p">(</span><span class="n">ff</span><span class="p">,</span> <span class="n">zen</span><span class="p">,</span> <span class="n">az</span><span class="p">,</span> <span class="n">zen_ori</span><span class="p">,</span> <span class="n">az_ori</span><span class="p">,</span> <span class="n">zen_rot</span><span class="p">,</span> <span class="n">az_rot</span><span class="p">)</span>
-        <span class="n">polarization</span> <span class="o">=</span> <span class="s2">&quot;phi&quot;</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">VEL</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]))</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">VEL</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">])):</span>
-            <span class="n">polarization</span> <span class="o">=</span> <span class="s2">&quot;theta&quot;</span>
+        <span class="n">polarization</span> <span class="o">=</span> <span class="s2">"phi"</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">VEL</span><span class="p">[</span><span class="s1">'theta'</span><span class="p">]))</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">VEL</span><span class="p">[</span><span class="s1">'phi'</span><span class="p">])):</span>
+            <span class="n">polarization</span> <span class="o">=</span> <span class="s2">"theta"</span>
 
         <span class="n">response</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">VEL</span><span class="p">[</span><span class="n">polarization</span><span class="p">]))</span>
         <span class="k">return</span> <span class="n">response</span>
@@ -726,7 +726,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelAntennaDedispersion.html#NuRadioReco.modules.channelAntennaDedispersion.channelAntennaDedispersion.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Unfold the group delay introduced by the antenna for each channel without proper</span>
 <span class="sd">        knowledge of the incoming signal direction.</span>
 
@@ -740,7 +740,7 @@
 <span class="sd">            The detector containing the antenna information.</span>
 <span class="sd">        debug: bool, optional</span>
 <span class="sd">            If True, plots the trace before and after dedispersion for debugging purposes. Default is False.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
             <span class="n">ff</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
@@ -759,7 +759,7 @@
 
             <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
                 <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">tt</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">tt</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="s1">'--'</span><span class="p">)</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
 

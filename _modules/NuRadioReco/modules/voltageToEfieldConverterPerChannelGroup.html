@@ -664,16 +664,16 @@
 <div class="viewcode-block" id="voltageToEfieldConverterPerChannelGroup">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html#NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">voltageToEfieldConverterPerChannelGroup</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    This module is intended to reconstruct the electric field from dual-polarized antennas,</span>
 <span class="sd">    i.e., two antennas with orthogonal polarizations combined in one mechanical structure.</span>
 <span class="sd">    This is the typical case for air-shower detectors such as Auger and LOFAR.</span>
 
 <span class="sd">    Converts voltage trace to electric field per channel group.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.voltageToEfieldConverterPerChannelGroup&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.voltageToEfieldConverterPerChannelGroup'</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">antenna_provider</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__counter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
@@ -681,14 +681,14 @@
 <div class="viewcode-block" id="voltageToEfieldConverterPerChannelGroup.begin">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html#NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_MC_direction</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initializes the module</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        use_MC_direction: bool</span>
 <span class="sd">            If True, the MC direction is used for the reconstruction. If False, the reconstructed angles are used.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">antenna_provider</span> <span class="o">=</span> <span class="n">antennapattern</span><span class="o">.</span><span class="n">AntennaPatternProvider</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__use_MC_direction</span> <span class="o">=</span> <span class="n">use_MC_direction</span></div>
 
@@ -697,7 +697,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.html#NuRadioReco.modules.voltageToEfieldConverterPerChannelGroup.voltageToEfieldConverterPerChannelGroup.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Performs computation for voltage trace to electric field per channel</span>
 
 <span class="sd">        Will provide a deconvoluted (electric field) trace for each channel from the stations input voltage traces</span>
@@ -710,16 +710,16 @@
 <span class="sd">            the station data structure</span>
 <span class="sd">        det: detector object</span>
 <span class="sd">            the detector object</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__use_MC_direction</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">station</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">station</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">zenith</span><span class="p">):</span>
                 <span class="n">zenith</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()[</span><span class="n">stnp</span><span class="o">.</span><span class="n">zenith</span><span class="p">]</span>
                 <span class="n">azimuth</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()[</span><span class="n">stnp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MC direction requested but no simulation present in station </span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;MC direction requested but no simulation present&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"MC direction requested but no simulation present in station </span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"MC direction requested but no simulation present"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Using reconstructed angles as no simulation present&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Using reconstructed angles as no simulation present"</span><span class="p">)</span>
             <span class="n">zenith</span> <span class="o">=</span> <span class="n">station</span><span class="p">[</span><span class="n">stnp</span><span class="o">.</span><span class="n">zenith</span><span class="p">]</span>
             <span class="n">azimuth</span> <span class="o">=</span> <span class="n">station</span><span class="p">[</span><span class="n">stnp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">]</span>
 

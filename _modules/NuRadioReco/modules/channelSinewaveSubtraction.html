@@ -665,18 +665,18 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.modules.channelSinewaveSubtraction&quot;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.modules.channelSinewaveSubtraction"</span><span class="p">)</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="sd">This module provides a class for continuous wave (CW) noise filtering using sine subtraction.</span>
 <span class="sd">In contrast to the module channelCWNOtchFilter, which uses a notch filter to remove CW noise.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 
 <div class="viewcode-block" id="channelSinewaveSubtraction">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSinewaveSubtraction.html#NuRadioReco.modules.channelSinewaveSubtraction.channelSinewaveSubtraction">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelSinewaveSubtraction</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Continuous wave (CW) filter module. Uses sine subtraction based on scipy curve_fit. &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" Continuous wave (CW) filter module. Uses sine subtraction based on scipy curve_fit. """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">freq_band</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">removed_freqs</span> <span class="o">=</span> <span class="kc">None</span>
@@ -685,7 +685,7 @@
 <div class="viewcode-block" id="channelSinewaveSubtraction.begin">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSinewaveSubtraction.html#NuRadioReco.modules.channelSinewaveSubtraction.channelSinewaveSubtraction.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_filtered_freqs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">freq_band</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initialize the CW filter module.</span>
 
 <span class="sd">        Parameters</span>
@@ -696,7 +696,7 @@
 <span class="sd">            Frequency band to calculate baseline RMS of fft spectrum. Used to identify noise peaks.</span>
 <span class="sd">            0.1 to 0.7 GHz is the default for RNO-G, based on bandpass.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">freq_band</span> <span class="o">=</span> <span class="n">freq_band</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">removed_freqs</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">save_filtered_freqs</span> <span class="k">else</span> <span class="kc">None</span></div>
 
@@ -705,8 +705,8 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSinewaveSubtraction.html#NuRadioReco.modules.channelSinewaveSubtraction.channelSinewaveSubtraction.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">,</span> <span class="n">station</span><span class="p">:</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">station</span><span class="o">.</span><span class="n">Station</span><span class="p">,</span>
-        <span class="n">det</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;sliding&#39;</span><span class="p">,</span> <span class="n">peak_prominence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+        <span class="n">det</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">'sliding'</span><span class="p">,</span> <span class="n">peak_prominence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Run the CW filter module on a given event and station. Removes all the CW peaks &gt; peak_prominence * RMS.</span>
 
 <span class="sd">        Parameters</span>
@@ -717,13 +717,13 @@
 <span class="sd">            Station object to process.</span>
 <span class="sd">        det: `NuRadioReco.detector.detector.Detector` (default: None)</span>
 <span class="sd">            Detector object to process.</span>
-<span class="sd">        algorithm: str (default: &#39;simple&#39;)</span>
+<span class="sd">        algorithm: str (default: 'simple')</span>
 <span class="sd">            Algorithm to search for peaks:</span>
-<span class="sd">            &#39;simple&#39; search for narrow &lt; 10 MHz peaks which &gt; peak_prominence * RMS within freq band</span>
-<span class="sd">            &#39;sliding&#39; search for narrow &lt; 10 MHz peaks which &gt; peak_prominence * RMS within 100 MHz sliding window</span>
+<span class="sd">            'simple' search for narrow &lt; 10 MHz peaks which &gt; peak_prominence * RMS within freq band</span>
+<span class="sd">            'sliding' search for narrow &lt; 10 MHz peaks which &gt; peak_prominence * RMS within 100 MHz sliding window</span>
 <span class="sd">        peak_prominence: float (default: 4.0)</span>
 <span class="sd">            Threshold for identifying prominent peaks in the FFT spectrum.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">removed_freqs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
             <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
@@ -738,7 +738,7 @@
 <div class="viewcode-block" id="channelSinewaveSubtraction.get_filtered_frequencies">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSinewaveSubtraction.html#NuRadioReco.modules.channelSinewaveSubtraction.channelSinewaveSubtraction.get_filtered_frequencies">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_filtered_frequencies</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get the list of identified noise frequencies for each channel. &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Get the list of identified noise frequencies for each channel. """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">removed_freqs</span></div>
 </div>
 
@@ -746,7 +746,7 @@
 <div class="viewcode-block" id="guess_amplitude">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSinewaveSubtraction.html#NuRadioReco.modules.channelSinewaveSubtraction.guess_amplitude">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">guess_amplitude</span><span class="p">(</span><span class="n">wf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">target_freq</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.2</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Estimate the amplitude of a specific harmonic in the waveform.</span>
 
 <span class="sd">    Parameters</span>
@@ -762,12 +762,12 @@
 <span class="sd">    -------</span>
 <span class="sd">    ampl: float</span>
 <span class="sd">        Estimated amplitude of the target frequency.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">wf</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input waveform is empty.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Input waveform is empty."</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">target_freq</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">target_freq</span> <span class="o">&gt;</span> <span class="n">sampling_rate</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Target frequency is out of range (0 to Nyquist frequency).&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Target frequency is out of range (0 to Nyquist frequency)."</span><span class="p">)</span>
 
     <span class="n">frequencies</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wf</span><span class="p">),</span> <span class="n">sampling_rate</span><span class="p">)</span>
 
@@ -784,7 +784,7 @@
 <div class="viewcode-block" id="guess_amplitude_iir">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSinewaveSubtraction.html#NuRadioReco.modules.channelSinewaveSubtraction.guess_amplitude_iir">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">guess_amplitude_iir</span><span class="p">(</span><span class="n">wf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">target_freq</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.2</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Estimate the amplitude of a specific frequency using an IIR filter representation of Goertzel.</span>
 
 <span class="sd">    Parameters</span>
@@ -800,16 +800,16 @@
 <span class="sd">    -------</span>
 <span class="sd">    amplitude: float</span>
 <span class="sd">        Estimated amplitude at the target frequency.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">wf</span><span class="p">)):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input signal contains NaNs!&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Input signal contains NaNs!"</span><span class="p">)</span>
 
     <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wf</span><span class="p">)</span>  <span class="c1"># Number of samples</span>
     <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">+</span> <span class="p">(</span><span class="n">N</span> <span class="o">*</span> <span class="n">target_freq</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">))</span>  <span class="c1"># Frequency bin index</span>
     <span class="n">omega</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">k</span><span class="p">)</span> <span class="o">/</span> <span class="n">N</span>  <span class="c1"># Angular frequency</span>
     <span class="n">scaling_factor</span> <span class="o">=</span> <span class="n">N</span> <span class="o">/</span> <span class="mf">2.0</span>
 
-    <span class="c1"># IIR filter coefficients derived from Goertzel&#39;s difference equation</span>
+    <span class="c1"># IIR filter coefficients derived from Goertzel's difference equation</span>
     <span class="n">b</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>  <span class="c1"># Numerator coefficients</span>
     <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">omega</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">]</span>  <span class="c1"># Denominator coefficients</span>
     <span class="c1"># Apply the filter</span>
@@ -830,7 +830,7 @@
 <div class="viewcode-block" id="guess_phase">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSinewaveSubtraction.html#NuRadioReco.modules.channelSinewaveSubtraction.guess_phase">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">guess_phase</span><span class="p">(</span><span class="n">fft_spec</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">freqs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">target_freq</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Estimate the phase of a specific frequency in the FFT spectrum.</span>
 
 <span class="sd">    Parameters</span>
@@ -848,7 +848,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    phase: float</span>
 <span class="sd">        Estimated phase of the target frequency.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Find phase of the target frequency</span>
     <span class="n">bin_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">freqs</span> <span class="o">-</span> <span class="n">target_freq</span><span class="p">))</span>
     <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">fft_spec</span><span class="p">[</span><span class="n">bin_index</span><span class="p">])</span>
@@ -858,18 +858,18 @@
 
 <div class="viewcode-block" id="sinewave_subtraction">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSinewaveSubtraction.html#NuRadioReco.modules.channelSinewaveSubtraction.sinewave_subtraction">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">sinewave_subtraction</span><span class="p">(</span><span class="n">wf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span>  <span class="n">peak_prominence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.2</span><span class="p">,</span> <span class="n">freq_band</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">)):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sinewave_subtraction</span><span class="p">(</span><span class="n">wf</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">'simple'</span><span class="p">,</span>  <span class="n">peak_prominence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.2</span><span class="p">,</span> <span class="n">freq_band</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">)):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Perform sine subtraction on a waveform to remove CW noise.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    wf: np.ndarray</span>
 <span class="sd">        Input waveform (1D array).</span>
-<span class="sd">    algoritm: string (default: &#39;simple&#39;)</span>
+<span class="sd">    algoritm: string (default: 'simple')</span>
 <span class="sd">        algorithm to search for peaks:</span>
-<span class="sd">        &#39;simple&#39; search for narrow &lt; 10 MHz peaks which &gt; peak_prominence * RMS withing freq band</span>
-<span class="sd">        &#39;sliding&#39; search for narrow &lt; 10 MHz peaks which &gt; peak_prominence * RMS withing 50 MHz sliding window</span>
+<span class="sd">        'simple' search for narrow &lt; 10 MHz peaks which &gt; peak_prominence * RMS withing freq band</span>
+<span class="sd">        'sliding' search for narrow &lt; 10 MHz peaks which &gt; peak_prominence * RMS withing 50 MHz sliding window</span>
 <span class="sd">    sampling_rate: float (default: 3.2)</span>
 <span class="sd">        Sampling rate of the waveform (GHz).</span>
 <span class="sd">    peak_prominance: float (default: 6.0)</span>
@@ -883,7 +883,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    np.ndarray</span>
 <span class="sd">        Corrected waveform with CW noise removed.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 
     <span class="n">dt</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">sampling_rate</span> <span class="c1"># in ns</span>
@@ -914,7 +914,7 @@
 
     <span class="n">peak_width_limit</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span> <span class="o">/</span> <span class="n">delta_f</span><span class="p">)</span> <span class="c1">#10 MHz</span>
 
-    <span class="k">if</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;simple&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s1">'simple'</span><span class="p">:</span>
         <span class="c1"># Compute RMS in the selected frequency band</span>
         <span class="n">rms_band</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">spec_roi</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
 
@@ -922,7 +922,7 @@
         <span class="n">peak_idxs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">find_peaks</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">peak_prominence</span> <span class="o">*</span> <span class="n">rms_band</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">peak_width_limit</span><span class="p">))</span>
 
 
-    <span class="k">elif</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;sliding&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s1">'sliding'</span><span class="p">:</span>
         <span class="n">spec_roi</span> <span class="o">=</span> <span class="n">spec</span><span class="p">[</span><span class="n">band_mask</span><span class="p">]</span>
         <span class="n">freq_roi</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">[</span><span class="n">band_mask</span><span class="p">]</span>
         <span class="c1"># Compute RMS in a sliding window</span>
@@ -967,7 +967,7 @@
                 <span class="c1"># Start a new group with the current peak</span>
                 <span class="n">group</span> <span class="o">=</span> <span class="p">[</span><span class="n">peak_idxs</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
 
-        <span class="c1"># Don&#39;t forget to append the last group</span>
+        <span class="c1"># Don't forget to append the last group</span>
         <span class="k">if</span> <span class="n">group</span><span class="p">:</span>
             <span class="n">noise_freqs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">freqs</span><span class="p">[</span><span class="n">group</span><span class="p">]))</span>
 
@@ -986,33 +986,33 @@
                 <span class="n">params</span><span class="p">,</span> <span class="n">covariance</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">sinusoid</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">wf</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="n">initial_guess</span><span class="p">)</span>
                 <span class="c1"># Check if any parameters are NaN or Inf</span>
                 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">params</span><span class="p">))</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">params</span><span class="p">)):</span>
-                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Fit returned invalid parameters.&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"Fit returned invalid parameters."</span><span class="p">)</span>
 
                 <span class="n">estimated_amplitude</span><span class="p">,</span> <span class="n">estimated_freq</span><span class="p">,</span> <span class="n">estimated_phase</span> <span class="o">=</span> <span class="n">params</span>
 
                 <span class="n">filtered_freqs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">estimated_freq</span><span class="p">)</span>
                 <span class="c1"># Check if the covariance matrix is invalid</span>
                 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">covariance</span><span class="p">))</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">covariance</span><span class="p">)):</span>
-                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Fit covariance matrix is invalid, fit may not have converged.&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"Fit covariance matrix is invalid, fit may not have converged."</span><span class="p">)</span>
 
                 <span class="c1"># Generate the estimated CW noise</span>
                 <span class="n">estimated_cw_noise</span> <span class="o">=</span> <span class="n">sinusoid</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">estimated_amplitude</span><span class="p">,</span> <span class="n">estimated_freq</span><span class="p">,</span><span class="n">estimated_phase</span><span class="p">)</span>
 
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Subtract sinewave with a frequency: </span><span class="si">{</span><span class="n">estimated_freq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MHz, &quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;an amplitude: </span><span class="si">{</span><span class="n">estimated_amplitude</span><span class="si">:</span><span class="s2">.1e</span><span class="si">}</span><span class="s2"> V/GHz and a phase: </span><span class="si">{</span><span class="n">estimated_phase</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> deg&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Subtract sinewave with a frequency: </span><span class="si">{</span><span class="n">estimated_freq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MHz, "</span>
+                            <span class="sa">f</span><span class="s2">"an amplitude: </span><span class="si">{</span><span class="n">estimated_amplitude</span><span class="si">:</span><span class="s2">.1e</span><span class="si">}</span><span class="s2"> V/GHz and a phase: </span><span class="si">{</span><span class="n">estimated_phase</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> deg"</span><span class="p">)</span>
 
                 <span class="c1"># Subtract the estimated CW noise</span>
                 <span class="n">corrected_waveform</span> <span class="o">-=</span> <span class="n">estimated_cw_noise</span>
                 <span class="n">power_after_subtraction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">corrected_waveform</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Power reduction: </span><span class="si">{</span><span class="mi">100</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">power_after_subtraction</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">power_orig</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Power reduction: </span><span class="si">{</span><span class="mi">100</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">power_after_subtraction</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">power_orig</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%"</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">power_orig</span> <span class="o">&lt;</span> <span class="n">power_after_subtraction</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Power increased after subtraction. Skipping this frequency.&quot;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Power increased after subtraction. Skipping this frequency."</span><span class="p">)</span>
                     <span class="n">corrected_waveform</span> <span class="o">+=</span> <span class="n">estimated_cw_noise</span>
-                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Power increased after subtraction. Reverse subtraction.&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"Power increased after subtraction. Reverse subtraction."</span><span class="p">)</span>
 
             <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Curve fitting failed for frequency: </span><span class="si">{</span><span class="n">noise_freq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">}</span><span class="s2"> MHz&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Curve fitting failed for frequency: </span><span class="si">{</span><span class="n">noise_freq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">}</span><span class="s2"> MHz"</span><span class="p">)</span>
 
 
     <span class="k">return</span> <span class="n">corrected_waveform</span><span class="p">,</span> <span class="n">filtered_freqs</span></div>
@@ -1022,7 +1022,7 @@
 <div class="viewcode-block" id="plot_ft">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSinewaveSubtraction.html#NuRadioReco.modules.channelSinewaveSubtraction.plot_ft">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_ft</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="nb">dict</span><span class="p">()):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Function to plot real frequency spectrum of given channel</span>
 
 <span class="sd">    Parameters</span>
@@ -1035,16 +1035,16 @@
 <span class="sd">        plotlabel</span>
 <span class="sd">    plot_kwargs: dict</span>
 <span class="sd">        options for plotting</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">freqs</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
     <span class="n">spec</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
 
     <span class="n">legendloc</span> <span class="o">=</span> <span class="mi">2</span>
 
     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">freqs</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">spec</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;freq / MHz&quot;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;amplitude / V/GHz&quot;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"freq / MHz"</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"amplitude / V/GHz"</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">"log"</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">spec</span><span class="p">))</span> <span class="o">/</span> <span class="mi">100</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="n">legendloc</span><span class="p">)</span></div>
 
@@ -1053,7 +1053,7 @@
 <div class="viewcode-block" id="plot_trace">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelSinewaveSubtraction.html#NuRadioReco.modules.channelSinewaveSubtraction.plot_trace">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_trace</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="nb">dict</span><span class="p">()):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Function to plot trace of given channel.</span>
 
 <span class="sd">    Parameters</span>
@@ -1068,38 +1068,38 @@
 <span class="sd">        plotlabel</span>
 <span class="sd">    plot_kwargs: dict</span>
 <span class="sd">        options for plotting</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">times</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_times</span><span class="p">()</span>
     <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
 
     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">plot_kwargs</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;time / ns&quot;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;trace / V&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"time / ns"</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"trace / V"</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></div>
 
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
 
     <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak</span><span class="w"> </span><span class="kn">import</span> <span class="n">readRNOGData</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
-    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(prog)s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">usage</span><span class="o">=</span><span class="s2">&quot;cw filter test&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--station&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--channel&quot;</span><span class="p">,</span> <span class="nb">type</span> <span class="o">=</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--run&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">104</span><span class="p">)</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">prog</span><span class="o">=</span><span class="s2">"</span><span class="si">%(prog)s</span><span class="s2">"</span><span class="p">,</span> <span class="n">usage</span><span class="o">=</span><span class="s2">"cw filter test"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--station"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--channel"</span><span class="p">,</span> <span class="nb">type</span> <span class="o">=</span> <span class="nb">int</span><span class="p">,</span> <span class="n">default</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--run"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">104</span><span class="p">)</span>
 
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
-    <span class="n">data_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;RNO_G_DATA&quot;</span><span class="p">]</span> <span class="c1"># used deep CR burn sample..</span>
+    <span class="n">data_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"RNO_G_DATA"</span><span class="p">]</span> <span class="c1"># used deep CR burn sample..</span>
     <span class="n">rnog_reader</span> <span class="o">=</span> <span class="n">readRNOGData</span><span class="p">(</span><span class="n">log_level</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 
-    <span class="n">root_dirs</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">data_dir</span><span class="si">}</span><span class="s2">/station</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">station</span><span class="si">}</span><span class="s2">/run</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">root_dirs</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">data_dir</span><span class="si">}</span><span class="s2">/station</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">station</span><span class="si">}</span><span class="s2">/run</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">"</span>
     <span class="n">rnog_reader</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">root_dirs</span><span class="p">,</span>
                       <span class="c1"># linear voltage calibration</span>
                       <span class="n">convert_to_voltage</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                      <span class="n">mattak_kwargs</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">&quot;uproot&quot;</span><span class="p">))</span>
+                      <span class="n">mattak_kwargs</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">"uproot"</span><span class="p">))</span>
 
     <span class="n">sub</span> <span class="o">=</span> <span class="n">channelSinewaveSubtraction</span><span class="p">()</span>
     <span class="n">sub</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="n">save_filtered_freqs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1113,16 +1113,16 @@
             <span class="n">station</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
 
             <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
-            <span class="n">plot_trace</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">channel</span><span class="p">),</span> <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;before&quot;</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;lw&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span>
-            <span class="n">plot_ft</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">channel</span><span class="p">),</span> <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;before&quot;</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;lw&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span>
+            <span class="n">plot_trace</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">channel</span><span class="p">),</span> <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">"before"</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">"lw"</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span>
+            <span class="n">plot_ft</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">channel</span><span class="p">),</span> <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">"before"</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">"lw"</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span>
 
             <span class="n">sub</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-            <span class="n">plot_trace</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">channel</span><span class="p">),</span> <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;after&quot;</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;lw&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
-            <span class="n">plot_ft</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">channel</span><span class="p">),</span> <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;after&quot;</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;lw&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+            <span class="n">plot_trace</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">channel</span><span class="p">),</span> <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">"after"</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">"lw"</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+            <span class="n">plot_ft</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">channel</span><span class="p">),</span> <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">"after"</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">"lw"</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
             <span class="c1"># save plot into the current dir</span>
             <span class="n">current_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
-            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">current_dir</span> <span class="o">+</span> <span class="s2">&quot;/test_cw_filter&quot;</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">&quot;tight&quot;</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">current_dir</span> <span class="o">+</span> <span class="s2">"/test_cw_filter"</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s2">"tight"</span><span class="p">)</span>
 </pre></div>
 
            </div>

@@ -665,8 +665,8 @@
 
 <div class="viewcode-block" id="get_measured_data">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_measured_data">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_measured_data</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;data_auger_19&#39;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_measured_data</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'data_auger_19'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Helper function get data points in NuRadio base units</span>
 
 <span class="sd">    Parameters</span>
@@ -683,11 +683,11 @@
 <span class="sd">        upper error bar on flux</span>
 <span class="sd">    Err_low: array of floats</span>
 <span class="sd">        lower error bar on flux</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;data_auger_19&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'data_auger_19'</span><span class="p">:</span>
         <span class="n">abspath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">abspath</span><span class="p">,</span> <span class="s1">&#39;data/Auger_combined_spectrum_ICRC_2019.txt&#39;</span><span class="p">),</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">abspath</span><span class="p">,</span> <span class="s1">'data/Auger_combined_spectrum_ICRC_2019.txt'</span><span class="p">),</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
         <span class="c1"># from PRL paper 2020 based on ICRC 2019</span>
         <span class="n">E</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
         <span class="n">E_J</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">steradian</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span>
@@ -695,9 +695,9 @@
         <span class="n">J_err_low</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">steradian</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="n">E</span>
         <span class="n">J_err_up</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">steradian</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="n">E</span>
 
-    <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;data_TA_21&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'data_TA_21'</span><span class="p">:</span>
         <span class="n">abspath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">abspath</span><span class="p">,</span> <span class="s1">&#39;data/TA_combined_spectrum_ICRC_2021.txt&#39;</span><span class="p">),</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">abspath</span><span class="p">,</span> <span class="s1">'data/TA_combined_spectrum_ICRC_2021.txt'</span><span class="p">),</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
         <span class="n">E</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
         <span class="n">J</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">steradian</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span>
         <span class="n">J_band_low</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">steradian</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span>
@@ -706,7 +706,7 @@
         <span class="n">J_err_up</span> <span class="o">=</span> <span class="n">J_band_up</span> <span class="o">-</span> <span class="n">J</span>
 
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type </span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2"> is not supported&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Type </span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2"> is not supported"</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">E</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">J_err_low</span><span class="p">,</span> <span class="n">J_err_up</span></div>
 
@@ -714,8 +714,8 @@
 
 <div class="viewcode-block" id="get_interpolated_cr_flux">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_interpolated_cr_flux">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_interpolated_cr_flux</span><span class="p">(</span><span class="n">log10_energy</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;data_auger_19&#39;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_interpolated_cr_flux</span><span class="p">(</span><span class="n">log10_energy</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'data_auger_19'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Evaluates the scipy interpolation of the measured data at a given energy</span>
 
 <span class="sd">    Parameters</span>
@@ -727,7 +727,7 @@
 <span class="sd">    Return</span>
 <span class="sd">    -------</span>
 <span class="sd">        scipy interpolation of data in NuRadio base units (which are 1/(eV m^2 sr ns) )</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">E</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">J_err_low</span><span class="p">,</span> <span class="n">J_err_up</span> <span class="o">=</span> <span class="n">get_measured_data</span><span class="p">(</span><span class="nb">type</span><span class="p">)</span>
     <span class="n">log10_e</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
     <span class="n">flux_interpolation</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="n">log10_e</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -737,8 +737,8 @@
 
 <div class="viewcode-block" id="get_analytic_cr_flux">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_analytic_cr_flux">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_analytic_cr_flux</span><span class="p">(</span><span class="n">log10_energy</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;auger_19&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_analytic_cr_flux</span><span class="p">(</span><span class="n">log10_energy</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">"auger_19"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    log10_energy: float</span>
@@ -749,10 +749,10 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    analytic parametrization of spectrum in NuRadio base units (which are 1/(eV m^2 sr ns)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">energy</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">log10_energy</span>
 
-    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;auger_17&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">"auger_17"</span><span class="p">:</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.8e-19</span><span class="p">,</span> <span class="mf">5.08e18</span><span class="p">,</span> <span class="mf">39e18</span><span class="p">,</span> <span class="mf">3.293</span><span class="p">,</span> <span class="mf">2.53</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">])</span>
         <span class="n">spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">energy</span> <span class="o">&lt;</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                             <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
@@ -760,7 +760,7 @@
                             <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">**</span> <span class="n">p</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">spectrum</span> <span class="o">=</span> <span class="n">spectrum</span> <span class="o">*</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">eV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">year</span><span class="p">)</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span>
 
-    <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;auger_19&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">"auger_19"</span><span class="p">:</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">3.46e12</span><span class="p">,</span> <span class="mf">1.5e17</span><span class="p">,</span> <span class="mf">6.2e18</span><span class="p">,</span> <span class="mf">12e18</span><span class="p">,</span> <span class="mf">50e18</span><span class="p">,</span> <span class="mf">2.92</span><span class="p">,</span> <span class="mf">3.27</span><span class="p">,</span> <span class="mf">2.2</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">5.4</span><span class="p">])</span>
         <span class="n">spectrum</span> <span class="o">=</span> <span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="n">p</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span> <span class="o">*</span> \
                    <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="n">p</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">**</span> <span class="n">p</span><span class="p">[</span><span class="mi">6</span><span class="p">])</span> <span class="o">*</span> \
@@ -769,7 +769,7 @@
                    <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="n">p</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span> <span class="o">**</span> <span class="n">p</span><span class="p">[</span><span class="mi">8</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="n">p</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span> <span class="o">**</span> <span class="n">p</span><span class="p">[</span><span class="mi">9</span><span class="p">])</span>
         <span class="n">spectrum</span> <span class="o">=</span> <span class="n">spectrum</span> <span class="o">*</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">eV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">year</span><span class="p">)</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span>
 
-    <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;TA_19&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">"TA_19"</span><span class="p">:</span>
         <span class="n">p1</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.28</span>
         <span class="n">p2</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.68</span>
         <span class="n">p3</span> <span class="o">=</span> <span class="o">-</span><span class="mf">4.84</span>
@@ -786,7 +786,7 @@
         <span class="n">spectrum</span> <span class="o">=</span> <span class="n">spectrum</span> <span class="o">*</span> <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">eV</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">s</span><span class="p">)</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span>
 
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type </span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2"> is not supported&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Type </span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2"> is not supported"</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">spectrum</span></div>
 
@@ -794,8 +794,8 @@
 
 <div class="viewcode-block" id="get_flux_per_energy_bin">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_flux_per_energy_bin">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_flux_per_energy_bin</span><span class="p">(</span><span class="n">log10e_min</span><span class="p">,</span> <span class="n">log10e_max</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;auger_19&#39;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_flux_per_energy_bin</span><span class="p">(</span><span class="n">log10e_min</span><span class="p">,</span> <span class="n">log10e_max</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'auger_19'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns an scipy integration of the measured data or the analytic spectrum over given interval.</span>
 
 <span class="sd">    Parameters</span>
@@ -810,15 +810,15 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    scipy integration of data in NuRadio base units (which are 1/(eV m^2 sr ns))</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;auger_17&#39;</span><span class="p">,</span> <span class="s1">&#39;auger_19&#39;</span><span class="p">,</span> <span class="s1">&#39;TA_19&#39;</span><span class="p">]:</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'auger_17'</span><span class="p">,</span> <span class="s1">'auger_19'</span><span class="p">,</span> <span class="s1">'TA_19'</span><span class="p">]:</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">flux</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot; Bring parametrized energy spectrum in right shape for quad() function &quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">""" Bring parametrized energy spectrum in right shape for quad() function """</span>
             <span class="k">return</span> <span class="n">get_analytic_cr_flux</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x</span><span class="p">])),</span> <span class="nb">type</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="n">integrated_flux</span> <span class="o">=</span> <span class="n">quad</span><span class="p">(</span><span class="n">flux</span><span class="p">,</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">log10e_min</span><span class="p">,</span> <span class="mi">10</span> <span class="o">**</span> <span class="n">log10e_max</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type </span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2"> is not supported&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Type </span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2"> is not supported"</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">integrated_flux</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
@@ -826,10 +826,10 @@
 
 <div class="viewcode-block" id="get_cr_event_rate">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_cr_event_rate">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_cr_event_rate</span><span class="p">(</span><span class="n">log10energy</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">zenith</span><span class="o">=</span><span class="mi">50</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">a_eff</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;auger_19&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_cr_event_rate</span><span class="p">(</span><span class="n">log10energy</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">zenith</span><span class="o">=</span><span class="mi">50</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">a_eff</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">"auger_19"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Cosmic ray event rate at a specific energy and zenith angle assuming a detector with effective area</span>
-<span class="sd">    &#39;A_eff&#39;. The detector projection and solid range are taken into account.</span>
+<span class="sd">    'A_eff'. The detector projection and solid range are taken into account.</span>
 <span class="sd">    The flux is calculated with the analytic spectrum.</span>
 
 <span class="sd">    Parameters</span>
@@ -846,7 +846,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    eventrate for an isotropic flux with given energy and zenith angle.</span>
 <span class="sd">    The differential flux is returned in d/d zenith_angle, not d/d solid_angle.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># The projected area, is the area visible to CR.</span>
     <span class="c1"># None of the horizontal CR reach the flat detector, all CR from above reach the detector</span>
     <span class="n">projected_area</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">zenith</span><span class="p">)</span>
@@ -861,9 +861,9 @@
 
 <div class="viewcode-block" id="plot_measured_spectrum">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.plot_measured_spectrum">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">plot_measured_spectrum</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">2.7</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;data_auger_19&#39;</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_measured_spectrum</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">2.7</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'data_auger_19'</span><span class="p">,</span>
                            <span class="n">base_units</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Plot measured spectrum. Attention: time unit is year instead of ns.</span>
 
 <span class="sd">    Parameters</span>
@@ -881,7 +881,7 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    plot of data without plt.show()</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
     <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
@@ -891,22 +891,22 @@
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">base_units</span><span class="p">:</span>
         <span class="n">E_J_scale_units</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">year</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">steradian</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span> <span class="o">**</span> <span class="p">(</span><span class="n">scale</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">yl</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;$J(E)$ [m$^{-2}$ yr$^{-1}$ sr$^{-1}$ eV$^{</span><span class="si">%g</span><span class="s1">}$]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">scale</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">yl</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">'$J(E)$ [m$^{-2}$ yr$^{-1}$ sr$^{-1}$ eV$^{</span><span class="si">%g</span><span class="s1">}$]'</span> <span class="o">%</span> <span class="p">(</span><span class="n">scale</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="k">else</span><span class="p">:</span>
         <span class="n">E_J_scale_units</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">steradian</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span> <span class="o">**</span> <span class="p">(</span><span class="n">scale</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">yl</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;$J(E)$ [m$^{-2}$ ns$^{-1}$ sr$^{-1}$ eV$^{</span><span class="si">%g</span><span class="s1">}$]&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">scale</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">yl</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">'$J(E)$ [m$^{-2}$ ns$^{-1}$ sr$^{-1}$ eV$^{</span><span class="si">%g</span><span class="s1">}$]'</span> <span class="o">%</span> <span class="p">(</span><span class="n">scale</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="n">ax</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span><span class="n">E</span><span class="p">,</span> <span class="n">E</span> <span class="o">**</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">J</span> <span class="o">/</span> <span class="n">E_J_scale_units</span><span class="p">,</span>
                 <span class="n">yerr</span><span class="o">=</span><span class="p">[(</span><span class="n">E</span> <span class="o">**</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">J_err_low</span><span class="p">)</span> <span class="o">/</span> <span class="n">E_J_scale_units</span><span class="p">,</span> <span class="p">(</span><span class="n">E</span> <span class="o">**</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">J_err_up</span><span class="p">)</span> <span class="o">/</span> <span class="n">E_J_scale_units</span><span class="p">],</span>
-                <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="nb">type</span><span class="p">)</span>
+                <span class="n">marker</span><span class="o">=</span><span class="s1">'x'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">'None'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="nb">type</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">scale</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">yl</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;$E^{</span><span class="si">%g</span><span class="s1">}\,$&#39;</span> <span class="o">%</span> <span class="n">scale</span> <span class="o">+</span> <span class="n">yl</span>
+        <span class="n">yl</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">'$E^{</span><span class="si">%g</span><span class="s1">}\,$'</span> <span class="o">%</span> <span class="n">scale</span> <span class="o">+</span> <span class="n">yl</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">yl</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$E$ [eV]&#39;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">'$E$ [eV]'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s1">'log'</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s1">'log'</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span></div>
 
 </pre></div>

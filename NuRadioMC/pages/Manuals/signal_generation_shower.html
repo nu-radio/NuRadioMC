@@ -678,11 +678,11 @@
 <span class="n">theta</span> <span class="o">=</span> <span class="mi">57</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span> <span class="c1"># Viewing angle w.r.t. shower axis</span>
 <span class="n">N</span> <span class="o">=</span> <span class="mi">2048</span> <span class="c1"># Number of samples</span>
 <span class="n">dt</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span> <span class="c1"># Time binning</span>
-<span class="n">shower_type</span> <span class="o">=</span> <span class="s1">&#39;HAD&#39;</span> <span class="c1"># &#39;HAD&#39; or &#39;EM&#39;</span>
+<span class="n">shower_type</span> <span class="o">=</span> <span class="s1">'HAD'</span> <span class="c1"># 'HAD' or 'EM'</span>
 <span class="n">R</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span> <span class="c1"># Distance to shower vertex</span>
 <span class="n">n_index</span> <span class="o">=</span> <span class="mf">1.78</span> <span class="c1"># refractive index</span>
 
-<span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;Alvarez2009&#39;</span>
+<span class="n">model</span> <span class="o">=</span> <span class="s1">'Alvarez2009'</span>
 
 <span class="n">trace</span> <span class="o">=</span> <span class="n">get_time_trace</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">shower_type</span><span class="p">,</span>
                        <span class="n">n_index</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
@@ -700,7 +700,7 @@
 <p>The disadvantage of the ARZ module is that a numerical integration must be performed, so it is slower than the frequency-domain parameterisations. The way NuRadioMC integrates this formula by default is by using the trapezoid rule in two different regions. Where the integrand is larger and therefore results in more electric field, a fine subdivision is used, as opposed to the rest of the integration region, where the subdivisions are larger. This is controlled by the parameters <code class="docutils literal notranslate"><span class="pre">interp_factor</span></code> (for the less contributing region, default 1) and <code class="docutils literal notranslate"><span class="pre">interp_factor2</span></code> (for the most contributing region, default 100).</p>
 <p>To calculate the electric field with the ARZ module, it suffices to use the example above with:</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;ARZ2020&#39;</span> <span class="c1"># or &#39;ARZ2019&#39;</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="s1">'ARZ2020'</span> <span class="c1"># or 'ARZ2019'</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -715,10 +715,10 @@
 <span class="n">theta</span> <span class="o">=</span> <span class="mi">57</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span> <span class="c1"># Viewing angle w.r.t. shower axis</span>
 <span class="n">N</span> <span class="o">=</span> <span class="mi">2048</span> <span class="c1"># Number of samples</span>
 <span class="n">dt</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span> <span class="c1"># Time binning</span>
-<span class="n">shower_type</span> <span class="o">=</span> <span class="s1">&#39;HAD&#39;</span> <span class="c1"># &#39;HAD&#39; or &#39;EM&#39;</span>
+<span class="n">shower_type</span> <span class="o">=</span> <span class="s1">'HAD'</span> <span class="c1"># 'HAD' or 'EM'</span>
 <span class="n">R</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span> <span class="c1"># Distance to shower vertex</span>
 <span class="n">n_index</span> <span class="o">=</span> <span class="mf">1.78</span> <span class="c1"># refractive index</span>
-<span class="n">model</span> <span class="o">=</span> <span class="s1">&#39;ARZ2019&#39;</span>
+<span class="n">model</span> <span class="o">=</span> <span class="s1">'ARZ2019'</span>
 <span class="n">same_shower</span> <span class="o">=</span> <span class="kc">True</span>
 
 <span class="n">cARZ</span> <span class="o">=</span> <span class="n">ARZ</span><span class="o">.</span><span class="n">ARZ</span><span class="p">()</span>
@@ -729,18 +729,18 @@
 <p>In this case, the trace object is a 2D array where the first dimension controls the electric field coordinates and the second gives the time dependence. The electric field is given in a spherical frame (<span class="math notranslate nohighlight">\(E_r\)</span>, <span class="math notranslate nohighlight">\(E_{\theta}\)</span>, <span class="math notranslate nohighlight">\(E_{\phi}\)</span>), where the theta unit vector is perpendicular to the line of sight between the observer and <em>the shower maximum</em> and lies on the plane defined by the shower axis and the observer. The radial unit vector lies on the line of sight between observer and shower maximum. The phi unit vector is the cross product of the radial vector times the theta vector. Important: each time the function <code class="docutils literal notranslate"><span class="pre">get_time_trace</span></code> is called, a new, different shower is taken from the shower library. If we want to use the same shower, the keyword argument <code class="docutils literal notranslate"><span class="pre">same_shower</span> <span class="pre">=</span> <span class="pre">True</span></code> can be used.</p>
 <p>Brief explanation of some of the most obscure parameters of the function:</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">shift_for_xmax: bool (default False)</span>
 <span class="sd">    if True the observer position is placed relative to the position of the shower</span>
 <span class="sd">    maximum, if False it is placed with respect to (0,0,0) which is the start of</span>
 <span class="sd">    the charge-excess profile</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>If <code class="docutils literal notranslate"><span class="pre">shift_for_xmax</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, the distance (<span class="math notranslate nohighlight">\(R\)</span>) and angle (<span class="math notranslate nohighlight">\(\theta\)</span>) fed to the function are referred to the shower maximum instead of the shower vertex. This makes sense, as it is the shower maximum the part that also emits the most electric field, and therefore the field scales with the distance to the shower maximum and the Cherenkov angle should be measured with respect to the shower maximum as well. We only recommend it to be set to False when it is absolutely necessary that the vertex becomes the reference point.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">same_shower: bool (default False)</span>
 <span class="sd">    if False, for each request a new random shower realization is chosen.</span>
 <span class="sd">    if True, the shower from the last request of the same shower type is used.</span>
@@ -749,10 +749,10 @@
 <span class="sd">iN: int or None (default None)</span>
 <span class="sd">    specify shower number</span>
 <span class="sd">output_mode: string</span>
-<span class="sd">    * &#39;trace&#39; (default): return only the electric field trace</span>
-<span class="sd">    * &#39;Xmax&#39;: return trace and position of xmax in units of length</span>
-<span class="sd">    * &#39;full&#39; return trace, depth and charge_excess profile</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    * 'trace' (default): return only the electric field trace</span>
+<span class="sd">    * 'Xmax': return trace and position of xmax in units of length</span>
+<span class="sd">    * 'full' return trace, depth and charge_excess profile</span>
+<span class="sd">"""</span>
 </pre></div>
 </div>
 </div></blockquote>

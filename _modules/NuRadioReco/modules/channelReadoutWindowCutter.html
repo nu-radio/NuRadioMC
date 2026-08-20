@@ -659,19 +659,19 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.channelReadoutWindowCutter&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.channelReadoutWindowCutter'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="channelReadoutWindowCutter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelReadoutWindowCutter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Modifies channel traces to simulate the effects of the trigger and associated readout window.</span>
 
 <span class="sd">    The trace is cut to the length defined in the detector description relative to the trigger time</span>
-<span class="sd">    taking into account the trigger&#39;s pre_trigger_time. If no trigger exists, nothing is done. Allows</span>
+<span class="sd">    taking into account the trigger's pre_trigger_time. If no trigger exists, nothing is done. Allows</span>
 <span class="sd">    to simulate randomness in the definition of the readout window.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
@@ -680,13 +680,13 @@
 <div class="viewcode-block" id="channelReadoutWindowCutter.begin">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        random_seed : int or None, optional</span>
 <span class="sd">            Set a random seed, used if simulating a random jitter for the readout window. (Default: None)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__sampling_rate_error_issued</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rng</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">Philox</span><span class="p">(</span><span class="n">random_seed</span><span class="p">))</span></div>
 
@@ -696,7 +696,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">detector</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Cuts the traces to the readout window defined in the trigger.</span>
 
 <span class="sd">        If multiple triggers exist, the primary trigger is used. If multiple</span>
@@ -711,28 +711,28 @@
 <span class="sd">        station: `NuRadioReco.framework.base_station.Station`</span>
 
 <span class="sd">        detector: `NuRadioReco.detector.detector.Detector`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">iter_modules</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">())):</span>
-            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;channelReadoutWindowCutter&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">'channelReadoutWindowCutter'</span><span class="p">:</span>
                 <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="n">counter</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;channelReadoutWindowCutter was called twice. &#39;</span>
-                           <span class="s1">&#39;This is likely a mistake. The module will not be applied again.&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">'channelReadoutWindowCutter was called twice. '</span>
+                           <span class="s1">'This is likely a mistake. The module will not be applied again.'</span><span class="p">)</span>
             <span class="k">return</span> <span class="mi">0</span>
 
         <span class="c1"># determine which trigger to use</span>
         <span class="c1"># if no primary trigger exists, use the trigger with the earliest trigger time</span>
         <span class="n">trigger</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_primary_trigger</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">trigger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># no primary trigger found</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;No primary trigger found. Using the trigger with the earliest trigger time.&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'No primary trigger found. Using the trigger with the earliest trigger time.'</span><span class="p">)</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_first_trigger</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">trigger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;setting trigger </span><span class="si">{</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2"> primary because it triggered first&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"setting trigger </span><span class="si">{</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2"> primary because it triggered first"</span><span class="p">)</span>
                 <span class="n">trigger</span><span class="o">.</span><span class="n">set_primary</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">trigger</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">trigger</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">():</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;No trigger found (which triggered)! Channel timings will not be changed.&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'No trigger found (which triggered)! Channel timings will not be changed.'</span><span class="p">)</span>
             <span class="k">return</span>
 
         <span class="n">trigger_time</span> <span class="o">=</span> <span class="n">trigger</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span>
@@ -766,8 +766,8 @@
             <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">number_of_samples</span> <span class="o">&gt;</span> <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">((</span>
-                    <span class="s2">&quot;Input has fewer samples than desired output. &quot;</span>
-                    <span class="s2">&quot;Channels has only </span><span class="si">{}</span><span class="s2"> samples but </span><span class="si">{}</span><span class="s2"> samples are requested.&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="s2">"Input has fewer samples than desired output. "</span>
+                    <span class="s2">"Channels has only </span><span class="si">{}</span><span class="s2"> samples but </span><span class="si">{}</span><span class="s2"> samples are requested."</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">number_of_samples</span><span class="p">))</span>
                 <span class="k">raise</span> <span class="ne">AttributeError</span>
 
@@ -781,36 +781,36 @@
             <span class="n">trace_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">trigger_time</span> <span class="o">&lt;</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="ow">or</span>
                 <span class="n">trigger_time</span> <span class="o">&gt;</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">+</span> <span class="n">trace_length</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">):</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Trigger time outside trace for station.channel </span><span class="si">{}</span><span class="s2">.</span><span class="si">{}</span><span class="s2"> (trigger time = </span><span class="si">{:.2f}</span><span class="s2">ns, &quot;</span>
-                       <span class="s2">&quot;start of trace </span><span class="si">{:.2f}</span><span class="s2">ns, end of trace </span><span class="si">{:.2f}</span><span class="s2">ns, this would result in rolling over &quot;</span>
-                       <span class="s2">&quot;the edge of the trace and is not the intended use of this function (Run: </span><span class="si">{}</span><span class="s2">, Event: </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"Trigger time outside trace for station.channel </span><span class="si">{}</span><span class="s2">.</span><span class="si">{}</span><span class="s2"> (trigger time = </span><span class="si">{:.2f}</span><span class="s2">ns, "</span>
+                       <span class="s2">"start of trace </span><span class="si">{:.2f}</span><span class="s2">ns, end of trace </span><span class="si">{:.2f}</span><span class="s2">ns, this would result in rolling over "</span>
+                       <span class="s2">"the edge of the trace and is not the intended use of this function (Run: </span><span class="si">{}</span><span class="s2">, Event: </span><span class="si">{}</span><span class="s2">)"</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">trigger_time</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">(),</span>
                         <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">+</span> <span class="n">trace_length</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">,</span>
                         <span class="n">event</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">pre_trigger_time_channel</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Start of the readout window is before the start of the trace for station.channel </span><span class="si">{}</span><span class="s2">.</span><span class="si">{}</span><span class="s2">. &quot;</span>
-                       <span class="s2">&quot;This can happen with an accidental noise trigger but should not happen otherwise. &quot;</span>
-                       <span class="s2">&quot;(trigger time = </span><span class="si">{:.2f}</span><span class="s2">ns, pre-trigger time = </span><span class="si">{:.2f}</span><span class="s2">ns, start of trace </span><span class="si">{:.2f}</span><span class="s2">ns, &quot;</span>
-                       <span class="s2">&quot;requested time before trace = </span><span class="si">{:.2f}</span><span class="s2">ns), the trace will be rolled over the edge to &quot;</span>
-                       <span class="s2">&quot;fit in the readout window (Run: </span><span class="si">{}</span><span class="s2">, Event: </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"Start of the readout window is before the start of the trace for station.channel </span><span class="si">{}</span><span class="s2">.</span><span class="si">{}</span><span class="s2">. "</span>
+                       <span class="s2">"This can happen with an accidental noise trigger but should not happen otherwise. "</span>
+                       <span class="s2">"(trigger time = </span><span class="si">{:.2f}</span><span class="s2">ns, pre-trigger time = </span><span class="si">{:.2f}</span><span class="s2">ns, start of trace </span><span class="si">{:.2f}</span><span class="s2">ns, "</span>
+                       <span class="s2">"requested time before trace = </span><span class="si">{:.2f}</span><span class="s2">ns), the trace will be rolled over the edge to "</span>
+                       <span class="s2">"fit in the readout window (Run: </span><span class="si">{}</span><span class="s2">, Event: </span><span class="si">{}</span><span class="s2">)"</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">trigger_time</span><span class="p">,</span> <span class="n">pre_trigger_time</span><span class="p">,</span>
                         <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">(),</span> <span class="n">pre_trigger_time_channel</span><span class="p">,</span>
                         <span class="n">event</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">pre_trigger_time_channel</span> <span class="o">+</span> <span class="n">number_of_samples</span> <span class="o">/</span> <span class="n">sampling_rate</span> <span class="o">&gt;</span> <span class="n">trace_length</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;End of the readout window is outside the end of the trace for station.channel </span><span class="si">{}</span><span class="s2">.</span><span class="si">{}</span><span class="s2">. &quot;</span>
-                       <span class="s2">&quot;(trigger time = </span><span class="si">{:.2f}</span><span class="s2">ns, pre-trigger time = </span><span class="si">{:.2f}</span><span class="s2">ns, start of sim. trace = </span><span class="si">{:.2f}</span><span class="s2">ns, &quot;</span>
-                       <span class="s2">&quot;end of sim. trace </span><span class="si">{:.2f}</span><span class="s2">, length of readout window </span><span class="si">{:.2f}</span><span class="s2">ns, requested time after trace = &quot;</span>
-                       <span class="s2">&quot;</span><span class="si">{:.2f}</span><span class="s2">ns), the trace will be rolled over the edge to fit in the readout window (Run: </span><span class="si">{}</span><span class="s2">, Event: </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"End of the readout window is outside the end of the trace for station.channel </span><span class="si">{}</span><span class="s2">.</span><span class="si">{}</span><span class="s2">. "</span>
+                       <span class="s2">"(trigger time = </span><span class="si">{:.2f}</span><span class="s2">ns, pre-trigger time = </span><span class="si">{:.2f}</span><span class="s2">ns, start of sim. trace = </span><span class="si">{:.2f}</span><span class="s2">ns, "</span>
+                       <span class="s2">"end of sim. trace </span><span class="si">{:.2f}</span><span class="s2">, length of readout window </span><span class="si">{:.2f}</span><span class="s2">ns, requested time after trace = "</span>
+                       <span class="s2">"</span><span class="si">{:.2f}</span><span class="s2">ns), the trace will be rolled over the edge to fit in the readout window (Run: </span><span class="si">{}</span><span class="s2">, Event: </span><span class="si">{}</span><span class="s2">)"</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">trigger_time</span><span class="p">,</span> <span class="n">pre_trigger_time</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">(),</span>
                         <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">+</span> <span class="n">trace_length</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">number_of_samples</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">,</span>
                         <span class="n">pre_trigger_time_channel</span> <span class="o">+</span> <span class="n">number_of_samples</span> <span class="o">/</span> <span class="n">sampling_rate</span> <span class="o">-</span> <span class="n">trace_length</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">,</span>
                         <span class="n">event</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
-            <span class="c1"># &quot;roll&quot; the start of the readout window to the start of the trace</span>
+            <span class="c1"># "roll" the start of the readout window to the start of the trace</span>
             <span class="n">channel</span><span class="o">.</span><span class="n">apply_time_shift</span><span class="p">(</span><span class="o">-</span><span class="n">pre_trigger_time_channel</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
             <span class="c1"># cut the trace</span>
@@ -824,7 +824,7 @@
 <div class="viewcode-block" id="channelReadoutWindowCutter.cut_using_trace_start_times">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.channelReadoutWindowCutter.cut_using_trace_start_times">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">cut_using_trace_start_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">trace_start_times</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Cuts the traces to the readout window using user provided trace start times.</span>
 
 <span class="sd">        Parameters</span>
@@ -836,9 +836,9 @@
 <span class="sd">            The trace start times for each channel. If a single float is provided, it will be used</span>
 <span class="sd">            for all channels. Otherwise, the order of the trace start times should be the same as</span>
 <span class="sd">            the order of the channels in `station.get_channel_ids()`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Using provided trace start times to set the readout windows.&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'Using provided trace start times to set the readout windows.'</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">trace_start_times</span><span class="p">):</span>
             <span class="n">trace_start_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">()),</span> <span class="n">trace_start_times</span><span class="p">)</span>
@@ -869,7 +869,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_number_of_samples</span><span class="p">(</span><span class="n">sampling_rate</span><span class="p">,</span> <span class="n">detector_sampling_rate</span><span class="p">,</span> <span class="n">detector_n_samples</span><span class="p">,</span> <span class="n">issue_error</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate the number of samples that will result in the correct number of samples after resampling.</span>
 
 <span class="sd">    Parameters</span>
@@ -892,7 +892,7 @@
 <span class="sd">    valid_sampling_rate : bool</span>
 <span class="sd">        `True` if the sampling rate is an integer multiple of the target sampling rate,</span>
 <span class="sd">        `False` otherwise.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Check that the current sampling rate is an integer multiple of the target</span>
     <span class="c1"># sampling rate. If this is not the case, we may not be able to guarantee</span>
     <span class="c1"># the number of samples after resampling will be correct</span>
@@ -912,11 +912,11 @@
 
         <span class="k">if</span> <span class="n">issue_error</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">valid_sampling_rate</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s1">&#39;The current sampling rate &#39;</span>
-                <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">sampling_rate</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> GHz) is not a multiple of &#39;</span>
-                <span class="sa">f</span><span class="s1">&#39;the target detector sampling rate (</span><span class="si">{</span><span class="n">detector_sampling_rate</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> GHz). &#39;</span>
-                <span class="sa">f</span><span class="s1">&#39;Traces will not have the correct trace length after resampling. Desired number of samples: </span><span class="si">{</span><span class="n">detector_n_samples</span><span class="si">}</span><span class="s1">, &#39;</span>
-                <span class="sa">f</span><span class="s1">&#39;expected number of samples after resampling: </span><span class="si">{</span><span class="n">final_number_of_samples</span><span class="si">}</span><span class="s1">.&#39;</span>
+                <span class="s1">'The current sampling rate '</span>
+                <span class="sa">f</span><span class="s1">'(</span><span class="si">{</span><span class="n">sampling_rate</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> GHz) is not a multiple of '</span>
+                <span class="sa">f</span><span class="s1">'the target detector sampling rate (</span><span class="si">{</span><span class="n">detector_sampling_rate</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1"> GHz). '</span>
+                <span class="sa">f</span><span class="s1">'Traces will not have the correct trace length after resampling. Desired number of samples: </span><span class="si">{</span><span class="n">detector_n_samples</span><span class="si">}</span><span class="s1">, '</span>
+                <span class="sa">f</span><span class="s1">'expected number of samples after resampling: </span><span class="si">{</span><span class="n">final_number_of_samples</span><span class="si">}</span><span class="s1">.'</span>
             <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">number_of_samples</span><span class="p">,</span> <span class="n">valid_sampling_rate</span>
@@ -925,7 +925,7 @@
 <div class="viewcode-block" id="get_empty_channel">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.get_empty_channel">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_empty_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">trigger</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns a channel with a trace containing zeros.</span>
 
 <span class="sd">    The trace start time is given by the trigger,</span>
@@ -948,7 +948,7 @@
 
 <span class="sd">    sampling_rate: float</span>
 <span class="sd">        The sampling rate of the channel</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">channel</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
 
     <span class="n">detector_n_samples</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
@@ -970,7 +970,7 @@
 <div class="viewcode-block" id="time_jitter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelReadoutWindowCutter.html#NuRadioReco.modules.channelReadoutWindowCutter.time_jitter">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">time_jitter</span><span class="p">(</span><span class="n">gaussian_spread</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sample_block_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="mf">2.4</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Generate a readout-window jitter composed of a discrete sample offset</span>
 <span class="sd">    (converted to time) and a continuous Gaussian time smear.</span>
 
@@ -994,7 +994,7 @@
 <span class="sd">    sample_jitter_time : float</span>
 <span class="sd">        Time jitter from the discrete sample offset</span>
 <span class="sd">        (``jitter_sample / sampling_rate``).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">rng</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">rng</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">Philox</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
 
@@ -1014,7 +1014,7 @@
 
 <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_resampled_number_of_samples</span><span class="p">(</span><span class="n">number_of_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">detector_sampling_rate</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate the number of samples after resampling.</span>
 
 <span class="sd">    Parameters</span>
@@ -1030,7 +1030,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    final_number_of_samples : int</span>
 <span class="sd">        The number of samples after resampling</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">signal_processing</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">number_of_samples</span><span class="p">),</span> <span class="n">detector_sampling_rate</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">))</span>
 </pre></div>
 

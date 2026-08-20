@@ -663,13 +663,13 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;noiseTriggerSimulation&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'noiseTriggerSimulation'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="rolled_sum_roll">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_roll">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">rolled_sum_roll</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    calculates rolled sum via np.roll</span>
 
 <span class="sd">    Parameters</span>
@@ -683,7 +683,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    sumtr: np.array</span>
 <span class="sd">        1D array of summed traces</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># assume first trace always has no rolling</span>
     <span class="n">sumtr</span> <span class="o">=</span> <span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -696,7 +696,7 @@
 <div class="viewcode-block" id="rolling_indices">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolling_indices">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">rolling_indices</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    pre calculates rolling index array for rolled sum via take</span>
 
 <span class="sd">    Parameters</span>
@@ -705,7 +705,7 @@
 <span class="sd">        list containing (at least one) 1D trace</span>
 <span class="sd">    rolling: list</span>
 <span class="sd">        list of offsets per trace for rolling</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">rolling_indices</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
@@ -718,7 +718,7 @@
 <div class="viewcode-block" id="rolled_sum_take">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_take">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">rolled_sum_take</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling_indices</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    calculates rolled sum via np.take</span>
 
 <span class="sd">    Parameters</span>
@@ -732,7 +732,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    sumtr: np.array</span>
 <span class="sd">        1D array of summed traces</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># assume first trace always has no rolling</span>
     <span class="n">sumtr</span> <span class="o">=</span> <span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -745,7 +745,7 @@
 <div class="viewcode-block" id="rolled_sum_slicing">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.rolled_sum_slicing">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">rolled_sum_slicing</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">rolling</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    calculates rolled sum via slicing</span>
 
 <span class="sd">    Parameters</span>
@@ -759,10 +759,10 @@
 <span class="sd">    -------</span>
 <span class="sd">    sumtr: np.array</span>
 <span class="sd">        1D array of summed traces</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="n">rolling</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot have a roll value of </span><span class="si">{</span><span class="n">rolling</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">!=0 for channel 0&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Cannot have a roll value of </span><span class="si">{</span><span class="n">rolling</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">!=0 for channel 0"</span><span class="p">)</span>
 
     <span class="c1"># assume first trace always has no rolling</span>
     <span class="n">sumtr</span> <span class="o">=</span> <span class="n">traces</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -782,8 +782,8 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">thermalNoiseGenerator</span><span class="p">():</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">Vrms</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">time_coincidence</span><span class="p">,</span> <span class="n">n_majority</span><span class="p">,</span> <span class="n">time_coincidence_majority</span><span class="p">,</span>
-                 <span class="n">n_channels</span><span class="p">,</span> <span class="n">trigger_time</span><span class="p">,</span> <span class="n">filt</span><span class="p">,</span> <span class="n">noise_type</span><span class="o">=</span><span class="s2">&quot;rayleigh&quot;</span><span class="p">,</span> <span class="n">keep_full_band</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+                 <span class="n">n_channels</span><span class="p">,</span> <span class="n">trigger_time</span><span class="p">,</span> <span class="n">filt</span><span class="p">,</span> <span class="n">noise_type</span><span class="o">=</span><span class="s2">"rayleigh"</span><span class="p">,</span> <span class="n">keep_full_band</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Efficient algorithms to generate thermal noise fluctuations that fulfill a high/low trigger + a majority</span>
 <span class="sd">        coincidence logic (as used by ARIANNA)</span>
 
@@ -814,12 +814,12 @@
 <span class="sd">            if only one array is supplied, it is assumed to be the same for all channels</span>
 <span class="sd">        noise_type: string</span>
 <span class="sd">            the type of the noise, can be</span>
-<span class="sd">            * &quot;rayleigh&quot; (default)</span>
-<span class="sd">            * &quot;noise&quot;</span>
+<span class="sd">            * "rayleigh" (default)</span>
+<span class="sd">            * "noise"</span>
 <span class="sd">        keep_full_band: bool</span>
 <span class="sd">            Flag to keep the full-band waveform instead of the one with the filter applied. Allows for</span>
 <span class="sd">            triggering on a different (i.e. `filt`) band than what is returned, (default is False)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="n">n_samples</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">sampling_rate</span>
 
@@ -840,7 +840,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Vrms</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">Vrms</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n_channels</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Vrms has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">Vrms</span><span class="p">)</span><span class="si">}</span><span class="s2"> values, but </span><span class="si">{</span><span class="n">n_channels</span><span class="si">}</span><span class="s2"> channels are requested&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Vrms has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">Vrms</span><span class="p">)</span><span class="si">}</span><span class="s2"> values, but </span><span class="si">{</span><span class="n">n_channels</span><span class="si">}</span><span class="s2"> channels are requested"</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_channels</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Vrms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="p">{}</span>
@@ -849,7 +849,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">threshold</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n_channels</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;threshold has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span><span class="si">}</span><span class="s2"> values, but </span><span class="si">{</span><span class="n">n_channels</span><span class="si">}</span><span class="s2"> channels are requested&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"threshold has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span><span class="si">}</span><span class="s2"> values, but </span><span class="si">{</span><span class="n">n_channels</span><span class="si">}</span><span class="s2"> channels are requested"</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_channels</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">threshold</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filt</span> <span class="o">=</span> <span class="p">{}</span>
@@ -859,18 +859,18 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">filt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">filt</span>
             <span class="k">elif</span> <span class="n">filt</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">filt</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">n_channels</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;filt has </span><span class="si">{</span><span class="n">filt</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> values, but </span><span class="si">{</span><span class="n">n_channels</span><span class="si">}</span><span class="s2"> channels are requested&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"filt has </span><span class="si">{</span><span class="n">filt</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> values, but </span><span class="si">{</span><span class="n">n_channels</span><span class="si">}</span><span class="s2"> channels are requested"</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_channels</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">filt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">filt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;filt must be a 1D or 2D numpy array&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"filt must be a 1D or 2D numpy array"</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filt</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filt</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n_channels</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;filt has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">filt</span><span class="p">)</span><span class="si">}</span><span class="s2"> values, but </span><span class="si">{</span><span class="n">n_channels</span><span class="si">}</span><span class="s2"> channels are requested&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"filt has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">filt</span><span class="p">)</span><span class="si">}</span><span class="s2"> values, but </span><span class="si">{</span><span class="n">n_channels</span><span class="si">}</span><span class="s2"> channels are requested"</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_channels</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">filt</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">filt</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;filt must be a numpy array or a list of numpy arrays&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"filt must be a numpy array or a list of numpy arrays"</span><span class="p">)</span>
 
 
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger_bin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trigger_time</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">)</span>
@@ -889,11 +889,11 @@
 <div class="viewcode-block" id="thermalNoiseGenerator.generate_noise">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGenerator.generate_noise">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        generates noise traces for all channels that will cause a high/low majority logic trigger</span>
 
 <span class="sd">        Returns np.array of shape (n_channels, n_samples)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">n_traces</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>
         <span class="n">t_bins</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span>
         <span class="n">number_of_triggers</span> <span class="o">=</span> <span class="mi">0</span>
@@ -951,13 +951,13 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector_filename</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">,</span>
                  <span class="n">Vrms</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">ref_index</span><span class="p">,</span>
-                 <span class="n">noise_type</span><span class="o">=</span><span class="s2">&quot;rayleigh&quot;</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span>
+                 <span class="n">noise_type</span><span class="o">=</span><span class="s2">"rayleigh"</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span>
                  <span class="n">pre_trigger_time</span><span class="o">=</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">trace_length</span><span class="o">=</span><span class="mi">512</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">filt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">upsampling</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">window_length</span><span class="o">=</span><span class="mi">16</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="mi">8</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
                  <span class="n">main_low_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="o">-</span><span class="mf">59.54968597864437</span><span class="p">),</span>
                  <span class="n">main_high_angle</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mf">59.54968597864437</span><span class="p">),</span>
                  <span class="n">n_beams</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">quantize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Efficient algorithms to generate thermal noise fluctuations that fulfill a phased array trigger</span>
 
 <span class="sd">        Parameters</span>
@@ -979,8 +979,8 @@
 <span class="sd">        ----------------</span>
 <span class="sd">        noise_type: string</span>
 <span class="sd">            the type of the noise, can be</span>
-<span class="sd">            * &quot;rayleigh&quot; (default)</span>
-<span class="sd">            * &quot;noise&quot;</span>
+<span class="sd">            * "rayleigh" (default)</span>
+<span class="sd">            * "noise"</span>
 <span class="sd">        log_level: logging enum, default warn</span>
 <span class="sd">            the print level for this module</span>
 <span class="sd">        pre_trigger_time: float, default 100 ns</span>
@@ -1004,7 +1004,7 @@
 <span class="sd">            number of beams to calculate</span>
 <span class="sd">        quantize: bool, default True</span>
 <span class="sd">            If set to true, the conversion to and from ADC will be performed to mimic digitizations</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1019,14 +1019,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">n_samples_trigger</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">trace_length</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples_trigger</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Requested `trace_length` of </span><span class="si">{</span><span class="n">trace_length</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">ns (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples_trigger</span><span class="si">}</span><span class="s2"> bins)&quot;</span> <span class="o">+</span>
-                             <span class="sa">f</span><span class="s2">&quot; is longer than the number of samples specified in the detector file (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="si">}</span><span class="s2"> bins)&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Requested `trace_length` of </span><span class="si">{</span><span class="n">trace_length</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">ns (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples_trigger</span><span class="si">}</span><span class="s2"> bins)"</span> <span class="o">+</span>
+                             <span class="sa">f</span><span class="s2">" is longer than the number of samples specified in the detector file (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="si">}</span><span class="s2"> bins)"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">quantize</span> <span class="o">=</span> <span class="n">quantize</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantize</span><span class="p">:</span>
             <span class="n">det_channel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">adc_n_bits</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">&quot;trigger_adc_nbits&quot;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">adc_noise_count</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">&quot;trigger_adc_noise_count&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">adc_n_bits</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">"trigger_adc_nbits"</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">adc_noise_count</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">"trigger_adc_noise_count"</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">triggered_channels</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">triggered_channels</span> <span class="o">=</span> <span class="n">triggered_channels</span>
@@ -1068,19 +1068,19 @@
             <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.channelBandPassFilter</span>
             <span class="n">channelBandPassFilter</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">channelBandPassFilter</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">filt</span> <span class="o">=</span> <span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">get_filter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="p">,</span>
-                              <span class="n">passband</span><span class="o">=</span><span class="p">[</span><span class="mi">96</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">],</span> <span class="n">filter_type</span><span class="o">=</span><span class="s1">&#39;cheby1&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+                              <span class="n">passband</span><span class="o">=</span><span class="p">[</span><span class="mi">96</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">],</span> <span class="n">filter_type</span><span class="o">=</span><span class="s1">'cheby1'</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">filt</span> <span class="o">*=</span> <span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">get_filter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="p">,</span>
-                              <span class="n">passband</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">220</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">],</span> <span class="n">filter_type</span><span class="o">=</span><span class="s1">&#39;cheby1&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+                              <span class="n">passband</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">220</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">],</span> <span class="n">filter_type</span><span class="o">=</span><span class="s1">'cheby1'</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">filt</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Frequency filter supplied has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">filt</span><span class="p">)</span><span class="si">}</span><span class="s2"> bins. It should match the upsampled&quot;</span> <span class="o">+</span>
-                                 <span class="sa">f</span><span class="s2">&quot; frequency binning of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">)</span><span class="si">}</span><span class="s2"> bins from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> MHz&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Frequency filter supplied has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">filt</span><span class="p">)</span><span class="si">}</span><span class="s2"> bins. It should match the upsampled"</span> <span class="o">+</span>
+                                 <span class="sa">f</span><span class="s2">" frequency binning of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">)</span><span class="si">}</span><span class="s2"> bins from </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> MHz"</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">filt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">filt</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">trapezoid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filt</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ff</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_freq</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">**</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Vrms = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">V, noise amplitude = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">V, bandwidth = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">MHz&quot;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;frequency range </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min_freq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">}</span><span class="s2">MHz - </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">}</span><span class="s2">MHz&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Vrms = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">V, noise amplitude = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">V, bandwidth = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">norm</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">MHz"</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"frequency range </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min_freq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">}</span><span class="s2">MHz - </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">}</span><span class="s2">MHz"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">quantize</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">adc_ref_voltage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">adc_n_bits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">adc_noise_count</span>
@@ -1089,9 +1089,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">step_size</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_trigger_bins</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pre-trigger time (</span><span class="si">{</span><span class="n">pre_trigger_time</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="si">:</span><span class="s2">0.2</span><span class="si">}</span><span class="s2"> ns, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_trigger_bins</span><span class="si">}</span><span class="s2"> bins)&quot;</span> <span class="o">+</span>
-                           <span class="sa">f</span><span class="s2">&quot; is within one window (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="si">}</span><span class="s2"> bins) of the beginning of the waveform&quot;</span> <span class="o">+</span>
-                           <span class="s2">&quot; it is recommended to choose a larger value to avoid clipping effects&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Pre-trigger time (</span><span class="si">{</span><span class="n">pre_trigger_time</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="si">:</span><span class="s2">0.2</span><span class="si">}</span><span class="s2"> ns, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pre_trigger_bins</span><span class="si">}</span><span class="s2"> bins)"</span> <span class="o">+</span>
+                           <span class="sa">f</span><span class="s2">" is within one window (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="si">}</span><span class="s2"> bins) of the beginning of the waveform"</span> <span class="o">+</span>
+                           <span class="s2">" it is recommended to choose a larger value to avoid clipping effects"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">noise</span> <span class="o">=</span> <span class="n">channelGenericNoiseAdder</span><span class="o">.</span><span class="n">channelGenericNoiseAdder</span><span class="p">()</span>
 
@@ -1101,7 +1101,7 @@
                                                   <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_type</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__generation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; separated trace generation part for PA noise trigger &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" separated trace generation part for PA noise trigger """</span>
 
         <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
             <span class="c1"># spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,</span>
@@ -1119,14 +1119,14 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__phasing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; separated phasing part for PA noise trigger &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" separated phasing part for PA noise trigger """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">iBeam</span><span class="p">,</span> <span class="n">beam_time_delay</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">[</span><span class="n">iBeam</span><span class="p">]</span> <span class="o">+=</span> <span class="n">rolled_sum_slicing</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">,</span> <span class="n">beam_time_delay</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__phasing_roll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; separated phasing part for PA noise trigger via np.roll &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" separated phasing part for PA noise trigger via np.roll """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">iBeam</span><span class="p">,</span> <span class="n">beam_time_delay</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beam_time_delays</span><span class="p">):</span>
@@ -1134,7 +1134,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">[</span><span class="n">iBeam</span><span class="p">]</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">],</span> <span class="n">beam_time_delay</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__triggering</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; separated trigger part for PA noise trigger &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" separated trigger part for PA noise trigger """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="c1"># take square over entire array</span>
@@ -1168,12 +1168,12 @@
                 <span class="k">for</span> <span class="n">iBeam</span><span class="p">,</span> <span class="n">is_triggered</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">triggered_beams</span><span class="p">):</span>
                     <span class="c1"># print out each beam that has triggered</span>
                     <span class="k">if</span> <span class="n">is_triggered</span><span class="p">:</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">iBeam</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"triggered at beam </span><span class="si">{</span><span class="n">iBeam</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
                 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
                     <span class="n">ax</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="n">ax</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">[</span><span class="n">iBeam</span><span class="p">])</span>
                 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -1181,7 +1181,7 @@
         <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__triggering_strided</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; separated trigger part for PA noise trigger using np.lib.stride_tricks.as_strided &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" separated trigger part for PA noise trigger using np.lib.stride_tricks.as_strided """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">iBeam</span><span class="p">,</span> <span class="n">phased_trace</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">):</span>
@@ -1195,13 +1195,13 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">squared_mean</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span><span class="p">)</span>
             <span class="k">if</span> <span class="kc">True</span> <span class="ow">in</span> <span class="p">(</span><span class="n">squared_mean</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">):</span>
                 <span class="n">triggered_bin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">squared_mean</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">iBeam</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"triggered at beam </span><span class="si">{</span><span class="n">iBeam</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">):</span>
                     <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
                     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
                         <span class="n">ax</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
-                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                     <span class="n">ax</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phased_traces</span><span class="p">[</span><span class="n">iBeam</span><span class="p">])</span>
                     <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
                     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -1210,24 +1210,24 @@
 
 <div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray.generate_noise">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phasing_mode</span><span class="o">=</span><span class="s2">&quot;slice&quot;</span><span class="p">,</span> <span class="n">trigger_mode</span><span class="o">=</span><span class="s2">&quot;binned_sum&quot;</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phasing_mode</span><span class="o">=</span><span class="s2">"slice"</span><span class="p">,</span> <span class="n">trigger_mode</span><span class="o">=</span><span class="s2">"binned_sum"</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        generates noise traces for all channels that will cause a high/low majority logic trigger</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        phasing_mode: string (default: &quot;slice&quot;)</span>
-<span class="sd">            &quot;slice&quot; or &quot;roll&quot;, two implementations for phasing by either slicing the array or using</span>
-<span class="sd">            np.roll. The default shows better performance, but &quot;roll&quot; is kept as an alternative</span>
-<span class="sd">        trigger_mode: string (default: &quot;binned_sum&quot;)</span>
-<span class="sd">            &quot;binned_sum&quot; or &quot;stride&quot;, two implementations for triggering</span>
-<span class="sd">            The default shows better performance, but &quot;stride&quot; is kept as an alternative</span>
+<span class="sd">        phasing_mode: string (default: "slice")</span>
+<span class="sd">            "slice" or "roll", two implementations for phasing by either slicing the array or using</span>
+<span class="sd">            np.roll. The default shows better performance, but "roll" is kept as an alternative</span>
+<span class="sd">        trigger_mode: string (default: "binned_sum")</span>
+<span class="sd">            "binned_sum" or "stride", two implementations for triggering</span>
+<span class="sd">            The default shows better performance, but "stride" is kept as an alternative</span>
 <span class="sd">        debug:</span>
 <span class="sd">            generate debug plot</span>
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        np.array of shape (n_channels, n_samples), index of triggered bin, index of triggered beam</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
 
         <span class="c1"># some variables for profiling code</span>
@@ -1242,9 +1242,9 @@
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span><span class="p">(</span><span class="n">counter</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">counter</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span><span class="si">:</span><span class="s2">.2g</span><span class="si">}</span><span class="s2">, threshold = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="si">:</span><span class="s2">.2g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">counter</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_amp</span><span class="si">:</span><span class="s2">.2g</span><span class="si">}</span><span class="s2">, threshold = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="si">:</span><span class="s2">.2g</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="c1"># some printout for profiling</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time consumption: GENERATION: </span><span class="si">{</span><span class="n">dt_generation</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, PHASING: </span><span class="si">{</span><span class="n">dt_phasing</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, TRIGGER: </span><span class="si">{</span><span class="n">dt_triggering</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Time consumption: GENERATION: </span><span class="si">{</span><span class="n">dt_generation</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, PHASING: </span><span class="si">{</span><span class="n">dt_phasing</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">, TRIGGER: </span><span class="si">{</span><span class="n">dt_triggering</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="n">tstart</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">__generation</span><span class="p">()</span>
@@ -1253,27 +1253,27 @@
             <span class="n">dt_generation</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tstart</span>
             <span class="n">tstart</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="n">phasing_mode</span> <span class="o">==</span> <span class="s2">&quot;slice&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">phasing_mode</span> <span class="o">==</span> <span class="s2">"slice"</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__phasing</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="n">phasing_mode</span> <span class="o">==</span> <span class="s2">&quot;roll&quot;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">phasing_mode</span> <span class="o">==</span> <span class="s2">"roll"</span><span class="p">:</span>
                 <span class="c1"># more time consuming attempt to do phasing compared to slicing the array</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__phasing_roll</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Requested phasing_mode </span><span class="si">{</span><span class="n">phasing_mode</span><span class="si">}</span><span class="s2">. Only &#39;slice&#39; and &#39;roll&#39; are allowed&quot;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Requested phasing_mode </span><span class="si">{</span><span class="n">phasing_mode</span><span class="si">}</span><span class="s2">. Only &#39;slice&#39; and &#39;roll&#39; are allowed&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Requested phasing_mode </span><span class="si">{</span><span class="n">phasing_mode</span><span class="si">}</span><span class="s2">. Only 'slice' and 'roll' are allowed"</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Requested phasing_mode </span><span class="si">{</span><span class="n">phasing_mode</span><span class="si">}</span><span class="s2">. Only 'slice' and 'roll' are allowed"</span><span class="p">)</span>
 
             <span class="c1"># time profiling phasing</span>
             <span class="n">dt_phasing</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tstart</span>
             <span class="n">tstart</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="n">trigger_mode</span> <span class="o">==</span> <span class="s2">&quot;binned_sum&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">trigger_mode</span> <span class="o">==</span> <span class="s2">"binned_sum"</span><span class="p">:</span>
                 <span class="n">is_triggered</span><span class="p">,</span> <span class="n">triggered_bin</span><span class="p">,</span> <span class="n">triggered_beam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__triggering</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="n">trigger_mode</span> <span class="o">==</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">trigger_mode</span> <span class="o">==</span> <span class="s2">"stride"</span><span class="p">:</span>
                 <span class="c1"># more time consuming attempt to do triggering compared to taking binned sums</span>
                 <span class="n">is_triggered</span><span class="p">,</span> <span class="n">triggered_bin</span><span class="p">,</span> <span class="n">triggered_beam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__triggering_strided</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Requested trigger_mode </span><span class="si">{</span><span class="n">trigger_mode</span><span class="si">}</span><span class="s2">. Only &#39;binned_sum&#39; and &#39;stride&#39; are allowed&quot;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Requested trigger_mode </span><span class="si">{</span><span class="n">trigger_mode</span><span class="si">}</span><span class="s2">. Only &#39;binned_sum&#39;  and &#39;stride&#39; are supported&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Requested trigger_mode </span><span class="si">{</span><span class="n">trigger_mode</span><span class="si">}</span><span class="s2">. Only 'binned_sum' and 'stride' are allowed"</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Requested trigger_mode </span><span class="si">{</span><span class="n">trigger_mode</span><span class="si">}</span><span class="s2">. Only 'binned_sum'  and 'stride' are supported"</span><span class="p">)</span>
 
             <span class="c1"># time profiling trigger</span>
             <span class="n">dt_triggering</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">process_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tstart</span>
@@ -1299,19 +1299,19 @@
 <div class="viewcode-block" id="thermalNoiseGeneratorPhasedArray.generate_noise2">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.noise.html#NuRadioReco.utilities.noise.thermalNoiseGeneratorPhasedArray.generate_noise2">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">generate_noise2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        generates noise traces for all channels that will cause a high/low majority logic trigger</span>
 <span class="sd">        This implementation is slow due to nested python loops each rolling the trace over and over again</span>
 
 <span class="sd">        Returns np.array of shape (n_channels, n_samples)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">))</span>
         <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">max_amp</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span><span class="p">(</span><span class="n">counter</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">counter</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">max_amp</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">, threshold = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">counter</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">max_amp</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">, threshold = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
                 <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="o">.</span><span class="n">bandlimited_noise</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">,</span>
                                                     <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">,</span>
@@ -1349,13 +1349,13 @@
                         <span class="n">max_amp</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">squared_mean</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">max_amp</span><span class="p">)</span>
 
                         <span class="k">if</span> <span class="kc">True</span> <span class="ow">in</span> <span class="p">(</span><span class="n">squared_mean</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">):</span>
-                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triggered at beam </span><span class="si">{</span><span class="n">shifts</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"triggered at beam </span><span class="si">{</span><span class="n">shifts</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                             <span class="k">if</span><span class="p">(</span><span class="n">debug</span><span class="p">):</span>
                                 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
                                 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                                 <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
                                     <span class="n">ax</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">])</span>
-                                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">traces</span><span class="p">[</span><span class="n">iCh</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                                 <span class="n">ax</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">phased_trace</span><span class="p">)</span>
                                 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
                                 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>

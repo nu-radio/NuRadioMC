@@ -662,12 +662,12 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.LOFAR.stationRFIFilter&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.LOFAR.stationRFIFilter'</span><span class="p">)</span>
 
 <div class="viewcode-block" id="num_double_zeros">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationRFIFilter.html#NuRadioReco.modules.LOFAR.stationRFIFilter.num_double_zeros">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">num_double_zeros</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ave_shift</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;if data is a numpy array, give number of points that have  zero preceded by a zero&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""if data is a numpy array, give number of points that have  zero preceded by a zero"""</span>
 
     <span class="k">if</span> <span class="n">ave_shift</span><span class="p">:</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -685,7 +685,7 @@
 <div class="viewcode-block" id="median_sorted_by_power">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationRFIFilter.html#NuRadioReco.modules.LOFAR.stationRFIFilter.median_sorted_by_power">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">median_sorted_by_power</span><span class="p">(</span><span class="n">psort</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    This function takes a list `psort`, which is assumed to be a sorted list (of indices). This function returns a list</span>
 <span class="sd">    beginning with the median (i.e. the middle element) and subsequently the elements right and left of it, in</span>
 <span class="sd">    increasing distance from the median.</span>
@@ -703,7 +703,7 @@
 <span class="sd">    In the example above, the middle element is 3. Therefore, the resulting array starts with 3. From there the</span>
 <span class="sd">    algorithm takes the first element right (4) and left (2) of it. Then it takes the second element right (5) and</span>
 <span class="sd">    left (1). This continues until all elements have been added to the output list.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">lpsort</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">psort</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">lpsort</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">lpsort</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
@@ -738,7 +738,7 @@
         <span class="n">num_dbl_z</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
         <span class="n">pol</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A code that basically reads given LOFAR TBB H5 file and returns an array of dirty channels.</span>
 <span class="sd">    Some values are hard coded based on LOFAR Experience.</span>
 
@@ -767,40 +767,40 @@
 <span class="sd">    output_dict : dict</span>
 <span class="sd">        A dictionary with the following key-value pairs:</span>
 
-<span class="sd">           * &quot;avg_power_spectrum&quot;: array that contains the average of the magnitude for each frequency channel over all</span>
+<span class="sd">           * "avg_power_spectrum": array that contains the average of the magnitude for each frequency channel over all</span>
 <span class="sd">             antennas.</span>
 
-<span class="sd">           * &quot;avg_antenna_power&quot;: array that contains the average power in frequency domain for each antenna.</span>
+<span class="sd">           * "avg_antenna_power": array that contains the average power in frequency domain for each antenna.</span>
 
-<span class="sd">           * &quot;antenna_names&quot;: the antenna IDs of which the data was used.</span>
+<span class="sd">           * "antenna_names": the antenna IDs of which the data was used.</span>
 
-<span class="sd">           * &quot;cleaned_power&quot;: array containing the power in each antenna after contaminated channels have been removed.</span>
+<span class="sd">           * "cleaned_power": array containing the power in each antenna after contaminated channels have been removed.</span>
 <span class="sd">             Note that the result is multiplied by a factor of 2 to account for the negative frequencies.</span>
 
-<span class="sd">           * &quot;phase_stability&quot;: 2-dimensional array with the average phase for every frequency channel in each antenna.</span>
+<span class="sd">           * "phase_stability": 2-dimensional array with the average phase for every frequency channel in each antenna.</span>
 
-<span class="sd">           * &quot;dirty_channels&quot;: array of indices indicating the channels that are contaminated with RFI.</span>
+<span class="sd">           * "dirty_channels": array of indices indicating the channels that are contaminated with RFI.</span>
 
-<span class="sd">           * &quot;dirty_channels_block_size&quot;: the number of samples per block used to detect phase stability.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">           * "dirty_channels_block_size": the number of samples per block used to detect phase stability.</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">flagged_antenna_ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">flagged_antenna_ids</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="c1"># Hardcoded values for LOFAR</span>
     <span class="n">lower_frequency_bound</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span>
     <span class="n">upper_frequency_bound</span> <span class="o">=</span> <span class="mf">100e6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Upper frequency bound = </span><span class="si">%1.4e</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">upper_frequency_bound</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'Upper frequency bound = </span><span class="si">%1.4e</span><span class="s1">'</span> <span class="o">%</span> <span class="n">upper_frequency_bound</span><span class="p">)</span>
 
     <span class="c1"># Some checks to make sure variables are correctly matched with each other</span>
     <span class="k">if</span> <span class="n">target_trace_length</span> <span class="o">%</span> <span class="n">rfi_cleaning_trace_length</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-            <span class="s2">&quot;The target total block size has to be multiple of single RFI block size.&quot;</span>
+            <span class="s2">"The target total block size has to be multiple of single RFI block size."</span>
         <span class="p">)</span>
         <span class="k">raise</span> <span class="ne">ValueError</span>
 
     <span class="k">if</span> <span class="p">(</span><span class="n">rfi_cleaning_trace_length</span> <span class="o">&lt;</span> <span class="mi">4096</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">rfi_cleaning_trace_length</span> <span class="o">&gt;</span> <span class="mi">16384</span><span class="p">):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>  <span class="c1"># WHY 6 times this warning? No self.logger available here</span>
-            <span class="s2">&quot;RFI cleaning may not work optimally at block sizes &lt; 4096 or &gt; 16384; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tbb_filename</span>
+            <span class="s2">"RFI cleaning may not work optimally at block sizes &lt; 4096 or &gt; 16384; </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">tbb_filename</span>
         <span class="p">)</span>
 
     <span class="c1"># Open the TBB file and pass it to FindRFI()</span>
@@ -810,7 +810,7 @@
 
     <span class="c1"># FIXME: -- should be fixed, needs explicit testing -- what if one bad antenna in Station? Currently FindRFI crashes</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running find RFI with </span><span class="si">{</span><span class="n">num_blocks</span><span class="si">}</span><span class="s2"> blocks&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Running find RFI with </span><span class="si">{</span><span class="n">num_blocks</span><span class="si">}</span><span class="s2"> blocks"</span><span class="p">)</span>
 
     <span class="c1">############</span>
 
@@ -830,7 +830,7 @@
     <span class="c1"># step one: find which blocks are good, and find average power</span>
     <span class="n">oneAnt_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">rfi_cleaning_trace_length</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>  <span class="c1"># initialize at zero</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;finding good blocks&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"finding good blocks"</span><span class="p">)</span>
     <span class="n">blocks_good</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">num_antennas</span><span class="p">,</span> <span class="n">max_blocks</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
     <span class="n">num_good_blocks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_antennas</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
     <span class="n">average_power</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">num_antennas</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
@@ -843,7 +843,7 @@
                     <span class="n">rfi_cleaning_trace_length</span> <span class="o">*</span> <span class="n">block</span><span class="p">,</span> <span class="n">rfi_cleaning_trace_length</span><span class="p">,</span> <span class="n">antenna_ID</span><span class="o">=</span><span class="n">antenna_ids</span><span class="p">[</span><span class="n">ant_i</span><span class="p">]</span>
                 <span class="p">)</span>
             <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Could not read data for antenna </span><span class="si">%s</span><span class="s1"> block </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">antenna_ids</span><span class="p">[</span><span class="n">ant_i</span><span class="p">],</span> <span class="n">block_i</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">'Could not read data for antenna </span><span class="si">%s</span><span class="s1"> block </span><span class="si">%d</span><span class="s1">'</span> <span class="o">%</span> <span class="p">(</span><span class="n">antenna_ids</span><span class="p">[</span><span class="n">ant_i</span><span class="p">],</span> <span class="n">block_i</span><span class="p">))</span>
                 <span class="c1"># proceed with zeros in the block</span>
                 <span class="n">blocks_good</span><span class="p">[</span><span class="n">ant_i</span><span class="p">,</span> <span class="n">block_i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">continue</span>
@@ -878,7 +878,7 @@
     <span class="n">max_allowed_antennas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">allowed_num_antennas</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">max_allowed_antennas</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;ERROR: station&quot;</span><span class="p">,</span> <span class="n">tbb_file</span><span class="o">.</span><span class="n">get_station_name</span><span class="p">(),</span> <span class="s2">&quot;cannot find RFI&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"ERROR: station"</span><span class="p">,</span> <span class="n">tbb_file</span><span class="o">.</span><span class="n">get_station_name</span><span class="p">(),</span> <span class="s2">"cannot find RFI"</span><span class="p">)</span>
         <span class="k">return</span>
 
     <span class="c1"># Pick a reference antenna that allows max number of antennas, and has most median amount of power</span>
@@ -892,7 +892,7 @@
             <span class="n">ref_antenna</span> <span class="o">=</span> <span class="n">ant_i</span>
             <span class="k">break</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Taking channel </span><span class="si">%d</span><span class="s2"> as reference antenna&quot;</span> <span class="o">%</span> <span class="n">ref_antenna</span><span class="p">)</span>  <span class="c1"># this will fail if ref_antenna not found</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Taking channel </span><span class="si">%d</span><span class="s2"> as reference antenna"</span> <span class="o">%</span> <span class="n">ref_antenna</span><span class="p">)</span>  <span class="c1"># this will fail if ref_antenna not found</span>
 
     <span class="c1"># Define some helping variables</span>
     <span class="n">good_blocks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">blocks_good</span><span class="p">[</span><span class="n">ref_antenna</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
@@ -924,7 +924,7 @@
     <span class="n">temp_mag_spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">num_antennas</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">double</span><span class="p">)</span>
     <span class="n">temp_phase_spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">num_antennas</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">block_i</span> <span class="ow">in</span> <span class="n">good_blocks</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Doing block </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">block_i</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Doing block </span><span class="si">%d</span><span class="s2">"</span> <span class="o">%</span> <span class="n">block_i</span><span class="p">)</span>
         <span class="n">block</span> <span class="o">=</span> <span class="n">block_i</span> <span class="o">+</span> <span class="n">initial_block</span>
 
         <span class="k">for</span> <span class="n">ant_i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_antennas</span><span class="p">):</span>
@@ -970,12 +970,12 @@
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">num_processed_blocks</span><span class="p">[</span><span class="n">antenna_is_good</span><span class="p">])</span> <span class="o">==</span> <span class="n">num_blocks</span><span class="p">:</span>
             <span class="k">break</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">num_blocks</span><span class="si">}</span><span class="s2"> analyzed blocks, </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">antenna_is_good</span><span class="p">)</span><span class="si">}</span><span class="s2"> analyzed antennas out of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">antenna_is_good</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">num_blocks</span><span class="si">}</span><span class="s2"> analyzed blocks, </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">antenna_is_good</span><span class="p">)</span><span class="si">}</span><span class="s2"> analyzed antennas out of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">antenna_is_good</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="c1"># Get only good antennas</span>
     <span class="n">antenna_is_good</span><span class="p">[</span>
         <span class="n">ref_antenna</span>
-    <span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># we don&#39;t want to analyze the phase stability of the reference antenna</span>
+    <span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># we don't want to analyze the phase stability of the reference antenna</span>
 
     <span class="c1"># Get mean and phase stability</span>
     <span class="n">spectrum_mean</span> <span class="o">/=</span> <span class="n">num_blocks</span>
@@ -1011,7 +1011,7 @@
 
     <span class="n">dirty_channels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">extend_dirty_channels</span><span class="p">)</span>
 
-    <span class="n">antenna_is_good</span><span class="p">[</span><span class="n">ref_antenna</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># cause&#39;.... ya know.... it is</span>
+    <span class="n">antenna_is_good</span><span class="p">[</span><span class="n">ref_antenna</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># cause'.... ya know.... it is</span>
 
     <span class="n">ave_spectrum_magnitude</span> <span class="o">=</span> <span class="n">spectrum_mean</span>
 
@@ -1041,13 +1041,13 @@
 
     <span class="c1"># Use dictionary to avoid indexing mistakes</span>
     <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;avg_power_spectrum&quot;</span><span class="p">:</span> <span class="n">avg_power_spectrum</span><span class="p">,</span>
-        <span class="s2">&quot;avg_antenna_power&quot;</span><span class="p">:</span> <span class="n">avg_antenna_power</span><span class="p">,</span>
-        <span class="s2">&quot;antenna_names&quot;</span><span class="p">:</span> <span class="n">antenna_names</span><span class="p">,</span>
-        <span class="s2">&quot;cleaned_power&quot;</span><span class="p">:</span> <span class="n">cleaned_power</span><span class="p">,</span>
-        <span class="s2">&quot;phase_stability&quot;</span><span class="p">:</span> <span class="n">phase_stability</span><span class="p">,</span>
-        <span class="s2">&quot;dirty_channels&quot;</span><span class="p">:</span> <span class="n">dirty_channels</span><span class="p">,</span>
-        <span class="s2">&quot;dirty_channels_block_size&quot;</span><span class="p">:</span> <span class="n">dirty_channels_block_size</span><span class="p">,</span>
+        <span class="s2">"avg_power_spectrum"</span><span class="p">:</span> <span class="n">avg_power_spectrum</span><span class="p">,</span>
+        <span class="s2">"avg_antenna_power"</span><span class="p">:</span> <span class="n">avg_antenna_power</span><span class="p">,</span>
+        <span class="s2">"antenna_names"</span><span class="p">:</span> <span class="n">antenna_names</span><span class="p">,</span>
+        <span class="s2">"cleaned_power"</span><span class="p">:</span> <span class="n">cleaned_power</span><span class="p">,</span>
+        <span class="s2">"phase_stability"</span><span class="p">:</span> <span class="n">phase_stability</span><span class="p">,</span>
+        <span class="s2">"dirty_channels"</span><span class="p">:</span> <span class="n">dirty_channels</span><span class="p">,</span>
+        <span class="s2">"dirty_channels_block_size"</span><span class="p">:</span> <span class="n">dirty_channels_block_size</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">output_dict</span></div>
@@ -1058,7 +1058,7 @@
 <div class="viewcode-block" id="stationRFIFilter">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationRFIFilter.html#NuRadioReco.modules.LOFAR.stationRFIFilter.stationRFIFilter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">stationRFIFilter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Remove the RFI from all stations in an Event, by using the phase-variance method described in</span>
 <span class="sd">    the notes section. This algorithm returns the frequency channels which are contaminated, which are</span>
 <span class="sd">    subsequently put to zero in the traces.</span>
@@ -1070,10 +1070,10 @@
 <span class="sd">    The algorithm compares the phase stability of each frequency channel between a reference antenna and every</span>
 <span class="sd">    other antenna in the station. If the phase is stable, this indicates a constant source contaminating the data.</span>
 <span class="sd">    More information can be found in Section 3.2.2 of `this paper &lt;https://arxiv.org/pdf/1311.1399.pdf&gt;`_ .</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>  <span class="c1"># logging.getLogger(&#39;NuRadioReco.channelRFIFilter&#39;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logger</span>  <span class="c1"># logging.getLogger('NuRadioReco.channelRFIFilter')</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__rfi_trace_length</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__station_list</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1101,7 +1101,7 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationRFIFilter.html#NuRadioReco.modules.LOFAR.stationRFIFilter.stationRFIFilter.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rfi_cleaning_trace_length</span><span class="o">=</span><span class="mi">65536</span><span class="p">,</span> <span class="n">reader</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">do_polarizations_apart</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
               <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the variables used for RFI detection. The `reader` object can be used to retrieve the filenames associated</span>
 <span class="sd">        with the loaded stations, as well as the metadata directory.</span>
 
@@ -1120,7 +1120,7 @@
 <span class="sd">        -----</span>
 <span class="sd">        If no reader is provided here, the user should set the `self.station_list` and `self.metadata_dir` variables</span>
 <span class="sd">        manually before attempting to execute the `stationRFIFilter.run()` function.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__rfi_trace_length</span> <span class="o">=</span> <span class="n">rfi_cleaning_trace_length</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__do_polarizations_apart</span> <span class="o">=</span> <span class="n">do_polarizations_apart</span>
         <span class="k">if</span> <span class="n">reader</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1134,7 +1134,7 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.stationRFIFilter.html#NuRadioReco.modules.LOFAR.stationRFIFilter.stationRFIFilter.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Run the filter on the `event`. The method currently uses :py:func:`FindRFI_LOFAR` to find the contaminated</span>
 <span class="sd">        channels and then puts the corresponding frequency bands to zero in every channel (in place).</span>
 
@@ -1142,14 +1142,14 @@
 <span class="sd">        ----------</span>
 <span class="sd">        event : Event object</span>
 <span class="sd">            The event on which to run the filter.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">stations_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">station_list</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__median_spectrum</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">event</span><span class="o">.</span><span class="n">get_stations</span><span class="p">():</span>
-            <span class="n">station_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s1">03</span><span class="si">}</span><span class="s1">&#39;</span>
-            <span class="n">station_files</span> <span class="o">=</span> <span class="n">stations_dict</span><span class="p">[</span><span class="n">station_name</span><span class="p">][</span><span class="s1">&#39;files&#39;</span><span class="p">]</span>
-            <span class="n">antenna_set</span> <span class="o">=</span> <span class="n">stations_dict</span><span class="p">[</span><span class="n">station_name</span><span class="p">][</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">station_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s1">03</span><span class="si">}</span><span class="s1">'</span>
+            <span class="n">station_files</span> <span class="o">=</span> <span class="n">stations_dict</span><span class="p">[</span><span class="n">station_name</span><span class="p">][</span><span class="s1">'files'</span><span class="p">]</span>
+            <span class="n">antenna_set</span> <span class="o">=</span> <span class="n">stations_dict</span><span class="p">[</span><span class="n">station_name</span><span class="p">][</span><span class="s1">'metadata'</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
             <span class="n">flagged_channel_ids</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">flagged_channels</span><span class="p">)</span>  <span class="c1"># this is a defaultdict</span>
 
             <span class="c1"># Find the length of a trace in the station (assume all channels have been loaded with same length)</span>
@@ -1157,12 +1157,12 @@
 
             <span class="c1"># Do some checks</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">station_files</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;No files in reader dict for station </span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s1">, skipping...&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">'No files in reader dict for station </span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s1">, skipping...'</span><span class="p">)</span>
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">station_trace_length</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__rfi_trace_length</span><span class="p">)</span> <span class="ow">or</span> \
                     <span class="p">(</span><span class="n">station_trace_length</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">__rfi_trace_length</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Station trace length (</span><span class="si">{</span><span class="n">station_trace_length</span><span class="si">}</span><span class="s1">) has to be greater than RFI trace &#39;</span>
-                                  <span class="sa">f</span><span class="s1">&#39;length (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__rfi_trace_length</span><span class="si">}</span><span class="s1">) as well as a multiple of it.&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Station trace length (</span><span class="si">{</span><span class="n">station_trace_length</span><span class="si">}</span><span class="s1">) has to be greater than RFI trace '</span>
+                                  <span class="sa">f</span><span class="s1">'length (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__rfi_trace_length</span><span class="si">}</span><span class="s1">) as well as a multiple of it.'</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span>
 
             <span class="n">flagged_tbb_channel_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -1176,7 +1176,7 @@
                                     <span class="bp">self</span><span class="o">.</span><span class="n">__rfi_trace_length</span><span class="p">,</span>
                                     <span class="n">flagged_antenna_ids</span><span class="o">=</span><span class="n">flagged_tbb_channel_ids</span>
                                     <span class="p">)</span>
-                <span class="n">dirty_channels</span> <span class="o">=</span> <span class="n">packet</span><span class="p">[</span><span class="s1">&#39;dirty_channels&#39;</span><span class="p">]</span>
+                <span class="n">dirty_channels</span> <span class="o">=</span> <span class="n">packet</span><span class="p">[</span><span class="s1">'dirty_channels'</span><span class="p">]</span>
 
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">packet0</span> <span class="o">=</span> <span class="n">FindRFI_LOFAR</span><span class="p">(</span><span class="n">station_files</span><span class="p">,</span>
@@ -1195,20 +1195,20 @@
 
 
                 <span class="c1"># Extract the necessary information from FindRFI</span>
-                <span class="n">dirty_channels_0</span> <span class="o">=</span> <span class="n">packet0</span><span class="p">[</span><span class="s1">&#39;dirty_channels&#39;</span><span class="p">]</span>
-                <span class="n">dirty_channels_1</span> <span class="o">=</span> <span class="n">packet1</span><span class="p">[</span><span class="s1">&#39;dirty_channels&#39;</span><span class="p">]</span>
+                <span class="n">dirty_channels_0</span> <span class="o">=</span> <span class="n">packet0</span><span class="p">[</span><span class="s1">'dirty_channels'</span><span class="p">]</span>
+                <span class="n">dirty_channels_1</span> <span class="o">=</span> <span class="n">packet1</span><span class="p">[</span><span class="s1">'dirty_channels'</span><span class="p">]</span>
 
                 <span class="n">dirty_channels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dirty_channels_0</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">dirty_channels_1</span><span class="p">))</span>
                 <span class="n">packet</span> <span class="o">=</span> <span class="n">packet0</span>
-                <span class="n">packet</span><span class="p">[</span><span class="s1">&#39;antenna_names&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">packet1</span><span class="p">[</span><span class="s1">&#39;antenna_names&#39;</span><span class="p">])</span>
-                <span class="n">packet</span><span class="p">[</span><span class="s1">&#39;cleaned_power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span> <span class="p">(</span><span class="n">packet</span><span class="p">[</span><span class="s1">&#39;cleaned_power&#39;</span><span class="p">],</span> <span class="n">packet1</span><span class="p">[</span><span class="s1">&#39;cleaned_power&#39;</span><span class="p">])</span>  <span class="p">)</span>
+                <span class="n">packet</span><span class="p">[</span><span class="s1">'antenna_names'</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">packet1</span><span class="p">[</span><span class="s1">'antenna_names'</span><span class="p">])</span>
+                <span class="n">packet</span><span class="p">[</span><span class="s1">'cleaned_power'</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span> <span class="p">(</span><span class="n">packet</span><span class="p">[</span><span class="s1">'cleaned_power'</span><span class="p">],</span> <span class="n">packet1</span><span class="p">[</span><span class="s1">'cleaned_power'</span><span class="p">])</span>  <span class="p">)</span>
 
 
             <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">dirty_fft_channels</span><span class="p">,</span> <span class="n">dirty_channels</span><span class="p">)</span>
 
             <span class="c1"># implement outlier detection in cleaned power</span>
-            <span class="n">antenna_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">packet</span><span class="p">[</span><span class="s1">&#39;antenna_names&#39;</span><span class="p">])</span>
-            <span class="n">cleaned_power</span> <span class="o">=</span> <span class="n">packet</span><span class="p">[</span><span class="s1">&#39;cleaned_power&#39;</span><span class="p">]</span>
+            <span class="n">antenna_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">packet</span><span class="p">[</span><span class="s1">'antenna_names'</span><span class="p">])</span>
+            <span class="n">cleaned_power</span> <span class="o">=</span> <span class="n">packet</span><span class="p">[</span><span class="s1">'cleaned_power'</span><span class="p">]</span>
             <span class="n">median_dipole_power</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">cleaned_power</span><span class="p">)</span>
             <span class="n">bad_dipole_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
                 <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span>
@@ -1217,8 +1217,8 @@
             <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="c1"># which dipole ids are these</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s1">&#39;There are </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bad_dipole_indices</span><span class="p">)</span><span class="si">}</span><span class="s1"> outliers in cleaned power </span><span class="se">\n</span><span class="s1">&#39;</span>
-                <span class="sa">f</span><span class="s1">&#39;Dipole ids: </span><span class="si">{</span><span class="n">antenna_ids</span><span class="p">[</span><span class="n">bad_dipole_indices</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="sa">f</span><span class="s1">'There are </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bad_dipole_indices</span><span class="p">)</span><span class="si">}</span><span class="s1"> outliers in cleaned power </span><span class="se">\n</span><span class="s1">'</span>
+                <span class="sa">f</span><span class="s1">'Dipole ids: </span><span class="si">{</span><span class="n">antenna_ids</span><span class="p">[</span><span class="n">bad_dipole_indices</span><span class="p">]</span><span class="si">}</span><span class="s1">'</span>
             <span class="p">)</span>
 
             <span class="c1"># Construct flagged set of NRR channel IDs</span>
@@ -1232,8 +1232,8 @@
                 <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channel_group</span><span class="p">(</span><span class="n">group_id_to_remove</span><span class="p">):</span>
                     <span class="n">channel_ids_to_remove</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">channel_id</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s1">&#39;Removing the following channels from station </span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s1">: </span><span class="se">\n</span><span class="s1">&#39;</span>
-                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">channel_ids_to_remove</span><span class="si">}</span><span class="s1">&#39;</span>
+                <span class="sa">f</span><span class="s1">'Removing the following channels from station </span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s1">: </span><span class="se">\n</span><span class="s1">'</span>
+                <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">channel_ids_to_remove</span><span class="si">}</span><span class="s1">'</span>
             <span class="p">)</span>
 
             <span class="c1"># Remove bad antennas (= both channels!) from station, if it exists</span>
@@ -1241,7 +1241,7 @@
                 <span class="n">station</span><span class="o">.</span><span class="n">remove_channel</span><span class="p">(</span><span class="n">nrr_id</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">channel_ind</span> <span class="ow">in</span> <span class="n">channel_ids_to_remove</span><span class="p">:</span>
-                <span class="n">flagged_channel_ids</span><span class="p">[</span><span class="n">channel_ind</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;rfi_outliers_cleaned_power&#39;</span><span class="p">)</span>
+                <span class="n">flagged_channel_ids</span><span class="p">[</span><span class="n">channel_ind</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">'rfi_outliers_cleaned_power'</span><span class="p">)</span>
 
             <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">flagged_channels</span><span class="p">,</span> <span class="n">flagged_channel_ids</span><span class="p">)</span>
 
@@ -1277,9 +1277,9 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_median_freq_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">rfi_cleaned</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">flagging</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
         <span class="k">if</span> <span class="n">flagging</span> <span class="ow">and</span> <span class="n">rfi_cleaned</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;plot_median_freq_spectrum flagging the rfi_cleaned channels in a clean trace is weird, but ok&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"plot_median_freq_spectrum flagging the rfi_cleaned channels in a clean trace is weird, but ok"</span><span class="p">)</span>
 
-        <span class="n">station_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s1">03d</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">station_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s1">03d</span><span class="si">}</span><span class="s1">'</span>
 
         <span class="k">if</span> <span class="n">rfi_cleaned</span><span class="p">:</span>
             <span class="c1"># median spectrum from channels in the station. Since this function is expected to run in the .end() after .run(), the traces there are cleaned</span>
@@ -1288,11 +1288,11 @@
                 <span class="n">spectrum</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
                 <span class="n">spectra</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">spectrum</span><span class="p">))</span>
             <span class="n">median_spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">spectra</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-            <span class="n">plot_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s2">-rfi_cleaning_flags.pdf&quot;</span>
+            <span class="n">plot_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s2">-rfi_cleaning_flags.pdf"</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># pre rfi cleaned spectrum stored</span>
             <span class="n">median_spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__median_spectrum</span><span class="p">[</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span>
-            <span class="n">plot_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s2">-median_spectrum_after_rfi_cleaning.pdf&quot;</span>
+            <span class="n">plot_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s2">-median_spectrum_after_rfi_cleaning.pdf"</span>
 
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
         <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">()</span>
@@ -1302,13 +1302,13 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">freq_MHz</span><span class="p">,</span> <span class="n">log_median_spectrum</span><span class="p">,</span><span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">flagging</span><span class="p">:</span>
             <span class="n">dirty_channels</span> <span class="o">=</span> <span class="n">station</span><span class="p">[</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">dirty_fft_channels</span><span class="p">]</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">freq_MHz</span><span class="p">[</span><span class="n">dirty_channels</span><span class="p">],</span> <span class="n">log_median_spectrum</span><span class="p">[</span><span class="n">dirty_channels</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Frequency [MHz]&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Log-Spectral Power [ADU]&quot;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s2"> Median frequency spectrum&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">freq_MHz</span><span class="p">[</span><span class="n">dirty_channels</span><span class="p">],</span> <span class="n">log_median_spectrum</span><span class="p">[</span><span class="n">dirty_channels</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"red"</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"Frequency [MHz]"</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Log-Spectral Power [ADU]"</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">station_name</span><span class="si">}</span><span class="s2"> Median frequency spectrum"</span><span class="p">)</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">os</span> 
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">/&quot;</span> <span class="o">+</span> <span class="n">plot_filename</span><span class="p">)</span></div>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">/"</span> <span class="o">+</span> <span class="n">plot_filename</span><span class="p">)</span></div>
 </div>
 
 </pre></div>

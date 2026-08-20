@@ -650,14 +650,14 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.utilities.interferometry</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">This module contains helper functions for beam-forming. Originally for the module(s) in</span>
 <span class="sd">modules/efieldRadioInterferometricReconstruction.py. The functions with the abbriviation</span>
-<span class="sd">&quot;rit&quot; or &quot;RIT&quot; in their name refer to the &quot;Radio Interferometric Technique&quot; [1, 2].</span>
+<span class="sd">"rit" or "RIT" in their name refer to the "Radio Interferometric Technique" [1, 2].</span>
 
 <span class="sd">[1]: H. Schoorlemmer, W. R. Carvalho Jr., arXiv:2006.10348</span>
 <span class="sd">[2]: F. Schlueter, T. Huege, doi:10.1088/1748-0221/16/07/P07048</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
@@ -675,8 +675,8 @@
 
 <div class="viewcode-block" id="get_signal">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.get_signal">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_signal</span><span class="p">(</span><span class="n">sum_trace</span><span class="p">,</span> <span class="n">tstep</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">window_width</span><span class="o">=</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;power&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_signal</span><span class="p">(</span><span class="n">sum_trace</span><span class="p">,</span> <span class="n">tstep</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">window_width</span><span class="o">=</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"power"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculates signal quantity from beam-formed waveform</span>
 
 <span class="sd">    Parameters</span>
@@ -691,23 +691,23 @@
 <span class="sd">        Time window size to calculate power</span>
 
 <span class="sd">    kind : str</span>
-<span class="sd">        Key-word what to do: &quot;amplitude&quot;, &quot;power&quot;, or &quot;hilbert_sum&quot;</span>
+<span class="sd">        Key-word what to do: "amplitude", "power", or "hilbert_sum"</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    signal : double</span>
 <span class="sd">        Signal calculated according to the specified metric</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># find signal peak</span>
     <span class="n">hilbenv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">hilbert</span><span class="p">(</span><span class="n">sum_trace</span><span class="p">))</span>
     <span class="n">peak_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">hilbenv</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;amplitude&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"amplitude"</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">hilbenv</span><span class="p">[</span><span class="n">peak_idx</span><span class="p">]</span>
 
-    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;power&quot;</span> <span class="ow">or</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;hilbert_sum&quot;</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">tstep</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Pass `tstep`&quot;</span>
+    <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"power"</span> <span class="ow">or</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"hilbert_sum"</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">tstep</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"Pass `tstep`"</span>
         <span class="n">trace_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sum_trace</span><span class="p">)</span>
         <span class="c1"># shift peak in middle of trace</span>
         <span class="n">sum_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">sum_trace</span><span class="p">,</span> <span class="n">trace_length</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">peak_idx</span><span class="p">)</span>
@@ -722,23 +722,23 @@
 
         <span class="n">sum_trace</span> <span class="o">*=</span> <span class="n">conversion_factor_integrated_signal</span> <span class="o">*</span> <span class="n">tstep</span>
 
-        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;power&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"power"</span><span class="p">:</span>
             <span class="c1"># return sum of squares within signal window</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">sum_trace</span><span class="p">[</span><span class="n">peak_idx</span><span class="o">-</span><span class="n">idx_width</span><span class="p">:</span><span class="n">peak_idx</span><span class="o">+</span><span class="n">idx_width</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;hilbert_sum&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"hilbert_sum"</span><span class="p">:</span>
             <span class="n">hilbenv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">hilbert</span><span class="p">(</span><span class="n">sum_trace</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">hilbenv</span><span class="p">[</span><span class="n">peak_idx</span><span class="o">-</span><span class="n">idx_width</span><span class="p">:</span><span class="n">peak_idx</span><span class="o">+</span><span class="n">idx_width</span><span class="p">])</span>
 
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;get_signal(), kind = &#39;</span><span class="si">{}</span><span class="s2">&#39; not supported&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kind</span><span class="p">))</span></div>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">"get_signal(), kind = '</span><span class="si">{}</span><span class="s2">' not supported"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kind</span><span class="p">))</span></div>
 
 
 
 <div class="viewcode-block" id="interfere_traces_rit">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.interfere_traces_rit">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">interfere_traces_rit</span><span class="p">(</span><span class="n">target_pos</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Shifts the waveforms of observers to the source location and sums them up.</span>
 
 <span class="sd">    Parameters</span>
@@ -762,7 +762,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    sum_trace : np.array(n, m)</span>
 <span class="sd">        Summed trace</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">tshifts</span> <span class="o">=</span> <span class="n">get_time_shifts_rit</span><span class="p">(</span><span class="n">target_pos</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">tab</span><span class="p">)</span>
     <span class="n">times_new</span> <span class="o">=</span> <span class="n">times</span> <span class="o">-</span> <span class="n">tshifts</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">interfere_traces_interpolation</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">times_new</span><span class="p">)</span></div>
@@ -772,7 +772,7 @@
 <div class="viewcode-block" id="interfere_traces_plane">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.interfere_traces_plane">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">interfere_traces_plane</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">n0</span><span class="o">=</span><span class="mf">1.000292</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Shifts the waveforms of observers onto a plane wave.</span>
 
 <span class="sd">    Parameters</span>
@@ -799,7 +799,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    sum_trace : np.array(n, m)</span>
 <span class="sd">        Summed trace</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">tshifts</span> <span class="o">=</span> <span class="n">get_time_delay_from_direction</span><span class="p">(</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">n0</span><span class="p">)</span>
     <span class="n">times_new</span> <span class="o">=</span> <span class="n">times</span> <span class="o">-</span> <span class="n">tshifts</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">interfere_traces_interpolation</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">times_new</span><span class="p">)</span></div>
@@ -808,7 +808,7 @@
 <div class="viewcode-block" id="interfere_traces_interpolation">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.interfere_traces_interpolation">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">interfere_traces_interpolation</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">times</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate sum of time shifted waveforms. Performs a linear interpolation between samples.</span>
 
 <span class="sd">    Parameters</span>
@@ -823,7 +823,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    sum_trace : np.array(n, m)</span>
 <span class="sd">        Summed trace</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">tstep</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">times</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
     <span class="n">first_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
@@ -838,11 +838,11 @@
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
             <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
-                <span class="s2">&quot;Index array has not unique entries. That is most probably a rounding issue!&quot;</span><span class="p">)</span>
+                <span class="s2">"Index array has not unique entries. That is most probably a rounding issue!"</span><span class="p">)</span>
 
         <span class="n">f</span> <span class="o">=</span> <span class="p">(</span><span class="n">fidx</span> <span class="o">-</span> <span class="n">idx</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># are all the same</span>
 
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Linear interplation to match the binning of time_sum. &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Linear interplation to match the binning of time_sum. """</span>
         <span class="n">trace_new</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">f</span><span class="p">)</span> <span class="o">*</span> <span class="n">trace</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">f</span> <span class="o">*</span> <span class="n">trace</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">sum_trace</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">trace_new</span>
 
@@ -853,7 +853,7 @@
 <div class="viewcode-block" id="get_time_shifts_rit">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.get_time_shifts_rit">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_time_shifts_rit</span><span class="p">(</span><span class="n">target_pos</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">tab</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculates the time delay of an electromagnetic wave along a straight trajectories between</span>
 <span class="sd">    a source/traget location and several observers.</span>
 
@@ -872,7 +872,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    tshifts : np.array(n,)</span>
 <span class="sd">        Time delay in sec</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">tshifts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">positions</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">positions</span><span class="p">):</span>
@@ -890,7 +890,7 @@
 <div class="viewcode-block" id="get_time_shifts_plane">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.get_time_shifts_plane">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_time_shifts_plane</span><span class="p">(</span><span class="n">positions</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">n0</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate time shifts for a plane wavefront for a given set of observers.</span>
 
 <span class="sd">    Parameters</span>
@@ -911,9 +911,9 @@
 <span class="sd">    -------</span>
 <span class="sd">    tshifts : np.array(n,)</span>
 <span class="sd">        Time delay for n observers</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-        <span class="s2">&quot;get_time_shifts_plane() is deprecated. Use `geometryUtilities.get_time_delay_from_direction()` instead.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+        <span class="s2">"get_time_shifts_plane() is deprecated. Use `geometryUtilities.get_time_delay_from_direction()` instead."</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">get_time_delay_from_direction</span><span class="p">(</span><span class="n">zenith</span><span class="o">=</span><span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="o">=</span><span class="n">azimuth</span><span class="p">,</span> <span class="n">positions</span><span class="o">=</span><span class="n">positions</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n0</span><span class="p">)</span></div>
 
 
@@ -921,7 +921,7 @@
 <div class="viewcode-block" id="fit_axis">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.fit_axis">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">fit_axis</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">coreX</span><span class="p">,</span> <span class="n">coreY</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Predicts the intersetction of an axis/line with horizontal layers at different heights.</span>
 
 <span class="sd">    Line is described by an anchor on a horizontal plane (coreX, coreY) and a direction</span>
@@ -950,8 +950,8 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    points : array</span>
-<span class="sd">        The flatten array of the positions on along the defined axis at heights given by &quot;z&quot;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        The flatten array of the positions on along the defined axis at heights given by "z"</span>
+<span class="sd">    """</span>
     <span class="n">axis</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">spherical_to_cartesian</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>
     <span class="n">norm</span> <span class="o">=</span> <span class="n">z</span> <span class="o">/</span> <span class="n">axis</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">norm</span><span class="p">)</span>  <span class="c1"># when z is a float</span>
@@ -964,7 +964,7 @@
 <div class="viewcode-block" id="get_intersection_between_line_and_plane">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.interferometry.html#NuRadioReco.utilities.interferometry.get_intersection_between_line_and_plane">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_intersection_between_line_and_plane</span><span class="p">(</span><span class="n">plane_normal</span><span class="p">,</span> <span class="n">plane_anchor</span><span class="p">,</span> <span class="n">line_direction</span><span class="p">,</span> <span class="n">line_anchor</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Find intersection betweem a line and a plane.</span>
 
 <span class="sd">    From https://rosettacode.org/wiki/Find_the_intersection_of_a_line_with_a_plane#Python</span>
@@ -990,10 +990,10 @@
 <span class="sd">    -------</span>
 <span class="sd">    psi : array(3,)</span>
 <span class="sd">        Position of the intersection between plane and line</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">ndotu</span> <span class="o">=</span> <span class="n">plane_normal</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">line_direction</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">ndotu</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">epsilon</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;no intersection or line is within plane&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"no intersection or line is within plane"</span><span class="p">)</span>
 
     <span class="n">w</span> <span class="o">=</span> <span class="n">line_anchor</span> <span class="o">-</span> <span class="n">plane_anchor</span>
     <span class="n">si</span> <span class="o">=</span> <span class="o">-</span><span class="n">plane_normal</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">/</span> <span class="n">ndotu</span>

@@ -658,12 +658,12 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">healpy</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.efieldGalacticNoiseAdder&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.efieldGalacticNoiseAdder'</span><span class="p">)</span>
 
 <div class="viewcode-block" id="efieldGalacticNoiseAdder">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldGalacticNoiseAdder.html#NuRadioReco.modules.efieldGalacticNoiseAdder.efieldGalacticNoiseAdder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">efieldGalacticNoiseAdder</span><span class="p">(</span><span class="n">channelGalacticNoiseAdder</span><span class="p">):</span>
-<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">"""</span>
 <span class="sd">    Class that simulates the noise produced by galactic radio emission</span>
 
 <span class="sd">    Uses the pydgsm package (https://github.com/telegraphic/pygdsm), which provides</span>
@@ -683,7 +683,7 @@
 <span class="sd">    NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder</span>
 <span class="sd">        Similar class that directly adds the noise to ``Channel`` (voltage trace) objects</span>
 <span class="sd">        instead of ``ElectricField``\s.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -699,7 +699,7 @@
             <span class="n">passband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Adds noise resulting from galactic radio emission to the field traces</span>
 
 <span class="sd">        Parameters</span>
@@ -713,9 +713,9 @@
 <span class="sd">        passband: list of float, optional</span>
 <span class="sd">            Lower and upper bound of the frequency range in which noise shall be</span>
 <span class="sd">            added. The default (no passband specified) is [10, 1000] MHz</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channelGalacticNoiseAdder__noise_temperatures</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># check if .begin has been called, give helpful error message if not</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;efieldGalacticNoiseAdder was not initialized correctly. Maybe you forgot to call `.begin()`?&quot;</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"efieldGalacticNoiseAdder was not initialized correctly. Maybe you forgot to call `.begin()`?"</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
@@ -724,7 +724,7 @@
         <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">():</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">last_freqs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
                     <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">last_freqs</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">(),</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)):</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The frequencies of each field must be the same, but they are not!&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"The frequencies of each field must be the same, but they are not!"</span><span class="p">)</span>
                 <span class="k">return</span>
             <span class="n">last_freqs</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
 
@@ -766,7 +766,7 @@
                 <span class="k">continue</span>
 
             <span class="n">temperature_interpolator</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_channelGalacticNoiseAdder__interpolation_frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_channelGalacticNoiseAdder__noise_temperatures</span><span class="p">[:,</span> <span class="n">i_pixel</span><span class="p">]),</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;quadratic&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_channelGalacticNoiseAdder__interpolation_frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_channelGalacticNoiseAdder__noise_temperatures</span><span class="p">[:,</span> <span class="n">i_pixel</span><span class="p">]),</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'quadratic'</span><span class="p">)</span>
             <span class="n">noise_temperature</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">temperature_interpolator</span><span class="p">(</span><span class="n">freqs</span><span class="p">[</span><span class="n">passband_filter</span><span class="p">]))</span>
 
             <span class="n">efield_amplitude</span> <span class="o">=</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">get_electric_field_from_temperature</span><span class="p">(</span>
@@ -802,8 +802,8 @@
                     <span class="n">curr_fresnel_zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">field_pos</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">curr_n</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">field_pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">5</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;Galactic noise cannot be simulated accurately for deep in-ice channels. &quot;</span>
-                        <span class="s2">&quot;Coherence and arrival direction of noise are probably inaccurate.&quot;</span><span class="p">)</span>
+                        <span class="s2">"Galactic noise cannot be simulated accurately for deep in-ice channels. "</span>
+                        <span class="s2">"Coherence and arrival direction of noise are probably inaccurate."</span><span class="p">)</span>
 
                 <span class="n">delta_phases</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">freqs</span><span class="p">[</span><span class="n">passband_filter</span><span class="p">]</span> <span class="o">*</span> <span class="n">dt</span>
 
@@ -820,7 +820,7 @@
 
         <span class="c1"># Store updated fields spectra</span>
         <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">():</span>
-            <span class="n">field</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">field_spectra</span><span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()],</span> <span class="s2">&quot;same&quot;</span><span class="p">)</span></div>
+            <span class="n">field</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">field_spectra</span><span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()],</span> <span class="s2">"same"</span><span class="p">)</span></div>
 </div>
 
 </pre></div>

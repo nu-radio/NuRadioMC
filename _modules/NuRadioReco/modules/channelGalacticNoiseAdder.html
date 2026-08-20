@@ -672,7 +672,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">astropy.units</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.channelGalacticNoiseAdder&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.channelGalacticNoiseAdder'</span><span class="p">)</span>
 
 <span class="c1"># This is the maximum number caching entries for the vector effective length and</span>
 <span class="c1"># noise temperature.</span>
@@ -687,8 +687,8 @@
     <span class="p">)</span>
 <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-        <span class="s2">&quot;To use the channelGalacticNoiseAdder, &#39;pygdsm&#39; needs to be installed:</span><span class="se">\n\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2"> pip install git+https://github.com/telegraphic/pygdsm</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">"To use the channelGalacticNoiseAdder, 'pygdsm' needs to be installed:</span><span class="se">\n\n</span><span class="s2">"</span>
+        <span class="s2">"</span><span class="se">\t</span><span class="s2"> pip install git+https://github.com/telegraphic/pygdsm</span><span class="se">\n</span><span class="s2">"</span>
         <span class="p">)</span>
     <span class="k">raise</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
@@ -697,18 +697,18 @@
         <span class="kn">from</span><span class="w"> </span><span class="nn">pylfmap</span><span class="w"> </span><span class="kn">import</span> <span class="n">LFmap</span>  <span class="c1"># Documentation: https://github.com/F-Tomas/pylfmap needs cfitsio installation</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-        <span class="s2">&quot;pylfmap import failed. Consider installing it from &quot;</span>
-        <span class="s2">&quot;https://github.com/F-Tomas/pylfmap to use LFmap as sky model.&quot;</span><span class="p">)</span>
+        <span class="s2">"pylfmap import failed. Consider installing it from "</span>
+        <span class="s2">"https://github.com/F-Tomas/pylfmap to use LFmap as sky model."</span><span class="p">)</span>
 <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span> <span class="c1"># this is a common error if cfitsio is not found... there are probably others</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-        <span class="s2">&quot;pylfmap import failed. This might be because you do not have a working &quot;</span>
-        <span class="s2">&quot;installation of cfitsio. See https://github.com/F-Tomas/pylfmap/issues/2 for potential tips&quot;</span><span class="p">)</span>
+        <span class="s2">"pylfmap import failed. This might be because you do not have a working "</span>
+        <span class="s2">"installation of cfitsio. See https://github.com/F-Tomas/pylfmap/issues/2 for potential tips"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="channelGalacticNoiseAdder">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelGalacticNoiseAdder</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Class that simulates the noise produced by galactic radio emission</span>
 
 <span class="sd">    Uses the pydgsm package (https://github.com/telegraphic/pygdsm), which provides</span>
@@ -730,7 +730,7 @@
 <span class="sd">    of the phase shift would require ray tracing. However, keep in mind that the expected coherence from</span>
 <span class="sd">    the galactic noise is expected to be very low and will not be detectable without a large number of</span>
 <span class="sd">    antennas.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span> <span class="o">=</span> <span class="kc">None</span>
@@ -756,12 +756,12 @@
             <span class="n">attenuation_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">simulate_sun</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set up important parameters for the module</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        skymodel: {&#39;gsm2008&#39;, &#39;lfmap&#39;, &#39;lfss&#39;, &#39;gsm2016&#39;, &#39;haslam&#39;}, optional</span>
+<span class="sd">        skymodel: {'gsm2008', 'lfmap', 'lfss', 'gsm2016', 'haslam'}, optional</span>
 <span class="sd">            Choose the sky model to use. If none is provided, the Global Sky Model (2008) is used as a default.</span>
 <span class="sd">        debug: bool, default: False</span>
 <span class="sd">            Deprecated. Will be removed in future versions.</span>
@@ -796,10 +796,10 @@
 <span class="sd">        attenuation_model: str, default: None</span>
 <span class="sd">            The attenuation model to use for the simulation of in-ice antennas.</span>
 <span class="sd">        simulate_sun: bool, default: False</span>
-<span class="sd">            If True, the sun&#39;s contribution to the galactic noise is simulated. This is experimental!</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            If True, the sun's contribution to the galactic noise is simulated. This is experimental!</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;This argument is deprecated and will be removed in future versions.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"This argument is deprecated and will be removed in future versions."</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span> <span class="o">=</span> <span class="n">Generator</span><span class="p">(</span><span class="n">Philox</span><span class="p">(</span><span class="n">seed</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span> <span class="o">=</span> <span class="n">n_side</span>
@@ -807,17 +807,17 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_simulate_sun</span> <span class="o">=</span> <span class="n">simulate_sun</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simulate_sun</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;You are simulating the sun&#39;s contribution to the galactic noise. &quot;</span>
-                <span class="s2">&quot;This is experimental and might not be very accurate! See in-code comments for details.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"You are simulating the sun's contribution to the galactic noise. "</span>
+                <span class="s2">"This is experimental and might not be very accurate! See in-code comments for details."</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="o">=</span> <span class="n">caching</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scaling</span> <span class="o">=</span> <span class="n">scaling</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="ow">and</span> <span class="mi">12</span> <span class="o">*</span> <span class="n">n_side</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">&gt;</span> <span class="n">maxsize</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Caching for the vector effective length is enabled (with `maxsize=</span><span class="si">{</span><span class="n">maxsize</span><span class="si">}</span><span class="s2">`) and `n_side=</span><span class="si">{</span><span class="n">n_side</span><span class="si">}</span><span class="s2">` is to large, and thus &quot;</span>
-                <span class="s2">&quot;it produces to many different caching entries for two antenna models to be stored of one `station_time`. &quot;</span>
-                <span class="s2">&quot;Either decrease `n_side` or increase `maxsize` (has to be done in the source code).&quot;</span><span class="p">)</span>
+                <span class="sa">f</span><span class="s2">"Caching for the vector effective length is enabled (with `maxsize=</span><span class="si">{</span><span class="n">maxsize</span><span class="si">}</span><span class="s2">`) and `n_side=</span><span class="si">{</span><span class="n">n_side</span><span class="si">}</span><span class="s2">` is to large, and thus "</span>
+                <span class="s2">"it produces to many different caching entries for two antenna models to be stored of one `station_time`. "</span>
+                <span class="s2">"Either decrease `n_side` or increase `maxsize` (has to be done in the source code)."</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">interpolation_frequencies</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">freq_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -828,42 +828,42 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__interpolation_frequencies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">freq_range</span><span class="p">),</span> <span class="n">num</span><span class="o">=</span><span class="mi">15</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__interpolation_frequencies</span> <span class="o">=</span> <span class="n">interpolation_frequencies</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;DeprecationWarning: Optional argument &#39;interpolation_frequencies&#39; was replaced by &#39;freq_range&#39;.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"DeprecationWarning: Optional argument 'interpolation_frequencies' was replaced by 'freq_range'."</span><span class="p">)</span>
 
         <span class="c1"># initialise sky model</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">skymodel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">sky_model</span> <span class="o">=</span> <span class="n">GlobalSkyModel</span><span class="p">(</span><span class="n">freq_unit</span><span class="o">=</span><span class="s2">&quot;MHz&quot;</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No sky model specified. Using standard: Global Sky Model (2008). Available models: &quot;</span>
-                            <span class="s2">&quot;gsm2008, lfmap, lfss, gsm2016, haslam&quot;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">skymodel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;lfss&#39;</span><span class="p">:</span>
-                <span class="n">sky_model</span> <span class="o">=</span> <span class="n">LowFrequencySkyModel</span><span class="p">(</span><span class="n">freq_unit</span><span class="o">=</span><span class="s2">&quot;MHz&quot;</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using LFSS as sky model&quot;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">skymodel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;gsm2008&#39;</span><span class="p">:</span>
-                <span class="n">sky_model</span> <span class="o">=</span> <span class="n">GlobalSkyModel</span><span class="p">(</span><span class="n">freq_unit</span><span class="o">=</span><span class="s2">&quot;MHz&quot;</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using GSM2008 as sky model&quot;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">skymodel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;gsm2016&#39;</span><span class="p">:</span>
-                <span class="n">sky_model</span> <span class="o">=</span> <span class="n">GlobalSkyModel16</span><span class="p">(</span><span class="n">freq_unit</span><span class="o">=</span><span class="s2">&quot;MHz&quot;</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using GSM2016 as sky model&quot;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">skymodel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;haslam&#39;</span><span class="p">:</span>
-                <span class="n">sky_model</span> <span class="o">=</span> <span class="n">HaslamSkyModel</span><span class="p">(</span><span class="n">freq_unit</span><span class="o">=</span><span class="s2">&quot;MHz&quot;</span><span class="p">,</span> <span class="n">spectral_index</span><span class="o">=-</span><span class="mf">2.53</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using Haslam as sky model&quot;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">skymodel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;lfmap&#39;</span><span class="p">:</span>
+                <span class="n">sky_model</span> <span class="o">=</span> <span class="n">GlobalSkyModel</span><span class="p">(</span><span class="n">freq_unit</span><span class="o">=</span><span class="s2">"MHz"</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"No sky model specified. Using standard: Global Sky Model (2008). Available models: "</span>
+                            <span class="s2">"gsm2008, lfmap, lfss, gsm2016, haslam"</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">skymodel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'lfss'</span><span class="p">:</span>
+                <span class="n">sky_model</span> <span class="o">=</span> <span class="n">LowFrequencySkyModel</span><span class="p">(</span><span class="n">freq_unit</span><span class="o">=</span><span class="s2">"MHz"</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Using LFSS as sky model"</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">skymodel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'gsm2008'</span><span class="p">:</span>
+                <span class="n">sky_model</span> <span class="o">=</span> <span class="n">GlobalSkyModel</span><span class="p">(</span><span class="n">freq_unit</span><span class="o">=</span><span class="s2">"MHz"</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Using GSM2008 as sky model"</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">skymodel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'gsm2016'</span><span class="p">:</span>
+                <span class="n">sky_model</span> <span class="o">=</span> <span class="n">GlobalSkyModel16</span><span class="p">(</span><span class="n">freq_unit</span><span class="o">=</span><span class="s2">"MHz"</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Using GSM2016 as sky model"</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">skymodel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'haslam'</span><span class="p">:</span>
+                <span class="n">sky_model</span> <span class="o">=</span> <span class="n">HaslamSkyModel</span><span class="p">(</span><span class="n">freq_unit</span><span class="o">=</span><span class="s2">"MHz"</span><span class="p">,</span> <span class="n">spectral_index</span><span class="o">=-</span><span class="mf">2.53</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Using Haslam as sky model"</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">skymodel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'lfmap'</span><span class="p">:</span>
                 <span class="n">sky_model</span> <span class="o">=</span> <span class="n">LFmap</span><span class="p">()</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using LFmap as sky model&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Using LFmap as sky model"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sky model </span><span class="si">{</span><span class="n">skymodel</span><span class="si">}</span><span class="s2"> unknown. Defaulting to Global Sky Model (2008).&quot;</span><span class="p">)</span>
-                <span class="n">sky_model</span> <span class="o">=</span> <span class="n">GlobalSkyModel</span><span class="p">(</span><span class="n">freq_unit</span><span class="o">=</span><span class="s2">&quot;MHz&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Sky model </span><span class="si">{</span><span class="n">skymodel</span><span class="si">}</span><span class="s2"> unknown. Defaulting to Global Sky Model (2008)."</span><span class="p">)</span>
+                <span class="n">sky_model</span> <span class="o">=</span> <span class="n">GlobalSkyModel</span><span class="p">(</span><span class="n">freq_unit</span><span class="o">=</span><span class="s2">"MHz"</span><span class="p">)</span>
 
         <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not find </span><span class="si">{</span><span class="n">skymodel</span><span class="si">}</span><span class="s2"> skymodel. Do you have the correct package installed? </span><span class="se">\n</span><span class="s2">&quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;Defaulting to Global Sky Model (2008) as sky model.&quot;</span><span class="p">)</span>
-            <span class="n">sky_model</span> <span class="o">=</span> <span class="n">GlobalSkyModel</span><span class="p">(</span><span class="n">freq_unit</span><span class="o">=</span><span class="s2">&quot;MHz&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not find </span><span class="si">{</span><span class="n">skymodel</span><span class="si">}</span><span class="s2"> skymodel. Do you have the correct package installed? </span><span class="se">\n</span><span class="s2">"</span>
+                        <span class="sa">f</span><span class="s2">"Defaulting to Global Sky Model (2008) as sky model."</span><span class="p">)</span>
+            <span class="n">sky_model</span> <span class="o">=</span> <span class="n">GlobalSkyModel</span><span class="p">(</span><span class="n">freq_unit</span><span class="o">=</span><span class="s2">"MHz"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperatures</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
             <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__interpolation_frequencies</span><span class="p">),</span> <span class="n">healpy</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">nside2npix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">))</span>
         <span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Generating noise temperatures ..&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Generating noise temperatures .."</span><span class="p">)</span>
 
         <span class="c1"># generating sky maps and noise temperatures from chosen sky model in given frequency range</span>
         <span class="k">for</span> <span class="n">i_freq</span><span class="p">,</span> <span class="n">noise_freq</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__interpolation_frequencies</span><span class="p">):</span>
@@ -874,7 +874,7 @@
         <span class="c1"># We can not already interpolate the efield amplitudes because for their normalization the</span>
         <span class="c1"># frequency resoltion matters.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperature_funcs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-            <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__interpolation_frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperatures</span><span class="p">[:,</span> <span class="n">i_pixel</span><span class="p">]),</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;quadratic&#39;</span><span class="p">)</span>
+            <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__interpolation_frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperatures</span><span class="p">[:,</span> <span class="n">i_pixel</span><span class="p">]),</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'quadratic'</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i_pixel</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">healpy</span><span class="o">.</span><span class="n">pixelfunc</span><span class="o">.</span><span class="n">nside2npix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">))</span>
         <span class="p">])</span>
 
@@ -884,22 +884,22 @@
 
     <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">maxsize</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_cached_antenna_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ant_pattern</span><span class="p">,</span> <span class="n">zen</span><span class="p">,</span> <span class="n">azi</span><span class="p">,</span> <span class="o">*</span><span class="n">ant_orient</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the cached antenna reponse for a given antenna patter, antenna orientation</span>
 <span class="sd">        and signal arrival direction. This wrapper is necessary as arrays and list are not</span>
 <span class="sd">        hashable (i.e., can not be used as arguments in functions one wants to cache).</span>
 <span class="sd">        This module ensures that the cache is clearied if the vector `self.__freqs` changes.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">ant_pattern</span><span class="o">.</span><span class="n">get_antenna_response_vectorized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">,</span> <span class="n">zen</span><span class="p">,</span> <span class="n">azi</span><span class="p">,</span> <span class="o">*</span><span class="n">ant_orient</span><span class="p">)</span>
 
     <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="n">maxsize</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_cached_noise_temperature_for_pixel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_pixel</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the cached electric field amplitude for a given pixel.</span>
 <span class="sd">        This wrapper is necessary as arrays and list are not</span>
 <span class="sd">        hashable (i.e., can not be used as arguments in functions one wants to cache).</span>
 <span class="sd">        This module ensures that the cache is clearied if the vector `self.__freqs` changes.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperature_funcs</span><span class="p">[</span><span class="n">i_pixel</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">))</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_check_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freqs</span><span class="p">):</span>
@@ -914,15 +914,15 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_noise_temperature_for_pixel</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;Frequencies have changed (array length). Clearing antenna response / efield cache. &quot;</span>
-                        <span class="s2">&quot;(If this happens often, something might be wrong...&quot;</span><span class="p">)</span>
+                        <span class="s2">"Frequencies have changed (array length). Clearing antenna response / efield cache. "</span>
+                        <span class="s2">"(If this happens often, something might be wrong..."</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="n">freqs</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_noise_temperature_for_pixel</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;Frequencies have changed (values). Clearing antenna response / efield cache. &quot;</span>
-                        <span class="s2">&quot;(If this happens often, something might be wrong...&quot;</span><span class="p">)</span>
+                        <span class="s2">"Frequencies have changed (values). Clearing antenna response / efield cache. "</span>
+                        <span class="s2">"(If this happens often, something might be wrong..."</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="channelGalacticNoiseAdder.run">
@@ -937,7 +937,7 @@
             <span class="n">excluded_channels</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
 
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Adds noise resulting from galactic radio emission to the channel traces</span>
 
 <span class="sd">        Parameters</span>
@@ -954,16 +954,16 @@
 <span class="sd">        excluded_channels: list, default=None</span>
 <span class="sd">            A list containing the channels IDs to exclude per station.</span>
 <span class="sd">            If None, all channels of the selected station in the detector are used.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">excluded_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">selected_channel_ids</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">()</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using all channels: </span><span class="si">{</span><span class="n">selected_channel_ids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Using all channels: </span><span class="si">{</span><span class="n">selected_channel_ids</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">selected_channel_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">channel_id</span> <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">()</span> <span class="k">if</span> <span class="n">channel_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">excluded_channels</span><span class="p">]</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using selected channel ids: </span><span class="si">{</span><span class="n">selected_channel_ids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Using selected channel ids: </span><span class="si">{</span><span class="n">selected_channel_ids</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__noise_temperatures</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># check if .begin has been called, give helpful error message if not</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;channelGalacticNoiseAdder was not initialized correctly. Maybe you forgot to call `.begin()`?&quot;</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"channelGalacticNoiseAdder was not initialized correctly. Maybe you forgot to call `.begin()`?"</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
@@ -972,7 +972,7 @@
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">(</span><span class="n">use_channels</span><span class="o">=</span><span class="n">selected_channel_ids</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">last_freqs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
                     <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">last_freqs</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">(),</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)):</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The frequencies of each channel must be the same, but they are not!&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"The frequencies of each channel must be the same, but they are not!"</span><span class="p">)</span>
                 <span class="k">return</span>
 
             <span class="n">last_freqs</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
@@ -1010,8 +1010,8 @@
             <span class="n">theta</span> <span class="o">=</span> <span class="p">(</span><span class="n">astropy</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">R_sun</span> <span class="o">/</span> <span class="n">sun_coord</span><span class="o">.</span><span class="n">distance</span><span class="p">)</span><span class="o">.</span><span class="n">decompose</span><span class="p">()</span>
             <span class="n">sun_omega</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">theta</span><span class="o">**</span><span class="mi">2</span>  <span class="c1"># small angle approximation</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Simulating the sun&#39;s contribution to the galactic noise. &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;Sun pixel: </span><span class="si">{</span><span class="n">sun_pixel</span><span class="si">}</span><span class="s2">, Sun zenith: </span><span class="si">{</span><span class="n">sun_zen</span><span class="si">}</span><span class="s2">, Sun azimuth: </span><span class="si">{</span><span class="n">sun_azi</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="sa">f</span><span class="s2">"Simulating the sun's contribution to the galactic noise. "</span>
+                <span class="sa">f</span><span class="s2">"Sun pixel: </span><span class="si">{</span><span class="n">sun_pixel</span><span class="si">}</span><span class="s2">, Sun zenith: </span><span class="si">{</span><span class="n">sun_zen</span><span class="si">}</span><span class="s2">, Sun azimuth: </span><span class="si">{</span><span class="n">sun_azi</span><span class="si">}</span><span class="s2">)"</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ice</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1045,9 +1045,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ice</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attenuation_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">channel_depths</span><span class="p">)</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">20</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__you_have_been_warned</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">&quot;You are simulating deep in-ice channels (below 20m) but have not provided an ice or attenuation model. &quot;</span>
-                    <span class="s2">&quot;The refractive index is thus the same for the calculation of the Fresnel coefficients &quot;</span>
-                    <span class="s2">&quot;and the phase shift as for the ice_surface, which is not correct. This warning is only printed once!&quot;</span>
+                    <span class="s2">"You are simulating deep in-ice channels (below 20m) but have not provided an ice or attenuation model. "</span>
+                    <span class="s2">"The refractive index is thus the same for the calculation of the Fresnel coefficients "</span>
+                    <span class="s2">"and the phase shift as for the ice_surface, which is not correct. This warning is only printed once!"</span>
                 <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__you_have_been_warned</span> <span class="o">=</span> <span class="kc">True</span>
 
@@ -1147,8 +1147,8 @@
                         <span class="n">freqs</span><span class="p">[</span><span class="n">passband_filter</span><span class="p">],</span> <span class="n">curr_fresnel_zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="o">*</span><span class="n">antenna_orientation</span><span class="p">)</span>
 
                 <span class="n">channel_noise_spectrum</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">antenna_response</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span>
-                    <span class="o">+</span> <span class="n">antenna_response</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span>
+                    <span class="n">antenna_response</span><span class="p">[</span><span class="s1">'theta'</span><span class="p">]</span> <span class="o">*</span> <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span>
+                    <span class="o">+</span> <span class="n">antenna_response</span><span class="p">[</span><span class="s1">'phi'</span><span class="p">]</span> <span class="o">*</span> <span class="n">channel_noise_spec</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">passband_filter</span><span class="p">]</span>
                 <span class="p">)</span>
 
                 <span class="c1"># scale noise spectrum:</span>
@@ -1159,14 +1159,14 @@
 
         <span class="c1"># store the updated channel spectra</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">(</span><span class="n">use_channels</span><span class="o">=</span><span class="n">selected_channel_ids</span><span class="p">):</span>
-            <span class="n">channel</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">channel_spectra</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()],</span> <span class="s2">&quot;same&quot;</span><span class="p">)</span></div>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">channel_spectra</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()],</span> <span class="s2">"same"</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="channelGalacticNoiseAdder.get_electric_field_strength">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html#NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder.get_electric_field_strength">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_electric_field_strength</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">obs_time</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">bandpass</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the electric field strength at a given location and time</span>
 
 <span class="sd">        Parameters</span>
@@ -1188,7 +1188,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        electric_field_strength: float</span>
 <span class="sd">            The electric field strength at the given location and time</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">local_coordinates</span> <span class="o">=</span> <span class="n">get_local_coordinates</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">obs_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__n_side</span><span class="p">)</span>
 
@@ -1231,7 +1231,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html#NuRadioReco.modules.channelGalacticNoiseAdder.get_local_coordinates">[docs]</a>
 <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_local_coordinates</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">obs_time</span><span class="p">,</span> <span class="n">n_side</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculates the local coordinates of the pixels of a healpix map given the site coordinates and time.</span>
 
 <span class="sd">    Parameters</span>
@@ -1247,7 +1247,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    local_coordinates: astropy.coordinates.SkyCoord</span>
 <span class="sd">        The local coordinates of the pixels of the healpix map</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">site_latitude</span><span class="p">,</span> <span class="n">site_longitude</span> <span class="o">=</span> <span class="n">coordinates</span>
     <span class="n">site_location</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">coordinates</span><span class="o">.</span><span class="n">EarthLocation</span><span class="p">(</span>
         <span class="n">lat</span><span class="o">=</span><span class="n">site_latitude</span> <span class="o">*</span> <span class="n">astropy</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">lon</span><span class="o">=</span><span class="n">site_longitude</span> <span class="o">*</span> <span class="n">astropy</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
@@ -1274,8 +1274,8 @@
 
 <div class="viewcode-block" id="Tb_quiet_sun">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html#NuRadioReco.modules.channelGalacticNoiseAdder.Tb_quiet_sun">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">Tb_quiet_sun</span><span class="p">(</span><span class="n">nu</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns the apparent brigthness temperature for the quite sun for a given frequency</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">Tb_quiet_sun</span><span class="p">(</span><span class="n">nu</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'linear'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">""" Returns the apparent brigthness temperature for the quite sun for a given frequency</span>
 
 <span class="sd">    Returned values are interpolated from digitized data from Fig. 5, of the paper:</span>
 <span class="sd">    https://iopscience.iop.org/article/10.3847/1538-4357/ac6b37/pdf</span>
@@ -1284,24 +1284,24 @@
 <span class="sd">    ----------</span>
 <span class="sd">    nu : float or array of floats</span>
 <span class="sd">        Frequency</span>
-<span class="sd">    kind : str (default: &#39;linear&#39;)</span>
+<span class="sd">    kind : str (default: 'linear')</span>
 <span class="sd">        Interpolation method used with ``scipy.interpolate.interp1d``</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    tb : float or array of floats</span>
-<span class="sd">        Sun&#39;s apparent brightness temperature in K</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        Sun's apparent brightness temperature in K</span>
+<span class="sd">    """</span>
     <span class="n">f</span> <span class="o">=</span> <span class="n">_Tb_quiet_sun</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">f</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">nu</span><span class="p">)))</span></div>
 
 
 <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">_Tb_quiet_sun</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns function of Tb(f) &quot;&quot;&quot;</span>
-    
+<span class="k">def</span><span class="w"> </span><span class="nf">_Tb_quiet_sun</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s1">'linear'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">""" Returns function of Tb(f) """</span>
+
     <span class="c1"># First column (i.e., entires data[::2]) is the frequency in MHz,</span>
-    <span class="c1"># second column (i.e., entries data[1::2]) is the brightness temperature in K.    </span>
+    <span class="c1"># second column (i.e., entries data[1::2]) is the brightness temperature in K.</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
         <span class="mf">15.060724325205065</span><span class="p">,</span> <span class="mf">122701.78220087259</span><span class="p">,</span>
         <span class="mf">15.876542140124316</span><span class="p">,</span> <span class="mf">146675.73927896278</span><span class="p">,</span>
@@ -1332,7 +1332,7 @@
     <span class="p">])</span>
     <span class="n">freq</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
     <span class="n">Tb</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">Tb</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="s2">&quot;extrapolate&quot;</span><span class="p">)</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">freq</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">Tb</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="s2">"extrapolate"</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">f</span>
 </pre></div>

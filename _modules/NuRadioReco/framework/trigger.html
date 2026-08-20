@@ -663,27 +663,27 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="n">triggers_pkl</span><span class="p">):</span>
     <span class="n">triggers</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">data_pkl</span> <span class="ow">in</span> <span class="n">triggers_pkl</span><span class="p">:</span>
-        <span class="n">trigger_type</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)[</span><span class="s1">&#39;_trigger_type&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;default&#39;</span><span class="p">:</span>
+        <span class="n">trigger_type</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)[</span><span class="s1">'_trigger_type'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">'default'</span><span class="p">:</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">Trigger</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;simple_threshold&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">'simple_threshold'</span><span class="p">:</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">SimpleThresholdTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;high_low&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">'high_low'</span><span class="p">:</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">HighLowTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;simple_phased&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">'simple_phased'</span><span class="p">:</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">SimplePhasedTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;envelope_trigger&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">'envelope_trigger'</span><span class="p">:</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">EnvelopeTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;int_power&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">'int_power'</span><span class="p">:</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">IntegratedPowerTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;envelope_phased&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">'envelope_phased'</span><span class="p">:</span>
             <span class="n">trigger</span>  <span class="o">=</span> <span class="n">EnvelopePhasedTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;digital_envelope_phased&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">'digital_envelope_phased'</span><span class="p">:</span>
             <span class="n">trigger</span>  <span class="o">=</span> <span class="n">DigitalEnvelopePhasedTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">&#39;rnog_surface_trigger&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">trigger_type</span> <span class="o">==</span> <span class="s1">'rnog_surface_trigger'</span><span class="p">:</span>
             <span class="n">trigger</span> <span class="o">=</span> <span class="n">RNOGSurfaceTrigger</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unknown trigger type&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"unknown trigger type"</span><span class="p">)</span>
 
         <span class="n">trigger</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
         <span class="n">triggers</span><span class="p">[</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()]</span> <span class="o">=</span> <span class="n">trigger</span>
@@ -695,13 +695,13 @@
 <div class="viewcode-block" id="Trigger">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Trigger</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    base class to store different triggers</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger_type</span><span class="o">=</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger_type</span><span class="o">=</span><span class="s1">'default'</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
                  <span class="n">sample_block_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">gaussian_jitter</span><span class="o">=</span><span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        initialize trigger class</span>
 
 <span class="sd">        Parameters</span>
@@ -727,7 +727,7 @@
 <span class="sd">            readout window position (in samples, note check the sampling rate of the detector).</span>
 <span class="sd">            Default: 0 samples (no Gaussian jitter)</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_channels</span> <span class="o">=</span> <span class="n">channels</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span> <span class="o">=</span> <span class="kc">False</span>
@@ -743,55 +743,55 @@
 <div class="viewcode-block" id="Trigger.set_primary">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_primary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_primary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">primary_trigger</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        set the trigger to be the primary trigger.</span>
 <span class="sd">        The trigger time of the primary trigger is used to define the readout window. There should only be one primary trigger.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_primary_trigger</span> <span class="o">=</span> <span class="n">primary_trigger</span></div>
 
 
 <div class="viewcode-block" id="Trigger.is_primary">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.is_primary">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_primary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        return True if this trigger is the primary trigger</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_primary_trigger</span></div>
 
 
 <div class="viewcode-block" id="Trigger.has_triggered">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.has_triggered">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">has_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns true if station has trigger, false otherwise</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span></div>
 
 
 <div class="viewcode-block" id="Trigger.set_triggered">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_triggered">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; set the trigger to True or False &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" set the trigger to True or False """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span> <span class="o">=</span> <span class="n">triggered</span></div>
 
 
 <div class="viewcode-block" id="Trigger.set_trigger_time">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_trigger_time">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_trigger_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; set the trigger time</span>
+<span class="w">        </span><span class="sd">""" set the trigger time</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        time: float</span>
 <span class="sd">            the trigger time from the beginning of the trace</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_time</span> <span class="o">=</span> <span class="n">time</span></div>
 
 
 <div class="viewcode-block" id="Trigger.get_trigger_time">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_time">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_trigger_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get the trigger time.</span>
 
 <span class="sd">        Returns trigger time, i.e. the first time in the event where the trigger condition was fulfilled.</span>
@@ -805,27 +805,27 @@
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
 <span class="sd">        get_trigger_times : function to return all times where the trigger condition was fulfilled</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_time</span></div>
 
 
 <div class="viewcode-block" id="Trigger.set_trigger_times">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_trigger_times">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">times</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; set the trigger times</span>
+<span class="w">        </span><span class="sd">""" set the trigger times</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        times: array</span>
 <span class="sd">            all trigger times</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_times</span> <span class="o">=</span> <span class="n">times</span></div>
 
 
 <div class="viewcode-block" id="Trigger.get_trigger_times">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_trigger_times">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get the trigger times</span>
 
 <span class="sd">        For some triggers, in addition to the time of the first trigger,</span>
@@ -845,7 +845,7 @@
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
 <span class="sd">        get_trigger_time : method to return the (first) trigger time</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_times</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger_time</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger_time</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_times</span></div>
@@ -854,21 +854,21 @@
 <div class="viewcode-block" id="Trigger.get_name">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_name">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; get trigger name &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" get trigger name """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span></div>
 
 
 <div class="viewcode-block" id="Trigger.get_type">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_type">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; get trigger type &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" get trigger type """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_type</span></div>
 
 
 <div class="viewcode-block" id="Trigger.get_triggered_channels">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_triggered_channels">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_triggered_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; get IDs of channels that have triggered &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" get IDs of channels that have triggered """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered_channels</span></div>
 
 
@@ -881,7 +881,7 @@
 <div class="viewcode-block" id="Trigger.set_pre_trigger_times">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_pre_trigger_times">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_pre_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the pre-trigger times</span>
 
 <span class="sd">        Parameters</span>
@@ -891,14 +891,14 @@
 <span class="sd">            if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the</span>
 <span class="sd">            start of the trace and the trigger time.</span>
 <span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span> <span class="o">=</span> <span class="n">pre_trigger_times</span></div>
 
 
 <div class="viewcode-block" id="Trigger.get_pre_trigger_times">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_times">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_pre_trigger_times</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return the pre_trigger_time between the start of the trace and the (global) trigger time</span>
 
 <span class="sd">        Returns</span>
@@ -909,7 +909,7 @@
 <span class="sd">            start of the trace and the trigger time.</span>
 <span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span></div>
 
@@ -917,7 +917,7 @@
 <div class="viewcode-block" id="Trigger.get_pre_trigger_time_channel">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_pre_trigger_time_channel">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_pre_trigger_time_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        get the trigger time for a specific channel</span>
 
 <span class="sd">        convenience function to get the trigger time for a specific channel</span>
@@ -931,7 +931,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        trigger_time: float</span>
 <span class="sd">            the trigger time for the channel</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pre_trigger_times</span></div>
@@ -940,7 +940,7 @@
 <div class="viewcode-block" id="Trigger.set_jitter_params">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.set_jitter_params">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_jitter_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_block_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">gaussian_jitter</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the readout-window jitter parameters.</span>
 
 <span class="sd">        Parameters</span>
@@ -953,7 +953,7 @@
 <span class="sd">            Standard deviation of a Gaussian time smear applied to the</span>
 <span class="sd">            readout window position (in NuRadioReco time units).</span>
 <span class="sd">            Default: 0 (no Gaussian jitter)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sample_block_size</span> <span class="o">=</span> <span class="n">sample_block_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_gaussian_jitter</span> <span class="o">=</span> <span class="n">gaussian_jitter</span></div>
 
@@ -961,14 +961,14 @@
 <div class="viewcode-block" id="Trigger.get_sample_block_size">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_sample_block_size">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_sample_block_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the sample block size for readout-window jitter.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Return the sample block size for readout-window jitter."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_block_size</span></div>
 
 
 <div class="viewcode-block" id="Trigger.get_gaussian_jitter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.get_gaussian_jitter">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_gaussian_jitter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the Gaussian jitter spread for readout-window jitter.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Return the Gaussian jitter spread for readout-window jitter."""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gaussian_jitter</span></div>
 
 
@@ -986,15 +986,15 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="s2">""</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">):</span>
-            <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">value</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="s2">"</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">output</span>
 
 <div class="viewcode-block" id="Trigger.show">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.trigger.html#NuRadioReco.framework.trigger.Trigger.show">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">print_stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Print an overview of the structure of the Trigger.</span>
 
 <span class="sd">        Other Parameters</span>
@@ -1008,13 +1008,13 @@
 <span class="sd">        str_output : str, optional</span>
 <span class="sd">            A string representation of the Trigger structure.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">self_string</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Trigger(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2">) (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span><span class="si">}</span><span class="s2">, &quot;</span>
-            <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;primary, &#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_primary</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-            <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;triggered, &#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;channels </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_triggered_channels</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="o">+</span> <span class="s1">&#39;)&#39;</span><span class="p">)</span>
+            <span class="sa">f</span><span class="s2">"Trigger(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2">) (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_type</span><span class="p">()</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="o">+</span> <span class="p">(</span><span class="s1">'primary, '</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_primary</span><span class="p">()</span> <span class="k">else</span> <span class="s1">''</span><span class="p">)</span>
+            <span class="o">+</span> <span class="p">(</span><span class="s1">'triggered, '</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">()</span> <span class="k">else</span> <span class="s1">''</span><span class="p">)</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s1">'channels </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_triggered_channels</span><span class="p">()</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+            <span class="o">+</span> <span class="s1">')'</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">print_stdout</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">self_string</span><span class="p">)</span>
@@ -1040,7 +1040,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">channel_coincidence_window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        initialize trigger class</span>
 
 <span class="sd">        Parameters</span>
@@ -1063,8 +1063,8 @@
 <span class="sd">            start of the trace and the trigger time.</span>
 <span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;simple_threshold&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">'simple_threshold'</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_coincidences</span> <span class="o">=</span> <span class="n">number_of_coincidences</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_coinc_window</span> <span class="o">=</span> <span class="n">channel_coincidence_window</span></div>
@@ -1078,7 +1078,7 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold_factor</span><span class="p">,</span> <span class="n">power_mean</span><span class="p">,</span> <span class="n">power_std</span><span class="p">,</span>
                  <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phasing_angles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger_delays</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">output_passband</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        initialize trigger class</span>
 
 <span class="sd">        Parameters</span>
@@ -1100,7 +1100,7 @@
 <span class="sd">            the angles for each beam</span>
 <span class="sd">        trigger_delays: dictionary</span>
 <span class="sd">            the delays for the channels that have caused a trigger.</span>
-<span class="sd">            If there is no trigger, it&#39;s an empty dictionary</span>
+<span class="sd">            If there is no trigger, it's an empty dictionary</span>
 <span class="sd">        output_passband: (float, float) tuple</span>
 <span class="sd">            Frequencies for a 6th-order Butterworth filter to be applied after</span>
 <span class="sd">            the diode filtering.</span>
@@ -1110,8 +1110,8 @@
 <span class="sd">            start of the trace and the trigger time.</span>
 <span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">,</span> <span class="s1">&#39;analog_envelope_phased&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="p">,</span> <span class="s1">'analog_envelope_phased'</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggered_channels</span> <span class="o">=</span> <span class="n">triggered_channels</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_phasing_angles</span> <span class="o">=</span> <span class="n">phasing_angles</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_threshold_factor</span> <span class="o">=</span> <span class="n">threshold_factor</span>
@@ -1128,7 +1128,7 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">phasing_angles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger_delays</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">maximum_amps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        initialize trigger class</span>
 
 <span class="sd">        Parameters</span>
@@ -1150,12 +1150,12 @@
 <span class="sd">            the angles for each beam</span>
 <span class="sd">        trigger_delays: dictionary</span>
 <span class="sd">            the delays for the channels that have caused a trigger.</span>
-<span class="sd">            If there is no trigger, it&#39;s an empty dictionary</span>
+<span class="sd">            If there is no trigger, it's an empty dictionary</span>
 <span class="sd">        output_passband: (float, float) tuple</span>
 <span class="sd">            Frequencies for a 6th-order Butterworth filter to be applied after</span>
 <span class="sd">            the diode filtering.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="s1">&#39;digital_envelope_phased&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="s1">'digital_envelope_phased'</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_trigger_channels</span> <span class="o">=</span> <span class="n">trigger_channels</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_phasing_angles</span> <span class="o">=</span> <span class="n">phasing_angles</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
@@ -1174,7 +1174,7 @@
                  <span class="n">window_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">maximum_amps</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span>
                 <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        initialize trigger class</span>
 
 <span class="sd">        Parameters</span>
@@ -1194,10 +1194,10 @@
 <span class="sd">            the angles for each subbeam of the secondary phasing</span>
 <span class="sd">        trigger_delays: dictionary</span>
 <span class="sd">            the delays for the primary channels that have caused a trigger.</span>
-<span class="sd">            If there is no trigger, it&#39;s an empty dictionary</span>
+<span class="sd">            If there is no trigger, it's an empty dictionary</span>
 <span class="sd">        sec_trigger_delays: dictionary</span>
 <span class="sd">            the delays for the secondary channels that have caused a trigger.</span>
-<span class="sd">            If there is no trigger or no secondary channels, it&#39;s an empty dictionary</span>
+<span class="sd">            If there is no trigger or no secondary channels, it's an empty dictionary</span>
 <span class="sd">        window_size: int</span>
 <span class="sd">            the size of the integration window (units of ADC time ticks)</span>
 <span class="sd">        step_size: int</span>
@@ -1210,8 +1210,8 @@
 <span class="sd">            start of the trace and the trigger time.</span>
 <span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;simple_phased&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">'simple_phased'</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_primary_channels</span> <span class="o">=</span> <span class="n">channels</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_primary_angles</span> <span class="o">=</span> <span class="n">primary_angles</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_secondary_channels</span> <span class="o">=</span> <span class="n">secondary_channels</span>
@@ -1231,7 +1231,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold_high</span><span class="p">,</span> <span class="n">threshold_low</span><span class="p">,</span> <span class="n">high_low_window</span><span class="p">,</span>
                  <span class="n">channel_coincidence_window</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        initialize trigger class</span>
 
 <span class="sd">        Parameters</span>
@@ -1258,8 +1258,8 @@
 <span class="sd">            start of the trace and the trigger time.</span>
 <span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;high_low&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">'high_low'</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_coincidences</span> <span class="o">=</span> <span class="n">number_of_coincidences</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_threshold_high</span> <span class="o">=</span> <span class="n">threshold_high</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_threshold_low</span> <span class="o">=</span> <span class="n">threshold_low</span>
@@ -1274,7 +1274,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">channel_coincidence_window</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">power_mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">power_std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">integration_window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        initialize trigger class</span>
 
 <span class="sd">        Parameters</span>
@@ -1297,8 +1297,8 @@
 <span class="sd">            start of the trace and the trigger time.</span>
 <span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;int_power&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">'int_power'</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_coincidences</span> <span class="o">=</span> <span class="n">number_of_coincidences</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_coinc_window</span> <span class="o">=</span> <span class="n">channel_coincidence_window</span>
@@ -1314,7 +1314,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                  <span class="n">channel_coincidence_window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        initialize trigger class</span>
 
 <span class="sd">        Parameters</span>
@@ -1324,7 +1324,7 @@
 <span class="sd">        passband: array</span>
 <span class="sd">            the passband in which the trigger should apply</span>
 <span class="sd">        order: int</span>
-<span class="sd">            order of filtertype &#39;butterabs&#39;</span>
+<span class="sd">            order of filtertype 'butterabs'</span>
 <span class="sd">        threshold: float</span>
 <span class="sd">            the threshold</span>
 <span class="sd">        channels: array of ints or None</span>
@@ -1341,8 +1341,8 @@
 <span class="sd">            start of the trace and the trigger time.</span>
 <span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;envelope_trigger&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">'envelope_trigger'</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_passband</span> <span class="o">=</span> <span class="n">passband</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_order</span> <span class="o">=</span> <span class="n">order</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
@@ -1357,7 +1357,7 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                  <span class="n">channel_coincidence_window</span><span class="o">=</span><span class="mi">60</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span>
                  <span class="n">temperature</span><span class="o">=</span><span class="mi">250</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">kelvin</span><span class="p">,</span> <span class="n">Vbias</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">volt</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        initialize trigger class</span>
 
 <span class="sd">        Parameters</span>
@@ -1384,8 +1384,8 @@
 <span class="sd">            start of the trace and the trigger time.</span>
 <span class="sd">            if only a float is given, the same pre_trigger_time is used for all channels</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">&#39;rnog_surface_trigger&#39;</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">Trigger</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="s1">'rnog_surface_trigger'</span><span class="p">,</span> <span class="n">pre_trigger_times</span><span class="o">=</span><span class="n">pre_trigger_times</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_threshold</span> <span class="o">=</span> <span class="n">threshold</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_coincidences</span> <span class="o">=</span> <span class="n">number_of_coincidences</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_coinc_window</span> <span class="o">=</span> <span class="n">channel_coincidence_window</span>

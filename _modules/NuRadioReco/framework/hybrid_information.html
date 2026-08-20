@@ -666,7 +666,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html#NuRadioReco.framework.hybrid_information.HybridInformation.add_hybrid_shower">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_hybrid_shower</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hybrid_shower</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">hybrid_shower</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_shower_names</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;A hybrid shower with the name </span><span class="si">{}</span><span class="s1"> already exists&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hybrid_shower</span><span class="o">.</span><span class="n">get_name</span><span class="p">()))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'A hybrid shower with the name </span><span class="si">{}</span><span class="s1"> already exists'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hybrid_shower</span><span class="o">.</span><span class="n">get_name</span><span class="p">()))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_showers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hybrid_shower</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_shower_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hybrid_shower</span><span class="o">.</span><span class="n">get_name</span><span class="p">())</span></div>
 
@@ -682,7 +682,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html#NuRadioReco.framework.hybrid_information.HybridInformation.get_hybrid_shower">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_hybrid_shower</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_shower_names</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Could not find hybrid shower with name </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Could not find hybrid shower with name </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_showers</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__hybrid_shower_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)]</span></div>
 
 
@@ -693,7 +693,7 @@
         <span class="k">for</span> <span class="n">shower</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_hybrid_showers</span><span class="p">():</span>
             <span class="n">shower_pickles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shower</span><span class="o">.</span><span class="n">serialize</span><span class="p">())</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;shower_pickles&#39;</span><span class="p">:</span> <span class="n">shower_pickles</span>
+            <span class="s1">'shower_pickles'</span><span class="p">:</span> <span class="n">shower_pickles</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="n">_dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
@@ -701,8 +701,8 @@
 <div class="viewcode-block" id="HybridInformation.deserialize">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.hybrid_information.html#NuRadioReco.framework.hybrid_information.HybridInformation.deserialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">shower_pkl</span> <span class="ow">in</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)[</span><span class="s1">&#39;shower_pickles&#39;</span><span class="p">]:</span>
-            <span class="n">shower</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">hybrid_shower</span><span class="o">.</span><span class="n">HybridShower</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">shower_pkl</span> <span class="ow">in</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)[</span><span class="s1">'shower_pickles'</span><span class="p">]:</span>
+            <span class="n">shower</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">hybrid_shower</span><span class="o">.</span><span class="n">HybridShower</span><span class="p">(</span><span class="s1">''</span><span class="p">)</span>
             <span class="n">shower</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">shower_pkl</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_hybrid_shower</span><span class="p">(</span><span class="n">shower</span><span class="p">)</span></div>
 </div>

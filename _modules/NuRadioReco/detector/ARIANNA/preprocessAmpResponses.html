@@ -656,23 +656,23 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.analog_components&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.analog_components'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="save_preprocessed_Amps">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.ARIANNA.preprocessAmpResponses.html#NuRadioReco.detector.ARIANNA.preprocessAmpResponses.save_preprocessed_Amps">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">save_preprocessed_Amps</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">amp_name</span><span class="p">):</span>
-    <span class="n">output_filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">.pkl&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">amp_name</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_filename</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;saving output to </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output_filename</span><span class="p">))</span>
+    <span class="n">output_filename</span> <span class="o">=</span> <span class="s1">'</span><span class="si">{}</span><span class="s1">.pkl'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">amp_name</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_filename</span><span class="p">,</span> <span class="s1">'wb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'saving output to </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output_filename</span><span class="p">))</span>
         <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">fout</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="preprocess_300Amp">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.ARIANNA.preprocessAmpResponses.html#NuRadioReco.detector.ARIANNA.preprocessAmpResponses.preprocess_300Amp">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">preprocess_300Amp</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s2">&quot;HardwareResponses/&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">preprocess_300Amp</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s2">"HardwareResponses/"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    preprocess individual 300 series measurements</span>
 
 <span class="sd">    Parameters</span>
@@ -682,30 +682,30 @@
 <span class="sd">    channel: int</span>
 <span class="sd">        channel id</span>
 <span class="sd">    path: string</span>
-<span class="sd">        directory where amp responses are located. Default is &quot;HardwareResponses/&quot;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        directory where amp responses are located. Default is "HardwareResponses/"</span>
+<span class="sd">    """</span>
 
     <span class="c1"># load null measurement</span>
-    <span class="n">amp_gain_db</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;LOGMAG_NULL.CSV&#39;</span><span class="p">),</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
-    <span class="n">ph</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;PHASE_NULL.CSV&#39;</span><span class="p">)</span>
-    <span class="n">amp_phase_discrete</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="n">amp_gain_db</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">'LOGMAG_NULL.CSV'</span><span class="p">),</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">','</span><span class="p">)</span>
+    <span class="n">ph</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">'PHASE_NULL.CSV'</span><span class="p">)</span>
+    <span class="n">amp_phase_discrete</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">','</span><span class="p">)</span>
 
     <span class="c1"># Convert to GHz and add 40dB for attenuation in measurement circuit</span>
     <span class="n">amp_gain_db</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span>
     <span class="n">amp_phase_discrete</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span>
     <span class="n">amp_phase_discrete</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">amp_gain_db</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">amp_phase_discrete</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;frequencies of gain and phase measurement are not equal for NULL measurement&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"frequencies of gain and phase measurement are not equal for NULL measurement"</span><span class="p">)</span>
     <span class="n">amp_gain_db</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">40</span>  <span class="c1"># 300 series amps</span>
     <span class="n">gain_lin</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">amp_gain_db</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="mf">20.</span><span class="p">)</span>
     <span class="n">response_null</span> <span class="o">=</span> <span class="n">gain_lin</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">amp_phase_discrete</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
 
     <span class="c1"># read in individual amp measurement</span>
-    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;Box&#39;</span> <span class="o">+</span> <span class="n">amp</span><span class="p">)</span>
-    <span class="n">ch_name</span> <span class="o">=</span> <span class="s1">&#39;_CH</span><span class="si">{:d}</span><span class="s1">.CSV&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
-    <span class="n">amp_gain_db</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;LOGMAG&#39;</span> <span class="o">+</span> <span class="n">ch_name</span><span class="p">),</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
-    <span class="n">ph</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;PHASE&#39;</span> <span class="o">+</span> <span class="n">ch_name</span><span class="p">)</span>
-    <span class="n">amp_phase_discrete</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">'Box'</span> <span class="o">+</span> <span class="n">amp</span><span class="p">)</span>
+    <span class="n">ch_name</span> <span class="o">=</span> <span class="s1">'_CH</span><span class="si">{:d}</span><span class="s1">.CSV'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+    <span class="n">amp_gain_db</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">'LOGMAG'</span> <span class="o">+</span> <span class="n">ch_name</span><span class="p">),</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">','</span><span class="p">)</span>
+    <span class="n">ph</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">'PHASE'</span> <span class="o">+</span> <span class="n">ch_name</span><span class="p">)</span>
+    <span class="n">amp_phase_discrete</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">ph</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">','</span><span class="p">)</span>
 
     <span class="c1"># Convert to GHz and add 40dB for attenuation in measurement circuit</span>
     <span class="n">amp_gain_db</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span>
@@ -713,7 +713,7 @@
     <span class="n">amp_phase_discrete</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
     <span class="n">ff</span> <span class="o">=</span> <span class="n">amp_gain_db</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">amp_gain_db</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">amp_phase_discrete</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;frequencies of gain and phase measurement are not equal for </span><span class="si">{}</span><span class="s2">-</span><span class="si">{:02d}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">channel</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"frequencies of gain and phase measurement are not equal for </span><span class="si">{}</span><span class="s2">-</span><span class="si">{:02d}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">channel</span><span class="p">))</span>
 
     <span class="n">amp_gain_db</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">40</span>  <span class="c1"># 300 series amps</span>
 
@@ -721,19 +721,19 @@
     <span class="n">r</span> <span class="o">=</span> <span class="n">gain_lin</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">amp_phase_discrete</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
 
     <span class="n">response</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">response</span><span class="p">[</span><span class="s1">&#39;freqs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ff</span>
-    <span class="n">response</span><span class="p">[</span><span class="s1">&#39;response&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span> <span class="o">/</span> <span class="n">response_null</span>
+    <span class="n">response</span><span class="p">[</span><span class="s1">'freqs'</span><span class="p">]</span> <span class="o">=</span> <span class="n">ff</span>
+    <span class="n">response</span><span class="p">[</span><span class="s1">'response'</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span> <span class="o">/</span> <span class="n">response_null</span>
     <span class="n">amplifier_response</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">amp_name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">-</span><span class="si">{:02d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
+    <span class="n">amp_name</span> <span class="o">=</span> <span class="s1">'</span><span class="si">{}</span><span class="s1">-</span><span class="si">{:02d}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">amp</span><span class="p">,</span> <span class="n">channel</span><span class="p">)</span>
     <span class="n">amplifier_response</span><span class="p">[</span><span class="n">amp_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">response</span>
 
     <span class="c1"># checkGroupDelay(get_amp_gain(ff)*get_amp_phase(ff),ff,ch_name,path)</span>
     <span class="n">save_preprocessed_Amps</span><span class="p">(</span><span class="n">amplifier_response</span><span class="p">,</span> <span class="n">amp_name</span><span class="p">)</span></div>
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
-        <span class="n">preprocess_300Amp</span><span class="p">(</span><span class="s1">&#39;300-03&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">&#39;HardwareResponses/300SeriesAmpBoxes&#39;</span><span class="p">)</span>
+        <span class="n">preprocess_300Amp</span><span class="p">(</span><span class="s1">'300-03'</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s1">'HardwareResponses/300SeriesAmpBoxes'</span><span class="p">)</span>
 </pre></div>
 
            </div>

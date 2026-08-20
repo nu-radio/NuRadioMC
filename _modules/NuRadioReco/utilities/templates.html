@@ -675,7 +675,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__nu_templates</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__nu_template_set</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__path</span> <span class="o">=</span> <span class="n">path</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.Templates&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.Templates"</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Templates.set_template_directory">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.set_template_directory">[docs]</a>
@@ -684,22 +684,22 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__load_cr_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__path</span><span class="p">,</span> <span class="s1">&#39;templates_cr_station_</span><span class="si">{}</span><span class="s1">.pickle&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__path</span><span class="p">,</span> <span class="s1">'templates_cr_station_</span><span class="si">{}</span><span class="s1">.pickle'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
         <span class="k">if</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__cr_templates</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_pickle</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
             <span class="n">zen_ref</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
             <span class="n">az_ref</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__ref_cr_templates</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cr_templates</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">zen_ref</span><span class="p">][</span><span class="n">az_ref</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;template file </span><span class="si">{}</span><span class="s2"> not found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"template file </span><span class="si">{}</span><span class="s2"> not found"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
             <span class="k">raise</span> <span class="ne">IOError</span>
 
 <div class="viewcode-block" id="Templates.get_cr_ref_templates">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_cr_ref_templates">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_cr_ref_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns one cosmic ray template per channel for the reference direction</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ref_cr_templates</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__load_cr_template</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ref_cr_templates</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span></div>
@@ -708,10 +708,10 @@
 <div class="viewcode-block" id="Templates.get_cr_ref_template">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_cr_ref_template">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_cr_ref_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns one cosmic ray template for the reference direction, the same for all channels</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Getting template for station ID </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Getting template for station ID </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">51</span><span class="p">,</span> <span class="mi">52</span><span class="p">]:</span>
             <span class="n">tmpl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cr_ref_templates</span><span class="p">(</span><span class="n">station_id</span><span class="p">)[</span><span class="mi">4</span><span class="p">]</span>  <span class="c1"># FIXME: hardcoded that channel 4 is a cosmic-ray sensitive channel</span>
         <span class="k">elif</span> <span class="n">station_id</span> <span class="o">==</span> <span class="mi">32</span><span class="p">:</span>
@@ -719,7 +719,7 @@
         <span class="k">elif</span> <span class="n">station_id</span> <span class="o">==</span> <span class="mi">61</span><span class="p">:</span>
             <span class="n">tmpl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cr_ref_templates</span><span class="p">(</span><span class="n">station_id</span><span class="p">)[</span><span class="mi">5</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Provided value for CR senistive channel of station </span><span class="si">{}</span><span class="s2"> in templates.py&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Provided value for CR senistive channel of station </span><span class="si">{}</span><span class="s2"> in templates.py"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
             <span class="n">tmpl</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">return</span> <span class="n">tmpl</span></div>
@@ -728,13 +728,13 @@
 <div class="viewcode-block" id="Templates.get_set_of_cr_templates_full">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_set_of_cr_templates_full">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_set_of_cr_templates_full</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        gets set of n templates to allow for the calculation of average templates</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ref_cr_templates</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__load_cr_template</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cr_template_set_full</span> <span class="o">==</span> <span class="p">{}:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Getting set of templates for station ID </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Getting set of templates for station ID </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
             <span class="n">cr_set</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">n_tmpl</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -746,7 +746,7 @@
                         <span class="k">if</span> <span class="n">n_tmpl</span> <span class="o">&gt;=</span> <span class="n">n</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">__cr_template_set_full</span> <span class="o">=</span> <span class="n">cr_set</span>
                             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cr_template_set_full</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> templates requested but only </span><span class="si">{</span><span class="n">n_tmpl</span><span class="si">}</span><span class="s2"> are available. Returning only </span><span class="si">{</span><span class="n">n_tmpl</span><span class="si">}</span><span class="s2"> templates.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> templates requested but only </span><span class="si">{</span><span class="n">n_tmpl</span><span class="si">}</span><span class="s2"> are available. Returning only </span><span class="si">{</span><span class="n">n_tmpl</span><span class="si">}</span><span class="s2"> templates."</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cr_template_set_full</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cr_template_set_full</span></div>
@@ -755,17 +755,17 @@
 <div class="viewcode-block" id="Templates.get_set_of_cr_templates">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_set_of_cr_templates">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_set_of_cr_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        gets set of n templates to allow for the calculation of average templates</span>
 
 <span class="sd">        loops first over different coreas pulses with different frequency content</span>
 <span class="sd">        and then over azimuth angles of 0, 22.5 and 45 degree</span>
 <span class="sd">        and then over zenith angles of 60, 50 and 70 degree</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ref_cr_templates</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__load_cr_template</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cr_template_set</span> <span class="o">==</span> <span class="p">{}:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Getting set of templates for station ID </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Getting set of templates for station ID </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
             <span class="n">n_tmpl</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">zen_refs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">([</span><span class="mi">60</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">70</span><span class="p">])</span>
             <span class="n">az_refs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">22.5</span><span class="p">,</span> <span class="mi">45</span><span class="p">])</span>
@@ -783,17 +783,17 @@
 <div class="viewcode-block" id="Templates.get_set_of_nu_templates">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_set_of_nu_templates">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_set_of_nu_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        gets set of n templates to allow for the calculation of average templates</span>
 
 <span class="sd">        loops first over different viewing angles</span>
 <span class="sd">        and then over azimuth angles of 0, 22.5 and 45 degree</span>
 <span class="sd">        and then over zenith angles of 100, 120 and 140 degree</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ref_nu_templates</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__load_nu_template</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__nu_template_set</span> <span class="o">==</span> <span class="p">{}:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Getting set of templates for station ID </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Getting set of templates for station ID </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
             <span class="n">n_tmpl</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">zen_refs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">([</span><span class="mi">100</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">140</span><span class="p">])</span>
             <span class="n">az_refs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">22.5</span><span class="p">,</span> <span class="mi">45</span><span class="p">])</span>
@@ -810,22 +810,22 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__load_nu_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__path</span><span class="p">,</span> <span class="s1">&#39;templates_nu_station_</span><span class="si">{}</span><span class="s1">.pickle&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__path</span><span class="p">,</span> <span class="s1">'templates_nu_station_</span><span class="si">{}</span><span class="s1">.pickle'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
         <span class="k">if</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__nu_templates</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">read_pickle</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
             <span class="n">zen_ref</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">140</span><span class="p">)</span>
             <span class="n">az_ref</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mi">45</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__ref_nu_templates</span><span class="p">[</span><span class="n">station_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__nu_templates</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="n">zen_ref</span><span class="p">][</span><span class="n">az_ref</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;template file </span><span class="si">{}</span><span class="s2"> not found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"template file </span><span class="si">{}</span><span class="s2"> not found"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
             <span class="k">raise</span> <span class="ne">IOError</span>
 
 <div class="viewcode-block" id="Templates.get_nu_ref_templates">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_nu_ref_templates">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_nu_ref_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns one neutrino template per channel for the reference direction and on the cherenkov cone</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">station_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ref_nu_templates</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__load_nu_template</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ref_nu_templates</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="mf">0.0</span><span class="p">]</span></div>
@@ -834,9 +834,9 @@
 <div class="viewcode-block" id="Templates.get_nu_ref_template">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html#NuRadioReco.utilities.templates.Templates.get_nu_ref_template">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_nu_ref_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns one neutrino template for the reference direction and on the cherenkov cone, the same for all channels</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_nu_ref_templates</span><span class="p">(</span><span class="n">station_id</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># FIXME: hardcoded that channel 0 is a neutrino sensitive channel</span></div>
 </div>
 

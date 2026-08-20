@@ -650,12 +650,12 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioMC.utilities.birefringence</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Helper functions to calculate the effective refractive indices and the polarization vectors for a birefringent medium.</span>
 
 <span class="sd">Birefringence describes the phenomena when the refractive index of a medium depends on the signal polarization.</span>
 <span class="sd">The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
 
@@ -664,7 +664,7 @@
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.birefringence.html#NuRadioMC.utilities.birefringence.get_effective_index_birefringence">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_effective_index_birefringence</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">):</span>
 
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Function to find the analytical solutions for the effective refractive indices.</span>
 <span class="sd">    The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</span>
 
@@ -683,7 +683,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    output format: np.array([n1, n2])</span>
 <span class="sd">    meaning: effective refractive indices</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">sx</span> <span class="o">=</span> <span class="n">direction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">sy</span> <span class="o">=</span> <span class="n">direction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -714,7 +714,7 @@
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.birefringence.html#NuRadioMC.utilities.birefringence.get_polarization_birefringence_simple">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_polarization_birefringence_simple</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">):</span>
 
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Function for the normalized e-field vector of a wave for the direction of propagation in cartesian coordinates without special cases.</span>
 <span class="sd">    For the function with special cases see get_polarization_birefringence.</span>
 <span class="sd">    For a birefringent medium, the e-field vector is calculated from the diagonalized dielectric tensor and the propagation direction.</span>
@@ -737,7 +737,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    efield : np.ndarray of shape (3,)</span>
 <span class="sd">        normalized e-field vector in cartesian coordinates</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">polarization</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">direction</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">nx</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span> <span class="n">direction</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">ny</span> <span class="o">**</span> <span class="mi">2</span><span class="p">),</span> <span class="n">direction</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">nz</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)])</span>
     <span class="n">polarization</span> <span class="o">=</span> <span class="n">polarization</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">polarization</span><span class="p">)</span>
@@ -750,7 +750,7 @@
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.birefringence.html#NuRadioMC.utilities.birefringence.get_polarization_birefringence">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_polarization_birefringence</span><span class="p">(</span><span class="n">N1</span><span class="p">,</span> <span class="n">N2</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Function for the normalized e-field vector of a wave for the direction of propagation in spherical coordinates with special cases.</span>
 <span class="sd">    For a birefringent medium, the e-field vector is calculated from the diagonalized dielectric tensor and the propagation direction.</span>
 <span class="sd">    The calculations are described here: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</span>
@@ -776,7 +776,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    efield : np.ndarray of shape (2, 3)</span>
 <span class="sd">        normalized e-field vector in spherical coordinates for both birefringence solutions</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">narrow_check</span> <span class="o">=</span> <span class="mf">1e-9</span>
     <span class="n">wide_check</span> <span class="o">=</span> <span class="mf">1e-10</span>
@@ -785,7 +785,7 @@
 
         <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">N1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">]),</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">narrow_check</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">())</span> <span class="ow">and</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">N2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">nz</span><span class="p">]),</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">narrow_check</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()):</span>
             <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;warning: Polarization vectors not computable&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"warning: Polarization vectors not computable"</span><span class="p">)</span>
             <span class="n">sky_polarization_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
             <span class="n">sky_polarization_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
 
@@ -853,7 +853,7 @@
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.birefringence.html#NuRadioMC.utilities.birefringence.on_sky_birefringence">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">on_sky_birefringence</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">polarization</span><span class="p">):</span>
 
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Function for the normalized e-field vector from cartesian to spherical coordinates.</span>
 <span class="sd">    The function does the same as the following radiotool functions, only faster:</span>
 <span class="sd">    from radiotools import coordinatesystems</span>
@@ -873,7 +873,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    efield : np.ndarray of shape (3,)</span>
 <span class="sd">        normalized e-field vector in spherical coordinates</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">transform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>  <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>   <span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>    <span class="p">],</span>
                             <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span>   <span class="p">,</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>  <span class="p">],</span>

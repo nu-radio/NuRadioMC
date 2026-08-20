@@ -670,7 +670,7 @@
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.EvtGen.generator</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_eventlist_cylinder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
-<span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;input_file.hdf5&#39;</span>
+<span class="n">filename</span> <span class="o">=</span> <span class="s1">'input_file.hdf5'</span>
 <span class="n">n_events</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e5</span><span class="p">)</span>
 <span class="n">Emin</span> <span class="o">=</span> <span class="mf">1e18</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
 <span class="n">Emax</span> <span class="o">=</span> <span class="mf">2e18</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">eV</span>
@@ -699,14 +699,14 @@
                                 <span class="n">start_event_id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                                 <span class="n">flavor</span><span class="o">=</span><span class="p">[</span><span class="mi">12</span><span class="p">,</span> <span class="o">-</span><span class="mi">12</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="o">-</span><span class="mi">14</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="o">-</span><span class="mi">16</span><span class="p">],</span>
                                 <span class="n">n_events_per_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                <span class="n">spectrum</span><span class="o">=</span><span class="s1">&#39;log_uniform&#39;</span><span class="p">,</span>
+                                <span class="n">spectrum</span><span class="o">=</span><span class="s1">'log_uniform'</span><span class="p">,</span>
                                 <span class="n">add_tau_second_bang</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                 <span class="n">tabulated_taus</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                 <span class="n">deposited</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                 <span class="n">proposal</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                <span class="n">proposal_config</span><span class="o">=</span><span class="s1">&#39;SouthPole&#39;</span><span class="p">,</span>
+                                <span class="n">proposal_config</span><span class="o">=</span><span class="s1">'SouthPole'</span><span class="p">,</span>
                                 <span class="n">start_file_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Event generator</span>
 
 <span class="sd">    Generates neutrino interactions, i.e., vertex positions, neutrino directions,</span>
@@ -746,13 +746,13 @@
 <span class="sd">        lower z coordinate of simulated volume (if None it is set to fiducial_zmin)</span>
 <span class="sd">    full_zmax: float (default None)</span>
 <span class="sd">        upper z coordinate of simulated volume (if None it is set to fiducial_zmax)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>These four parameters, <code class="docutils literal notranslate"><span class="pre">full_rmin</span></code>, <code class="docutils literal notranslate"><span class="pre">full_rmax</span></code>, <code class="docutils literal notranslate"><span class="pre">full_zmax</span></code>, and <code class="docutils literal notranslate"><span class="pre">full_zmin</span></code> serve to increase the total interaction volume while saving and simulating only event vertices that lie within the cylinder defined by the parameters that start with <code class="docutils literal notranslate"><span class="pre">fiducial</span></code>, so that the simulation time remains small. This is extremely useful for simulating multiple interactions from a single event. When a tau or muon neutrino interacts via charged current (CC), the resulting lepton can radiate and decay. In the case of a tau lepton, the range can reach 100 km around 100 EeV, which means that our interaction volume must be increased a lot so that we account correctly for these taus that can reach our fiducial volume after being created tens of kilometres away. The total number of events is also increased proportionally to the ratio of full volume vs fiducial volume.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">thetamin: float</span>
 <span class="sd">    lower zenith angle for neutrino arrival direction</span>
 <span class="sd">thetamax: float</span>
@@ -761,13 +761,13 @@
 <span class="sd">    lower azimuth angle for neutrino arrival direction</span>
 <span class="sd">phimax: float</span>
 <span class="sd">     upper azimuth angle for neutrino arrival direction</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>These parameters control the arrival directions of the incoming neutrinos. The azimuth distribution is uniform, while the zenith distribution is flat as a function of the cosine of the zenith, which implies an isotropic flux and a constant number of events per solid angle. Please keep in mind that, while the physical flux depends on the projected area of the cylinder, the probability of interaction (assuming a thin volume) depends on the chord length of the neutrino trajectory within the volume. For any direction, the product of the projected area times the average chord length is the total volume, so for any volume that is small with respect to the interaction length, the flux of interacting events must be isotropic (ignoring the probability of previous interaction). This is confirmed by the unforced event generator in <code class="docutils literal notranslate"><span class="pre">generate_unforced.py</span></code>.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">start_event: int</span>
 <span class="sd">    default: 1</span>
 <span class="sd">    event number of first event</span>
@@ -781,75 +781,75 @@
 <span class="sd">    * 12: electron neutrino</span>
 <span class="sd">    * 14: muon neutrino</span>
 <span class="sd">    * 16: tau neutrino</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>The flavour codes follow the PDG conventions. Positive integers indicate neutrinos and negative numbers indicate antineutrinos. Neutrinos and antineutrinos possess a slightly different cross section, and also the lepton created via CC interaction changes, which in turn changes the stochastic losses of the lepton. However, at high energies and for the radio technique, the difference between neutrinos and antineutrinos is negligible for practical purposes. The input <code class="docutils literal notranslate"><span class="pre">flavor</span></code> must be a list, from which the neutrino flavour will be randomly drawn. So, the default list <code class="docutils literal notranslate"><span class="pre">[12,-12,14,-14,16,-16]</span></code> creates a 1:1:1 flavour ratio. If we want to use a single flavour, e.g. electron neutrino, we can use [12,-12]. Integer ratios are easily created. If we want a 1:2:0 ratio, we can pass [12,-12,14,14,-14,-14] as <code class="docutils literal notranslate"><span class="pre">flavor</span></code>.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">n_events_per_file: int or None</span>
 <span class="sd">    the maximum number of events per output files. Default is None, which</span>
-<span class="sd">    means that all events are saved in one file. If &#39;n_events_per_file&#39; is</span>
-<span class="sd">    smaller than &#39;n_events&#39; the event list is split up into multiple files.</span>
+<span class="sd">    means that all events are saved in one file. If 'n_events_per_file' is</span>
+<span class="sd">    smaller than 'n_events' the event list is split up into multiple files.</span>
 <span class="sd">    This is useful to split up the computing on multiple cores.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>When producing effective volumes for a large number of events, it is advisable to split the files in smaller input files so that each
 file can be simulated in parallel using a cluster. Due to the Poissonian distribution of the number of triggered events, the relative uncertainty for, let’s say, an effective volume goes with <span class="math notranslate nohighlight">\(1/N_{triggered}^{0.5}\)</span>. However, the number of triggers is unknown a priori because that’s precisely one of the things NuRadioMC calculates. A good rule of thumb for most detector configurations is to take around 10<sup>5</sup> ~ 10<sup>6</sup> events per energy bin for low energies (<code class="docutils literal notranslate"><span class="pre">n_events</span></code>), where radio efficiency is low, and for high energies the number of simulated neutrinos can be reduced. The number of events per file will depend on the number of jobs desired.</p>
 <blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">spectrum: string</span>
 <span class="sd">    defines the probability distribution for which the neutrino energies are generated</span>
-<span class="sd">    * &#39;log_uniform&#39;: uniformly distributed in the logarithm of energy</span>
-<span class="sd">    * &#39;E-?&#39;: E to the -? spectrum where ? can be any float</span>
-<span class="sd">    * &#39;IceCube-nu-2017&#39;: astrophysical neutrino flux measured with IceCube muon sample</span>
+<span class="sd">    * 'log_uniform': uniformly distributed in the logarithm of energy</span>
+<span class="sd">    * 'E-?': E to the -? spectrum where ? can be any float</span>
+<span class="sd">    * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample</span>
 <span class="sd">                         (https://doi.org/10.22323/1.301.1005)</span>
-<span class="sd">    * &#39;GZK-1&#39;: GZK neutrino flux model from van Vliet et al., 2019,</span>
+<span class="sd">    * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019,</span>
 <span class="sd">               https://arxiv.org/abs/1901.01899v1 for 10% proton fraction</span>
 <span class="sd">               (see get_GZK_1 function for details)</span>
-<span class="sd">    * &#39;GZK-1+IceCube-nu-2017&#39;: a combination of the cosmogenic (GZK-1) and</span>
+<span class="sd">    * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and</span>
 <span class="sd">                               astrophysical (IceCube nu 2017) flux</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>If instead of simulating a small energy bin one wishes to simulate a larger part of the neutrino spectrum, one can make use of this feature. By default, the input neutrino energies are drawn from a log-uniform distribution, which is appropriate for bins. An arbitrary power law, the measured IceCube flux, a GZK neutrino model, and a combination of the two previous can be chosen. If a really large <code class="docutils literal notranslate"><span class="pre">n_events</span></code> is used and then the file is split into reasonable cluster jobs using an appropriate <code class="docutils literal notranslate"><span class="pre">n_events_per_file</span></code>, the NuRadioMC output files can be merged after simulation and all the relevant information on the measured events can be obtained. Keep in mind, however, that it is usually more flexible to simulate single bins with a log-uniform distribution and then convolve the results with whatever neutrino flux model we fancy.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">add_tau_second_bang: bool</span>
 <span class="sd">    if True simulate second vertices from tau decays</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">add_tau_second_bang</span></code> should be set to True if one wants to simulate tau double bangs with the simple model native to NuRadioMC. It also controls the full radius of the cylinder if <code class="docutils literal notranslate"><span class="pre">full_rmax</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, and it sets it to the 95% percentile of the tau range for a given energy, where the value is taken from a fit to the range.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">add_tau_second_bang</span></code> is <em class="xref py py-obj">True</em> and <code class="docutils literal notranslate"><span class="pre">proposal</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>, tau decays will be simulated using a continuous slowing down approximation (CSDA) where the only relevant interaction is the photonuclear interaction. Stochastic losses are ignored. See the <a class="reference external" href="https://dx.doi.org/10.1140/epjc/s10052-020-7612-8">NuRadioMC paper</a> for more details.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">tabulated_taus: bool</span>
 <span class="sd">    if True the tau decay properties are taken from a table</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">tabulated_taus</span></code> controls if the code uses the tabulated results for the photonuclear CSDA. It is recommended to be used if the CSDA is wanted, although using PROPOSAL is the best option, if it’s available.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">deposited: bool</span>
 <span class="sd">    if True, generate deposited energies instead of primary neutrino energies</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">deposited</span></code> allows us to choose to work with shower energy instead of neutrino energy. This variable should be set to <code class="docutils literal notranslate"><span class="pre">True</span></code> only for first neutrino interactions, without lepton propagation. It is useful when the response of the detector as a function of shower energy, which is what is actually measurable, is needed. It has been used for generating the radio effective volumes that are used in Jakob van Santen’s <a class="reference external" href="https://github.com/IceCubeOpenSource/gen2-analysis.git">Gen2 framework</a>. Using this feature, the shower energy is randomly drawn using the input <code class="docutils literal notranslate"><span class="pre">Emin</span></code> and <code class="docutils literal notranslate"><span class="pre">Emax</span></code>, as well as the inelasticity, both of which can be used to find out the initial neutrino energy. Then, the file is saved and it can be normally executed using NuRadioMC.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">proposal: bool</span>
 <span class="sd">    if True, the tau and muon secondaries are calculated using PROPOSAL</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -859,31 +859,31 @@ file can be simulated in parallel using a cluster. Due to the Poissonian distrib
 </div></blockquote>
 <p>NuRadioMC feeds PROPOSAL the lepton properties and PROPOSAL propagates them, storing every interaction along the way as well as the final decay. NuRadioMC then saves only the interactions that produce a shower above some energy threshold and transform them into events. See the NuRadioProposal.py module for more information.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">proposal_config: string or path</span>
 <span class="sd">    The user can specify the path to their own config file or choose among</span>
 <span class="sd">    the available options:</span>
-<span class="sd">    -&#39;SouthPole&#39;, a config file for the South Pole (spherical Earth). It</span>
+<span class="sd">    -'SouthPole', a config file for the South Pole (spherical Earth). It</span>
 <span class="sd">    consists of a 2.7 km deep layer of ice, bedrock below and air above.</span>
-<span class="sd">    -&#39;MooresBay&#39;, a config file for Moore&#39;s Bay (spherical Earth). It</span>
+<span class="sd">    -'MooresBay', a config file for Moore's Bay (spherical Earth). It</span>
 <span class="sd">    consists of a 576 m deep ice layer with a 2234 m deep water layer below,</span>
 <span class="sd">    and bedrock below that.</span>
-<span class="sd">    -&#39;InfIce&#39;, a config file with a medium of infinite ice</span>
-<span class="sd">    -&#39;Greenland&#39;, a config file for Summit Station, Greenland (spherical Earth),</span>
+<span class="sd">    -'InfIce', a config file with a medium of infinite ice</span>
+<span class="sd">    -'Greenland', a config file for Summit Station, Greenland (spherical Earth),</span>
 <span class="sd">    same as SouthPole but with a 3 km deep ice layer.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>PROPOSAL needs a configuration file specifying the geometry to be run. The user can choose among the media listed above or they can specify the path to an own file.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">start_file_id: int (default 0)</span>
 <span class="sd">    in case the data set is distributed over several files,</span>
 <span class="sd">    this number specifies the id of the first file</span>
 <span class="sd">    (useful if an existing data set is extended)</span>
 <span class="sd">    if True, generate deposited energies instead of primary neutrino energies</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -1101,29 +1101,29 @@ file can be simulated in parallel using a cluster. Due to the Poissonian distrib
                            <span class="n">thetamin</span><span class="o">=</span><span class="mf">0.</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">thetamax</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span>
                            <span class="n">phimin</span><span class="o">=</span><span class="mf">0.</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">phimax</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span>
                            <span class="n">start_event_id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                           <span class="n">plus_minus</span><span class="o">=</span><span class="s1">&#39;mix&#39;</span><span class="p">,</span>
+                           <span class="n">plus_minus</span><span class="o">=</span><span class="s1">'mix'</span><span class="p">,</span>
                            <span class="n">n_events_per_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                           <span class="n">spectrum</span><span class="o">=</span><span class="s1">&#39;log_uniform&#39;</span><span class="p">,</span>
+                           <span class="n">spectrum</span><span class="o">=</span><span class="s1">'log_uniform'</span><span class="p">,</span>
                            <span class="n">start_file_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                           <span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;SouthPole&#39;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+                           <span class="n">config_file</span><span class="o">=</span><span class="s1">'SouthPole'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Event generator for surface muons</span>
 
 
 <span class="sd">    Generates muons at the surface for the atmospheric muon acceptance studies.</span>
 <span class="sd">    All events are saved in an hdf5 file.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>Most of the arguments are the same as the ones used for <code class="docutils literal notranslate"><span class="pre">generate_eventlist_cylinder</span></code>, although there are fewer and <code class="docutils literal notranslate"><span class="pre">spectrum</span></code> can only be <code class="docutils literal notranslate"><span class="pre">&quot;log-uniform&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;E-X&quot;</span></code>. The only additional option for <code class="docutils literal notranslate"><span class="pre">generate_surface_muons</span></code> is <code class="docutils literal notranslate"><span class="pre">plus_minus</span></code>.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="sd">"""</span>
 <span class="sd">plus_minus: string</span>
-<span class="sd">    if &#39;plus&#39;: generates only positive muons</span>
-<span class="sd">    if &#39;minus&#39;: generates only negative muons</span>
+<span class="sd">    if 'plus': generates only positive muons</span>
+<span class="sd">    if 'minus': generates only negative muons</span>
 <span class="sd">    else generates positive and negative muons randomly</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -1140,7 +1140,7 @@ explored in one of our papers (<a class="reference external" href="https://arxiv
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.EvtGen.NuRadioProposal</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProposalFunctions</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
-<span class="n">proposal_functions</span> <span class="o">=</span> <span class="n">ProposalFunctions</span><span class="p">(</span><span class="n">config_file</span><span class="o">=</span><span class="s1">&#39;InfIce&#39;</span><span class="p">)</span>
+<span class="n">proposal_functions</span> <span class="o">=</span> <span class="n">ProposalFunctions</span><span class="p">(</span><span class="n">config_file</span><span class="o">=</span><span class="s1">'InfIce'</span><span class="p">)</span>
 
 <span class="n">N_taus</span> <span class="o">=</span> <span class="mi">1000</span>
 <span class="n">energy_leptons</span> <span class="o">=</span> <span class="p">[</span><span class="n">units</span><span class="o">.</span><span class="n">EeV</span><span class="p">]</span> <span class="o">*</span> <span class="n">N_taus</span>
@@ -1156,7 +1156,7 @@ explored in one of our papers (<a class="reference external" href="https://arxiv
 <p>The minimum energy when the lepton propagation stops can be controlled with <code class="docutils literal notranslate"><span class="pre">low_nu</span></code>, and the minimal energy of the shower-inducing secondaries can be controlled with <code class="docutils literal notranslate"><span class="pre">min_energy_loss_nu</span></code>. <code class="docutils literal notranslate"><span class="pre">get_secondaries_array</span></code> returns a 2D list containing all the secondary particles that induce a shower. The first dimension indicates the primary lepton and the second dimension navigates through the secondaries produced by that primary. Each one of the elements is a member of the SecondaryProperties class, which has the distance from the lepton creation, its energy, the shower type, the PDG code and the name of the secondary particle as class properties.</p>
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">SecondaryProperties</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    This class stores the properties from secondary particles that are</span>
 <span class="sd">    relevant for NuRadioMC, namely:</span>
 <span class="sd">    - distance, the distance to the first interaction vertex</span>
@@ -1165,7 +1165,7 @@ explored in one of our papers (<a class="reference external" href="https://arxiv
 <span class="sd">    - name, its name according to the particle_name dictionary on this module</span>
 
 <span class="sd">    Distance and energy are expected to be in NuRadioMC units</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">distance</span><span class="p">,</span>
                  <span class="n">energy</span><span class="p">,</span>

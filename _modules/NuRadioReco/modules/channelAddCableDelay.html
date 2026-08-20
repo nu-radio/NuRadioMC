@@ -659,12 +659,12 @@
 <div class="viewcode-block" id="channelAddCableDelay">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelAddCableDelay.html#NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelAddCableDelay</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Adds the cable delay to channels.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.channelApplyCableDelay&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.channelApplyCableDelay"</span><span class="p">)</span>
 
 <div class="viewcode-block" id="channelAddCableDelay.begin">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelAddCableDelay.html#NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay.begin">[docs]</a>
@@ -675,8 +675,8 @@
 <div class="viewcode-block" id="channelAddCableDelay.run">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelAddCableDelay.html#NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;add&#39;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">'add'</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Adds cable delays to channels</span>
 
 <span class="sd">        Parameters</span>
@@ -684,14 +684,14 @@
 <span class="sd">        evt : `NuRadioReco.framework.event.Event`</span>
 <span class="sd">        station : `NuRadioReco.framework.station.Station`</span>
 <span class="sd">        det : Detector</span>
-<span class="sd">        mode : str (default: &quot;add&quot;)</span>
-<span class="sd">            options: &#39;add&#39; or &#39;subtract&#39;.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;add&#39;</span><span class="p">,</span> <span class="s1">&#39;subtract&#39;</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown mode &#39;</span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">&#39; for channelAddCableDelay. &quot;</span>
-                            <span class="s2">&quot;Valid options are &#39;add&#39; or &#39;subtract&#39;.&quot;</span><span class="p">)</span>
+<span class="sd">        mode : str (default: "add")</span>
+<span class="sd">            options: 'add' or 'subtract'.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'add'</span><span class="p">,</span> <span class="s1">'subtract'</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown mode '</span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">' for channelAddCableDelay. "</span>
+                            <span class="s2">"Valid options are 'add' or 'subtract'."</span><span class="p">)</span>
 
-        <span class="n">sim_to_data</span> <span class="o">=</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;add&quot;</span>
+        <span class="n">sim_to_data</span> <span class="o">=</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">"add"</span>
         <span class="n">add_cable_delay</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span></div>
 </div>
 
@@ -700,7 +700,7 @@
 <div class="viewcode-block" id="add_cable_delay">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelAddCableDelay.html#NuRadioReco.modules.channelAddCableDelay.add_cable_delay">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">add_cable_delay</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Add or subtract cable delay by modifying the ``trace_start_time``.</span>
 
 <span class="sd">    Parameters</span>
@@ -717,14 +717,14 @@
 
 <span class="sd">    logger: logging.Logger, default=None</span>
 <span class="sd">        If set, use ``logger.debug(..)`` to log the cable delay.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="n">sim_to_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;``sim_to_data`` is None, please specify.&quot;</span>
+<span class="sd">    """</span>
+    <span class="k">assert</span> <span class="n">sim_to_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"``sim_to_data`` is None, please specify."</span>
 
     <span class="n">add_or_subtract</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">sim_to_data</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
-    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Add&quot;</span> <span class="k">if</span> <span class="n">sim_to_data</span> <span class="k">else</span> <span class="s2">&quot;Subtract&quot;</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s2">"Add"</span> <span class="k">if</span> <span class="n">sim_to_data</span> <span class="k">else</span> <span class="s2">"Subtract"</span>
 
     <span class="k">if</span> <span class="n">trigger</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">detector</span><span class="o">.</span><span class="n">rnog_detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class."</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
 
@@ -740,8 +740,8 @@
             <span class="n">cable_delay</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_cable_delay</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cable_delay</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">ns &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;of cable delay to channel </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">cable_delay</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">ns "</span>
+                        <span class="sa">f</span><span class="s2">"of cable delay to channel </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">channel</span><span class="o">.</span><span class="n">add_trace_start_time</span><span class="p">(</span><span class="n">add_or_subtract</span> <span class="o">*</span> <span class="n">cable_delay</span><span class="p">)</span></div>
 

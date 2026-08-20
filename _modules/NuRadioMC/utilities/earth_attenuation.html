@@ -657,16 +657,16 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">cross_sections</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioMC.earth_attenuation&quot;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioMC.earth_attenuation"</span><span class="p">)</span>
 
 <span class="n">AMU</span> <span class="o">=</span> <span class="mf">1.66e-27</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">kg</span>
 
 
 <div class="viewcode-block" id="get_weight">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html#NuRadioMC.utilities.earth_attenuation.get_weight">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_weight</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">pnu</span><span class="p">,</span> <span class="n">flavors</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;hedis_bgr18&#39;</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_weight</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">pnu</span><span class="p">,</span> <span class="n">flavors</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">'simple'</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">'hedis_bgr18'</span><span class="p">,</span>
                <span class="n">vertex_position</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phi_nu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    calculates neutrino weight due to Earth absorption for different models</span>
 
 <span class="sd">    Parameters</span>
@@ -676,49 +676,49 @@
 <span class="sd">    pnu: float or array of floats</span>
 <span class="sd">        the momentum of the neutrino</span>
 <span class="sd">    mode: string</span>
-<span class="sd">        * &#39;simple&#39;: assuming interaction happens at the surface and approximating the Earth with constant density</span>
-<span class="sd">        * &#39;core_mantle_crust_simple&#39;: assuming interaction happens at the surface and approximating the Earth with 3 layers of constant density</span>
-<span class="sd">        * &#39;core_mantle_crust&#39;: approximating the Earth with 3 layers of constant density, path through Earth to interaction vertex is considered</span>
-<span class="sd">        * &#39;PREM&#39;: density of Earth is parameterized as a fuction of radius, path through Earth to interaction vertex is considered</span>
+<span class="sd">        * 'simple': assuming interaction happens at the surface and approximating the Earth with constant density</span>
+<span class="sd">        * 'core_mantle_crust_simple': assuming interaction happens at the surface and approximating the Earth with 3 layers of constant density</span>
+<span class="sd">        * 'core_mantle_crust': approximating the Earth with 3 layers of constant density, path through Earth to interaction vertex is considered</span>
+<span class="sd">        * 'PREM': density of Earth is parameterized as a fuction of radius, path through Earth to interaction vertex is considered</span>
 <span class="sd">    cross_section_type: string</span>
 <span class="sd">        See description in `cross_sections.py`</span>
 <span class="sd">    vertex_position: 3-dim array or None (default)</span>
 <span class="sd">        the position of the neutrino interaction</span>
 <span class="sd">    phi_nu: float</span>
 <span class="sd">        the azimuth angle of the neutrino direction</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span><span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;simple&#39;</span><span class="p">):</span>
+<span class="sd">    """</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">'simple'</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">get_simple_weight</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">pnu</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="n">cross_section_type</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;core_mantle_crust_simple&quot;</span><span class="p">):</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">"core_mantle_crust_simple"</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">get_core_mantle_crust_weight</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">pnu</span><span class="p">,</span> <span class="n">flavors</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="n">cross_section_type</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;core_mantle_crust&quot;</span><span class="p">):</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">"core_mantle_crust"</span><span class="p">):</span>
         <span class="n">earth</span> <span class="o">=</span> <span class="n">CoreMantleCrustModel</span><span class="p">()</span>
         <span class="n">direction</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">spherical_to_cartesian</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">phi_nu</span><span class="p">)</span>
         <span class="n">slant_depth</span> <span class="o">=</span> <span class="n">earth</span><span class="o">.</span><span class="n">slant_depth</span><span class="p">(</span><span class="n">vertex_position</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
         <span class="c1"># by requesting the interaction length for a density of 1, we get it in units of length**2/weight</span>
-        <span class="n">L_int</span> <span class="o">=</span> <span class="n">cross_sections</span><span class="o">.</span><span class="n">get_interaction_length</span><span class="p">(</span><span class="n">pnu</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">flavor</span><span class="o">=</span><span class="n">flavors</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s1">&#39;total&#39;</span><span class="p">,</span>
+        <span class="n">L_int</span> <span class="o">=</span> <span class="n">cross_sections</span><span class="o">.</span><span class="n">get_interaction_length</span><span class="p">(</span><span class="n">pnu</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">flavor</span><span class="o">=</span><span class="n">flavors</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s1">'total'</span><span class="p">,</span>
                                                       <span class="n">cross_section_type</span><span class="o">=</span><span class="n">cross_section_type</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">slant_depth</span> <span class="o">/</span> <span class="n">L_int</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;PREM&quot;</span><span class="p">):</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">"PREM"</span><span class="p">):</span>
         <span class="n">earth</span> <span class="o">=</span> <span class="n">PREM</span><span class="p">()</span>
         <span class="n">direction</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">spherical_to_cartesian</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">phi_nu</span><span class="p">)</span>
         <span class="n">slant_depth</span> <span class="o">=</span> <span class="n">earth</span><span class="o">.</span><span class="n">slant_depth</span><span class="p">(</span><span class="n">vertex_position</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
         <span class="c1"># by requesting the interaction length for a density of 1, we get it in units of length**2/weight</span>
-        <span class="n">L_int</span> <span class="o">=</span> <span class="n">cross_sections</span><span class="o">.</span><span class="n">get_interaction_length</span><span class="p">(</span><span class="n">pnu</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">flavor</span><span class="o">=</span><span class="n">flavors</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s1">&#39;total&#39;</span><span class="p">,</span>
+        <span class="n">L_int</span> <span class="o">=</span> <span class="n">cross_sections</span><span class="o">.</span><span class="n">get_interaction_length</span><span class="p">(</span><span class="n">pnu</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">flavor</span><span class="o">=</span><span class="n">flavors</span><span class="p">,</span> <span class="n">inttype</span><span class="o">=</span><span class="s1">'total'</span><span class="p">,</span>
                                                       <span class="n">cross_section_type</span><span class="o">=</span><span class="n">cross_section_type</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">slant_depth</span> <span class="o">/</span> <span class="n">L_int</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;None&quot;</span><span class="p">):</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">"None"</span><span class="p">):</span>
         <span class="k">return</span> <span class="mf">1.</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;mode </span><span class="si">{}</span><span class="s1"> not supported&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">'mode </span><span class="si">{}</span><span class="s1"> not supported'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 
 
 <div class="viewcode-block" id="get_simple_weight">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html#NuRadioMC.utilities.earth_attenuation.get_simple_weight">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_simple_weight</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">pnu</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;hedis_bgr18&#39;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_simple_weight</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">pnu</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">'hedis_bgr18'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    calculates neutrino weight due to Earth absorption, i.e. probability of the</span>
 <span class="sd">    neutrino to reach the detector</span>
 
@@ -731,7 +731,7 @@
 <span class="sd">        the zenith angle of the neutrino direction (where it came from, i.e., opposite to the direction of propagation)</span>
 <span class="sd">    pnu: float or array of floats</span>
 <span class="sd">        the momentum of the neutrino</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">R_earth</span> <span class="o">=</span> <span class="mi">6357390</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
     <span class="n">DensityCRUST</span> <span class="o">=</span> <span class="mi">2900</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">kg</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">**</span> <span class="mi">3</span>
     <span class="k">if</span><span class="p">(</span><span class="n">theta_nu</span> <span class="o">&lt;=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">):</span>  <span class="c1"># coming from above</span>
@@ -745,8 +745,8 @@
 
 <div class="viewcode-block" id="get_core_mantle_crust_weight">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html#NuRadioMC.utilities.earth_attenuation.get_core_mantle_crust_weight">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_core_mantle_crust_weight</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">pnu</span><span class="p">,</span> <span class="n">flavors</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">&#39;hedis_bgr18&#39;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_core_mantle_crust_weight</span><span class="p">(</span><span class="n">theta_nu</span><span class="p">,</span> <span class="n">pnu</span><span class="p">,</span> <span class="n">flavors</span><span class="p">,</span> <span class="n">cross_section_type</span><span class="o">=</span><span class="s1">'hedis_bgr18'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    calculates neutrino weight due to Earth absorption with a three layers earth model, i.e. probability of the</span>
 <span class="sd">    neutrino to reach the detector</span>
 
@@ -763,7 +763,7 @@
 <span class="sd">        the momentum of the neutrino</span>
 <span class="sd">    flavors: float or array of floats</span>
 <span class="sd">        the flavor of the neutrino</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">R_EARTH</span> <span class="o">=</span> <span class="mf">6.378140e6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
     <span class="n">densities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">14000.0</span><span class="p">,</span> <span class="mf">3400.0</span><span class="p">,</span> <span class="mf">2900.0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">kg</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">**</span> <span class="mi">3</span>  <span class="c1"># inner layer, middle layer, outer layer</span>
     <span class="n">radii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">3.46e6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">R_EARTH</span> <span class="o">-</span> <span class="mf">4.0e4</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">R_EARTH</span><span class="p">])</span>  <span class="c1"># average radii of boundaries between earth layers</span>
@@ -790,8 +790,8 @@
 <div class="viewcode-block" id="PREM">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html#NuRadioMC.utilities.earth_attenuation.PREM">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PREM</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Class describing the Earth&#39;s density.</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Class describing the Earth's density.</span>
 
 <span class="sd">    Uses densities from the Preliminary reference Earth Model (PREM).</span>
 
@@ -818,10 +818,10 @@
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
-<span class="sd">    .. [1] A. Dziewonski &amp; D. Anderson, &quot;Preliminary reference Earth model.&quot;</span>
+<span class="sd">    .. [1] A. Dziewonski &amp; D. Anderson, "Preliminary reference Earth model."</span>
 <span class="sd">        Physics of the Earth and Planetary Interiors **25**, 297–356 (1981). https://doi.org/10.1016/0031-9201(81)90046-7</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">earth_radius</span> <span class="o">=</span> <span class="mf">6.3710e6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
 
     <span class="n">radii</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.2215e6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="mf">3.4800e6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="mf">5.7010e6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="mf">5.7710e6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="mf">5.9710e6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span>
@@ -844,8 +844,8 @@
 <div class="viewcode-block" id="PREM.density">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html#NuRadioMC.utilities.earth_attenuation.PREM.density">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Calculates the Earth&#39;s density at a given radius.</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Calculates the Earth's density at a given radius.</span>
 
 <span class="sd">        Supports passing an array of radii or a single radius.</span>
 
@@ -859,7 +859,7 @@
 <span class="sd">        array_like</span>
 <span class="sd">            Density (g/cm^3) of the Earth at the given radii.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
         <span class="n">radius_bounds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">radii</span><span class="p">))</span>
         <span class="n">conditions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">((</span><span class="n">lower</span> <span class="o">&lt;=</span> <span class="n">r</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">r</span> <span class="o">&lt;</span> <span class="n">upper</span><span class="p">)</span> <span class="k">for</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span> <span class="ow">in</span>
@@ -870,10 +870,10 @@
 <div class="viewcode-block" id="PREM.slant_depth">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html#NuRadioMC.utilities.earth_attenuation.PREM.slant_depth">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">slant_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">endpoint</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">500</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculates the column density of a chord cutting through Earth.</span>
 
-<span class="sd">        Integrates the Earth&#39;s density along the chord, resulting in a column</span>
+<span class="sd">        Integrates the Earth's density along the chord, resulting in a column</span>
 <span class="sd">        density (or material thickness) with units of mass per area.</span>
 
 <span class="sd">        Parameters</span>
@@ -897,9 +897,9 @@
 
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
-<span class="sd">        PREM.density : Calculates the Earth&#39;s density at a given radius.</span>
+<span class="sd">        PREM.density : Calculates the Earth's density at a given radius.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Convert to Earth-centric coordiante system (e.g. center of the Earth</span>
         <span class="c1"># is at (0, 0, 0))</span>
         <span class="n">endpoint</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">endpoint</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">endpoint</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
@@ -933,8 +933,8 @@
 <div class="viewcode-block" id="CoreMantleCrustModel">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.earth_attenuation.html#NuRadioMC.utilities.earth_attenuation.CoreMantleCrustModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CoreMantleCrustModel</span><span class="p">(</span><span class="n">PREM</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Class describing the Earth&#39;s density.</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Class describing the Earth's density.</span>
 
 <span class="sd">    Uses densities from the Core-Mantle-Crust model. Parameters from ARASim</span>
 
@@ -954,7 +954,7 @@
 <span class="sd">        `earth_radius`. Scalar values denote constant density over the range of</span>
 <span class="sd">        radii.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">earth_radius</span> <span class="o">=</span> <span class="mf">6.378140e6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
 
     <span class="n">radii</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.2e13</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">earth_radius</span> <span class="o">-</span> <span class="mf">4e4</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">)</span>

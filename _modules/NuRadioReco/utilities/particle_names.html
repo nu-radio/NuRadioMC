@@ -650,57 +650,57 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.utilities.particle_names</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot; Mapping of PDG particle ids to particle names. &quot;&quot;&quot;</span>
+<span></span><span class="sd">""" Mapping of PDG particle ids to particle names. """</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.particle_names&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.particle_names'</span><span class="p">)</span>
 
 <span class="c1"># list from documentation/source/NuRadioMC/pages/Manuals/event_generation.rst</span>
 <span class="n">particle_names</span> <span class="o">=</span> \
-    <span class="p">{</span>    <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;Gamma (photon)&quot;</span><span class="p">,</span>
-        <span class="mi">11</span><span class="p">:</span> <span class="s2">&quot;Electron&quot;</span><span class="p">,</span>
-       <span class="o">-</span><span class="mi">11</span><span class="p">:</span> <span class="s2">&quot;Positron&quot;</span><span class="p">,</span>
-        <span class="mi">12</span><span class="p">:</span> <span class="s2">&quot;Electron neutrino&quot;</span><span class="p">,</span>
-       <span class="o">-</span><span class="mi">12</span><span class="p">:</span> <span class="s2">&quot;Electron antineutrino&quot;</span><span class="p">,</span>
-        <span class="mi">13</span><span class="p">:</span> <span class="s2">&quot;Muon (negative)&quot;</span><span class="p">,</span>
-       <span class="o">-</span><span class="mi">13</span><span class="p">:</span> <span class="s2">&quot;Antimuon (positive muon)&quot;</span><span class="p">,</span>
-        <span class="mi">14</span><span class="p">:</span> <span class="s2">&quot;Muon neutrino&quot;</span><span class="p">,</span>
-       <span class="o">-</span><span class="mi">14</span><span class="p">:</span> <span class="s2">&quot;Muon antineutrino&quot;</span><span class="p">,</span>
-        <span class="mi">15</span><span class="p">:</span> <span class="s2">&quot;Tau (negative)&quot;</span><span class="p">,</span>
-       <span class="o">-</span><span class="mi">15</span><span class="p">:</span> <span class="s2">&quot;Antitau (or positive tau)&quot;</span><span class="p">,</span>
-        <span class="mi">16</span><span class="p">:</span> <span class="s2">&quot;Tau neutrino&quot;</span><span class="p">,</span>
-       <span class="o">-</span><span class="mi">16</span><span class="p">:</span> <span class="s2">&quot;Tau antineutrino&quot;</span><span class="p">,</span>
+    <span class="p">{</span>    <span class="mi">0</span><span class="p">:</span> <span class="s2">"Gamma (photon)"</span><span class="p">,</span>
+        <span class="mi">11</span><span class="p">:</span> <span class="s2">"Electron"</span><span class="p">,</span>
+       <span class="o">-</span><span class="mi">11</span><span class="p">:</span> <span class="s2">"Positron"</span><span class="p">,</span>
+        <span class="mi">12</span><span class="p">:</span> <span class="s2">"Electron neutrino"</span><span class="p">,</span>
+       <span class="o">-</span><span class="mi">12</span><span class="p">:</span> <span class="s2">"Electron antineutrino"</span><span class="p">,</span>
+        <span class="mi">13</span><span class="p">:</span> <span class="s2">"Muon (negative)"</span><span class="p">,</span>
+       <span class="o">-</span><span class="mi">13</span><span class="p">:</span> <span class="s2">"Antimuon (positive muon)"</span><span class="p">,</span>
+        <span class="mi">14</span><span class="p">:</span> <span class="s2">"Muon neutrino"</span><span class="p">,</span>
+       <span class="o">-</span><span class="mi">14</span><span class="p">:</span> <span class="s2">"Muon antineutrino"</span><span class="p">,</span>
+        <span class="mi">15</span><span class="p">:</span> <span class="s2">"Tau (negative)"</span><span class="p">,</span>
+       <span class="o">-</span><span class="mi">15</span><span class="p">:</span> <span class="s2">"Antitau (or positive tau)"</span><span class="p">,</span>
+        <span class="mi">16</span><span class="p">:</span> <span class="s2">"Tau neutrino"</span><span class="p">,</span>
+       <span class="o">-</span><span class="mi">16</span><span class="p">:</span> <span class="s2">"Tau antineutrino"</span><span class="p">,</span>
         <span class="c1"># IDs 81 - 100 are reserved for generator-specific pseudoparticles and concepts</span>
-        <span class="mi">80</span><span class="p">:</span> <span class="s2">&quot;Particle&quot;</span><span class="p">,</span>  <span class="c1"># demanded by proposal</span>
-        <span class="mi">81</span><span class="p">:</span> <span class="s2">&quot;Bremsstrahlung photon&quot;</span><span class="p">,</span>
-        <span class="mi">82</span><span class="p">:</span> <span class="s2">&quot;Ionised electron&quot;</span><span class="p">,</span>
-        <span class="mi">83</span><span class="p">:</span> <span class="s2">&quot;Electron-positron pair&quot;</span><span class="p">,</span>
-        <span class="mi">84</span><span class="p">:</span> <span class="s2">&quot;Hadron blundle&quot;</span><span class="p">,</span>
-        <span class="mi">85</span><span class="p">:</span> <span class="s2">&quot;Nuclear interaction products&quot;</span><span class="p">,</span>
-        <span class="mi">86</span><span class="p">:</span> <span class="s2">&quot;Hadronic Decay bundle&quot;</span><span class="p">,</span>
-        <span class="mi">87</span><span class="p">:</span> <span class="s2">&quot;Muon pair&quot;</span><span class="p">,</span>
-        <span class="mi">88</span><span class="p">:</span> <span class="s2">&quot;Continuous loss&quot;</span><span class="p">,</span>
-        <span class="mi">89</span><span class="p">:</span> <span class="s2">&quot;Weak interaction&quot;</span><span class="p">,</span>
-        <span class="mi">90</span><span class="p">:</span> <span class="s2">&quot;Compton&quot;</span><span class="p">,</span>
-        <span class="mi">91</span><span class="p">:</span> <span class="s2">&quot;Decay&quot;</span><span class="p">,</span>
-       <span class="mi">111</span><span class="p">:</span> <span class="s2">&quot;Pion (neutral)&quot;</span><span class="p">,</span>
-       <span class="mi">211</span><span class="p">:</span> <span class="s2">&quot;Pion (positive)&quot;</span><span class="p">,</span>
-      <span class="o">-</span><span class="mi">211</span><span class="p">:</span> <span class="s2">&quot;Pion (negative)&quot;</span><span class="p">,</span>
-       <span class="mi">311</span><span class="p">:</span> <span class="s2">&quot;Kaon (neutral)&quot;</span><span class="p">,</span>
-       <span class="mi">321</span><span class="p">:</span> <span class="s2">&quot;Kaon (positive)&quot;</span><span class="p">,</span>
-      <span class="o">-</span><span class="mi">321</span><span class="p">:</span> <span class="s2">&quot;Kaon (negative)&quot;</span><span class="p">,</span>
-      <span class="mi">2212</span><span class="p">:</span> <span class="s2">&quot;Proton&quot;</span><span class="p">,</span>
-     <span class="o">-</span><span class="mi">2212</span><span class="p">:</span> <span class="s2">&quot;Antiproton&quot;</span><span class="p">}</span>
+        <span class="mi">80</span><span class="p">:</span> <span class="s2">"Particle"</span><span class="p">,</span>  <span class="c1"># demanded by proposal</span>
+        <span class="mi">81</span><span class="p">:</span> <span class="s2">"Bremsstrahlung photon"</span><span class="p">,</span>
+        <span class="mi">82</span><span class="p">:</span> <span class="s2">"Ionised electron"</span><span class="p">,</span>
+        <span class="mi">83</span><span class="p">:</span> <span class="s2">"Electron-positron pair"</span><span class="p">,</span>
+        <span class="mi">84</span><span class="p">:</span> <span class="s2">"Hadron blundle"</span><span class="p">,</span>
+        <span class="mi">85</span><span class="p">:</span> <span class="s2">"Nuclear interaction products"</span><span class="p">,</span>
+        <span class="mi">86</span><span class="p">:</span> <span class="s2">"Hadronic Decay bundle"</span><span class="p">,</span>
+        <span class="mi">87</span><span class="p">:</span> <span class="s2">"Muon pair"</span><span class="p">,</span>
+        <span class="mi">88</span><span class="p">:</span> <span class="s2">"Continuous loss"</span><span class="p">,</span>
+        <span class="mi">89</span><span class="p">:</span> <span class="s2">"Weak interaction"</span><span class="p">,</span>
+        <span class="mi">90</span><span class="p">:</span> <span class="s2">"Compton"</span><span class="p">,</span>
+        <span class="mi">91</span><span class="p">:</span> <span class="s2">"Decay"</span><span class="p">,</span>
+       <span class="mi">111</span><span class="p">:</span> <span class="s2">"Pion (neutral)"</span><span class="p">,</span>
+       <span class="mi">211</span><span class="p">:</span> <span class="s2">"Pion (positive)"</span><span class="p">,</span>
+      <span class="o">-</span><span class="mi">211</span><span class="p">:</span> <span class="s2">"Pion (negative)"</span><span class="p">,</span>
+       <span class="mi">311</span><span class="p">:</span> <span class="s2">"Kaon (neutral)"</span><span class="p">,</span>
+       <span class="mi">321</span><span class="p">:</span> <span class="s2">"Kaon (positive)"</span><span class="p">,</span>
+      <span class="o">-</span><span class="mi">321</span><span class="p">:</span> <span class="s2">"Kaon (negative)"</span><span class="p">,</span>
+      <span class="mi">2212</span><span class="p">:</span> <span class="s2">"Proton"</span><span class="p">,</span>
+     <span class="o">-</span><span class="mi">2212</span><span class="p">:</span> <span class="s2">"Antiproton"</span><span class="p">}</span>
 
 <span class="n">particle_ids</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="n">particle_ids</span><span class="p">[</span><span class="n">value</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
 
-<span class="n">em_primary_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Gamma (photon)&#39;</span><span class="p">,</span> <span class="s1">&#39;Electron&#39;</span><span class="p">,</span> <span class="s1">&#39;Positron&#39;</span><span class="p">,</span> <span class="s1">&#39;Bremsstrahlung photon&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;Ionised electron&#39;</span><span class="p">,</span> <span class="s1">&#39;Electron-positron pair&#39;</span><span class="p">,</span> <span class="s1">&#39;Weak interaction&#39;</span><span class="p">,</span> <span class="s1">&#39;Compton&#39;</span><span class="p">]</span>
+<span class="n">em_primary_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'Gamma (photon)'</span><span class="p">,</span> <span class="s1">'Electron'</span><span class="p">,</span> <span class="s1">'Positron'</span><span class="p">,</span> <span class="s1">'Bremsstrahlung photon'</span><span class="p">,</span>
+                    <span class="s1">'Ionised electron'</span><span class="p">,</span> <span class="s1">'Electron-positron pair'</span><span class="p">,</span> <span class="s1">'Weak interaction'</span><span class="p">,</span> <span class="s1">'Compton'</span><span class="p">]</span>
 
-<span class="n">had_primary_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Hadron blundle&#39;</span><span class="p">,</span> <span class="s1">&#39;Nuclear interaction products&#39;</span><span class="p">,</span> <span class="s1">&#39;Hadronic Decay bundle&#39;</span><span class="p">,</span> <span class="s2">&quot;Pion (neutral)&quot;</span><span class="p">,</span> <span class="s2">&quot;Pion (positive)&quot;</span><span class="p">,</span>
-                     <span class="s2">&quot;Pion (negative)&quot;</span><span class="p">,</span> <span class="s2">&quot;Kaon (neutral)&quot;</span><span class="p">,</span> <span class="s2">&quot;Kaon (positive)&quot;</span><span class="p">,</span> <span class="s2">&quot;Kaon (negative)&quot;</span><span class="p">,</span> <span class="s2">&quot;Proton&quot;</span><span class="p">,</span> <span class="s2">&quot;Antiproton&quot;</span><span class="p">]</span>
+<span class="n">had_primary_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'Hadron blundle'</span><span class="p">,</span> <span class="s1">'Nuclear interaction products'</span><span class="p">,</span> <span class="s1">'Hadronic Decay bundle'</span><span class="p">,</span> <span class="s2">"Pion (neutral)"</span><span class="p">,</span> <span class="s2">"Pion (positive)"</span><span class="p">,</span>
+                     <span class="s2">"Pion (negative)"</span><span class="p">,</span> <span class="s2">"Kaon (neutral)"</span><span class="p">,</span> <span class="s2">"Kaon (positive)"</span><span class="p">,</span> <span class="s2">"Kaon (negative)"</span><span class="p">,</span> <span class="s2">"Proton"</span><span class="p">,</span> <span class="s2">"Antiproton"</span><span class="p">]</span>
 
 <span class="n">primary_names</span> <span class="o">=</span> <span class="n">em_primary_names</span> <span class="o">+</span> <span class="n">had_primary_names</span>
 
@@ -709,12 +709,12 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.particle_names.html#NuRadioReco.utilities.particle_names.particle_name">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">particle_name</span><span class="p">(</span><span class="nb">id</span><span class="p">):</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">)):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This function only takes integers.&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;This function only takes integers.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"This function only takes integers."</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"This function only takes integers."</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Particle id: </span><span class="si">{:d}</span><span class="s2"> unknown&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">))</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Particle id: </span><span class="si">{:d}</span><span class="s2"> unknown&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Particle id: </span><span class="si">{:d}</span><span class="s2"> unknown"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Particle id: </span><span class="si">{:d}</span><span class="s2"> unknown"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">particle_names</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span></div>
 
@@ -724,23 +724,23 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.particle_names.html#NuRadioReco.utilities.particle_names.particle_id">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">particle_id</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This function only takes strings.&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;This function only takes strings.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"This function only takes strings."</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"This function only takes strings."</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">particle_ids</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Particle name: </span><span class="si">{}</span><span class="s2"> unknown&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The following names are implemented: &quot;</span><span class="p">,</span>
-              <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">particle_ids</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Particle name: </span><span class="si">{}</span><span class="s2"> unknown&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Particle name: </span><span class="si">{}</span><span class="s2"> unknown"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"The following names are implemented: "</span><span class="p">,</span>
+              <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">particle_ids</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Particle name: </span><span class="si">{}</span><span class="s2"> unknown"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">particle_ids</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
 
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The following particles are implemented: &quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"The following particles are implemented: "</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">particle_names</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2"> </span><span class="si">{:5d}</span><span class="s2"> : </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2"> </span><span class="si">{:5d}</span><span class="s2"> : </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
 </pre></div>
 
            </div>

@@ -656,19 +656,19 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.triggerBoardResponse&quot;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.triggerBoardResponse"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="triggerBoardResponse">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">triggerBoardResponse</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Simulates the response of the trigger board, nominally the &quot;flower board&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Simulates the response of the trigger board, nominally the "flower board"</span>
 <span class="sd">    Includes:</span>
 <span class="sd">    * analog frequency filter</span>
 <span class="sd">    * ADC gain to fix the noise RMS to a specified number of bits</span>
 <span class="sd">    * (optional) applies digitization to the waveforms</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
@@ -677,8 +677,8 @@
 
 <div class="viewcode-block" id="triggerBoardResponse.begin">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.begin">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clock_offset</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">adc_output</span><span class="o">=</span><span class="s2">&quot;voltage&quot;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clock_offset</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">adc_output</span><span class="o">=</span><span class="s2">"voltage"</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        clock_offset: bool</span>
@@ -686,10 +686,10 @@
 <span class="sd">        adc_output: string</span>
 <span class="sd">            Options:</span>
 
-<span class="sd">            * &#39;voltage&#39; to store the ADC output as discretised voltage trace</span>
-<span class="sd">            * &#39;counts&#39; to store the ADC output in ADC counts</span>
+<span class="sd">            * 'voltage' to store the ADC output as discretised voltage trace</span>
+<span class="sd">            * 'counts' to store the ADC output in ADC counts</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_adc</span> <span class="o">=</span> <span class="n">analogToDigitalConverter</span><span class="p">(</span><span class="n">log_level</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_log_level</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_clock_offset</span> <span class="o">=</span> <span class="n">clock_offset</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">adc_output</span> <span class="o">=</span> <span class="n">adc_output</span>
@@ -703,7 +703,7 @@
 <div class="viewcode-block" id="triggerBoardResponse.apply_trigger_filter">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_trigger_filter">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">apply_trigger_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="n">trigger_filter</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Applies the requested trigger filter to the `trigger_channels`</span>
 
 <span class="sd">        Parameters</span>
@@ -716,7 +716,7 @@
 <span class="sd">            set of interpolations describing the `gain` and `phase` of the filter</span>
 <span class="sd">            (see function `load_amp_response` in file `./detector/RNO_G/analog_components.py`)</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">trigger_channels</span><span class="p">:</span>
             <span class="n">channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_trigger_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
@@ -730,7 +730,7 @@
 <div class="viewcode-block" id="triggerBoardResponse.get_noise_vrms_per_trigger_channel">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.get_noise_vrms_per_trigger_channel">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_noise_vrms_per_trigger_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="n">trace_split</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Estimates the RMS voltage of the triggering antennas by splitting the waveforms</span>
 <span class="sd">        into chunks and taking the median of standard deviation of the chunks.</span>
 
@@ -748,7 +748,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        vrms : list of floats</span>
 <span class="sd">            RMS voltage of the waveforms</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">vrms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trigger_channels</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trigger_channels</span><span class="p">):</span>
             <span class="n">channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_trigger_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
@@ -760,16 +760,16 @@
 
             <span class="n">vrms</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">approx_vrms</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;obs. Vrms </span><span class="si">{}</span><span class="s2"> mV&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">vrms</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"obs. Vrms </span><span class="si">{}</span><span class="s2"> mV"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">vrms</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
         <span class="k">return</span> <span class="n">vrms</span></div>
 
 
 <div class="viewcode-block" id="triggerBoardResponse.apply_adc_gain">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.apply_adc_gain">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">apply_adc_gain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="n">vrms_noise</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculates and applies the gain adjustment such that the correct number</span>
-<span class="sd">        of &quot;noise bits&quot; are realized. The ADC has fixed possible gain values and</span>
+<span class="sd">        of "noise bits" are realized. The ADC has fixed possible gain values and</span>
 <span class="sd">        this module sets the one that is closest-to-but-greater-than the ideal value</span>
 
 <span class="sd">        Parameters</span>
@@ -792,24 +792,24 @@
 <span class="sd">        ideal_vrms: float</span>
 <span class="sd">            the ideal vrms, as measured on the ADC capacitors</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="n">vrms_noise</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">vrms_noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_noise_vrms_per_trigger_channel</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;obs. Vrms </span><span class="si">{}</span><span class="s2"> mV&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">vrms_noise</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"obs. Vrms </span><span class="si">{}</span><span class="s2"> mV"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">vrms_noise</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span> <span class="mi">3</span><span class="p">)))</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Applying gain at ADC level&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Applying gain at ADC level"</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">vrms_noise</span><span class="p">,</span> <span class="s2">&quot;__len__&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">vrms_noise</span><span class="p">,</span> <span class="s2">"__len__"</span><span class="p">):</span>
             <span class="n">vrms_noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full_like</span><span class="p">(</span><span class="n">trigger_channels</span><span class="p">,</span> <span class="n">vrms_noise</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 
-        <span class="n">dbg_str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Channel | std(channel) / mV | vrms_after_gain | gain factor | eff. noise count&quot;</span>
+        <span class="n">dbg_str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n\t</span><span class="s2">Channel | std(channel) / mV | vrms_after_gain | gain factor | eff. noise count"</span>
         <span class="n">vrms_after_gain</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">vrms</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">trigger_channels</span><span class="p">,</span> <span class="n">vrms_noise</span><span class="p">):</span>
             <span class="n">det_channel</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">)</span>
-            <span class="n">noise_count</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">&quot;trigger_adc_noise_count&quot;</span><span class="p">]</span>
-            <span class="n">total_bits</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">&quot;trigger_adc_nbits&quot;</span><span class="p">]</span>
-            <span class="n">adc_input_range</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">&quot;trigger_adc_max_voltage&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">&quot;trigger_adc_min_voltage&quot;</span><span class="p">]</span>
+            <span class="n">noise_count</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">"trigger_adc_noise_count"</span><span class="p">]</span>
+            <span class="n">total_bits</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">"trigger_adc_nbits"</span><span class="p">]</span>
+            <span class="n">adc_input_range</span> <span class="o">=</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">"trigger_adc_max_voltage"</span><span class="p">]</span> <span class="o">-</span> <span class="n">det_channel</span><span class="p">[</span><span class="s2">"trigger_adc_min_voltage"</span><span class="p">]</span>
 
             <span class="n">volts_per_adc</span> <span class="o">=</span> <span class="n">adc_input_range</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">total_bits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
             <span class="n">ideal_vrms</span> <span class="o">=</span> <span class="n">volts_per_adc</span> <span class="o">*</span> <span class="n">noise_count</span>
@@ -817,12 +817,12 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adc_input_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_adc_input_range</span> <span class="o">=</span> <span class="n">adc_input_range</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adc_input_range</span> <span class="o">==</span> <span class="n">adc_input_range</span><span class="p">,</span> <span class="s2">&quot;ADC input range is not consistent across channels&quot;</span>
+                <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adc_input_range</span> <span class="o">==</span> <span class="n">adc_input_range</span><span class="p">,</span> <span class="s2">"ADC input range is not consistent across channels"</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nbits</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_nbits</span> <span class="o">=</span> <span class="n">total_bits</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nbits</span> <span class="o">==</span> <span class="n">total_bits</span><span class="p">,</span> <span class="s2">&quot;ADC bits are not consistent across channels&quot;</span>
+                <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nbits</span> <span class="o">==</span> <span class="n">total_bits</span><span class="p">,</span> <span class="s2">"ADC bits are not consistent across channels"</span>
 
             <span class="c1"># find the ADC gain from the possible values that makes the realized</span>
             <span class="c1"># vrms closest-to-but-greater-than the ideal value</span>
@@ -842,10 +842,10 @@
             <span class="c1"># Calculate the effective number of noise bits</span>
             <span class="n">eff_noise_count</span> <span class="o">=</span> <span class="n">vrms_after_gain</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">volts_per_adc</span>
 
-            <span class="n">dbg_str</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2"> </span><span class="si">{: 4d}</span><span class="s2">   |     </span><span class="si">{: 4.3f}</span><span class="s2">      |     </span><span class="si">{: 4.3f}</span><span class="s2">     |     </span><span class="si">{}</span><span class="s2">    |  </span><span class="si">{:0.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">dbg_str</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2"> </span><span class="si">{: 4d}</span><span class="s2">   |     </span><span class="si">{: 4.3f}</span><span class="s2">      |     </span><span class="si">{: 4.3f}</span><span class="s2">     |     </span><span class="si">{}</span><span class="s2">    |  </span><span class="si">{:0.2f}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">channel_id</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">())</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span> <span class="n">vrms_after_gain</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span> <span class="n">gain_to_use</span><span class="p">,</span> <span class="n">eff_noise_count</span><span class="p">))</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Target Vrms: </span><span class="si">{:0.3f}</span><span class="s2"> mV; Target noise count: </span><span class="si">{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ideal_vrms</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span> <span class="n">noise_count</span><span class="p">,</span> <span class="n">dbg_str</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Target Vrms: </span><span class="si">{:0.3f}</span><span class="s2"> mV; Target noise count: </span><span class="si">{}{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ideal_vrms</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span> <span class="n">noise_count</span><span class="p">,</span> <span class="n">dbg_str</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vrms_after_gain</span><span class="p">),</span> <span class="n">ideal_vrms</span></div>
 
@@ -854,7 +854,7 @@
 <div class="viewcode-block" id="triggerBoardResponse.digitize_trace">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.triggerBoardResponse.html#NuRadioReco.modules.RNO_G.triggerBoardResponse.triggerBoardResponse.digitize_trace">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">digitize_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="n">vrms</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Digitizes the traces of the trigger channels.</span>
 
 <span class="sd">        This function uses the `NuRadioReco.modules.analogToDigitalConverter` module to digitize the traces.</span>
@@ -872,7 +872,7 @@
 <span class="sd">        vrms : float</span>
 <span class="sd">            The (noise) RMS voltage of the trigger channels including the trigger board filters.</span>
 <span class="sd">            This can be used to simulate a dynamic range of the ADC which depends on the noise level.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">trigger_channels</span><span class="p">:</span>
             <span class="n">channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_trigger_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
 
@@ -882,7 +882,7 @@
                 <span class="n">channel</span><span class="p">,</span>
                 <span class="n">Vrms</span><span class="o">=</span><span class="n">vrms</span><span class="p">,</span>
                 <span class="n">trigger_adc</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                <span class="n">adc_type</span><span class="o">=</span><span class="s2">&quot;perfect_floor_comparator&quot;</span><span class="p">,</span>
+                <span class="n">adc_type</span><span class="o">=</span><span class="s2">"perfect_floor_comparator"</span><span class="p">,</span>
                 <span class="n">trigger_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>  <span class="c1"># Applied already</span>
                 <span class="n">clock_offset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_clock_offset</span><span class="p">,</span>
                 <span class="n">adc_output</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">adc_output</span><span class="p">,</span>
@@ -897,7 +897,7 @@
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="n">vrms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">apply_adc_gain</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">digitize_trace</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Applies the additional filters on the trigger board and performs a gain amplification</span>
 <span class="sd">        to get the correct number of trigger bits.</span>
 
@@ -923,8 +923,8 @@
 <span class="sd">        -------</span>
 <span class="sd">        trigger_board_vrms : float</span>
 <span class="sd">            the RMS voltage of the waveforms on the trigger board after applying the ADC gain</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Applying the RNO-G trigger board response&quot;</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Applying the RNO-G trigger board response"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">vrms</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">vrms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_noise_vrms_per_trigger_channel</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">)</span>
@@ -937,11 +937,11 @@
 
         <span class="k">if</span> <span class="n">digitize_trace</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">digitize_trace</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="p">,</span> <span class="n">ideal_vrms</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">adc_output</span> <span class="o">==</span> <span class="s2">&quot;counts&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">adc_output</span> <span class="o">==</span> <span class="s2">"counts"</span><span class="p">:</span>
                 <span class="n">lsb_voltage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adc_input_range</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nbits</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="c1"># We do not floor/convert the vrms to integers here. But this has to happen before the trigger.</span>
                 <span class="n">equalized_vrms</span> <span class="o">=</span> <span class="n">equalized_vrms</span> <span class="o">/</span> <span class="n">lsb_voltage</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;obs. Vrms </span><span class="si">{}</span><span class="s2"> ADC&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">equalized_vrms</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"obs. Vrms </span><span class="si">{}</span><span class="s2"> ADC"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">equalized_vrms</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">equalized_vrms</span></div>
 

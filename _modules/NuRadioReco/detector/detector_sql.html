@@ -659,7 +659,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.sql_detector&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.sql_detector'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Detector">
@@ -675,20 +675,20 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
         <span class="n">dir_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>  <span class="c1"># get the directory of this file</span>
-        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dir_path</span><span class="p">,</span> <span class="s2">&quot;detector_sql_auth.json&quot;</span><span class="p">)</span>
-        <span class="n">fin</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dir_path</span><span class="p">,</span> <span class="s2">"detector_sql_auth.json"</span><span class="p">)</span>
+        <span class="n">fin</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span>
         <span class="n">mysql_opts</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>
         <span class="n">fin</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span> <span class="o">=</span> <span class="n">MySQLdb</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">mysql_opts</span><span class="p">[</span><span class="s1">&#39;host&#39;</span><span class="p">],</span>
-                                       <span class="n">user</span><span class="o">=</span><span class="n">mysql_opts</span><span class="p">[</span><span class="s1">&#39;user&#39;</span><span class="p">],</span>
-                                       <span class="n">passwd</span><span class="o">=</span><span class="n">mysql_opts</span><span class="p">[</span><span class="s1">&#39;pass&#39;</span><span class="p">],</span>
-                                       <span class="n">db</span><span class="o">=</span><span class="n">mysql_opts</span><span class="p">[</span><span class="s1">&#39;DB&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span> <span class="o">=</span> <span class="n">MySQLdb</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">mysql_opts</span><span class="p">[</span><span class="s1">'host'</span><span class="p">],</span>
+                                       <span class="n">user</span><span class="o">=</span><span class="n">mysql_opts</span><span class="p">[</span><span class="s1">'user'</span><span class="p">],</span>
+                                       <span class="n">passwd</span><span class="o">=</span><span class="n">mysql_opts</span><span class="p">[</span><span class="s1">'pass'</span><span class="p">],</span>
+                                       <span class="n">db</span><span class="o">=</span><span class="n">mysql_opts</span><span class="p">[</span><span class="s1">'DB'</span><span class="p">])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">apilevel</span> <span class="o">=</span> <span class="s2">&quot;2.0&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">apilevel</span> <span class="o">=</span> <span class="s2">"2.0"</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">threadsafety</span> <span class="o">=</span> <span class="mi">2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">paramstyle</span> <span class="o">=</span> <span class="s2">&quot;format&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;database connection to </span><span class="si">{}</span><span class="s2"> established&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mysql_opts</span><span class="p">[</span><span class="s1">&#39;DB&#39;</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">paramstyle</span> <span class="o">=</span> <span class="s2">"format"</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"database connection to </span><span class="si">{}</span><span class="s2"> established"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mysql_opts</span><span class="p">[</span><span class="s1">'DB'</span><span class="p">]))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># just for testing</span>
@@ -696,16 +696,16 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
         <span class="n">args</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargvalues</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="s1">&#39;request </span><span class="si">{}</span><span class="s1"> with arguments</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getframeinfo</span><span class="p">(</span><span class="n">frame</span><span class="p">)[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="s1">'request </span><span class="si">{}</span><span class="s1"> with arguments</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getframeinfo</span><span class="p">(</span><span class="n">frame</span><span class="p">)[</span><span class="mi">2</span><span class="p">])</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-            <span class="n">out</span> <span class="o">+=</span> <span class="s2">&quot;    </span><span class="si">{}</span><span class="s2"> = </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-        <span class="n">out</span> <span class="o">+=</span> <span class="s2">&quot;   at time </span><span class="si">{}</span><span class="se">\n</span><span class="s2"> returned not result.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">+=</span> <span class="s2">"    </span><span class="si">{}</span><span class="s2"> = </span><span class="si">{}</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="s2">"   at time </span><span class="si">{}</span><span class="se">\n</span><span class="s2"> returned not result."</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Detector.update">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.update">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;updating detector time to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestamp</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"updating detector time to </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timestamp</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span> <span class="o">=</span> <span class="n">timestamp</span></div>
 
 
@@ -714,25 +714,25 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_everything</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
 
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;st.station_id&#39;</span><span class="p">,</span> <span class="s1">&#39;st.commission_time&#39;</span><span class="p">,</span> <span class="s1">&#39;st.decommission_time&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;st.station_type&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;st.position&#39;</span><span class="p">,</span> <span class="s1">&#39;st.board_number&#39;</span><span class="p">,</span> <span class="s1">&#39;st.MAC_address&#39;</span><span class="p">,</span> <span class="s1">&#39;st.MBED_type&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;ch.channel_id&#39;</span><span class="p">,</span> <span class="s1">&#39;ch.commission_time&#39;</span><span class="p">,</span> <span class="s1">&#39;ch.decommission_time&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;ant.antenna_type&#39;</span><span class="p">,</span> <span class="s1">&#39;ant.orientation_phi&#39;</span><span class="p">,</span> <span class="s1">&#39;ant.orientation_theta&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;ant.rotation_phi&#39;</span><span class="p">,</span> <span class="s1">&#39;ant.rotation_theta&#39;</span><span class="p">,</span> <span class="s1">&#39;ant.position_x&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;ant.position_y&#39;</span><span class="p">,</span> <span class="s1">&#39;ant.position_z&#39;</span><span class="p">,</span> <span class="s1">&#39;ant.deployment_time&#39;</span><span class="p">,</span> <span class="s1">&#39;ant.comment&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;cab.cable_type&#39;</span><span class="p">,</span> <span class="s1">&#39;cab.cable_length&#39;</span><span class="p">,</span> <span class="s1">&#39;cab.reference_measurement&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;cab.time_delay&#39;</span><span class="p">,</span> <span class="s1">&#39;cab.cable_id&#39;</span><span class="p">,</span> <span class="s1">&#39;cab.comment&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;pos.position&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.measurement_time&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.easting&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.northing&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;pos.altitude&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.site&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;amps.amp_type&#39;</span><span class="p">,</span> <span class="s1">&#39;amps.reference_measurement&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;adcs.adc_id&#39;</span><span class="p">,</span> <span class="s1">&#39;adcs.time_delay&#39;</span><span class="p">,</span> <span class="s1">&#39;adcs.nbits&#39;</span><span class="p">,</span> <span class="s1">&#39;adcs.sampling_frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;adcs.n_samples&#39;</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'st.station_id'</span><span class="p">,</span> <span class="s1">'st.commission_time'</span><span class="p">,</span> <span class="s1">'st.decommission_time'</span><span class="p">,</span>
+                  <span class="s1">'st.station_type'</span><span class="p">,</span>
+                  <span class="s1">'st.position'</span><span class="p">,</span> <span class="s1">'st.board_number'</span><span class="p">,</span> <span class="s1">'st.MAC_address'</span><span class="p">,</span> <span class="s1">'st.MBED_type'</span><span class="p">,</span>
+                  <span class="s1">'ch.channel_id'</span><span class="p">,</span> <span class="s1">'ch.commission_time'</span><span class="p">,</span> <span class="s1">'ch.decommission_time'</span><span class="p">,</span>
+                  <span class="s1">'ant.antenna_type'</span><span class="p">,</span> <span class="s1">'ant.orientation_phi'</span><span class="p">,</span> <span class="s1">'ant.orientation_theta'</span><span class="p">,</span>
+                  <span class="s1">'ant.rotation_phi'</span><span class="p">,</span> <span class="s1">'ant.rotation_theta'</span><span class="p">,</span> <span class="s1">'ant.position_x'</span><span class="p">,</span>
+                  <span class="s1">'ant.position_y'</span><span class="p">,</span> <span class="s1">'ant.position_z'</span><span class="p">,</span> <span class="s1">'ant.deployment_time'</span><span class="p">,</span> <span class="s1">'ant.comment'</span><span class="p">,</span>
+                  <span class="s1">'cab.cable_type'</span><span class="p">,</span> <span class="s1">'cab.cable_length'</span><span class="p">,</span> <span class="s1">'cab.reference_measurement'</span><span class="p">,</span>
+                  <span class="s1">'cab.time_delay'</span><span class="p">,</span> <span class="s1">'cab.cable_id'</span><span class="p">,</span> <span class="s1">'cab.comment'</span><span class="p">,</span>
+                  <span class="s1">'pos.position'</span><span class="p">,</span> <span class="s1">'pos.measurement_time'</span><span class="p">,</span> <span class="s1">'pos.easting'</span><span class="p">,</span> <span class="s1">'pos.northing'</span><span class="p">,</span>
+                  <span class="s1">'pos.altitude'</span><span class="p">,</span> <span class="s1">'pos.site'</span><span class="p">,</span>
+                  <span class="s1">'amps.amp_type'</span><span class="p">,</span> <span class="s1">'amps.reference_measurement'</span><span class="p">,</span>
+                  <span class="s1">'adcs.adc_id'</span><span class="p">,</span> <span class="s1">'adcs.time_delay'</span><span class="p">,</span> <span class="s1">'adcs.nbits'</span><span class="p">,</span> <span class="s1">'adcs.sampling_frequency'</span><span class="p">,</span> <span class="s1">'adcs.n_samples'</span>
                   <span class="p">]</span>
-        <span class="n">field_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">field_str</span> <span class="o">=</span> <span class="s2">""</span>
         <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
-            <span class="n">field_str</span> <span class="o">+=</span> <span class="n">field</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span>
+            <span class="n">field_str</span> <span class="o">+=</span> <span class="n">field</span> <span class="o">+</span> <span class="s2">", "</span>
         <span class="n">field_str</span> <span class="o">=</span> <span class="n">field_str</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT </span><span class="si">{fields}</span><span class="s2"> FROM stations AS st</span>
 <span class="s2">            JOIN channels AS ch USING(station_uid)</span>
 <span class="s2">            JOIN antennas AS ant USING(antenna_uid)</span>
@@ -740,10 +740,10 @@
 <span class="s2">            JOIN positions AS pos USING(position)</span>
 <span class="s2">            JOIN amps USING(amp_uid)</span>
 <span class="s2">            JOIN adcs USING(adc_uid)</span>
-<span class="s2">        WHERE CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between ch.commission_time and ch.decommission_time</span>
-<span class="s2">            AND CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between st.commission_time and st.decommission_time</span>
+<span class="s2">        WHERE CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between ch.commission_time and ch.decommission_time</span>
+<span class="s2">            AND CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between st.commission_time and st.decommission_time</span>
 <span class="s2">            AND st.station_id = </span><span class="si">{station_id}</span><span class="s2">;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">field_str</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">field_str</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -763,20 +763,20 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_everything_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
 
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;st.station_id&#39;</span><span class="p">,</span> <span class="s1">&#39;ch.channel_id&#39;</span><span class="p">,</span> <span class="s1">&#39;ch.commission_time&#39;</span><span class="p">,</span> <span class="s1">&#39;ch.decommission_time&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;ant.antenna_type&#39;</span><span class="p">,</span> <span class="s1">&#39;ant.orientation_phi&#39;</span><span class="p">,</span> <span class="s1">&#39;ant.orientation_theta&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;ant.rotation_phi&#39;</span><span class="p">,</span> <span class="s1">&#39;ant.rotation_theta&#39;</span><span class="p">,</span> <span class="s1">&#39;ant.position_x&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;ant.position_y&#39;</span><span class="p">,</span> <span class="s1">&#39;ant.position_z&#39;</span><span class="p">,</span> <span class="s1">&#39;ant.deployment_time&#39;</span><span class="p">,</span> <span class="s1">&#39;ant.comment&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;cab.cable_type&#39;</span><span class="p">,</span> <span class="s1">&#39;cab.cable_length&#39;</span><span class="p">,</span> <span class="s1">&#39;cab.reference_measurement&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;cab.time_delay&#39;</span><span class="p">,</span> <span class="s1">&#39;cab.cable_id&#39;</span><span class="p">,</span> <span class="s1">&#39;cab.comment&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;amps.amp_type&#39;</span><span class="p">,</span> <span class="s1">&#39;amps.reference_measurement&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;adcs.adc_id&#39;</span><span class="p">,</span> <span class="s1">&#39;adcs.time_delay&#39;</span><span class="p">,</span> <span class="s1">&#39;adcs.nbits&#39;</span><span class="p">,</span> <span class="s1">&#39;adcs.sampling_frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;adcs.n_samples&#39;</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'st.station_id'</span><span class="p">,</span> <span class="s1">'ch.channel_id'</span><span class="p">,</span> <span class="s1">'ch.commission_time'</span><span class="p">,</span> <span class="s1">'ch.decommission_time'</span><span class="p">,</span>
+                  <span class="s1">'ant.antenna_type'</span><span class="p">,</span> <span class="s1">'ant.orientation_phi'</span><span class="p">,</span> <span class="s1">'ant.orientation_theta'</span><span class="p">,</span>
+                  <span class="s1">'ant.rotation_phi'</span><span class="p">,</span> <span class="s1">'ant.rotation_theta'</span><span class="p">,</span> <span class="s1">'ant.position_x'</span><span class="p">,</span>
+                  <span class="s1">'ant.position_y'</span><span class="p">,</span> <span class="s1">'ant.position_z'</span><span class="p">,</span> <span class="s1">'ant.deployment_time'</span><span class="p">,</span> <span class="s1">'ant.comment'</span><span class="p">,</span>
+                  <span class="s1">'cab.cable_type'</span><span class="p">,</span> <span class="s1">'cab.cable_length'</span><span class="p">,</span> <span class="s1">'cab.reference_measurement'</span><span class="p">,</span>
+                  <span class="s1">'cab.time_delay'</span><span class="p">,</span> <span class="s1">'cab.cable_id'</span><span class="p">,</span> <span class="s1">'cab.comment'</span><span class="p">,</span>
+                  <span class="s1">'amps.amp_type'</span><span class="p">,</span> <span class="s1">'amps.reference_measurement'</span><span class="p">,</span>
+                  <span class="s1">'adcs.adc_id'</span><span class="p">,</span> <span class="s1">'adcs.time_delay'</span><span class="p">,</span> <span class="s1">'adcs.nbits'</span><span class="p">,</span> <span class="s1">'adcs.sampling_frequency'</span><span class="p">,</span> <span class="s1">'adcs.n_samples'</span>
                   <span class="p">]</span>
-        <span class="n">field_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">field_str</span> <span class="o">=</span> <span class="s2">""</span>
         <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
-            <span class="n">field_str</span> <span class="o">+=</span> <span class="n">field</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span>
+            <span class="n">field_str</span> <span class="o">+=</span> <span class="n">field</span> <span class="o">+</span> <span class="s2">", "</span>
         <span class="n">field_str</span> <span class="o">=</span> <span class="n">field_str</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT </span><span class="si">{fields}</span><span class="s2"> FROM stations AS st</span>
 <span class="s2">            JOIN channels AS ch USING(station_uid)</span>
 <span class="s2">            JOIN antennas AS ant USING(antenna_uid)</span>
@@ -784,7 +784,7 @@
 <span class="s2">            JOIN positions AS pos USING(position)</span>
 <span class="s2">            JOIN amps USING(amp_uid)</span>
 <span class="s2">            JOIN adcs USING(adc_uid);</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">field_str</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">field_str</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -804,19 +804,19 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_everything_stations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
 
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;st.station_id&#39;</span><span class="p">,</span> <span class="s1">&#39;st.commission_time&#39;</span><span class="p">,</span> <span class="s1">&#39;st.decommission_time&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;st.station_type&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;st.position&#39;</span><span class="p">,</span> <span class="s1">&#39;st.board_number&#39;</span><span class="p">,</span> <span class="s1">&#39;st.MAC_address&#39;</span><span class="p">,</span> <span class="s1">&#39;st.MBED_type&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;pos.position&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.measurement_time&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.easting&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.northing&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.zone&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;pos.altitude&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.site&#39;</span><span class="p">]</span>
-        <span class="n">field_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'st.station_id'</span><span class="p">,</span> <span class="s1">'st.commission_time'</span><span class="p">,</span> <span class="s1">'st.decommission_time'</span><span class="p">,</span>
+                  <span class="s1">'st.station_type'</span><span class="p">,</span>
+                  <span class="s1">'st.position'</span><span class="p">,</span> <span class="s1">'st.board_number'</span><span class="p">,</span> <span class="s1">'st.MAC_address'</span><span class="p">,</span> <span class="s1">'st.MBED_type'</span><span class="p">,</span>
+                  <span class="s1">'pos.position'</span><span class="p">,</span> <span class="s1">'pos.measurement_time'</span><span class="p">,</span> <span class="s1">'pos.easting'</span><span class="p">,</span> <span class="s1">'pos.northing'</span><span class="p">,</span> <span class="s1">'pos.zone'</span><span class="p">,</span>
+                  <span class="s1">'pos.altitude'</span><span class="p">,</span> <span class="s1">'pos.site'</span><span class="p">]</span>
+        <span class="n">field_str</span> <span class="o">=</span> <span class="s2">""</span>
         <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
-            <span class="n">field_str</span> <span class="o">+=</span> <span class="n">field</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span>
+            <span class="n">field_str</span> <span class="o">+=</span> <span class="n">field</span> <span class="o">+</span> <span class="s2">", "</span>
         <span class="n">field_str</span> <span class="o">=</span> <span class="n">field_str</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT </span><span class="si">{fields}</span><span class="s2"> FROM stations AS st</span>
 <span class="s2">            JOIN positions AS pos USING(position);</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">field_str</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">field_str</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -836,15 +836,15 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_everything_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
 
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;pos.position&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.measurement_time&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.easting&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.northing&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.zone&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;pos.altitude&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.site&#39;</span><span class="p">,</span> <span class="s1">&#39;pos.comment&#39;</span><span class="p">]</span>
-        <span class="n">field_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'pos.position'</span><span class="p">,</span> <span class="s1">'pos.measurement_time'</span><span class="p">,</span> <span class="s1">'pos.easting'</span><span class="p">,</span> <span class="s1">'pos.northing'</span><span class="p">,</span> <span class="s1">'pos.zone'</span><span class="p">,</span>
+                  <span class="s1">'pos.altitude'</span><span class="p">,</span> <span class="s1">'pos.site'</span><span class="p">,</span> <span class="s1">'pos.comment'</span><span class="p">]</span>
+        <span class="n">field_str</span> <span class="o">=</span> <span class="s2">""</span>
         <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
-            <span class="n">field_str</span> <span class="o">+=</span> <span class="n">field</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span>
+            <span class="n">field_str</span> <span class="o">+=</span> <span class="n">field</span> <span class="o">+</span> <span class="s2">", "</span>
         <span class="n">field_str</span> <span class="o">=</span> <span class="n">field_str</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT </span><span class="si">{fields}</span><span class="s2"> FROM positions AS pos;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">field_str</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fields</span><span class="o">=</span><span class="n">field_str</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -862,13 +862,13 @@
 <div class="viewcode-block" id="Detector.get_absolute_position_site">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_absolute_position_site">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_absolute_position_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns the UTM coordinates</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        pos: string</span>
-<span class="sd">            the position identifier (e.g. &quot;A&quot; or &quot;X&quot;)</span>
+<span class="sd">            the position identifier (e.g. "A" or "X")</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -877,12 +877,12 @@
 <span class="sd">            * UTM zone (string)</span>
 <span class="sd">            * altitude</span>
 <span class="sd">            * measurement time</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT easting, northing, zone, altitude, measurement_time FROM positions</span>
-<span class="s2">        WHERE position = &#39;</span><span class="si">{position}</span><span class="s2">&#39; ORDER BY measurement_time DESC;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="n">pos</span><span class="p">)</span>
+<span class="s2">        WHERE position = '</span><span class="si">{position}</span><span class="s2">' ORDER BY measurement_time DESC;</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">position</span><span class="o">=</span><span class="n">pos</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">position</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -895,14 +895,14 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_relative_position">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_relative_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT position_x, position_y, position_z FROM stations AS st</span>
 <span class="s2">            JOIN channels AS ch USING(station_uid)</span>
 <span class="s2">            JOIN antennas USING(antenna_uid)</span>
-<span class="s2">        WHERE CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between ch.commission_time and ch.decommission_time</span>
-<span class="s2">            AND CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between st.commission_time and st.decommission_time</span>
+<span class="s2">        WHERE CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between ch.commission_time and ch.decommission_time</span>
+<span class="s2">            AND CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between st.commission_time and st.decommission_time</span>
 <span class="s2">            AND st.station_id = </span><span class="si">{station_id}</span><span class="s2"> AND ch.channel_id = </span><span class="si">{channel_id:d}</span><span class="s2"> ;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">position</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -915,20 +915,20 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_relative_positions">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_relative_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT position_x, position_y, position_z FROM stations AS st</span>
 <span class="s2">            JOIN channels AS ch USING(station_uid)</span>
 <span class="s2">            JOIN antennas USING(antenna_uid)</span>
-<span class="s2">        WHERE CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between ch.commission_time and ch.decommission_time</span>
-<span class="s2">            AND CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between st.commission_time and st.decommission_time</span>
+<span class="s2">        WHERE CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between ch.commission_time and ch.decommission_time</span>
+<span class="s2">            AND CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between st.commission_time and st.decommission_time</span>
 <span class="s2">            AND st.station_id = </span><span class="si">{station_id}</span><span class="s2">;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">position</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">frame</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__error</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-        <span class="c1">#         logger.debug(&#39;station {}: {}&#39;.format(station_id, position))</span>
+        <span class="c1">#         logger.debug('station {}: {}'.format(station_id, position))</span>
         <span class="k">return</span> <span class="n">position</span></div>
 
 
@@ -936,20 +936,20 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_site">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_site</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT site FROM stations AS st</span>
 <span class="s2">            JOIN channels AS ch USING(station_uid)</span>
 <span class="s2">            JOIN positions USING(position)</span>
-<span class="s2">        WHERE CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between ch.commission_time and ch.decommission_time</span>
-<span class="s2">            AND CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between st.commission_time and st.decommission_time</span>
+<span class="s2">        WHERE CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between ch.commission_time and ch.decommission_time</span>
+<span class="s2">            AND CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between st.commission_time and st.decommission_time</span>
 <span class="s2">            AND st.station_id = </span><span class="si">{station_id}</span><span class="s2">;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">site</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">site</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">frame</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__error</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-        <span class="c1">#         logger.debug(&#39;station {}: {}&#39;.format(station_id, position))</span>
+        <span class="c1">#         logger.debug('station {}: {}'.format(station_id, position))</span>
         <span class="k">return</span> <span class="n">site</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
 
 
@@ -957,13 +957,13 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_number_of_channels">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_number_of_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT channel_id FROM stations AS st</span>
 <span class="s2">            JOIN channels AS ch USING(station_uid)</span>
-<span class="s2">        WHERE CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between ch.commission_time and ch.decommission_time</span>
-<span class="s2">            AND CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between st.commission_time and st.decommission_time</span>
+<span class="s2">        WHERE CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between ch.commission_time and ch.decommission_time</span>
+<span class="s2">            AND CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between st.commission_time and st.decommission_time</span>
 <span class="s2">            AND st.station_id = </span><span class="si">{station_id}</span><span class="s2">;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">channel_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">channel_ids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -976,14 +976,14 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_cable_delay">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_cable_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT time_delay FROM stations AS st</span>
 <span class="s2">            JOIN channels AS ch USING(station_uid)</span>
 <span class="s2">            JOIN cables USING(cable_uid)</span>
-<span class="s2">        WHERE CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between ch.commission_time and ch.decommission_time</span>
-<span class="s2">            AND CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between st.commission_time and st.decommission_time</span>
+<span class="s2">        WHERE CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between ch.commission_time and ch.decommission_time</span>
+<span class="s2">            AND CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between st.commission_time and st.decommission_time</span>
 <span class="s2">            AND st.station_id = </span><span class="si">{station_id}</span><span class="s2"> AND ch.channel_id = </span><span class="si">{channel_id:d}</span><span class="s2"> ;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">delay</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -997,14 +997,14 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_cable_type_and_length">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_cable_type_and_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT cable_type, cable_length FROM stations AS st</span>
 <span class="s2">            JOIN channels AS ch USING(station_uid)</span>
 <span class="s2">            JOIN cables USING(cable_uid)</span>
-<span class="s2">        WHERE CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between ch.commission_time and ch.decommission_time</span>
-<span class="s2">            AND CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between st.commission_time and st.decommission_time</span>
+<span class="s2">        WHERE CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between ch.commission_time and ch.decommission_time</span>
+<span class="s2">            AND CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between st.commission_time and st.decommission_time</span>
 <span class="s2">            AND st.station_id = </span><span class="si">{station_id}</span><span class="s2"> AND ch.channel_id = </span><span class="si">{channel_id:d}</span><span class="s2"> ;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">type_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">type_length</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1018,14 +1018,14 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_type">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT antenna_type FROM stations AS st</span>
 <span class="s2">            JOIN channels AS ch USING(station_uid)</span>
 <span class="s2">            JOIN antennas USING(antenna_uid)</span>
-<span class="s2">        WHERE CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between ch.commission_time and ch.decommission_time</span>
-<span class="s2">            AND CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between st.commission_time and st.decommission_time</span>
+<span class="s2">        WHERE CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between ch.commission_time and ch.decommission_time</span>
+<span class="s2">            AND CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between st.commission_time and st.decommission_time</span>
 <span class="s2">            AND st.station_id = </span><span class="si">{station_id}</span><span class="s2"> AND ch.channel_id = </span><span class="si">{channel_id:d}</span><span class="s2"> ;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">antenna_type</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">antenna_type</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1033,7 +1033,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__error</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">antenna_type</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s2">&quot;more than one antenna type return for station channel combination -&gt; bug in detector description, only first element is returned&quot;</span><span class="p">)</span>
+                <span class="s2">"more than one antenna type return for station channel combination -&gt; bug in detector description, only first element is returned"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">antenna_type</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
 
 
@@ -1041,14 +1041,14 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_deployment_time">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_deployment_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT deployment_time FROM stations AS st</span>
 <span class="s2">            JOIN channels AS ch USING(station_uid)</span>
 <span class="s2">            JOIN antennas USING(antenna_uid)</span>
-<span class="s2">        WHERE CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between ch.commission_time and ch.decommission_time</span>
-<span class="s2">            AND CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between st.commission_time and st.decommission_time</span>
+<span class="s2">        WHERE CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between ch.commission_time and ch.decommission_time</span>
+<span class="s2">            AND CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between st.commission_time and st.decommission_time</span>
 <span class="s2">            AND st.station_id = </span><span class="si">{station_id}</span><span class="s2"> AND ch.channel_id = </span><span class="si">{channel_id:d}</span><span class="s2"> ;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">deployment_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">deployment_time</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1056,28 +1056,28 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__error</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">deployment_time</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s2">&quot;more than one antenna deployment_time return for station channel combination -&gt; bug in detector description, only first element is returned&quot;</span><span class="p">)</span>
+                <span class="s2">"more than one antenna deployment_time return for station channel combination -&gt; bug in detector description, only first element is returned"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">deployment_time</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="Detector.get_antenna_orientation">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_orientation">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_orientation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; returns the orientation of a specific antenna</span>
+<span class="w">        </span><span class="sd">""" returns the orientation of a specific antenna</span>
 <span class="sd">        * orientation theta: boresight direction (zenith angle, 0deg is the zenith, 180deg is straight down)</span>
 <span class="sd">        * orientation phi: boresight direction (azimuth angle counting from East counterclockwise)</span>
 <span class="sd">        * rotation theta: rotation of the antenna, vector in plane of tines pointing away from connector</span>
 <span class="sd">        * rotation phi: rotation of the antenna, vector in plane of tines pointing away from connector</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT orientation_theta, orientation_phi, rotation_theta, rotation_phi FROM stations AS st</span>
 <span class="s2">            JOIN channels AS ch USING(station_uid)</span>
 <span class="s2">            JOIN antennas USING(antenna_uid)</span>
-<span class="s2">        WHERE CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between ch.commission_time and ch.decommission_time</span>
-<span class="s2">            AND CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between st.commission_time and st.decommission_time</span>
+<span class="s2">        WHERE CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between ch.commission_time and ch.decommission_time</span>
+<span class="s2">            AND CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between st.commission_time and st.decommission_time</span>
 <span class="s2">            AND st.station_id = </span><span class="si">{station_id}</span><span class="s2"> AND ch.channel_id = </span><span class="si">{channel_id:d}</span><span class="s2"> ;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1090,20 +1090,20 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_amplifier_type">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_amplifier_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT amp_type FROM stations AS st</span>
 <span class="s2">            JOIN channels AS ch USING(station_uid)</span>
 <span class="s2">            JOIN amps USING(amp_uid)</span>
-<span class="s2">        WHERE CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between ch.commission_time and ch.decommission_time</span>
-<span class="s2">            AND CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between st.commission_time and st.decommission_time</span>
+<span class="s2">        WHERE CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between ch.commission_time and ch.decommission_time</span>
+<span class="s2">            AND CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between st.commission_time and st.decommission_time</span>
 <span class="s2">            AND st.station_id = </span><span class="si">{station_id}</span><span class="s2"> AND ch.channel_id = </span><span class="si">{channel_id:d}</span><span class="s2"> ;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">amp_type</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">amp_type</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">frame</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__error</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;get_amplifier_type(</span><span class="si">{}</span><span class="s2">,</span><span class="si">{}</span><span class="s2">) returns </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">amp_type</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"get_amplifier_type(</span><span class="si">{}</span><span class="s2">,</span><span class="si">{}</span><span class="s2">) returns </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">amp_type</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]))</span>
         <span class="k">return</span> <span class="n">amp_type</span><span class="o">.</span><span class="n">flatten</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span></div>
 
 
@@ -1111,14 +1111,14 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_sampling_frequency">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_sampling_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT sampling_frequency FROM stations AS st</span>
 <span class="s2">            JOIN channels AS ch USING(station_uid)</span>
 <span class="s2">            JOIN adcs USING(adc_uid)</span>
-<span class="s2">        WHERE CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between ch.commission_time and ch.decommission_time</span>
-<span class="s2">            AND CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between st.commission_time and st.decommission_time</span>
+<span class="s2">        WHERE CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between ch.commission_time and ch.decommission_time</span>
+<span class="s2">            AND CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between st.commission_time and st.decommission_time</span>
 <span class="s2">            AND st.station_id = </span><span class="si">{station_id}</span><span class="s2"> AND ch.channel_id = </span><span class="si">{channel_id:d}</span><span class="s2"> ;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">sampling_frequency</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sampling_frequency</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1131,14 +1131,14 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_number_of_samples">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_number_of_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mysql</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-        <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">        SELECT n_samples FROM stations AS st</span>
 <span class="s2">            JOIN channels AS ch USING(station_uid)</span>
 <span class="s2">            JOIN adcs USING(adc_uid)</span>
-<span class="s2">        WHERE CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between ch.commission_time and ch.decommission_time</span>
-<span class="s2">            AND CAST(&#39;</span><span class="si">{time}</span><span class="s2">&#39; AS DATETIME) between st.commission_time and st.decommission_time</span>
+<span class="s2">        WHERE CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between ch.commission_time and ch.decommission_time</span>
+<span class="s2">            AND CAST('</span><span class="si">{time}</span><span class="s2">' AS DATETIME) between st.commission_time and st.decommission_time</span>
 <span class="s2">            AND st.station_id = </span><span class="si">{station_id}</span><span class="s2"> AND ch.channel_id = </span><span class="si">{channel_id:d}</span><span class="s2"> ;</span>
-<span class="s2">            &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
+<span class="s2">            """</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_time</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
         <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="n">n_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1150,20 +1150,20 @@
 <div class="viewcode-block" id="Detector.get_antenna_model">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.Detector.get_antenna_model">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        determine correct antenna model from antenna type, position and orientation of antenna</span>
 
 <span class="sd">        so far only infinite firn and infinite air cases are differentiated</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">antenna_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_antenna_type</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
         <span class="n">antenna_relative_position</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_relative_position</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">antenna_relative_position</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">antenna_model</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_infiniteair&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">antenna_type</span><span class="p">)</span>
+            <span class="n">antenna_model</span> <span class="o">=</span> <span class="s2">"</span><span class="si">{}</span><span class="s2">_infiniteair"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">antenna_type</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">antenna_model</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_infinitefirn&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">antenna_type</span><span class="p">)</span>
+            <span class="n">antenna_model</span> <span class="o">=</span> <span class="s2">"</span><span class="si">{}</span><span class="s2">_infinitefirn"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">antenna_type</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">antenna_model</span></div>
 </div>
 
@@ -1172,13 +1172,13 @@
 <span class="n">relative_positions</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span>
                       <span class="mi">2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">}</span>
 
-<span class="n">station_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;HRA_4&#39;</span><span class="p">,</span> <span class="s1">&#39;CR_4&#39;</span><span class="p">,</span> <span class="s1">&#39;HRA_8&#39;</span><span class="p">,</span> <span class="s1">&#39;dummy&#39;</span><span class="p">]</span>
+<span class="n">station_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'HRA_4'</span><span class="p">,</span> <span class="s1">'CR_4'</span><span class="p">,</span> <span class="s1">'HRA_8'</span><span class="p">,</span> <span class="s1">'dummy'</span><span class="p">]</span>
 
-<span class="n">number_of_channels_for_station_type</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;HRA_4&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;CR_4&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;HRA_8&#39;</span><span class="p">:</span> <span class="mi">8</span><span class="p">}</span>
+<span class="n">number_of_channels_for_station_type</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'HRA_4'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">'CR_4'</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">'HRA_8'</span><span class="p">:</span> <span class="mi">8</span><span class="p">}</span>
 
-<span class="n">antenna_types_for_station_type</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;CR_4&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;UEW&#39;</span><span class="p">,</span> <span class="s1">&#39;UNS&#39;</span><span class="p">,</span> <span class="s1">&#39;UEW&#39;</span><span class="p">,</span> <span class="s1">&#39;UNS&#39;</span><span class="p">],</span>
-                                  <span class="s1">&#39;HRA_4&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;DEW&#39;</span><span class="p">,</span> <span class="s1">&#39;DNS&#39;</span><span class="p">,</span> <span class="s1">&#39;DEW&#39;</span><span class="p">,</span> <span class="s1">&#39;DNS&#39;</span><span class="p">],</span>
-                                  <span class="s1">&#39;dummy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;DEW&#39;</span><span class="p">,</span> <span class="s1">&#39;DEW&#39;</span><span class="p">,</span> <span class="s1">&#39;DEW&#39;</span><span class="p">]}</span>
+<span class="n">antenna_types_for_station_type</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'CR_4'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'UEW'</span><span class="p">,</span> <span class="s1">'UNS'</span><span class="p">,</span> <span class="s1">'UEW'</span><span class="p">,</span> <span class="s1">'UNS'</span><span class="p">],</span>
+                                  <span class="s1">'HRA_4'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'DEW'</span><span class="p">,</span> <span class="s1">'DNS'</span><span class="p">,</span> <span class="s1">'DEW'</span><span class="p">,</span> <span class="s1">'DNS'</span><span class="p">],</span>
+                                  <span class="s1">'dummy'</span><span class="p">:</span> <span class="p">[</span><span class="s1">'DEW'</span><span class="p">,</span> <span class="s1">'DEW'</span><span class="p">,</span> <span class="s1">'DEW'</span><span class="p">]}</span>
 
 
 <div class="viewcode-block" id="get_cable_delays">
@@ -1190,7 +1190,7 @@
         <span class="n">cable_delays</span> <span class="o">=</span> <span class="p">[</span><span class="mf">19.8</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="mf">19.8</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="mf">19.8</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="mf">19.7</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="mf">27.3</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
                         <span class="mf">27.5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="mf">27.3</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="mf">19.6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Cable delays not implemented for other stations. Using defaults from 41.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Cable delays not implemented for other stations. Using defaults from 41."</span><span class="p">)</span>
         <span class="n">cable_delays</span> <span class="o">=</span> <span class="p">[</span><span class="mf">19.95</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="mf">19.86</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="mf">18.82</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="mf">19.86</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">cable_delays</span></div>
 
@@ -1201,8 +1201,8 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_model_file</span><span class="p">(</span><span class="n">station_type</span><span class="p">):</span>
     <span class="c1"># dummy module</span>
     <span class="n">dir_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>  <span class="c1"># get the directory of this file</span>
-    <span class="n">antenna_model</span> <span class="o">=</span> <span class="s1">&#39;WIPLD_antennamodel_firn_v2.root&#39;</span>
-    <span class="n">antenna_model_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dir_path</span><span class="p">,</span> <span class="s1">&#39;AntennaModels&#39;</span><span class="p">,</span> <span class="n">antenna_model</span><span class="p">)</span>
+    <span class="n">antenna_model</span> <span class="o">=</span> <span class="s1">'WIPLD_antennamodel_firn_v2.root'</span>
+    <span class="n">antenna_model_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dir_path</span><span class="p">,</span> <span class="s1">'AntennaModels'</span><span class="p">,</span> <span class="n">antenna_model</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">antenna_model_file</span></div>
 
@@ -1216,7 +1216,7 @@
         <span class="n">rel_pos</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span>
                    <span class="mi">2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">}</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Getting antenna positions for default station.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Getting antenna positions for default station."</span><span class="p">)</span>
         <span class="n">rel_pos</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span>
                    <span class="mi">2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">}</span>
     <span class="k">return</span> <span class="n">rel_pos</span></div>
@@ -1235,12 +1235,12 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#NuRadioReco.detector.detector_sql.get_antenna_type">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_antenna_type</span><span class="p">(</span><span class="n">station_type</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">station_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">antenna_types_for_station_type</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Station type </span><span class="si">{}</span><span class="s2"> not known&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_type</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Station type </span><span class="si">{}</span><span class="s2"> not known"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_type</span><span class="p">))</span>
         <span class="n">antenna_type</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">antenna_types_for_station_type</span><span class="p">[</span><span class="n">station_type</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">config</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">channel</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Requested channel </span><span class="si">{}</span><span class="s2"> not present in station&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Requested channel </span><span class="si">{}</span><span class="s2"> not present in station"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">))</span>
             <span class="n">antenna_type</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">antenna_type</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span>
@@ -1254,7 +1254,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">get_amplifier_type</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
     <span class="c1"># dummy module</span>
     <span class="c1"># currently a choice of 100, 200 and 300 series</span>
-    <span class="k">return</span> <span class="s1">&#39;100&#39;</span></div>
+    <span class="k">return</span> <span class="s1">'100'</span></div>
 
 
 
@@ -1269,9 +1269,9 @@
     <span class="k">elif</span> <span class="n">station_id</span> <span class="o">==</span> <span class="mi">52</span><span class="p">:</span>
         <span class="n">station_type</span> <span class="o">=</span> <span class="n">station_types</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
     <span class="k">elif</span> <span class="n">station_id</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># dummy station</span>
-        <span class="n">station_type</span> <span class="o">=</span> <span class="s1">&#39;dummy&#39;</span>
+        <span class="n">station_type</span> <span class="o">=</span> <span class="s1">'dummy'</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Station id </span><span class="si">{}</span><span class="s2"> not assigned a station type&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Station id </span><span class="si">{}</span><span class="s2"> not assigned a station type"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_id</span><span class="p">))</span>
         <span class="n">station_type</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">return</span> <span class="n">station_type</span></div>
 
@@ -1282,7 +1282,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">get_number_of_channels</span><span class="p">(</span><span class="n">station_type</span><span class="p">):</span>
     <span class="c1"># dummy module</span>
     <span class="k">if</span> <span class="n">station_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">number_of_channels_for_station_type</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Station type </span><span class="si">{}</span><span class="s2"> not known&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_type</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Station type </span><span class="si">{}</span><span class="s2"> not known"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">station_type</span><span class="p">))</span>
         <span class="n">n_channels</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">n_channels</span> <span class="o">=</span> <span class="n">number_of_channels_for_station_type</span><span class="p">[</span><span class="n">station_type</span><span class="p">]</span>

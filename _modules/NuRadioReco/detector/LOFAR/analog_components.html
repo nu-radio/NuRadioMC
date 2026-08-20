@@ -657,13 +657,13 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp1d</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">radiotools</span><span class="w"> </span><span class="kn">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">hp</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.LOFAR.analog_components&quot;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.LOFAR.analog_components"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="load_cable_response">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.LOFAR.analog_components.html#NuRadioReco.detector.LOFAR.analog_components.load_cable_response">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">load_cable_response</span><span class="p">(</span><span class="n">cable_length</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    cable_length: int or float</span>
@@ -675,17 +675,17 @@
 <span class="sd">        A dictionary containing the cable attenuation values for the specified cable length.</span>
 <span class="sd">        The dictionary has the following keys:</span>
 
-<span class="sd">        - &#39;frequencies&#39;: An array of frequency values ranging from 30 MHz to 80 MHz.</span>
-<span class="sd">        - &#39;attenuation&#39;: An array of cable attenuation values corresponding to the frequencies.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        - 'frequencies': An array of frequency values ranging from 30 MHz to 80 MHz.</span>
+<span class="sd">        - 'attenuation': An array of cable attenuation values corresponding to the frequencies.</span>
+<span class="sd">    """</span>
     <span class="n">module_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
-    <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module_dir</span><span class="p">,</span> <span class="s2">&quot;signalchain&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;attenuation_RG58_</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">cable_length</span><span class="p">)</span><span class="si">}</span><span class="s2">m.txt&quot;</span><span class="p">)</span>
+    <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module_dir</span><span class="p">,</span> <span class="s2">"signalchain"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"attenuation_RG58_</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">cable_length</span><span class="p">)</span><span class="si">}</span><span class="s2">m.txt"</span><span class="p">)</span>
 
     <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
 
     <span class="n">default</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;frequencies&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">81</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span>
-        <span class="s1">&#39;attenuation&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">data</span>
+        <span class="s1">'frequencies'</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">81</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span>
+        <span class="s1">'attenuation'</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">data</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">default</span></div>
 
@@ -693,7 +693,7 @@
 <div class="viewcode-block" id="get_cable_response">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.LOFAR.analog_components.html#NuRadioReco.detector.LOFAR.analog_components.get_cable_response">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_cable_response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">cable_length</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate the cable response for given frequencies and cable length.</span>
 
 <span class="sd">    This function loads the LOFAR cable response based on the provided cable length,</span>
@@ -713,17 +713,17 @@
 <span class="sd">        A dictionary containing the interpolated cable attenuation values for the specified frequencies.</span>
 <span class="sd">        The dictionary has the following key:</span>
 
-<span class="sd">        - &#39;attenuation&#39;: An array of interpolated attenuation values corresponding to the input frequencies.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        - 'attenuation': An array of interpolated attenuation values corresponding to the input frequencies.</span>
+<span class="sd">    """</span>
 
     <span class="n">cable_response</span> <span class="o">=</span> <span class="n">load_cable_response</span><span class="p">(</span><span class="n">cable_length</span><span class="o">=</span><span class="n">cable_length</span><span class="p">)</span>
-    <span class="n">orig_frequencies</span> <span class="o">=</span> <span class="n">cable_response</span><span class="p">[</span><span class="s1">&#39;frequencies&#39;</span><span class="p">]</span>
-    <span class="n">gain</span> <span class="o">=</span> <span class="n">cable_response</span><span class="p">[</span><span class="s1">&#39;attenuation&#39;</span><span class="p">]</span>
+    <span class="n">orig_frequencies</span> <span class="o">=</span> <span class="n">cable_response</span><span class="p">[</span><span class="s1">'frequencies'</span><span class="p">]</span>
+    <span class="n">gain</span> <span class="o">=</span> <span class="n">cable_response</span><span class="p">[</span><span class="s1">'attenuation'</span><span class="p">]</span>
 
     <span class="n">interp_gain</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">orig_frequencies</span><span class="p">,</span> <span class="n">gain</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="n">cable</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;attenuation&#39;</span><span class="p">:</span> <span class="n">interp_gain</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
+        <span class="s1">'attenuation'</span><span class="p">:</span> <span class="n">interp_gain</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">cable</span></div>
 
@@ -732,11 +732,11 @@
 <div class="viewcode-block" id="load_RCU_response">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.LOFAR.analog_components.html#NuRadioReco.detector.LOFAR.analog_components.load_RCU_response">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">load_RCU_response</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Load the RCU (Receiver Control Unit) response data.</span>
 
-<span class="sd">    This function reads the RCU gain data from a text file located in the &quot;signalchain&quot; directory</span>
-<span class="sd">    relative to the current module&#39;s directory. It then constructs a dictionary containing the</span>
+<span class="sd">    This function reads the RCU gain data from a text file located in the "signalchain" directory</span>
+<span class="sd">    relative to the current module's directory. It then constructs a dictionary containing the</span>
 <span class="sd">    frequency range and the corresponding gain values.</span>
 
 <span class="sd">    Returns</span>
@@ -744,18 +744,18 @@
 <span class="sd">    rcu_response: dict</span>
 <span class="sd">        A dictionary containing the RCU response data with the following keys:</span>
 
-<span class="sd">        - &#39;frequencies&#39;: An array of frequency values ranging from 30 MHz to 80 MHz.</span>
-<span class="sd">        - &#39;gain&#39;: An array of gain values in dB corresponding to the frequencies.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        - 'frequencies': An array of frequency values ranging from 30 MHz to 80 MHz.</span>
+<span class="sd">        - 'gain': An array of gain values in dB corresponding to the frequencies.</span>
+<span class="sd">    """</span>
 
     <span class="n">module_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
-    <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module_dir</span><span class="p">,</span> <span class="s2">&quot;signalchain/RCU_gain.txt&quot;</span><span class="p">)</span>
+    <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">module_dir</span><span class="p">,</span> <span class="s2">"signalchain/RCU_gain.txt"</span><span class="p">)</span>
 
     <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
 
     <span class="n">rcu_response</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;frequencies&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">81</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span>
-        <span class="s1">&#39;gain&#39;</span><span class="p">:</span> <span class="n">data</span>
+        <span class="s1">'frequencies'</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">81</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span>
+        <span class="s1">'gain'</span><span class="p">:</span> <span class="n">data</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">rcu_response</span></div>
@@ -764,7 +764,7 @@
 <div class="viewcode-block" id="get_RCU_response">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.LOFAR.analog_components.html#NuRadioReco.detector.LOFAR.analog_components.get_RCU_response">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_RCU_response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Fetches the RCU response for given frequencies.</span>
 
 <span class="sd">    This function loads the LOFAR RCU response, interpolates the gain values for the specified</span>
@@ -781,16 +781,16 @@
 <span class="sd">        A dictionary containing the interpolated RCU gain values for the specified frequencies.</span>
 <span class="sd">        The dictionary has the following key:</span>
 
-<span class="sd">        - &#39;gain&#39;: An array of interpolated gain values corresponding to the input frequencies.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        - 'gain': An array of interpolated gain values corresponding to the input frequencies.</span>
+<span class="sd">    """</span>
 
     <span class="n">RCU_response</span> <span class="o">=</span> <span class="n">load_RCU_response</span><span class="p">()</span>
-    <span class="n">orig_frequencies</span> <span class="o">=</span> <span class="n">RCU_response</span><span class="p">[</span><span class="s1">&#39;frequencies&#39;</span><span class="p">]</span>
-    <span class="n">gain</span> <span class="o">=</span> <span class="n">RCU_response</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">]</span>
+    <span class="n">orig_frequencies</span> <span class="o">=</span> <span class="n">RCU_response</span><span class="p">[</span><span class="s1">'frequencies'</span><span class="p">]</span>
+    <span class="n">gain</span> <span class="o">=</span> <span class="n">RCU_response</span><span class="p">[</span><span class="s1">'gain'</span><span class="p">]</span>
 
     <span class="n">interp_gain</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">orig_frequencies</span><span class="p">,</span> <span class="n">gain</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-    <span class="n">system</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;gain&#39;</span><span class="p">:</span> <span class="n">interp_gain</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)}</span>
+    <span class="n">system</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'gain'</span><span class="p">:</span> <span class="n">interp_gain</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)}</span>
 
     <span class="k">return</span> <span class="n">system</span></div>
 

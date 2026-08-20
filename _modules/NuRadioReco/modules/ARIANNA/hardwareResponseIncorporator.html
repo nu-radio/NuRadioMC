@@ -663,14 +663,14 @@
 <div class="viewcode-block" id="hardwareResponseIncorporator">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.html#NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">hardwareResponseIncorporator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Incorporates the gain and phase induced by the ARIANNA hardware.</span>
 
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.ARIANNA.hardwareResponseIncorporator&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.ARIANNA.hardwareResponseIncorporator"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
@@ -686,7 +686,7 @@
 <div class="viewcode-block" id="hardwareResponseIncorporator.get_filter">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.html#NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">phase_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mingainlin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        helper function to return the filter that the module applies.</span>
 
 <span class="sd">        Parameters</span>
@@ -707,12 +707,12 @@
 <span class="sd">        mode: string or None, default None</span>
 <span class="sd">            Options:</span>
 
-<span class="sd">            * &#39;phase_only&#39;: only the phases response is applied but not the amplitude response</span>
+<span class="sd">            * 'phase_only': only the phases response is applied but not the amplitude response</span>
 <span class="sd">                (identical to phase_only=True )</span>
-<span class="sd">            * &#39;relativ&#39;: gain of amp is divided by maximum of the gain, i.e. at the maximum of the</span>
+<span class="sd">            * 'relativ': gain of amp is divided by maximum of the gain, i.e. at the maximum of the</span>
 <span class="sd">                filter response is 1 (before applying cable response). This makes it easier</span>
 <span class="sd">                to compare the filtered to unfiltered signal</span>
-<span class="sd">            * None : default, gain and phase effects are applied &#39;normally&#39;</span>
+<span class="sd">            * None : default, gain and phase effects are applied 'normally'</span>
 
 <span class="sd">        mingainlin: float</span>
 <span class="sd">            In frequency ranges where the gain gets very small, the reconstruction of the original signal (obtained by</span>
@@ -726,7 +726,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        array of complex floats</span>
 <span class="sd">            the complex filter amplitudes</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">amp_type</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_amplifier_type</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
         <span class="n">amp_measurement</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_amplifier_measurement</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
         <span class="n">amp_response</span> <span class="o">=</span> <span class="n">analog_components</span><span class="o">.</span><span class="n">get_amplifier_response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">amp_type</span><span class="o">=</span><span class="n">amp_type</span><span class="p">,</span> <span class="n">amp_measurement</span><span class="o">=</span><span class="n">amp_measurement</span><span class="p">)</span>
@@ -738,10 +738,10 @@
             <span class="n">amp_response</span><span class="p">[</span><span class="n">iamp_gain_low</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">mingainlin</span> <span class="o">*</span> <span class="n">ampmax</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">amp_response</span><span class="p">[</span><span class="n">iamp_gain_low</span><span class="p">]))</span>
 
         <span class="n">cable_response</span> <span class="o">=</span> <span class="n">analog_components</span><span class="o">.</span><span class="n">get_cable_response_parametrized</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="o">*</span> <span class="n">det</span><span class="o">.</span><span class="n">get_cable_type_and_length</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">))</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;phase_only&#39;</span><span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">'phase_only'</span><span class="p">):</span>
             <span class="n">cable_response</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">cable_response</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">cable_response</span><span class="p">))</span>
             <span class="n">amp_response</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">amp_response</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">amp_response</span><span class="p">)</span>
-        <span class="k">elif</span><span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;relative&#39;</span><span class="p">):</span>
+        <span class="k">elif</span><span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">'relative'</span><span class="p">):</span>
             <span class="n">ampmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">amp_response</span><span class="p">))</span>
             <span class="n">amp_response</span> <span class="o">/=</span> <span class="n">ampmax</span>
 
@@ -755,7 +755,7 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.html#NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">phase_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mingainlin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Switch sim_to_data to go from simulation to data or otherwise.</span>
 <span class="sd">        The option zero_noise can be used to zero the noise around the pulse. It is unclear, how useful this is.</span>
 
@@ -775,12 +775,12 @@
 <span class="sd">        mode: string or None, default None</span>
 <span class="sd">            Options:</span>
 
-<span class="sd">            * &#39;phase_only&#39;: only the phases response is applied but not the amplitude response</span>
+<span class="sd">            * 'phase_only': only the phases response is applied but not the amplitude response</span>
 <span class="sd">                (identical to phase_only=True )</span>
-<span class="sd">            * &#39;relativ&#39;: gain of amp is divided by maximum of the gain, i.e. at the maximum of the</span>
+<span class="sd">            * 'relativ': gain of amp is divided by maximum of the gain, i.e. at the maximum of the</span>
 <span class="sd">                filter response is 1 (before applying cable response). This makes it easier</span>
 <span class="sd">                to compare the filtered to unfiltered signal</span>
-<span class="sd">            * None : default, gain and phase effects are applied &#39;normally&#39;</span>
+<span class="sd">            * None : default, gain and phase effects are applied 'normally'</span>
 
 <span class="sd">        mingainlin: float</span>
 <span class="sd">            In frequency ranges where the gain gets very small, the reconstruction of the original signal (obtained by</span>
@@ -789,13 +789,13 @@
 <span class="sd">            maximum gain can be defined. If specified, any gain value smaller than mingainlin will be replaced by mingainlin.</span>
 <span class="sd">            Note: The adjustment to the minimal gain is NOT visible when getting the amp response from</span>
 <span class="sd">            analog_components.get_amplifier_response()</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__mingainlin</span> <span class="o">=</span> <span class="n">mingainlin</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="n">phase_only</span><span class="p">):</span>
-            <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;phase_only&#39;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Please use option mode=&#39;&#39;phase_only&#39;&#39; in the future, use of option phase_only will be phased out&#39;</span><span class="p">)</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s1">'phase_only'</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">'Please use option mode=''phase_only'' in the future, use of option phase_only will be phased out'</span><span class="p">)</span>
 
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
@@ -826,14 +826,14 @@
         <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"total time used by this module is </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">dt</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__calculate_time_delays_cable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        helper function to calculate the time delay of the amp for a delta pulse</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">sampling_rate</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span>  <span class="c1"># assume a huge sampling rate to have a good time resolution</span>
         <span class="n">n</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="mi">12</span>
         <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
@@ -842,8 +842,8 @@
         <span class="n">spec</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
         <span class="n">ff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">analog_components</span><span class="o">.</span><span class="n">get_cable_response</span><span class="p">(</span><span class="n">ff</span><span class="p">)</span>
-        <span class="n">response_gain</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">]</span>
-        <span class="n">response_phase</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span>
+        <span class="n">response_gain</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s1">'gain'</span><span class="p">]</span>
+        <span class="n">response_phase</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s1">'phase'</span><span class="p">]</span>
         <span class="n">trace2</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spec</span> <span class="o">*</span> <span class="n">response_gain</span> <span class="o">*</span> <span class="n">response_phase</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
 <span class="c1">#         import matplotlib.pyplot as plt</span>
 <span class="c1">#         fig, ax = plt.subplots(1, 1)</span>
@@ -854,9 +854,9 @@
         <span class="k">return</span> <span class="n">max_time2</span> <span class="o">-</span> <span class="n">max_time</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__calculate_time_delays_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">amp_type</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        helper function to calculate the time delay of the amp for a delta pulse</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">amp_response_f</span> <span class="o">=</span> <span class="n">analog_components</span><span class="o">.</span><span class="n">amplifier_response</span><span class="p">[</span><span class="n">amp_type</span><span class="p">]</span>
         <span class="n">sampling_rate</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span>  <span class="c1"># assume a huge sampling rate to have a good time resolution</span>
         <span class="n">n</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="mi">12</span>
@@ -865,8 +865,8 @@
         <span class="n">max_time</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span> <span class="o">/</span> <span class="n">sampling_rate</span>
         <span class="n">spec</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
         <span class="n">ff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span>
-        <span class="n">amp_response_gain</span> <span class="o">=</span> <span class="n">amp_response_f</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">](</span><span class="n">ff</span><span class="p">)</span>
-        <span class="n">amp_response_phase</span> <span class="o">=</span> <span class="n">amp_response_f</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">](</span><span class="n">ff</span><span class="p">)</span>
+        <span class="n">amp_response_gain</span> <span class="o">=</span> <span class="n">amp_response_f</span><span class="p">[</span><span class="s1">'gain'</span><span class="p">](</span><span class="n">ff</span><span class="p">)</span>
+        <span class="n">amp_response_phase</span> <span class="o">=</span> <span class="n">amp_response_f</span><span class="p">[</span><span class="s1">'phase'</span><span class="p">](</span><span class="n">ff</span><span class="p">)</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">ff</span> <span class="o">&lt;</span> <span class="mi">70</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">ff</span> <span class="o">&gt;</span> <span class="mi">40</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)</span>
         <span class="n">spec</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">trace2</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spec</span> <span class="o">*</span> <span class="n">amp_response_gain</span> <span class="o">*</span> <span class="n">amp_response_phase</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
@@ -884,7 +884,7 @@
         <span class="k">if</span><span class="p">(</span><span class="n">amp_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
             <span class="c1"># not yet calculated -&gt; calculate the time delay</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">[</span><span class="n">amp_type</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__calculate_time_delays_amp</span><span class="p">(</span><span class="n">amp_type</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;time delays of amp </span><span class="si">{}</span><span class="s2"> have not yet been calculated -&gt; calculating -&gt; time delay is </span><span class="si">{:.2f}</span><span class="s2"> ns&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">amp_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">[</span><span class="n">amp_type</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"time delays of amp </span><span class="si">{}</span><span class="s2"> have not yet been calculated -&gt; calculating -&gt; time delay is </span><span class="si">{:.2f}</span><span class="s2"> ns"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">amp_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">[</span><span class="n">amp_type</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">[</span><span class="n">amp_type</span><span class="p">]</span></div>
 
 

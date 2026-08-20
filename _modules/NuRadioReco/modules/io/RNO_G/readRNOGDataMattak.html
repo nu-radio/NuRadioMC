@@ -671,14 +671,14 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.RNOG.readRNOGData&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.RNOG.readRNOGData'</span><span class="p">)</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">mattak.Dataset</span>
 <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-        <span class="s2">&quot;To use the readRNOGDataMattak module, &#39;mattak&#39; needs to be installed:</span><span class="se">\n\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2"> pip install git+https://github.com/RNO-G/mattak&quot;</span>
+        <span class="s2">"To use the readRNOGDataMattak module, 'mattak' needs to be installed:</span><span class="se">\n\n</span><span class="s2">"</span>
+        <span class="s2">"</span><span class="se">\t</span><span class="s2"> pip install git+https://github.com/RNO-G/mattak"</span>
         <span class="p">)</span>
     <span class="k">raise</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
@@ -686,7 +686,7 @@
 <div class="viewcode-block" id="get_time_offset">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.get_time_offset">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_time_offset</span><span class="p">(</span><span class="n">trigger_type</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Mapping the offset between trace start time and trigger time (~ signal time).</span>
 <span class="sd">    Temporary use hard-coded values for each trigger type. In the future this</span>
 <span class="sd">    information might be time, station, and channel dependent and should come</span>
@@ -704,32 +704,32 @@
 <span class="sd">    time_offset: float</span>
 <span class="sd">        trace_start_time = trigger_time - time_offset</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">time_offsets</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;FORCE&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s2">&quot;LT&quot;</span><span class="p">:</span> <span class="mi">250</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
-        <span class="s2">&quot;RADIANT&quot;</span><span class="p">:</span> <span class="mi">475</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
-        <span class="s2">&quot;UNKNOWN&quot;</span><span class="p">:</span> <span class="mi">0</span>  <span class="c1"># Due to a firmware issue at the beginning of data taking the trigger types were not properly set.</span>
+        <span class="s2">"FORCE"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"LT"</span><span class="p">:</span> <span class="mi">250</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
+        <span class="s2">"RADIANT"</span><span class="p">:</span> <span class="mi">475</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
+        <span class="s2">"UNKNOWN"</span><span class="p">:</span> <span class="mi">0</span>  <span class="c1"># Due to a firmware issue at the beginning of data taking the trigger types were not properly set.</span>
     <span class="p">}</span>
 
     <span class="c1"># Should have the same time offset ?!</span>
-    <span class="k">if</span> <span class="n">trigger_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;RADIANT&quot;</span><span class="p">):</span>
-        <span class="n">trigger_type</span> <span class="o">=</span> <span class="s2">&quot;RADIANT&quot;</span>
+    <span class="k">if</span> <span class="n">trigger_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"RADIANT"</span><span class="p">):</span>
+        <span class="n">trigger_type</span> <span class="o">=</span> <span class="s2">"RADIANT"</span>
 
     <span class="k">if</span> <span class="n">trigger_type</span> <span class="ow">in</span> <span class="n">time_offsets</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">time_offsets</span><span class="p">[</span><span class="n">trigger_type</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">known_trigger_types</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">time_offsets</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown trigger type: </span><span class="si">{</span><span class="n">trigger_type</span><span class="si">}</span><span class="s2">. Known are: </span><span class="si">{</span><span class="n">known_trigger_types</span><span class="si">}</span><span class="s2">. Abort ....&quot;</span><span class="p">)</span></div>
+        <span class="n">known_trigger_types</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">time_offsets</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown trigger type: </span><span class="si">{</span><span class="n">trigger_type</span><span class="si">}</span><span class="s2">. Known are: </span><span class="si">{</span><span class="n">known_trigger_types</span><span class="si">}</span><span class="s2">. Abort ...."</span><span class="p">)</span></div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_all_files_in_directory</span><span class="p">(</span><span class="n">mattak_dir</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Checks if all Mattak root files are in a directory.</span>
 <span class="sd">    Ignoring runinfo.root because (asaik) not all runs have those and information is currently not read by Mattak.</span>
-<span class="sd">    There are mattak directories which produce a ReferenceError when reading. They have a &quot;combined.root&quot; which is</span>
+<span class="sd">    There are mattak directories which produce a ReferenceError when reading. They have a "combined.root" which is</span>
 <span class="sd">    apparently empty but are missing the daqstatus, pedestal, and header file.</span>
 
 <span class="sd">    Parameters</span>
@@ -740,29 +740,29 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    all_there: bool</span>
-<span class="sd">        True, if all &quot;req_files&quot; are there and waveforms.root or combined.root. Otherwise returns False.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        True, if all "req_files" are there and waveforms.root or combined.root. Otherwise returns False.</span>
+<span class="sd">    """</span>
     <span class="c1"># one or the other has to be present</span>
     <span class="n">full_run</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mattak_dir</span><span class="p">,</span> <span class="s2">&quot;waveforms.root&quot;</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mattak_dir</span><span class="p">,</span> <span class="s2">"waveforms.root"</span><span class="p">)):</span>
         <span class="n">full_run</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mattak_dir</span><span class="p">,</span> <span class="s2">&quot;combined.root&quot;</span><span class="p">)):</span>
+    <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mattak_dir</span><span class="p">,</span> <span class="s2">"combined.root"</span><span class="p">)):</span>
         <span class="n">full_run</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">if</span> <span class="n">full_run</span><span class="p">:</span>
-        <span class="n">req_files</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;daqstatus.root&quot;</span><span class="p">,</span> <span class="s2">&quot;headers.root&quot;</span><span class="p">,</span> <span class="s2">&quot;pedestal.root&quot;</span><span class="p">]</span>
+        <span class="n">req_files</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"daqstatus.root"</span><span class="p">,</span> <span class="s2">"headers.root"</span><span class="p">,</span> <span class="s2">"pedestal.root"</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">req_files</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mattak_dir</span><span class="p">,</span> <span class="n">file</span><span class="p">)):</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2"> could not be found in </span><span class="si">{</span><span class="n">mattak_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"File </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2"> could not be found in </span><span class="si">{</span><span class="n">mattak_dir</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">return</span> <span class="kc">True</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_convert_to_astropy_time</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Convert to astropy.time.Time &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" Convert to astropy.time.Time """</span>
     <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
 
 
@@ -771,7 +771,7 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">readRNOGData</span><span class="p">:</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_table_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">load_run_table</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Reader for RNO-G ``.root`` files</span>
 
 <span class="sd">        This class provides read access to RNO-G ``.root`` files and converts them</span>
@@ -795,7 +795,7 @@
 <span class="sd">        .. code-block::</span>
 
 <span class="sd">            reader = readRNOGDataMattak.readRNOGData() # initialize reader</span>
-<span class="sd">            reader.begin(&#39;/path/to/root_file_or_folder&#39;)</span>
+<span class="sd">            reader.begin('/path/to/root_file_or_folder')</span>
 
 <span class="sd">            evt = reader.get_event_by_index(0) # returns the first event in the file</span>
 <span class="sd">            # OR</span>
@@ -804,8 +804,8 @@
 <span class="sd">            for evt in reader.run(): # loop over all events in file</span>
 <span class="sd">                # perform some analysis</span>
 <span class="sd">                pass</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.RNOG.readRNOGData&#39;</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.RNOG.readRNOGData'</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span> <span class="o">=</span> <span class="kc">None</span>
@@ -815,29 +815,29 @@
             <span class="k">if</span> <span class="n">run_table_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="kn">from</span><span class="w"> </span><span class="nn">rnog_data.runtable</span><span class="w"> </span><span class="kn">import</span> <span class="n">RunTable</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Access RunTable database ...&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Access RunTable database ..."</span><span class="p">)</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">__run_table</span> <span class="o">=</span> <span class="n">RunTable</span><span class="p">()</span><span class="o">.</span><span class="n">get_table</span><span class="p">()</span>
                     <span class="k">except</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;No connect to RunTable database could be established. &quot;</span>
-                                        <span class="s2">&quot;Runs can not be filtered.&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"No connect to RunTable database could be established. "</span>
+                                        <span class="s2">"Runs can not be filtered."</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                        <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Import `from rnog_data.runtable import RunTable` failed. You can still use readRNOGData, &quot;</span>
-                        <span class="s2">&quot;but runs can not be filtered. To install the run table, run:</span><span class="se">\n\n</span><span class="s2">&quot;</span>
-                        <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">pip install git+ssh://git@github.com/RNO-G/rnog-runtable.git</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="s2">"</span><span class="se">\n</span><span class="s2">Import `from rnog_data.runtable import RunTable` failed. You can still use readRNOGData, "</span>
+                        <span class="s2">"but runs can not be filtered. To install the run table, run:</span><span class="se">\n\n</span><span class="s2">"</span>
+                        <span class="s2">"</span><span class="se">\t</span><span class="s2">pip install git+ssh://git@github.com/RNO-G/rnog-runtable.git</span><span class="se">\n</span><span class="s2">"</span>
                     <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># some users may mistakenly try to pass the .root files to __init__</span>
                 <span class="c1"># we check for this and raise a (hopefully) helpful error message</span>
                 <span class="n">user_passed_root_file_msg</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="s2">&quot;The optional argument run_table_path expects a csv file, &quot;</span>
-                    <span class="s2">&quot;but you passed a list of files or a .root file. Note that &quot;</span>
-                    <span class="s2">&quot;the .root files to read in should be passed to the `begin` method of this class&quot;</span>
+                    <span class="s2">"The optional argument run_table_path expects a csv file, "</span>
+                    <span class="s2">"but you passed a list of files or a .root file. Note that "</span>
+                    <span class="s2">"the .root files to read in should be passed to the `begin` method of this class"</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">run_table_path</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
                     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">user_passed_root_file_msg</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">run_table_path</span><span class="p">)</span> <span class="ow">or</span> <span class="n">run_table_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.root&#39;</span><span class="p">):</span>
+                <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">run_table_path</span><span class="p">)</span> <span class="ow">or</span> <span class="n">run_table_path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">'.root'</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">user_passed_root_file_msg</span><span class="p">)</span>
 
                 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span>
@@ -851,29 +851,29 @@
             <span class="n">read_calibrated_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">select_triggers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">select_runs</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">apply_baseline_correction</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span>
+            <span class="n">apply_baseline_correction</span><span class="o">=</span><span class="s1">'auto'</span><span class="p">,</span>
             <span class="n">convert_to_voltage</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">selectors</span><span class="o">=</span><span class="p">[],</span>
-            <span class="n">run_types</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;physics&quot;</span><span class="p">],</span>
+            <span class="n">run_types</span><span class="o">=</span><span class="p">[</span><span class="s2">"physics"</span><span class="p">],</span>
             <span class="n">run_time_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">max_trigger_rate</span><span class="o">=</span><span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="p">,</span>
             <span class="n">mattak_kwargs</span><span class="o">=</span><span class="p">{},</span>
             <span class="n">overwrite_sampling_rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">max_in_mem</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
             <span class="n">use_fallback_time</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        dirs_files: str, list(str)</span>
-<span class="sd">            Path to run directories (i.e. &quot;.../stationXX/runXXX/&quot;) or path to root files (have to be &quot;combined&quot; mattak files).</span>
+<span class="sd">            Path to run directories (i.e. ".../stationXX/runXXX/") or path to root files (have to be "combined" mattak files).</span>
 
 <span class="sd">        read_calibrated_data: bool</span>
-<span class="sd">            If True, read calibrated waveforms from Mattak.Dataset. If False, read &quot;raw&quot; ADC traces.</span>
+<span class="sd">            If True, read calibrated waveforms from Mattak.Dataset. If False, read "raw" ADC traces.</span>
 <span class="sd">            (temp. Default: False, this can/should be switched once the calibration in incorp. into Mattak)</span>
 
 <span class="sd">        select_triggers: str or list(str)</span>
 <span class="sd">            Names of triggers which should be selected. Convinence interface instead of passing a selector</span>
-<span class="sd">            (see &quot;selectors&quot; below). (Default: None)</span>
+<span class="sd">            (see "selectors" below). (Default: None)</span>
 
 <span class="sd">        select_runs: bool</span>
 <span class="sd">            If True, use information in run_table to select runs (based on run_type, run_time, trigger_rate, ...).</span>
@@ -882,18 +882,18 @@
 
 <span class="sd">        Other Parameters</span>
 <span class="sd">        ----------------</span>
-<span class="sd">        apply_baseline_correction: str {&#39;auto&#39;, &#39;fit&#39;, &#39;approximate&#39;, &#39;median&#39;, &#39;none&#39;}, optional</span>
+<span class="sd">        apply_baseline_correction: str {'auto', 'fit', 'approximate', 'median', 'none'}, optional</span>
 <span class="sd">            Removes the DC (baseline) block offsets (pedestals).</span>
 <span class="sd">            Options are, in order of decreasing precision and increasing performance:</span>
 
-<span class="sd">            * &#39;fit&#39; : do a full out-of-band fit to determine the block offsets; for more details,</span>
+<span class="sd">            * 'fit' : do a full out-of-band fit to determine the block offsets; for more details,</span>
 <span class="sd">              see :mod:`NuRadioReco.modules.RNO_G.channelBlockOffsetFitter` (slow)</span>
-<span class="sd">            * &#39;approximate&#39; : estimate block offsets by looking at the low-pass filtered trace</span>
-<span class="sd">            * &#39;median&#39; : subtract the median of each block (faster)</span>
-<span class="sd">            * &#39;none&#39; : do not apply a baseline correction (fastest)</span>
+<span class="sd">            * 'approximate' : estimate block offsets by looking at the low-pass filtered trace</span>
+<span class="sd">            * 'median' : subtract the median of each block (faster)</span>
+<span class="sd">            * 'none' : do not apply a baseline correction (fastest)</span>
 
-<span class="sd">            The default (&#39;auto&#39;) first performs the &#39;approximate&#39; block offset removal, then</span>
-<span class="sd">            automatically decides whether to continue with the full &#39;fit&#39; depending on the estimated</span>
+<span class="sd">            The default ('auto') first performs the 'approximate' block offset removal, then</span>
+<span class="sd">            automatically decides whether to continue with the full 'fit' depending on the estimated</span>
 <span class="sd">            block offset size.</span>
 
 <span class="sd">        convert_to_voltage: bool</span>
@@ -902,11 +902,11 @@
 
 <span class="sd">        selectors: list of lambdas</span>
 <span class="sd">            List of lambda(eventInfo) -&gt; bool to pass to mattak.Dataset.iterate to select events.</span>
-<span class="sd">            Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == &quot;FORCE&quot;</span>
+<span class="sd">            Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"</span>
 <span class="sd">            (Default: [])</span>
 
 <span class="sd">        run_types: list</span>
-<span class="sd">            Used to select/reject runs from information in the RNO-G RunTable. List of run_types to be used. (Default: [&#39;physics&#39;])</span>
+<span class="sd">            Used to select/reject runs from information in the RNO-G RunTable. List of run_types to be used. (Default: ['physics'])</span>
 
 <span class="sd">        run_time_range: tuple</span>
 <span class="sd">            Specify a time range to select runs (it is sufficient that runs cover the time range partially).</span>
@@ -920,8 +920,8 @@
 
 <span class="sd">        mattak_kwargs: dict</span>
 <span class="sd">            Dictionary of arguments for mattak.Dataset.Dataset. (Default: {})</span>
-<span class="sd">            Example: Select a mattak &quot;backend&quot;. Options are &quot;auto&quot;, &quot;pyroot&quot;, &quot;uproot&quot;. If &quot;auto&quot; is selected,</span>
-<span class="sd">            pyroot is used if available otherwise a &quot;fallback&quot; to uproot is used. (Default: &quot;auto&quot;)</span>
+<span class="sd">            Example: Select a mattak "backend". Options are "auto", "pyroot", "uproot". If "auto" is selected,</span>
+<span class="sd">            pyroot is used if available otherwise a "fallback" to uproot is used. (Default: "auto")</span>
 
 <span class="sd">        overwrite_sampling_rate: float</span>
 <span class="sd">            Set sampling rate of the imported waveforms. This overwrites what is read out from runinfo</span>
@@ -937,24 +937,24 @@
 <span class="sd">            If True and if the trigger time is infinity, the readout time will be used instead of the trigger time.</span>
 <span class="sd">            Otherwise, the event will be skipped in the case of infinite trigger times.</span>
 <span class="sd">            (Default=True)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_read_calibrated_data</span> <span class="o">=</span> <span class="n">read_calibrated_data</span>
 
-        <span class="n">baseline_correction_valid_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">]</span>
+        <span class="n">baseline_correction_valid_options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'auto'</span><span class="p">,</span> <span class="s1">'approximate'</span><span class="p">,</span> <span class="s1">'fit'</span><span class="p">,</span> <span class="s1">'median'</span><span class="p">,</span> <span class="s1">'none'</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">apply_baseline_correction</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span>
+            <span class="n">apply_baseline_correction</span> <span class="o">=</span> <span class="s1">'none'</span>
 
         <span class="k">if</span> <span class="n">apply_baseline_correction</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">baseline_correction_valid_options</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Value for apply_baseline_correction (</span><span class="si">{</span><span class="n">apply_baseline_correction</span><span class="si">}</span><span class="s2">) not recognized. &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;Valid options are </span><span class="si">{</span><span class="n">baseline_correction_valid_options</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="sa">f</span><span class="s2">"Value for apply_baseline_correction (</span><span class="si">{</span><span class="n">apply_baseline_correction</span><span class="si">}</span><span class="s2">) not recognized. "</span>
+                <span class="sa">f</span><span class="s2">"Valid options are </span><span class="si">{</span><span class="n">baseline_correction_valid_options</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="o">=</span> <span class="n">apply_baseline_correction</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_convert_to_voltage</span> <span class="o">=</span> <span class="n">convert_to_voltage</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="o">!=</span> <span class="s1">&#39;none&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="o">!=</span> <span class="s1">'none'</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span> <span class="o">=</span> <span class="n">channelBlockOffsets</span><span class="p">()</span>
 
         <span class="c1"># Temporary solution hard-coded values from Cosmin. Only used when uncalibrated data</span>
@@ -981,9 +981,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_time_high</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="n">select_runs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">__run_table</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Select runs with type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">run_types</span><span class="p">))</span> <span class="o">+</span>
-                            <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Select runs with max. trigger rate of </span><span class="si">{</span><span class="n">max_trigger_rate</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="si">}</span><span class="s2"> Hz&quot;</span>
-                            <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Select runs which are between </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_low</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_high</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Select runs with type: </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">run_types</span><span class="p">))</span> <span class="o">+</span>
+                            <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Select runs with max. trigger rate of </span><span class="si">{</span><span class="n">max_trigger_rate</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="si">}</span><span class="s2"> Hz"</span>
+                            <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Select runs which are between </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_low</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_high</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_selectors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_check_for_valid_information_in_event_info</span><span class="p">)</span>
@@ -1006,31 +1006,31 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dirs_files</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
             <span class="n">dirs_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">dirs_files</span><span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parse through / read-in </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">dirs_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> directory(ies) / file(s).&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Parse through / read-in </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">dirs_files</span><span class="p">)</span><span class="si">}</span><span class="s2"> directory(ies) / file(s)."</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__skipped_runs</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__n_runs</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="c1"># Set verbose for mattak</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span> <span class="o">=</span> <span class="n">mattak_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">&lt;=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span> <span class="o">=</span> <span class="n">mattak_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"verbose"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">level</span> <span class="o">&lt;=</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mattak_kwargs</span> <span class="o">=</span> <span class="n">mattak_kwargs</span>
 
         <span class="k">for</span> <span class="n">dir_file</span> <span class="ow">in</span> <span class="n">dirs_files</span><span class="p">:</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dir_file</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The directory/file </span><span class="si">{</span><span class="n">dir_file</span><span class="si">}</span><span class="s2"> does not exist&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The directory/file </span><span class="si">{</span><span class="n">dir_file</span><span class="si">}</span><span class="s2"> does not exist"</span><span class="p">)</span>
                 <span class="k">continue</span>
 
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dir_file</span><span class="p">):</span>
 
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">_all_files_in_directory</span><span class="p">(</span><span class="n">dir_file</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Incomplete directory: </span><span class="si">{</span><span class="n">dir_file</span><span class="si">}</span><span class="s2">. Skip ...&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Incomplete directory: </span><span class="si">{</span><span class="n">dir_file</span><span class="si">}</span><span class="s2">. Skip ..."</span><span class="p">)</span>
                     <span class="k">continue</span>
 
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_dataset</span><span class="p">(</span><span class="n">dir_file</span><span class="p">)</span>
             <span class="k">except</span> <span class="p">(</span><span class="ne">ReferenceError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The following exeption was raised reading in the run: </span><span class="si">{</span><span class="n">dir_file</span><span class="si">}</span><span class="s2">. Skip that run ...:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The following exeption was raised reading in the run: </span><span class="si">{</span><span class="n">dir_file</span><span class="si">}</span><span class="s2">. Skip that run ...:</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
                 <span class="k">continue</span>
 
             <span class="c1"># filter runs/datasets based on</span>
@@ -1045,7 +1045,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">station</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datasets_paths</span><span class="p">):</span>
-            <span class="n">err</span> <span class="o">=</span> <span class="s2">&quot;Found no valid datasets. Stop!&quot;</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="s2">"Found no valid datasets. Stop!"</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
 
@@ -1054,11 +1054,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_events_per_dataset</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_time_begin</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span><span class="si">}</span><span class="s2"> events in </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datasets_paths</span><span class="p">)</span><span class="si">}</span><span class="s2"> runs/datasets &quot;</span>
-                         <span class="sa">f</span><span class="s2">&quot;have been found using the </span><span class="si">{</span><span class="n">dataset</span><span class="o">.</span><span class="n">backend</span><span class="si">}</span><span class="s2"> Mattak backend.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span><span class="si">}</span><span class="s2"> events in </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datasets_paths</span><span class="p">)</span><span class="si">}</span><span class="s2"> runs/datasets "</span>
+                         <span class="sa">f</span><span class="s2">"have been found using the </span><span class="si">{</span><span class="n">dataset</span><span class="o">.</span><span class="n">backend</span><span class="si">}</span><span class="s2"> Mattak backend."</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span><span class="p">:</span>
-            <span class="n">err</span> <span class="o">=</span> <span class="s2">&quot;No runs have been selected. Abort ...&quot;</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="s2">"No runs have been selected. Abort ..."</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span></div>
 
@@ -1066,14 +1066,14 @@
 <div class="viewcode-block" id="readRNOGData.get_run_numbers">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_run_numbers">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_run_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get run numbers of the datasets which are read in &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Get run numbers of the datasets which are read in """</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_runs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="readRNOGData.get_station_id">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_station_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_station_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">except_multiple_stations</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get station ids of the datasets which are read in</span>
+<span class="w">        </span><span class="sd">""" Get station ids of the datasets which are read in</span>
 
 <span class="sd">        By default returns a single unique station id. If multiple stations are found an error is raised.</span>
 <span class="sd">        If except_multiple_stations is set to True, all station ids are returned.</span>
@@ -1088,24 +1088,24 @@
 <span class="sd">        -------</span>
 <span class="sd">        station_id: int or np.array</span>
 <span class="sd">            Station id(s) of the datasets which are read in.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">station_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stations</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">station_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">except_multiple_stations</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Multiple stations found. Use get_station_id(except_multiple_stations=False) to get all station ids.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Multiple stations found. Use get_station_id(except_multiple_stations=False) to get all station ids."</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">station_ids</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">station_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__get_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return a mattak.Dataset.Dataset object for a given path &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Return a mattak.Dataset.Dataset object for a given path """</span>
         <span class="k">return</span> <span class="n">mattak</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">station</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">run</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">data_path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_verbose</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_mattak_kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="readRNOGData.add_selectors">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.add_selectors">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_selectors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selectors</span><span class="p">,</span> <span class="n">select_triggers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add selectors (Callable(eventInfo) -&gt; bool) to an internal list of selectors.</span>
 <span class="sd">        They are used for event filtering.</span>
 
@@ -1113,11 +1113,11 @@
 <span class="sd">        ----------</span>
 <span class="sd">        selectors: list of Callables</span>
 <span class="sd">            List of Callable(eventInfo) -&gt; bool to pass to mattak.Dataset.iterate to select events.</span>
-<span class="sd">            Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == &quot;FORCE&quot;</span>
+<span class="sd">            Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"</span>
 
 <span class="sd">        select_triggers: str or list(str) (Default: None)</span>
 <span class="sd">            Names of triggers which should be selected. Convenience interface instead of passing a selector.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># Initialize selectors for event filtering</span>
         <span class="k">if</span> <span class="n">selectors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1133,14 +1133,14 @@
                 <span class="k">for</span> <span class="n">select_trigger</span> <span class="ow">in</span> <span class="n">select_triggers</span><span class="p">:</span>
                     <span class="n">selectors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="k">lambda</span> <span class="n">eventInfo</span><span class="p">:</span> <span class="n">eventInfo</span><span class="o">.</span><span class="n">triggerType</span> <span class="o">==</span> <span class="n">select_trigger</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Add </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">selectors</span><span class="p">)</span><span class="si">}</span><span class="s2"> selector(s)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Add </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">selectors</span><span class="p">)</span><span class="si">}</span><span class="s2"> selector(s)"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span> <span class="o">+=</span> <span class="n">selectors</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">get_waveforms</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span> <span class="c1"># reset cached waveforms</span></div>
 
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__select_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Filter/select runs/datasets.</span>
+<span class="w">        </span><span class="sd">""" Filter/select runs/datasets.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1148,7 +1148,7 @@
 
 <span class="sd">        select: bool</span>
 <span class="sd">            Return True to select an dataset, return False to reject/skip it.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># get first eventInfo</span>
         <span class="n">dataset</span><span class="o">.</span><span class="n">setEntries</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -1157,48 +1157,48 @@
         <span class="n">run_id</span> <span class="o">=</span> <span class="n">event_info</span><span class="o">.</span><span class="n">run</span>
         <span class="n">station_id</span> <span class="o">=</span> <span class="n">event_info</span><span class="o">.</span><span class="n">station</span>
 
-        <span class="n">run_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__run_table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;station == </span><span class="si">{</span><span class="n">station_id</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2"> &amp; run == </span><span class="si">{</span><span class="n">run_id</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">run_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__run_table</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="sa">f</span><span class="s2">"station == </span><span class="si">{</span><span class="n">station_id</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2"> &amp; run == </span><span class="si">{</span><span class="n">run_id</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">run_info</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Run </span><span class="si">{</span><span class="n">run_id</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2"> (station </span><span class="si">{</span><span class="n">station_id</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">) not in run table. Reject...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Run </span><span class="si">{</span><span class="n">run_id</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2"> (station </span><span class="si">{</span><span class="n">station_id</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">) not in run table. Reject..."</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="c1"># &quot;time_start/end&quot; is stored in the isot format. datetime is much faster than astropy (~85ns vs 55 mus).</span>
+        <span class="c1"># "time_start/end" is stored in the isot format. datetime is much faster than astropy (~85ns vs 55 mus).</span>
         <span class="c1"># But using datetime would mean to stip decimals because datetime can only handle mu sec precision and can not cope</span>
         <span class="c1"># with the additional decimals for ns.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_low</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">time_end</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">run_info</span><span class="p">[</span><span class="s2">&quot;time_end&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">time_end</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">run_info</span><span class="p">[</span><span class="s2">"time_end"</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">time_end</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_low</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reject station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> run </span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2"> because run ended before </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_low</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Reject station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> run </span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2"> because run ended before </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_low</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_high</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">time_start</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">run_info</span><span class="p">[</span><span class="s2">&quot;time_start&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">time_start</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">run_info</span><span class="p">[</span><span class="s2">"time_start"</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">time_start</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_high</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reject station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> run </span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2"> because run started time after </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_high</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Reject station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> run </span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2"> because run started time after </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_high</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="n">run_type</span> <span class="o">=</span> <span class="n">run_info</span><span class="p">[</span><span class="s2">&quot;run_type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">run_type</span> <span class="o">=</span> <span class="n">run_info</span><span class="p">[</span><span class="s2">"run_type"</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">run_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__run_types</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reject station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> run </span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2"> because of run type </span><span class="si">{</span><span class="n">run_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Reject station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> run </span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2"> because of run type </span><span class="si">{</span><span class="n">run_type</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="n">trigger_rate</span> <span class="o">=</span> <span class="n">run_info</span><span class="p">[</span><span class="s2">&quot;trigger_rate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span>
+        <span class="n">trigger_rate</span> <span class="o">=</span> <span class="n">run_info</span><span class="p">[</span><span class="s2">"trigger_rate"</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__max_trigger_rate</span> <span class="ow">and</span> <span class="n">trigger_rate</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__max_trigger_rate</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reject station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> run </span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2"> because trigger rate is to high (</span><span class="si">{</span><span class="n">trigger_rate</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> Hz)&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Reject station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> run </span><span class="si">{</span><span class="n">run_id</span><span class="si">}</span><span class="s2"> because trigger rate is to high (</span><span class="si">{</span><span class="n">trigger_rate</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> Hz)"</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="k">return</span> <span class="kc">True</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__get_n_events_of_prev_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_idx</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get accumulated number of events from previous datasets &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Get accumulated number of events from previous datasets """</span>
         <span class="n">dataset_idx_prev</span> <span class="o">=</span> <span class="n">dataset_idx</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_event_idxs_datasets</span><span class="p">[</span><span class="n">dataset_idx_prev</span><span class="p">])</span> <span class="k">if</span> <span class="n">dataset_idx_prev</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__get_dataset_for_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_idx</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get correct dataset and set entry accordingly to event index</span>
+<span class="w">        </span><span class="sd">""" Get correct dataset and set entry accordingly to event index</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1208,7 +1208,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        dataset: mattak.Dataset.Dataset</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># find correct dataset</span>
         <span class="n">dataset_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">digitize</span><span class="p">(</span><span class="n">event_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_event_idxs_datasets</span><span class="p">)</span>
         <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_datasets_paths</span><span class="p">[</span><span class="n">dataset_idx</span><span class="p">])</span>
@@ -1220,7 +1220,7 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_select_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evtinfo</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Filter an event base on its EventInfo and the configured selectors.</span>
+<span class="w">        </span><span class="sd">""" Filter an event base on its EventInfo and the configured selectors.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1233,16 +1233,16 @@
 <span class="sd">        -------</span>
 <span class="sd">        skip: bool</span>
 <span class="sd">            Returns False to skip/reject event, return True to keep/read event</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;(_select_events) Processing event number </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">}</span><span class="s2"> out of total </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="sa">f</span><span class="s2">"(_select_events) Processing event number </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">}</span><span class="s2"> out of total </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__counter</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># for logging</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">selector</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectors</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">selector</span><span class="p">(</span><span class="n">evtinfo</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Event </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> (station </span><span class="si">{</span><span class="n">evtinfo</span><span class="o">.</span><span class="n">station</span><span class="si">}</span><span class="s2">, run </span><span class="si">{</span><span class="n">evtinfo</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">, &quot;</span>
-                                      <span class="sa">f</span><span class="s2">&quot;event number </span><span class="si">{</span><span class="n">evtinfo</span><span class="o">.</span><span class="n">eventNumber</span><span class="si">}</span><span class="s2">) did not pass a filter. Skip it ...&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Event </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> (station </span><span class="si">{</span><span class="n">evtinfo</span><span class="o">.</span><span class="n">station</span><span class="si">}</span><span class="s2">, run </span><span class="si">{</span><span class="n">evtinfo</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">, "</span>
+                                      <span class="sa">f</span><span class="s2">"event number </span><span class="si">{</span><span class="n">evtinfo</span><span class="o">.</span><span class="n">eventNumber</span><span class="si">}</span><span class="s2">) did not pass a filter. Skip it ..."</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">__skipped</span> <span class="o">+=</span> <span class="mi">1</span>
                     <span class="k">return</span> <span class="kc">False</span>
 
@@ -1251,8 +1251,8 @@
 
 <div class="viewcode-block" id="readRNOGData.get_events_information">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_events_information">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_events_information</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;station&quot;</span><span class="p">,</span> <span class="s2">&quot;run&quot;</span><span class="p">,</span> <span class="s2">&quot;eventNumber&quot;</span><span class="p">]):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return information of events from the EventInfo. Only information of events passing the</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_events_information</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"station"</span><span class="p">,</span> <span class="s2">"run"</span><span class="p">,</span> <span class="s2">"eventNumber"</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">""" Return information of events from the EventInfo. Only information of events passing the</span>
 <span class="sd">        selectors, which may have been specified, are returned.</span>
 
 <span class="sd">        This function is useful to make a pre-selection of events before actually reading them in combination with</span>
@@ -1260,17 +1260,17 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        keys : str or list(str) or None (Default: [&quot;station&quot;, &quot;run&quot;, &quot;eventNumber&quot;])</span>
+<span class="sd">        keys : str or list(str) or None (Default: ["station", "run", "eventNumber"])</span>
 <span class="sd">            List of the information to receive from each event. Have to match the attributes (member variables)</span>
-<span class="sd">            of the mattak.Dataset.EventInfo class (examples are &quot;station&quot;, &quot;run&quot;, &quot;triggerTime&quot;, &quot;triggerType&quot;, &quot;eventNumber&quot;, ...).</span>
+<span class="sd">            of the mattak.Dataset.EventInfo class (examples are "station", "run", "triggerTime", "triggerType", "eventNumber", ...).</span>
 <span class="sd">            If None, read in all keys present in the EventInfo class.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        data: dict</span>
 <span class="sd">            Keys of the dict are the event indices (as used in self.read_event(event_index)). The values are dictionaries</span>
-<span class="sd">            themselves, containing the information specified with &quot;keys&quot; parameter.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            themselves, containing the information specified with "keys" parameter.</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">signature</span><span class="p">(</span><span class="n">mattak</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">EventInfo</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="p">]</span>
@@ -1315,7 +1315,7 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_waveforms">[docs]</a>
     <span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_waveforms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">apply_baseline_correction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_events</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return waveforms of events passing the selectors which may have been specified</span>
+<span class="w">        </span><span class="sd">""" Return waveforms of events passing the selectors which may have been specified</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1331,9 +1331,9 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        wfs: np.array</span>
-<span class="sd">            Waveforms of all &quot;selected&quot; events. The wavefroms are either calibrated or not</span>
+<span class="sd">            Waveforms of all "selected" events. The wavefroms are either calibrated or not</span>
 <span class="sd">            based on the class config.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">apply_baseline_correction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span>
@@ -1344,7 +1344,7 @@
             <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_dataset</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
             <span class="n">dataset</span><span class="o">.</span><span class="n">setEntries</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">dataset</span><span class="o">.</span><span class="n">N</span><span class="p">()))</span>
-            <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]:</span> <span class="c1"># we need the sampling rate</span>
+            <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'auto'</span><span class="p">,</span> <span class="s1">'fit'</span><span class="p">,</span> <span class="s1">'approximate'</span><span class="p">]:</span> <span class="c1"># we need the sampling rate</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">eventInfo</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">sampleRate</span>
                 <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
@@ -1364,9 +1364,9 @@
                         <span class="c1"># convert adc to voltage</span>
                         <span class="n">wfs</span> <span class="o">=</span> <span class="n">wfs</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_adc_ref_voltage_range</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_adc_n_bits</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
 
-                <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="o">==</span> <span class="s1">&#39;median&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">apply_baseline_correction</span> <span class="o">==</span> <span class="s1">'median'</span><span class="p">:</span>
                     <span class="n">wfs</span> <span class="o">=</span> <span class="n">_calculate_block_offsets</span><span class="p">(</span><span class="n">wfs</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">]:</span>
+                <span class="k">elif</span> <span class="n">apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'auto'</span><span class="p">,</span> <span class="s1">'fit'</span><span class="p">,</span> <span class="s1">'approximate'</span><span class="p">]:</span>
                     <span class="n">wfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span>
                         <span class="n">fit_block_offsets</span><span class="p">(</span>
                             <span class="n">wf</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span><span class="p">,</span>
@@ -1376,7 +1376,7 @@
                 <span class="n">events_waveforms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">wfs</span><span class="p">)</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">max_events</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">events_waveforms</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">max_events</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Number of waveforms </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">events_waveforms</span><span class="p">)</span><span class="si">}</span><span class="s2"> exceeds max_events. Returning first </span><span class="si">{</span><span class="n">max_events</span><span class="si">}</span><span class="s2"> waveforms only.&quot;</span>
+                        <span class="sa">f</span><span class="s2">"Number of waveforms </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">events_waveforms</span><span class="p">)</span><span class="si">}</span><span class="s2"> exceeds max_events. Returning first </span><span class="si">{</span><span class="n">max_events</span><span class="si">}</span><span class="s2"> waveforms only."</span>
                         <span class="p">)</span>
                     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">events_waveforms</span><span class="p">)</span>
 
@@ -1385,7 +1385,7 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_check_for_valid_information_in_event_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_info</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Checks if certain information (sampling rate, trigger time) in mattak.Dataset.EventInfo are valid</span>
 
 <span class="sd">        Parameters</span>
@@ -1396,20 +1396,20 @@
 <span class="sd">        -------</span>
 <span class="sd">        is_valid: bool</span>
 <span class="sd">            Returns True if all information valid, false otherwise</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">triggerTime</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_fallback_time</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Event </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">eventNumber</span><span class="si">}</span><span class="s2"> (st </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">station</span><span class="si">}</span><span class="s2">, run </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">) &quot;</span>
-                              <span class="s2">&quot;has inf trigger time. Event is skipped ...&quot;</span>
-                              <span class="sa">f</span><span class="s2">&quot;You can avoid this by setting &#39;use_fallback_time&#39; in the begin() method.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Event </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">eventNumber</span><span class="si">}</span><span class="s2"> (st </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">station</span><span class="si">}</span><span class="s2">, run </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">) "</span>
+                              <span class="s2">"has inf trigger time. Event is skipped ..."</span>
+                              <span class="sa">f</span><span class="s2">"You can avoid this by setting 'use_fallback_time' in the begin() method."</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__invalid</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">return</span> <span class="kc">False</span>
 
 
         <span class="k">if</span> <span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">sampleRate</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">event_info</span><span class="o">.</span><span class="n">sampleRate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_overwrite_sampling_rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Event </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">eventNumber</span><span class="si">}</span><span class="s2"> (st </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">station</span><span class="si">}</span><span class="s2">, run </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">) &quot;</span>
-                              <span class="sa">f</span><span class="s2">&quot;has a sampling rate of </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">sampleRate</span><span class="si">}</span><span class="s2"> GHz. Event is skipped ... &quot;</span>
-                              <span class="sa">f</span><span class="s2">&quot;You can avoid this by setting &#39;overwrite_sampling_rate&#39; in the begin() method.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Event </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">eventNumber</span><span class="si">}</span><span class="s2"> (st </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">station</span><span class="si">}</span><span class="s2">, run </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">) "</span>
+                              <span class="sa">f</span><span class="s2">"has a sampling rate of </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">sampleRate</span><span class="si">}</span><span class="s2"> GHz. Event is skipped ... "</span>
+                              <span class="sa">f</span><span class="s2">"You can avoid this by setting 'overwrite_sampling_rate' in the begin() method."</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__invalid</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">return</span> <span class="kc">False</span>
 
@@ -1417,7 +1417,7 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_info</span><span class="p">,</span> <span class="n">waveforms</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Return a NuRadioReco event</span>
+<span class="w">        </span><span class="sd">""" Return a NuRadioReco event</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1430,11 +1430,11 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        evt: NuRadioReco.framework.event</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># use the readout time if the trigger time is infinity</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_fallback_time</span> <span class="ow">and</span> <span class="n">math</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">triggerTime</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Event </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">eventNumber</span><span class="si">}</span><span class="s2"> (st </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">station</span><span class="si">}</span><span class="s2">, run </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">) &quot;</span>
-                                 <span class="s2">&quot;has inf trigger time, readout time will be used instead.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Event </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">eventNumber</span><span class="si">}</span><span class="s2"> (st </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">station</span><span class="si">}</span><span class="s2">, run </span><span class="si">{</span><span class="n">event_info</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">) "</span>
+                                 <span class="s2">"has inf trigger time, readout time will be used instead."</span><span class="p">)</span>
             <span class="n">trigger_time</span> <span class="o">=</span> <span class="n">event_info</span><span class="o">.</span><span class="n">readoutTime</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">trigger_time</span> <span class="o">=</span> <span class="n">event_info</span><span class="o">.</span><span class="n">triggerTime</span>
@@ -1447,7 +1447,7 @@
 
         <span class="n">evt</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">run</span><span class="p">,</span> <span class="n">event_info</span><span class="o">.</span><span class="n">eventNumber</span><span class="p">)</span>
         <span class="n">station</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">station</span><span class="o">.</span><span class="n">Station</span><span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">station</span><span class="p">)</span>
-        <span class="n">station</span><span class="o">.</span><span class="n">set_station_time</span><span class="p">(</span><span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">trigger_time</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;unix&#39;</span><span class="p">))</span>
+        <span class="n">station</span><span class="o">.</span><span class="n">set_station_time</span><span class="p">(</span><span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">trigger_time</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">'unix'</span><span class="p">))</span>
 
         <span class="n">trigger</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">Trigger</span><span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">triggerType</span><span class="p">)</span>
         <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">()</span>
@@ -1468,13 +1468,13 @@
 
                 <span class="n">channel</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">wf</span><span class="p">,</span> <span class="n">sampling_rate</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">)</span>
 
-            <span class="n">time_offset</span> <span class="o">=</span> <span class="n">get_time_offset</span><span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">triggerType</span><span class="p">)</span> <span class="o">+</span> <span class="n">readout_delays</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
-            <span class="n">channel</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="o">-</span><span class="n">time_offset</span><span class="p">)</span>  <span class="c1"># relative to event/trigger time</span>
+            <span class="n">time_offset</span> <span class="o">=</span> <span class="n">readout_delays</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span> <span class="o">-</span> <span class="n">get_time_offset</span><span class="p">(</span><span class="n">event_info</span><span class="o">.</span><span class="n">triggerType</span><span class="p">)</span>
+            <span class="n">channel</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">time_offset</span><span class="p">)</span>  <span class="c1"># relative to event/trigger time</span>
 
             <span class="n">station</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
 
         <span class="n">evt</span><span class="o">.</span><span class="n">set_station</span><span class="p">(</span><span class="n">station</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;fit&#39;</span><span class="p">,</span> <span class="s1">&#39;approximate&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'auto'</span><span class="p">,</span> <span class="s1">'fit'</span><span class="p">,</span> <span class="s1">'approximate'</span><span class="p">,</span> <span class="s1">'median'</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span><span class="o">.</span><span class="n">remove_offsets</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_apply_baseline_correction</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">evt</span>
@@ -1484,13 +1484,13 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Loop over all events.</span>
 
 <span class="sd">        Yields</span>
 <span class="sd">        ------</span>
 <span class="sd">        evt: `NuRadioReco.framework.event.Event`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_datasets_paths</span><span class="p">:</span>
             <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_dataset</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
@@ -1511,7 +1511,7 @@
 <div class="viewcode-block" id="readRNOGData.get_event_by_index">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_event_by_index">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_event_by_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_index</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Allows to read a specific event identifed by its index</span>
+<span class="w">        </span><span class="sd">""" Allows to read a specific event identifed by its index</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1522,9 +1522,9 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        evt: `NuRadioReco.framework.event.Event`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing event number </span><span class="si">{</span><span class="n">event_index</span><span class="si">}</span><span class="s2"> out of total </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Processing event number </span><span class="si">{</span><span class="n">event_index</span><span class="si">}</span><span class="s2"> out of total </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
         <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_dataset_for_event</span><span class="p">(</span><span class="n">event_index</span><span class="p">)</span>
@@ -1548,7 +1548,7 @@
 <div class="viewcode-block" id="readRNOGData.get_event">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData.get_event">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">run_nr</span><span class="p">,</span> <span class="n">event_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Allows to read a specific event identifed by run number and event id</span>
+<span class="w">        </span><span class="sd">""" Allows to read a specific event identifed by run number and event id</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -1561,21 +1561,21 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        evt: `NuRadioReco.framework.event.Event`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Getting event </span><span class="si">{</span><span class="n">event_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Getting event </span><span class="si">{</span><span class="n">event_id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
-        <span class="n">event_infos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_events_information</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;eventNumber&quot;</span><span class="p">,</span> <span class="s2">&quot;run&quot;</span><span class="p">])</span>
-        <span class="n">event_idx_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">index</span><span class="p">,</span> <span class="n">ele</span><span class="p">[</span><span class="s2">&quot;eventNumber&quot;</span><span class="p">],</span> <span class="n">ele</span><span class="p">[</span><span class="s2">&quot;run&quot;</span><span class="p">]]</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">event_infos</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+        <span class="n">event_infos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_events_information</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"eventNumber"</span><span class="p">,</span> <span class="s2">"run"</span><span class="p">])</span>
+        <span class="n">event_idx_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">index</span><span class="p">,</span> <span class="n">ele</span><span class="p">[</span><span class="s2">"eventNumber"</span><span class="p">],</span> <span class="n">ele</span><span class="p">[</span><span class="s2">"run"</span><span class="p">]]</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">event_infos</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="n">event_idx_ids</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">event_id</span><span class="p">,</span> <span class="n">event_idx_ids</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="n">run_nr</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not find event with id: </span><span class="si">{</span><span class="n">event_id</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not find event with id: </span><span class="si">{</span><span class="n">event_id</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found several events with the same id: </span><span class="si">{</span><span class="n">event_id</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found several events with the same id: </span><span class="si">{</span><span class="n">event_id</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Found several events with the same id: </span><span class="si">{</span><span class="n">event_id</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Found several events with the same id: </span><span class="si">{</span><span class="n">event_id</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">pass</span>
 
@@ -1604,16 +1604,16 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Read </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">}</span><span class="s2"> events (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__skipped</span><span class="si">}</span><span class="s2"> events are skipped (filtered), </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__invalid</span><span class="si">}</span><span class="s2"> invalid events)&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Time to initialize data sets  : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_begin</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Time to read all events       : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Time to per event             : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Read </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_runs</span><span class="si">}</span><span class="s2"> runs, skipped </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__skipped_runs</span><span class="si">}</span><span class="s2"> runs.&quot;</span><span class="p">)</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Read </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">}</span><span class="s2"> events (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__skipped</span><span class="si">}</span><span class="s2"> events are skipped (filtered), </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__invalid</span><span class="si">}</span><span class="s2"> invalid events)"</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Time to initialize data sets  : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_begin</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s"</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Time to read all events       : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s"</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Time to per event             : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s"</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Read </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_runs</span><span class="si">}</span><span class="s2"> runs, skipped </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__skipped_runs</span><span class="si">}</span><span class="s2"> runs."</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Read </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">}</span><span class="s2"> events   (skipped </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__skipped</span><span class="si">}</span><span class="s2"> events, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__invalid</span><span class="si">}</span><span class="s2"> invalid events)&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Time to initialize data sets  : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_begin</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Time to read all events       : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Read </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">}</span><span class="s2"> events   (skipped </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__skipped</span><span class="si">}</span><span class="s2"> events, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__invalid</span><span class="si">}</span><span class="s2"> invalid events)"</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Time to initialize data sets  : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_begin</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s"</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Time to read all events       : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div>
@@ -1628,25 +1628,25 @@
 
 <span class="c1">### we create a wrapper for readRNOGData to mirror the interface of the .nur reader</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">_readRNOGData_eventbrowser</span><span class="p">(</span><span class="n">readRNOGData</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Wrapper for readRNOGData for use in the eventbrowser</span>
 
 <span class="sd">    This wrapper mirrors the interface of the .nur reader for use in the eventbrowser,</span>
 <span class="sd">    and uses the lru_cache to speed up IO for parallel plots of the same event.</span>
 <span class="sd">    It should probably not be used outside of the eventbrowser.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># We reduce the required amount of IO by caching individual events.</span>
         <span class="c1"># However, we need to clear the cache every time we change the file</span>
-        <span class="c1"># we&#39;re reading. This is implemented here.</span>
+        <span class="c1"># we're reading. This is implemented here.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">get_event_i</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">get_event</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_event_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">event_infos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_events_information</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;run&#39;</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="s1">&#39;eventNumber&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">event_infos</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">i</span><span class="p">[</span><span class="s1">'run'</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="s1">'eventNumber'</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">event_infos</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
 
     <span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_event_i</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
@@ -1657,11 +1657,11 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_event</span><span class="p">(</span><span class="o">*</span><span class="n">event_id</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_detector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Not implemented in mattak reader&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Not implemented in mattak reader"""</span>
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Not implemented in mattak reader&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Not implemented in mattak reader"""</span>
         <span class="k">return</span> <span class="kc">None</span>
 </pre></div>
 

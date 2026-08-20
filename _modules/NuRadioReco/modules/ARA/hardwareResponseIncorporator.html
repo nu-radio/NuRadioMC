@@ -658,17 +658,17 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.ARA.hardwareResponseIncorporator&quot;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.ARA.hardwareResponseIncorporator"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="hardwareResponseIncorporator">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.ARA.hardwareResponseIncorporator.html#NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">hardwareResponseIncorporator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Incorporates the gain and phase induced by the ARA hardware.</span>
 
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="kc">False</span>
@@ -685,7 +685,7 @@
 <div class="viewcode-block" id="hardwareResponseIncorporator.get_filter">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.ARA.hardwareResponseIncorporator.html#NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.get_filter">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">det</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Helper function to return the filter that the module applies. Loads entire system response from interpolating data of ARA_Electronics_TotalGain_TwoFilters.txt.</span>
 <span class="sd">    </span>
 <span class="sd">        Parameters</span>
@@ -711,10 +711,10 @@
 <span class="sd">        -------</span>
 <span class="sd">        array of complex floats</span>
 <span class="sd">            the complex filter amplitudes</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
     
         <span class="n">system_response</span> <span class="o">=</span> <span class="n">analog_components</span><span class="o">.</span><span class="n">get_system_response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
-        <span class="n">system_complex_response</span> <span class="o">=</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span>
+        <span class="n">system_complex_response</span> <span class="o">=</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">'gain'</span><span class="p">]</span> <span class="o">*</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">'phase'</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">sim_to_data</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">system_complex_response</span>
@@ -729,9 +729,9 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.ARA.hardwareResponseIncorporator.html#NuRadioReco.modules.ARA.hardwareResponseIncorporator.hardwareResponseIncorporator.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Switch sim_to_data to go from simulation to data or otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="n">channels</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">()</span>
 
@@ -763,7 +763,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"total time used by this module is </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">dt</span></div>
 </div>
 

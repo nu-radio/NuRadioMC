@@ -759,15 +759,15 @@ with an exponential refractive index can be calculated analytically using the op
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="n">prop</span> <span class="o">=</span> <span class="n">propagation</span><span class="o">.</span><span class="n">get_propagation_module</span><span class="p">(</span><span class="s1">&#39;analytic&#39;</span><span class="p">)</span>
+<span class="n">prop</span> <span class="o">=</span> <span class="n">propagation</span><span class="o">.</span><span class="n">get_propagation_module</span><span class="p">(</span><span class="s1">'analytic'</span><span class="p">)</span>
 
-<span class="n">ref_index_model</span> <span class="o">=</span> <span class="s1">&#39;greenland_simple&#39;</span>
+<span class="n">ref_index_model</span> <span class="o">=</span> <span class="s1">'greenland_simple'</span>
 <span class="n">ice</span> <span class="o">=</span> <span class="n">medium</span><span class="o">.</span><span class="n">get_ice_model</span><span class="p">(</span><span class="n">ref_index_model</span><span class="p">)</span>
 
 <span class="c1"># Let us work on the y = 0 plane</span>
 <span class="n">initial_point</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span><span class="mi">70</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">300</span><span class="p">]</span> <span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
 <span class="n">final_point</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">30</span><span class="p">]</span> <span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
-<span class="n">attenuation_model</span> <span class="o">=</span> <span class="s1">&#39;GL1&#39;</span>
+<span class="n">attenuation_model</span> <span class="o">=</span> <span class="s1">'GL1'</span>
 
 <span class="c1"># This function creates a ray tracing instance refracted index, attenuation model,</span>
 <span class="c1"># number of frequencies # used for integrating the attenuation and interpolate afterwards,</span>
@@ -790,7 +790,7 @@ with an exponential refractive index can be calculated analytically using the op
     <span class="n">rays_2D</span> <span class="o">=</span> <span class="n">ray_tracing_2D</span><span class="p">(</span><span class="n">ice</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="p">)</span>
     <span class="n">initial_point_2D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span><span class="n">initial_point</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">initial_point</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="p">)</span>
     <span class="n">final_point_2D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span><span class="n">final_point</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">final_point</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="p">)</span>
-    <span class="n">C_0</span> <span class="o">=</span> <span class="n">rays</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">i_solution</span><span class="p">][</span><span class="s1">&#39;C0&#39;</span><span class="p">]</span>
+    <span class="n">C_0</span> <span class="o">=</span> <span class="n">rays</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">i_solution</span><span class="p">][</span><span class="s1">'C0'</span><span class="p">]</span>
 
     <span class="n">xx</span><span class="p">,</span> <span class="n">zz</span> <span class="o">=</span> <span class="n">rays_2D</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="n">initial_point_2D</span><span class="p">,</span> <span class="n">final_point_2D</span><span class="p">,</span> <span class="n">C_0</span><span class="p">)</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">zz</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">solution_type</span><span class="p">)</span>
@@ -802,8 +802,8 @@ with an exponential refractive index can be calculated analytically using the op
     <span class="c1"># And the travel time</span>
     <span class="n">travel_time</span> <span class="o">=</span> <span class="n">rays</span><span class="o">.</span><span class="n">get_travel_time</span><span class="p">(</span><span class="n">i_solution</span><span class="p">)</span>
 
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;horizontal coordinate [m]&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;vertical coordinate [m]&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'horizontal coordinate [m]'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'vertical coordinate [m]'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
@@ -822,8 +822,8 @@ with an exponential refractive index can be calculated analytically using the op
 
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequencies</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">attenuation</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">solution_type</span><span class="p">)</span>
 
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency [MHz]&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Attenuation factor&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'Frequency [MHz]'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'Attenuation factor'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -842,15 +842,15 @@ with an exponential refractive index can be calculated analytically using the op
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="n">prop</span> <span class="o">=</span> <span class="n">propagation</span><span class="o">.</span><span class="n">get_propagation_module</span><span class="p">(</span><span class="s1">&#39;radiopropa&#39;</span><span class="p">)</span>
+<span class="n">prop</span> <span class="o">=</span> <span class="n">propagation</span><span class="o">.</span><span class="n">get_propagation_module</span><span class="p">(</span><span class="s1">'radiopropa'</span><span class="p">)</span>
 
-<span class="n">ref_index_model</span> <span class="o">=</span> <span class="s1">&#39;greenland_simple&#39;</span>
+<span class="n">ref_index_model</span> <span class="o">=</span> <span class="s1">'greenland_simple'</span>
 <span class="n">ice</span> <span class="o">=</span> <span class="n">medium</span><span class="o">.</span><span class="n">get_ice_model</span><span class="p">(</span><span class="n">ref_index_model</span><span class="p">)</span>
 
 <span class="c1"># Let us work on the y = 0 plane</span>
 <span class="n">initial_point</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span><span class="mi">70</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">300</span><span class="p">]</span> <span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
 <span class="n">final_point</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">30</span><span class="p">]</span> <span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
-<span class="n">attenuation_model</span> <span class="o">=</span> <span class="s1">&#39;GL1&#39;</span>
+<span class="n">attenuation_model</span> <span class="o">=</span> <span class="s1">'GL1'</span>
 
 <span class="c1"># This function creates a ray tracing instance refracted index, attenuation model,</span>
 <span class="c1"># number of frequencies # used for integrating the attenuation and interpolate afterwards,</span>
@@ -882,8 +882,8 @@ with an exponential refractive index can be calculated analytically using the op
     <span class="c1"># And the travel time</span>
     <span class="n">travel_time</span> <span class="o">=</span> <span class="n">rays</span><span class="o">.</span><span class="n">get_travel_time</span><span class="p">(</span><span class="n">i_solution</span><span class="p">)</span>
 
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;horizontal coordinate [m]&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;vertical coordinate [m]&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'horizontal coordinate [m]'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'vertical coordinate [m]'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
@@ -902,8 +902,8 @@ with an exponential refractive index can be calculated analytically using the op
 
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequencies</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">attenuation</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">solution_type</span><span class="p">)</span>
 
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency [MHz]&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Attenuation factor&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'Frequency [MHz]'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'Attenuation factor'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>

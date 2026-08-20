@@ -650,7 +650,7 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.utilities.analytic_pulse</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">This utility module defines an analytic approximation of air-shower radio pulses.</span>
 
 <span class="sd">See section 7.3. of the NuRadioReco paper (https://link.springer.com/article/10.1140/epjc/s10052-019-6971-5#Sec23) for more details</span>
@@ -658,7 +658,7 @@
 <span class="sd">as well as</span>
 
 <span class="sd">C. Welling, C. Glaser and A. Nelles, “Reconstructing the cosmic-ray energy from the radio signal measured in one single station”, Journal of Cosmology and Astroparticle Physics 10(2019)075, doi:10.1088/1475-7516/2019/10/075, arXiv:1905.11185</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.signal</span>
@@ -669,7 +669,7 @@
 <div class="viewcode-block" id="amp_from_energy">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html#NuRadioReco.utilities.analytic_pulse.amp_from_energy">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">amp_from_energy</span><span class="p">(</span><span class="n">energy</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    energy is defined as the integral of squared voltage normalized to a time window of 128 ns</span>
 
 <span class="sd">    Parameters</span>
@@ -677,7 +677,7 @@
 <span class="sd">    energy:</span>
 
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.12876705</span></div>
 
 
@@ -686,7 +686,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html#NuRadioReco.utilities.analytic_pulse.get_analytic_pulse_freq">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_analytic_pulse_freq</span><span class="p">(</span><span class="n">amp_p0</span><span class="p">,</span> <span class="n">amp_p1</span><span class="p">,</span> <span class="n">phase_p0</span><span class="p">,</span> <span class="n">n_samples_time</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span>
                             <span class="n">phase_p1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bandpass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">quadratic_term</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">quadratic_term_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Analytic pulse as described in PhD thesis Glaser and NuRadioReco paper in the frequency domain</span>
 
 <span class="sd">    Parameters</span>
@@ -718,7 +718,7 @@
 <span class="sd">    quadratic_term_offset:</span>
 <span class="sd">        default 0</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">amp_p0</span> <span class="o">/=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">conversion_factor_integrated_signal</span>  <span class="c1"># input variable is energy in eV/m^2</span>
     <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span>
     <span class="n">frequencies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n_samples_time</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
@@ -738,18 +738,18 @@
 
     <span class="k">if</span><span class="p">(</span><span class="n">bandpass</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
-            <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">bandpass</span><span class="p">,</span> <span class="s1">&#39;bandpass&#39;</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">bandpass</span><span class="p">,</span> <span class="s1">'bandpass'</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">)</span>
             <span class="n">xx</span> <span class="o">*=</span> <span class="n">h</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="n">order</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bandpass</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;highpass&#39;</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="n">order</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bandpass</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">'highpass'</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">)</span>
             <span class="n">xx</span> <span class="o">*=</span> <span class="n">h</span>
-            <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="n">order</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">bandpass</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;lowpass&#39;</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">b</span><span class="p">,</span> <span class="n">a</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">butter</span><span class="p">(</span><span class="n">order</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">bandpass</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s1">'lowpass'</span><span class="p">,</span> <span class="n">analog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">)</span>
             <span class="n">xx</span> <span class="o">*=</span> <span class="n">h</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;order must be either a number or a tuple of (order_highpass, order_lowpass)&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"order must be either a number or a tuple of (order_highpass, order_lowpass)"</span><span class="p">)</span>
         
     <span class="k">return</span> <span class="n">xx</span></div>
 
@@ -761,7 +761,7 @@
                        <span class="n">sampling_rate</span><span class="p">,</span>
                        <span class="n">phase_p1</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bandpass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
                        <span class="n">quadratic_term</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">quadratic_term_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Analytic pulse as described in PhD thesis Glaser and NuRadioReco paper in the time domain</span>
 
 <span class="sd">    Parameters</span>
@@ -793,7 +793,7 @@
 <span class="sd">    quadratic_term_offset:</span>
 <span class="sd">        default 0</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">xx</span> <span class="o">=</span> <span class="n">get_analytic_pulse_freq</span><span class="p">(</span><span class="n">amp_p0</span><span class="p">,</span> <span class="n">amp_p1</span><span class="p">,</span> <span class="n">phase_p0</span><span class="p">,</span> <span class="n">n_samples_time</span><span class="p">,</span>
                                  <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">phase_p1</span><span class="o">=</span><span class="n">phase_p1</span><span class="p">,</span>
                                  <span class="n">bandpass</span><span class="o">=</span><span class="n">bandpass</span><span class="p">,</span>

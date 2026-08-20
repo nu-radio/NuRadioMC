@@ -667,80 +667,80 @@ To save computing time, we only simulate two orthogonally oriented horizontal LP
 to cover all signal polarizations. The second one is a deep detector, approximated with a single dipole antenna at 50m depth.
 We combine the four antennas into a single station:</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;channels&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;1&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;adc_n_samples&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;adc_sampling_frequency&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_orientation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_orientation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">180.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_position_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-3.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_position_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-0.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_position_z&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-1.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_rotation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_rotation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;createLPDA_100MHz&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;channel_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;commission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2017-11-01T00:00:00&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;station_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span>
+<span class="w">    </span><span class="nt">"channels"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"1"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">"adc_n_samples"</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"adc_sampling_frequency"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_orientation_phi"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_orientation_theta"</span><span class="p">:</span><span class="w"> </span><span class="mf">180.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_position_x"</span><span class="p">:</span><span class="w"> </span><span class="mf">-3.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_position_y"</span><span class="p">:</span><span class="w"> </span><span class="mf">-0.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_position_z"</span><span class="p">:</span><span class="w"> </span><span class="mf">-1.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_rotation_phi"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_rotation_theta"</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"createLPDA_100MHz"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"channel_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"commission_time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{TinyDate}:2017-11-01T00:00:00"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"decommission_time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{TinyDate}:2038-01-01T00:00:00"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"station_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span>
 <span class="w">        </span><span class="p">},</span>
-<span class="w">        </span><span class="nt">&quot;2&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;adc_n_samples&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;adc_sampling_frequency&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_orientation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_orientation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">180.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_position_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_position_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_position_z&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-1.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_rotation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">270.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_rotation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;createLPDA_100MHz&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;channel_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;commission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2017-11-01T00:00:00&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;station_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span>
+<span class="w">        </span><span class="nt">"2"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">"adc_n_samples"</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"adc_sampling_frequency"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_orientation_phi"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_orientation_theta"</span><span class="p">:</span><span class="w"> </span><span class="mf">180.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_position_x"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_position_y"</span><span class="p">:</span><span class="w"> </span><span class="mf">3.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_position_z"</span><span class="p">:</span><span class="w"> </span><span class="mf">-1.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_rotation_phi"</span><span class="p">:</span><span class="w"> </span><span class="mf">270.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_rotation_theta"</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"createLPDA_100MHz"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"channel_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"commission_time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{TinyDate}:2017-11-01T00:00:00"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"decommission_time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{TinyDate}:2038-01-01T00:00:00"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"station_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span>
 <span class="w">        </span><span class="p">},</span>
-<span class="w">        </span><span class="nt">&quot;3&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;adc_n_samples&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;adc_sampling_frequency&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_orientation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_orientation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_position_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_position_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_position_z&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-5.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_rotation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_rotation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bicone_v8&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;channel_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;commission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2017-11-01T00:00:00&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;station_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span>
+<span class="w">        </span><span class="nt">"3"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">"adc_n_samples"</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"adc_sampling_frequency"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_orientation_phi"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_orientation_theta"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_position_x"</span><span class="p">:</span><span class="w"> </span><span class="mf">3.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_position_y"</span><span class="p">:</span><span class="w"> </span><span class="mf">3.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_position_z"</span><span class="p">:</span><span class="w"> </span><span class="mf">-5.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_rotation_phi"</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_rotation_theta"</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"bicone_v8"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"channel_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"commission_time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{TinyDate}:2017-11-01T00:00:00"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"decommission_time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{TinyDate}:2038-01-01T00:00:00"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"station_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span>
 <span class="w">        </span><span class="p">},</span>
-<span class="w">        </span><span class="nt">&quot;4&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;adc_n_samples&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;adc_sampling_frequency&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_orientation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_orientation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_position_x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_position_y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_position_z&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-40.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_rotation_phi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_rotation_theta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;ant_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bicone_v8&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;channel_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;commission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2017-11-01T00:00:00&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;station_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span>
+<span class="w">        </span><span class="nt">"4"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">"adc_n_samples"</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"adc_sampling_frequency"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_orientation_phi"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_orientation_theta"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_position_x"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_position_y"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_position_z"</span><span class="p">:</span><span class="w"> </span><span class="mf">-40.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_rotation_phi"</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_rotation_theta"</span><span class="p">:</span><span class="w"> </span><span class="mf">90.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"ant_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"bicone_v8"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"channel_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"commission_time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{TinyDate}:2017-11-01T00:00:00"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"decommission_time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{TinyDate}:2038-01-01T00:00:00"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"station_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span>
 <span class="w">        </span><span class="p">}</span>
 <span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;stations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;1&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;commission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2017-11-04T00:00:00&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;decommission_time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;{TinyDate}:2038-01-01T00:00:00&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;pos_altitude&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2800.0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;pos_site&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;southpole&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;position&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SP1&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;station_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span>
+<span class="w">    </span><span class="nt">"stations"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"1"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">"commission_time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{TinyDate}:2017-11-04T00:00:00"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"decommission_time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{TinyDate}:2038-01-01T00:00:00"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"pos_altitude"</span><span class="p">:</span><span class="w"> </span><span class="mf">2800.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"pos_site"</span><span class="p">:</span><span class="w"> </span><span class="s2">"southpole"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"position"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SP1"</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">"station_id"</span><span class="p">:</span><span class="w"> </span><span class="mi">101</span>
 <span class="w">        </span><span class="p">}</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="p">}</span>
@@ -760,19 +760,19 @@ Hence, for every station separation distance, we place consider only the eight n
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;single_position.json&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"single_position.json"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
     <span class="n">detector_single</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>
 
     <span class="n">detector_full</span> <span class="o">=</span><span class="p">{}</span>
-    <span class="n">detector_full</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">detector_single</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">]</span>
-    <span class="n">detector_full</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">detector_full</span><span class="p">[</span><span class="s1">'stations'</span><span class="p">]</span> <span class="o">=</span> <span class="n">detector_single</span><span class="p">[</span><span class="s1">'stations'</span><span class="p">]</span>
+    <span class="n">detector_full</span><span class="p">[</span><span class="s1">'channels'</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="c1"># insert station at center</span>
     <span class="n">i</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">detector_single</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">detector_single</span><span class="p">[</span><span class="s1">'channels'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">channel</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
-        <span class="n">channel</span><span class="p">[</span><span class="s1">&#39;channel_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
-        <span class="n">detector_full</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">channel</span>
+        <span class="n">channel</span><span class="p">[</span><span class="s1">'channel_id'</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="n">detector_full</span><span class="p">[</span><span class="s1">'channels'</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">channel</span>
 
     <span class="n">distances</span> <span class="o">=</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">250</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">750</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">1250</span><span class="p">,</span> <span class="mi">1500</span><span class="p">]</span>
     <span class="n">xx</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -782,18 +782,18 @@ Hence, for every station separation distance, we place consider only the eight n
             <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">d</span><span class="p">]:</span>
                 <span class="k">if</span><span class="p">(</span><span class="n">x</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">y</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
                     <span class="k">continue</span>
-                <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">detector_single</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">detector_single</span><span class="p">[</span><span class="s1">'channels'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                     <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                     <span class="n">channel</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
-                    <span class="n">channel</span><span class="p">[</span><span class="s1">&#39;ant_position_x&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span>
-                    <span class="n">channel</span><span class="p">[</span><span class="s1">&#39;ant_position_y&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">y</span><span class="p">)</span>
-                    <span class="n">channel</span><span class="p">[</span><span class="s1">&#39;channel_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
-                    <span class="n">detector_full</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">channel</span>
+                    <span class="n">channel</span><span class="p">[</span><span class="s1">'ant_position_x'</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                    <span class="n">channel</span><span class="p">[</span><span class="s1">'ant_position_y'</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                    <span class="n">channel</span><span class="p">[</span><span class="s1">'channel_id'</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+                    <span class="n">detector_full</span><span class="p">[</span><span class="s1">'channels'</span><span class="p">][</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="n">channel</span>
                     <span class="n">xx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
                     <span class="n">yy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;horizontal_spacing_detector.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
-        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">detector_full</span><span class="p">,</span> <span class="n">fout</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;: &#39;</span><span class="p">))</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'horizontal_spacing_detector.json'</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">detector_full</span><span class="p">,</span> <span class="n">fout</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s1">','</span><span class="p">,</span> <span class="s1">': '</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Simulating such a detector will allow to determine the probability that the central station at (0,0)
@@ -811,12 +811,12 @@ This trigger is chosen to obtain a rough preselection that could fulfill the coi
     <span class="n">channelResampler</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">dt</span><span class="p">)</span>
     <span class="c1"># bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter</span>
     <span class="n">channelBandPassFilter</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">passband</span><span class="o">=</span><span class="p">[</span><span class="mi">80</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">500</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">],</span>
-                            <span class="n">filter_type</span><span class="o">=</span><span class="s1">&#39;butter10&#39;</span><span class="p">)</span>
+                            <span class="n">filter_type</span><span class="o">=</span><span class="s1">'butter10'</span><span class="p">)</span>
     <span class="n">triggerSimulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
                         <span class="n">threshold</span><span class="o">=</span><span class="mi">1</span> <span class="o">*</span> <span class="n">Vrms</span><span class="p">,</span>
                         <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                         <span class="n">number_concidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                        <span class="n">trigger_name</span><span class="o">=</span><span class="s1">&#39;pre_trigger_1sigma&#39;</span>
+                        <span class="n">trigger_name</span><span class="o">=</span><span class="s1">'pre_trigger_1sigma'</span>
 </pre></div>
 </div>
 </section>
@@ -833,14 +833,14 @@ As we study the multi-station coincidences for different neutrino energies, we g
 <p>This calculation is done with the following Python code</p>
 <div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">iF</span><span class="p">,</span> <span class="n">filename</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;*.hdf5&quot;</span><span class="p">))):</span>
+<span class="k">for</span> <span class="n">iF</span><span class="p">,</span> <span class="n">filename</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.hdf5"</span><span class="p">))):</span>
 
     <span class="n">fin</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;det.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
-        <span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fin</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;detector&#39;</span><span class="p">])</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">'det.json'</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+        <span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fin</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'detector'</span><span class="p">])</span>
         <span class="n">fout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-    <span class="n">det</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="n">json_filename</span><span class="o">=</span><span class="s2">&quot;det.json&quot;</span><span class="p">)</span>
-    <span class="n">max_amps_env</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fin</span><span class="p">[</span><span class="s1">&#39;maximum_amplitudes_envelope&#39;</span><span class="p">])</span>
+    <span class="n">det</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="n">json_filename</span><span class="o">=</span><span class="s2">"det.json"</span><span class="p">)</span>
+    <span class="n">max_amps_env</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fin</span><span class="p">[</span><span class="s1">'maximum_amplitudes_envelope'</span><span class="p">])</span>
 
     <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">max_amps_env</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">max_amps_env</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -861,14 +861,14 @@ As we study the multi-station coincidences for different neutrino energies, we g
         <span class="c1"># calculate coincidence fraction</span>
         <span class="n">coincidence_fractions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">triggered</span><span class="p">[:,</span> <span class="n">mask</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">triggered_near</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">triggered_near</span><span class="p">)</span>
 
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="n">coincidence_fractions</span><span class="p">,</span> <span class="n">php</span><span class="o">.</span><span class="n">get_marker2</span><span class="p">(</span><span class="n">iF</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;E = </span><span class="si">{:.2g}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fin</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;Emin&#39;</span><span class="p">]))</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;distance [m]&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;coincidence fraction&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;surface antennas&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="n">coincidence_fractions</span><span class="p">,</span> <span class="n">php</span><span class="o">.</span><span class="n">get_marker2</span><span class="p">(</span><span class="n">iF</span><span class="p">)</span><span class="o">+</span><span class="s1">'-'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"E = </span><span class="si">{:.2g}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fin</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'Emin'</span><span class="p">]))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"distance [m]"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"coincidence fraction"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"surface antennas"</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">semilogy</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;coincidences.png&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"coincidences.png"</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>

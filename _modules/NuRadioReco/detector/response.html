@@ -664,7 +664,7 @@
 <div class="viewcode-block" id="Response">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Response</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    This class provides an interface to read-in and apply the complex response functions of the</span>
 <span class="sd">    various components of the signal chain of a RNO-G channel. The class allows to combine the</span>
 <span class="sd">    response of several components into one response by multiplying them.</span>
@@ -683,14 +683,14 @@
 <span class="sd">        freq = np.arange(50, 1000) * units.MHz</span>
 <span class="sd">        complex_resp = response(freq)</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">frequency</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_unit</span><span class="p">,</span> <span class="n">time_delay</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"default"</span><span class="p">,</span> <span class="n">station_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">remove_time_delay</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">debug_plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">attenuator_in_dB</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Specify the response of a component by either providing a frequency vector, absolute gain and phase vector</span>
 <span class="sd">        as well as corresponding units (`y` and `y_unit` are a list of two entried for gain (0) and phase (1)), or</span>
 <span class="sd">        by providing a single value for the gain (`y` is a float and `y_unit` is a string).</span>
@@ -707,18 +707,18 @@
 <span class="sd">            The unit of both entries is specified with the next argument.</span>
 
 <span class="sd">        y_unit : [str, str] or str</span>
-<span class="sd">            The first entry specifies the unit of the measured amplitude. Options are &quot;dB&quot;, &quot;MAG&quot; and &quot;mag&quot;.</span>
-<span class="sd">            The second entry specifies the unit of the measured phase. Options are &quot;rad&quot; and &quot;deg&quot;.</span>
+<span class="sd">            The first entry specifies the unit of the measured amplitude. Options are "dB", "MAG" and "mag".</span>
+<span class="sd">            The second entry specifies the unit of the measured phase. Options are "rad" and "deg".</span>
 
 <span class="sd">        time_delay : float (Default: 0)</span>
-<span class="sd">            &quot;Average&quot; group delay. Read from database. Will be used to normalize the phase and stored alongside response</span>
+<span class="sd">            "Average" group delay. Read from database. Will be used to normalize the phase and stored alongside response</span>
 
 <span class="sd">        weight : float (Default: 1)</span>
-<span class="sd">            Specifies the weight with which this component reponse &quot;adds&quot; to the total signal-chain response or data.</span>
+<span class="sd">            Specifies the weight with which this component reponse "adds" to the total signal-chain response or data.</span>
 <span class="sd">            Its the exponent of the complex multiplicitive gain. That means that a value of 1 means to linear multiply this</span>
 <span class="sd">            reponse while a value of -1 means to divide by this reponse.</span>
 
-<span class="sd">        name : str (Default: &quot;default&quot;)</span>
+<span class="sd">        name : str (Default: "default")</span>
 <span class="sd">            Give the response a name. This is only use for printing purposes.</span>
 
 <span class="sd">        station_id : int (Default: None)</span>
@@ -741,8 +741,8 @@
 
 <span class="sd">        log_level : `logging.LOG_LEVEL` (Default: logging.NOTSET)</span>
 <span class="sd">            Overrides verbosity level of logger. Other options are: `logging.WARNING`, `logging.DEBUG`, ...</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.Response&quot;</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.Response"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__names</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span><span class="p">]</span>
@@ -752,13 +752,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_sanity_check</span> <span class="o">=</span> <span class="kc">True</span> <span class="c1"># Tmp</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_id</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Station and channel id were not defined for response </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">. Please do that.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Station and channel id were not defined for response </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">. Please do that."</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">frequency</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">frequency</span><span class="p">)</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span>
 
             <span class="k">if</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Data for response incomplete, detected </span><span class="se">\&quot;</span><span class="s2">None</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Data for response incomplete, detected </span><span class="se">\"</span><span class="s2">None</span><span class="se">\"</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="n">y_ampl</span><span class="p">,</span> <span class="n">y_phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
             <span class="n">y_ampl_unit</span> <span class="o">=</span> <span class="n">y_unit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -768,34 +768,34 @@
             <span class="n">y_phase</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">y_ampl_unit</span> <span class="o">=</span> <span class="n">y_unit</span>
 
-        <span class="k">if</span> <span class="n">y_ampl_unit</span> <span class="o">==</span> <span class="s2">&quot;dB&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">y_ampl_unit</span> <span class="o">==</span> <span class="s2">"dB"</span><span class="p">:</span>
             <span class="n">gain</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">y_ampl</span> <span class="o">/</span> <span class="mi">20</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">y_ampl_unit</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;mag&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">y_ampl_unit</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"mag"</span><span class="p">:</span>
             <span class="n">gain</span> <span class="o">=</span> <span class="n">y_ampl</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">KeyError</span>
 
         <span class="k">if</span> <span class="n">attenuator_in_dB</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The `attenuator_in_dB` argument is deprecated. &quot;</span>
-                                <span class="s2">&quot;Please define a new response object with a single valued gain instead.&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;The `attenuator_in_dB` argument is deprecated. &quot;</span>
-                                <span class="s2">&quot;Please define a new response object with a single valued gain instead.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"The `attenuator_in_dB` argument is deprecated. "</span>
+                                <span class="s2">"Please define a new response object with a single valued gain instead."</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"The `attenuator_in_dB` argument is deprecated. "</span>
+                                <span class="s2">"Please define a new response object with a single valued gain instead."</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">y_phase</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># if a full complex response is given</span>
 
-            <span class="k">if</span> <span class="n">y_unit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;deg&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">y_unit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"deg"</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_phase</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Is the phase really in deg? Does not look like it... &quot;</span>
-                                        <span class="sa">f</span><span class="s2">&quot;Do not convert </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> to rad: </span><span class="si">{</span><span class="n">y_phase</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Is the phase really in deg? Does not look like it... "</span>
+                                        <span class="sa">f</span><span class="s2">"Do not convert </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> to rad: </span><span class="si">{</span><span class="n">y_phase</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">y_phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">y_phase</span><span class="p">)</span>
 
-            <span class="k">elif</span> <span class="n">y_unit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;rad&quot;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">y_unit</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"rad"</span><span class="p">:</span>
                 <span class="c1"># We can not make this test because the phase might be already unwrapped</span>
                 <span class="c1"># if np.amax(y_phase) - np.amin(y_phase) &gt; 2 * np.pi:</span>
-                <span class="c1">#     self.logger.warning(&quot;Is the phase really in rad? Does not look like it... &quot;</span>
-                <span class="c1">#                         f&quot;Do convert {name} to rad: {y_phase}&quot;)</span>
+                <span class="c1">#     self.logger.warning("Is the phase really in rad? Does not look like it... "</span>
+                <span class="c1">#                         f"Do convert {name} to rad: {y_phase}")</span>
                 <span class="n">y_phase</span> <span class="o">=</span> <span class="n">y_phase</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">KeyError</span>
@@ -803,15 +803,15 @@
             <span class="k">if</span> <span class="n">time_delay</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">time_delay</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;The frequency binning (resolution) of </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MHz &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;of the response function is too large/coarse to correctly remove the time delay of </span><span class="si">{</span><span class="n">time_delay</span><span class="si">}</span><span class="s2"> ns. &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;This is a sign of potential aliasing. You need to upsample the response function &quot;</span>
-                        <span class="s2">&quot;(zero padding in the time domain).&quot;</span><span class="p">)</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Time delay too large for frequency resolution. Upsample the response function.&quot;</span><span class="p">)</span>
+                        <span class="sa">f</span><span class="s2">"The frequency binning (resolution) of </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">1e3</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MHz "</span>
+                        <span class="sa">f</span><span class="s2">"of the response function is too large/coarse to correctly remove the time delay of </span><span class="si">{</span><span class="n">time_delay</span><span class="si">}</span><span class="s2"> ns. "</span>
+                        <span class="sa">f</span><span class="s2">"This is a sign of potential aliasing. You need to upsample the response function "</span>
+                        <span class="s2">"(zero padding in the time domain)."</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Time delay too large for frequency resolution. Upsample the response function."</span><span class="p">)</span>
 
             <span class="c1"># Remove the average group delay from response</span>
             <span class="k">if</span> <span class="n">remove_time_delay</span> <span class="ow">and</span> <span class="n">time_delay</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Remove a time delay of </span><span class="si">{</span><span class="n">time_delay</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ns from </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Remove a time delay of </span><span class="si">{</span><span class="n">time_delay</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ns from </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="n">y_phase_orig</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">y_phase</span><span class="p">))</span>
                 <span class="n">_response</span> <span class="o">=</span> <span class="n">subtract_time_delay_from_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">gain</span><span class="p">,</span> <span class="n">y_phase</span><span class="p">,</span> <span class="n">time_delay</span><span class="p">)</span>
                 <span class="n">y_phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">_response</span><span class="p">)</span>
@@ -821,10 +821,10 @@
             <span class="n">y_phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">y_phase</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">__gains</span> <span class="o">=</span> <span class="p">[</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">gain</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">gain</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)]</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">__phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">y_phase</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">y_phase</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># if only a gain or time delay is given</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__gains</span> <span class="o">=</span> <span class="p">[</span><span class="n">gain</span><span class="p">]</span>
@@ -832,13 +832,13 @@
 
             <span class="c1"># sanity check</span>
             <span class="k">if</span> <span class="n">gain</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">time_delay</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Single value response </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> has a gain of </span><span class="si">{</span><span class="n">gain</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> and a time delay of </span><span class="si">{</span><span class="n">time_delay</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ns. &quot;</span>
-                                    <span class="s2">&quot;This is not a valid response. Please check your input.&quot;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Single value response </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> has a gain of </span><span class="si">{</span><span class="n">gain</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> and a time delay of </span><span class="si">{</span><span class="n">time_delay</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ns. &quot;</span>
-                                    <span class="s2">&quot;This is not a valid response. Please check your input.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Single value response </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> has a gain of </span><span class="si">{</span><span class="n">gain</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> and a time delay of </span><span class="si">{</span><span class="n">time_delay</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ns. "</span>
+                                    <span class="s2">"This is not a valid response. Please check your input."</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Single value response </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> has a gain of </span><span class="si">{</span><span class="n">gain</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> and a time delay of </span><span class="si">{</span><span class="n">time_delay</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ns. "</span>
+                                    <span class="s2">"This is not a valid response. Please check your input."</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">weight</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
-            <span class="n">err</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Only a response weight of [-1, 1] is allowed (value is </span><span class="si">{</span><span class="n">weight</span><span class="si">}</span><span class="s2">).&quot;</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Only a response weight of [-1, 1] is allowed (value is </span><span class="si">{</span><span class="n">weight</span><span class="si">}</span><span class="s2">)."</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
 
@@ -851,39 +851,39 @@
             <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
             <span class="n">frequency_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">10000</span><span class="p">)</span>
-            <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">gain</span><span class="p">,</span> <span class="s2">&quot;C0o&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-            <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequency_interp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__gains</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">frequency_interp</span><span class="p">),</span> <span class="s2">&quot;C1--&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;interpolation&quot;</span><span class="p">)</span>
+            <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">gain</span><span class="p">,</span> <span class="s2">"C0o"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"data"</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequency_interp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__gains</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">frequency_interp</span><span class="p">),</span> <span class="s2">"C1--"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"interpolation"</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">remove_time_delay</span><span class="p">:</span>
-                <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">y_phase_orig</span><span class="p">,</span> <span class="s2">&quot;C0o&quot;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Original phase&quot;</span><span class="p">)</span>
+                <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">y_phase_orig</span><span class="p">,</span> <span class="s2">"C0o"</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Original phase"</span><span class="p">)</span>
                 <span class="n">ax2</span> <span class="o">=</span> <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
-                <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">y_phase</span><span class="p">,</span> <span class="s2">&quot;C2o&quot;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Excl. time delay of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">ns&quot;</span><span class="p">)</span>
-                <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequency_interp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__phases</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">frequency_interp</span><span class="p">),</span> <span class="s2">&quot;C3--&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;interpolation&quot;</span><span class="p">)</span>
-                <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;norm. phase / rad&quot;</span><span class="p">)</span>
+                <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">y_phase</span><span class="p">,</span> <span class="s2">"C2o"</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Excl. time delay of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">ns"</span><span class="p">)</span>
+                <span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequency_interp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__phases</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">frequency_interp</span><span class="p">),</span> <span class="s2">"C3--"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"interpolation"</span><span class="p">)</span>
+                <span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"norm. phase / rad"</span><span class="p">)</span>
                 <span class="n">ax2</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">y_phase</span><span class="p">,</span> <span class="s2">&quot;C0o&quot;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-                <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequency_interp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__phases</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">frequency_interp</span><span class="p">),</span> <span class="s2">&quot;C1--&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">,</span> <span class="n">y_phase</span><span class="p">,</span> <span class="s2">"C0o"</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequency_interp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__phases</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">frequency_interp</span><span class="p">),</span> <span class="s2">"C1--"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-            <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;gain&quot;</span><span class="p">)</span>
-            <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;phase / rad&quot;</span><span class="p">)</span>
+            <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"gain"</span><span class="p">)</span>
+            <span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"phase / rad"</span><span class="p">)</span>
 
             <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
             <span class="n">group_delay</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">y_phase</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
-            <span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">group_delay</span><span class="p">,</span> <span class="s2">&quot;C0o&quot;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">group_delay</span><span class="p">,</span> <span class="s2">"C0o"</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
             <span class="n">frequency_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">([</span><span class="mi">50</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">__frequency</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">800</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">group_delay</span><span class="p">[</span><span class="n">frequency_mask</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">group_delay</span><span class="p">[</span><span class="n">frequency_mask</span><span class="p">]))</span>
-            <span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;group delay / ns&quot;</span><span class="p">)</span>
+            <span class="n">axs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"group delay / ns"</span><span class="p">)</span>
 
-            <span class="n">axs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;frequency / GHz&quot;</span><span class="p">)</span>
+            <span class="n">axs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"frequency / GHz"</span><span class="p">)</span>
             <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_id</span><span class="si">}</span><span class="s1">_&#39;</span>
-                        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">T%H%M%S&quot;</span><span class="p">)</span><span class="si">}</span><span class="s1">_debug.png&#39;</span><span class="p">,</span> <span class="n">transparent</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_id</span><span class="si">}</span><span class="s1">_'</span>
+                        <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">"%Y%m</span><span class="si">%d</span><span class="s2">T%H%M%S"</span><span class="p">)</span><span class="si">}</span><span class="s1">_debug.png'</span><span class="p">,</span> <span class="n">transparent</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">component_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blacklist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">window_response</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the complex response for a given frequency.</span>
 
 <span class="sd">        Parameters</span>
@@ -909,7 +909,7 @@
 
 <span class="sd">        response: np.array(np.complex128)</span>
 <span class="sd">            The complex response at the desired frequencies</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)</span>
         <span class="n">freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
 
@@ -943,11 +943,11 @@
 
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">)):</span>
             <span class="k">if</span> <span class="n">component_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Returned response is equal to 1. &quot;</span>
-                                <span class="sa">f</span><span class="s2">&quot;Did you requested a non-existing component (</span><span class="si">{</span><span class="n">component_names</span><span class="si">}</span><span class="s2">)? &quot;</span>
-                                <span class="sa">f</span><span class="s2">&quot;Options are: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Returned response is equal to 1. "</span>
+                                <span class="sa">f</span><span class="s2">"Did you requested a non-existing component (</span><span class="si">{</span><span class="n">component_names</span><span class="si">}</span><span class="s2">)? "</span>
+                                <span class="sa">f</span><span class="s2">"Options are: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Returned response is equal to 1.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Returned response is equal to 1."</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">window_response</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.signal_processing</span><span class="w"> </span><span class="kn">import</span> <span class="n">window_response_in_time_domain</span>
@@ -958,14 +958,14 @@
 <div class="viewcode-block" id="Response.get_names">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.get_names">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get list of the names of all individual responses &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Get list of the names of all individual responses """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__names</span></div>
 
 
 <div class="viewcode-block" id="Response.remove">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.remove">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Remove a component response from the response object.</span>
 
 <span class="sd">        Parameters</span>
@@ -973,9 +973,9 @@
 
 <span class="sd">        name: str</span>
 <span class="sd">            Name of the component to remove</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_names</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Component </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> not found in response. Options are: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_names</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Component </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> not found in response. Options are: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_names</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
@@ -988,7 +988,7 @@
 <div class="viewcode-block" id="Response.get">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.get">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get a component response from the response object.</span>
 
 <span class="sd">        Parameters</span>
@@ -996,9 +996,9 @@
 
 <span class="sd">        name: str</span>
 <span class="sd">            Name of the component to get</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_names</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Component </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> not found in response. Options are: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_names</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Component </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> not found in response. Options are: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_names</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="n">single_response</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -1012,20 +1012,20 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Define multiplication operator for</span>
 <span class="sd">            - Other objects of the same class</span>
 <span class="sd">            - Objects of type NuRadioReco.framework.base_trace</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Response</span><span class="p">):</span>
             <span class="bp">self</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
             <span class="c1"># station_id == -1 is a special case to all non-station specific responses</span>
             <span class="k">if</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_station_id</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_id</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_channel_id</span><span class="p">)</span> <span class="ow">and</span>
                 <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;It looks like you are combining responses from &quot;</span>
-                                  <span class="sa">f</span><span class="s2">&quot;two different channels: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_id</span><span class="si">}</span><span class="s2"> &quot;</span>
-                                  <span class="sa">f</span><span class="s2">&quot; vs </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">_station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">_channel_id</span><span class="si">}</span><span class="s2"> (station_id.channel_id)&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"It looks like you are combining responses from "</span>
+                                  <span class="sa">f</span><span class="s2">"two different channels: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_id</span><span class="si">}</span><span class="s2"> "</span>
+                                  <span class="sa">f</span><span class="s2">" vs </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">_station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">_channel_id</span><span class="si">}</span><span class="s2"> (station_id.channel_id)"</span><span class="p">)</span>
 
             <span class="c1"># Store each response individually: append/concatenate lists of gains and phases.</span>
             <span class="c1"># The multiplication happens in __call__.</span>
@@ -1042,35 +1042,35 @@
                 <span class="n">trace_length</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">/</span> <span class="n">other</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
                 <span class="n">time_delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_time_delay</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">time_delay</span> <span class="o">&gt;</span> <span class="n">trace_length</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The time shift appiled by the response is larger than half the trace length:</span><span class="se">\n\t</span><span class="s2">&quot;</span>
-                                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">time_delay</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">trace_length</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"The time shift appiled by the response is larger than half the trace length:</span><span class="se">\n\t</span><span class="s2">"</span>
+                                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">time_delay</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">trace_length</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="n">spec</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
             <span class="n">freqs</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
             <span class="n">spec</span> <span class="o">*=</span> <span class="bp">self</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>  <span class="c1"># __call__</span>
             <span class="n">other</span><span class="o">.</span><span class="n">add_trace_start_time</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">))</span>
-            <span class="n">other</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">)</span>
+            <span class="n">other</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="s2">"same"</span><span class="p">)</span>
 
             <span class="k">return</span> <span class="n">other</span>
 
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;You try to multiply a `Response` object with a numpy array, &quot;</span>
-                            <span class="s2">&quot;only `Response` or `BaseTrace` is allowed. &quot;</span>
-                            <span class="s2">&quot;Did you call `get_trace()` or `get_frequency_spectrum()` on `BaseTrace`?&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"You try to multiply a `Response` object with a numpy array, "</span>
+                            <span class="s2">"only `Response` or `BaseTrace` is allowed. "</span>
+                            <span class="s2">"Did you call `get_trace()` or `get_frequency_spectrum()` on `BaseTrace`?"</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Response multiplied with unknown type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Response multiplied with unknown type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Same as mul &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Same as mul """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__mul__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__truediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Define multiplication operator for</span>
 <span class="sd">            - Other objects of the same class</span>
 <span class="sd">            - Objects of type NuRadioReco.framework.base_trace</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Response</span><span class="p">):</span>
             <span class="bp">self</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -1078,9 +1078,9 @@
             <span class="k">if</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_station_id</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_id</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">_channel_id</span><span class="p">)</span> <span class="ow">and</span>
                 <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                    <span class="s2">&quot;It looks like you are combining responses from &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;two different channels: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_id</span><span class="si">}</span><span class="s2"> &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot; vs </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">_station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">_channel_id</span><span class="si">}</span><span class="s2"> (station_id.channel_id)&quot;</span><span class="p">)</span>
+                    <span class="s2">"It looks like you are combining responses from "</span>
+                    <span class="sa">f</span><span class="s2">"two different channels: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_id</span><span class="si">}</span><span class="s2"> "</span>
+                    <span class="sa">f</span><span class="s2">" vs </span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">_station_id</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">other</span><span class="o">.</span><span class="n">_channel_id</span><span class="si">}</span><span class="s2"> (station_id.channel_id)"</span><span class="p">)</span>
 
             <span class="c1"># Store each response individually: append/concatenate lists of gains and phases.</span>
             <span class="c1"># The multiplication happens in __call__.</span>
@@ -1098,29 +1098,29 @@
                 <span class="n">trace_length</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">/</span> <span class="n">other</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
                 <span class="n">time_delay</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_time_delay</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">time_delay</span> <span class="o">&gt;</span> <span class="n">trace_length</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The time shift appiled by the response is larger than half the trace length:</span><span class="se">\n\t</span><span class="s2">&quot;</span>
-                                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">time_delay</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">trace_length</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"The time shift appiled by the response is larger than half the trace length:</span><span class="se">\n\t</span><span class="s2">"</span>
+                                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">time_delay</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">trace_length</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="n">spec</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
             <span class="n">freqs</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
             <span class="n">spec</span> <span class="o">*=</span> <span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>  <span class="c1"># __call__</span>
             <span class="n">other</span><span class="o">.</span><span class="n">add_trace_start_time</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">))</span>
-            <span class="n">other</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">)</span>
+            <span class="n">other</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="s2">"same"</span><span class="p">)</span>
 
             <span class="k">return</span> <span class="n">other</span>
 
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;You try to multiply a `Response` object with a numpy array, &quot;</span>
-                            <span class="s2">&quot;only `Response` or `BaseTrace` is allowed. &quot;</span>
-                            <span class="s2">&quot;Did you call `get_trace()` or `get_frequency_spectrum()` on `BaseTrace`?&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"You try to multiply a `Response` object with a numpy array, "</span>
+                            <span class="s2">"only `Response` or `BaseTrace` is allowed. "</span>
+                            <span class="s2">"Did you call `get_trace()` or `get_frequency_spectrum()` on `BaseTrace`?"</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Response multiplied with unknown type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Response multiplied with unknown type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ampl</span> <span class="o">=</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">)))</span>
-        <span class="k">return</span> <span class="s2">&quot;Response of &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">weight</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_names</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__weights</span><span class="p">)])</span> \
-            <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;: |R([0.15, 0.5] GHz)| = [</span><span class="si">{</span><span class="n">ampl</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">ampl</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">] dB (amplitude) (</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ns)&quot;</span>
+        <span class="k">return</span> <span class="s2">"Response of "</span> <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">weight</span><span class="si">}</span><span class="s2">)"</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_names</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__weights</span><span class="p">)])</span> \
+            <span class="o">+</span> <span class="sa">f</span><span class="s2">": |R([0.15, 0.5] GHz)| = [</span><span class="si">{</span><span class="n">ampl</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">ampl</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">] dB (amplitude) (</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ns)"</span>
 
 <div class="viewcode-block" id="Response.plot">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.plot">[docs]</a>
@@ -1141,16 +1141,16 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">_gain</span> <span class="o">=</span> <span class="n">gain</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
 
-                <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span>
-                <span class="n">ls</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span> <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;--&quot;</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"_"</span><span class="p">,</span> <span class="s2">" "</span><span class="p">)</span>
+                <span class="n">ls</span> <span class="o">=</span> <span class="s2">"-"</span> <span class="k">if</span> <span class="n">weight</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">"--"</span>
 
-                <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;golden&quot;</span><span class="p">):</span>
-                    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;golden downhole components&quot;</span><span class="p">,</span> <span class="s2">&quot;ref. comp.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"golden"</span><span class="p">):</span>
+                    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"golden downhole components"</span><span class="p">,</span> <span class="s2">"ref. comp."</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">" "</span><span class="p">):</span>
                     <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-                <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">&lt;25</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">weight</span><span class="si">:</span><span class="s2">&lt;3</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">td</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">ns&quot;</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">&lt;25</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">weight</span><span class="si">:</span><span class="s2">&lt;3</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">td</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">ns"</span>
                 <span class="k">if</span> <span class="n">in_dB</span><span class="p">:</span>
                     <span class="n">mask</span> <span class="o">=</span> <span class="n">_gain</span> <span class="o">&gt;</span> <span class="mi">0</span>  <span class="c1"># to avoid RunTime warning</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">freqs</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">_gain</span><span class="p">[</span><span class="n">mask</span><span class="p">]),</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="n">ls</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">plt_kwargs</span><span class="p">)</span>
@@ -1158,24 +1158,24 @@
                     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">freqs</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">_gain</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="n">ls</span><span class="p">,</span> <span class="o">**</span><span class="n">plt_kwargs</span><span class="p">)</span>
 
         <span class="n">_gain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="p">(</span><span class="n">freqs</span><span class="p">))</span>
-        <span class="k">if</span> <span class="s2">&quot;label&quot;</span> <span class="ow">in</span> <span class="n">plt_kwargs</span><span class="p">:</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="n">plt_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">"label"</span> <span class="ow">in</span> <span class="n">plt_kwargs</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">plt_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"label"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;total: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">ns&quot;</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"total: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">ns"</span>
         <span class="k">if</span> <span class="n">in_dB</span><span class="p">:</span>
             <span class="n">mask</span> <span class="o">=</span> <span class="n">_gain</span> <span class="o">&gt;</span> <span class="mi">0</span>  <span class="c1"># to avoid RunTime warning</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">freqs</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">_gain</span><span class="p">[</span><span class="n">mask</span><span class="p">]),</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">plt_kwargs</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">freqs</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">_gain</span><span class="p">[</span><span class="n">mask</span><span class="p">]),</span> <span class="n">color</span><span class="o">=</span><span class="s2">"k"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">plt_kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">freqs</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">_gain</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">plt_kwargs</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">freqs</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">_gain</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"k"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="o">**</span><span class="n">plt_kwargs</span><span class="p">)</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;frequency / MHz&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"frequency / MHz"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">in_dB</span><span class="p">:</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;gain / dB&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"gain / dB"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;gain&quot;</span><span class="p">)</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"gain"</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">"log"</span><span class="p">)</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="s2">&quot;x-small&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="s2">"x-small"</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
@@ -1189,21 +1189,21 @@
 <div class="viewcode-block" id="Response.get_time_delay">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.get_time_delay">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_time_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get time delay from DB &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Get time delay from DB """</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="Response.get_time_delays">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.get_time_delays">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_time_delays</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Get time delay from DB &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Get time delay from DB """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span></div>
 
 
 <div class="viewcode-block" id="Response.calculate_time_delay">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.Response.calculate_time_delay">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_time_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmin</span><span class="o">=</span><span class="mi">150</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">fmax</span><span class="o">=</span><span class="mi">200</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;mean&quot;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_time_delay</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmin</span><span class="o">=</span><span class="mi">150</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">fmax</span><span class="o">=</span><span class="mi">200</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"mean"</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate time delay from phase of the stored complex response function.</span>
 <span class="sd">        This is not the time delay which is stored in the DB and which is used in</span>
 <span class="sd">        the `__init__()` to normalize the response function. Rather, its the remaining</span>
@@ -1220,8 +1220,8 @@
 <span class="sd">        method: str</span>
 <span class="sd">            Method to calculate the time delay. Options are:</span>
 
-<span class="sd">            - &#39;mean&#39;: Calculate the mean group delay over the band fmin to fmax.</span>
-<span class="sd">            - &#39;fit&#39;: Fit a linear function to the unwrapped phase and calculate the time delay</span>
+<span class="sd">            - 'mean': Calculate the mean group delay over the band fmin to fmax.</span>
+<span class="sd">            - 'fit': Fit a linear function to the unwrapped phase and calculate the time delay</span>
 <span class="sd">                     from the slope of the fit. This is only meaningful if the group delay is</span>
 <span class="sd">                     approximately constant over the whole frequency range (which is the case for most cables).</span>
 
@@ -1229,17 +1229,17 @@
 <span class="sd">        -------</span>
 <span class="sd">        delay : float</span>
 <span class="sd">            The group delay over the band fmin to fmax</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">fmin</span><span class="p">,</span> <span class="n">fmax</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
         <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
         <span class="n">unwrapped_phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">response</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"mean"</span><span class="p">:</span>
             <span class="n">group_delays</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">unwrapped_phase</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">freqs</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">group_delays</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;fit&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"fit"</span><span class="p">:</span>
             <span class="c1"># This alternative calculation is only meaningful if group delay</span>
             <span class="c1"># is ~ constant over the whole frequency range</span>
             <span class="c1"># (which is the case for most cables)</span>
@@ -1251,8 +1251,8 @@
             <span class="k">return</span> <span class="n">time_delay</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown method </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2"> to calculate time delay. &quot;</span>
-                             <span class="s2">&quot;Options are: &#39;mean&#39;, &#39;fit&#39;.&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown method </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2"> to calculate time delay. "</span>
+                             <span class="s2">"Options are: 'mean', 'fit'."</span><span class="p">)</span></div>
 </div>
 
 
@@ -1260,7 +1260,7 @@
 <div class="viewcode-block" id="subtract_time_delay_from_response">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.response.html#NuRadioReco.detector.response.subtract_time_delay_from_response">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">subtract_time_delay_from_response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">resp</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time_delay</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Remove a constant time delay from a complex response function</span>
 
 <span class="sd">    Parameters</span>
@@ -1284,7 +1284,7 @@
 
 <span class="sd">    resp: array of complex floats</span>
 <span class="sd">        Corrected response function</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">resp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">phase</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1296,12 +1296,12 @@
         <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">resp</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">time_delay</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You have to specify a time delay&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"You have to specify a time delay"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">time_delay</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">frequencies</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The frequency binning (resolution) of the response function &quot;</span>
-                         <span class="sa">f</span><span class="s2">&quot;is to large/corse to correctly remove the time delay of </span><span class="si">{</span><span class="n">time_delay</span><span class="si">}</span><span class="s2"> ns. &quot;</span>
-                         <span class="s2">&quot;You need to upsample the response function.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The frequency binning (resolution) of the response function "</span>
+                         <span class="sa">f</span><span class="s2">"is to large/corse to correctly remove the time delay of </span><span class="si">{</span><span class="n">time_delay</span><span class="si">}</span><span class="s2"> ns. "</span>
+                         <span class="s2">"You need to upsample the response function."</span><span class="p">)</span>
 
     <span class="n">resp</span> <span class="o">=</span> <span class="n">gain</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="p">(</span><span class="n">phase</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">time_delay</span> <span class="o">*</span> <span class="n">frequencies</span><span class="p">))</span>
 

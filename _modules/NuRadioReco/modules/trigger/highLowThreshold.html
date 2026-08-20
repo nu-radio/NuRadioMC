@@ -659,7 +659,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.HighLowTriggerSimulator&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.HighLowTriggerSimulator'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_high_low_triggers">
@@ -667,7 +667,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">get_high_low_triggers</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">high_threshold</span><span class="p">,</span> <span class="n">low_threshold</span><span class="p">,</span>
                           <span class="n">time_coincidence</span><span class="o">=</span><span class="mi">5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
                           <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">align_strides_to_start</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculates a high low trigger in a time coincidence window</span>
 
 <span class="sd">    Parameters</span>
@@ -694,24 +694,24 @@
 <span class="sd">    -------</span>
 <span class="sd">    triggered bins: array of bools</span>
 <span class="sd">        the bins where the trigger condition is satisfied</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="n">trace</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">high_threshold</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The trace (</span><span class="si">{</span><span class="n">trace</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">) and the threshold (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">high_threshold</span><span class="p">)</span><span class="si">}</span><span class="s2">) must have the same type&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The trace (</span><span class="si">{</span><span class="n">trace</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">) and the threshold (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">high_threshold</span><span class="p">)</span><span class="si">}</span><span class="s2">) must have the same type&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The trace (</span><span class="si">{</span><span class="n">trace</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">) and the threshold (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">high_threshold</span><span class="p">)</span><span class="si">}</span><span class="s2">) must have the same type"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The trace (</span><span class="si">{</span><span class="n">trace</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">) and the threshold (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">high_threshold</span><span class="p">)</span><span class="si">}</span><span class="s2">) must have the same type"</span><span class="p">)</span>
 
     <span class="n">n_bins_coincidence</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">time_coincidence</span> <span class="o">/</span> <span class="n">dt</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">align_strides_to_start</span><span class="p">:</span>
         <span class="c1"># Pad trace so trigger bin matches with sample index</span>
-        <span class="n">padded_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="p">(</span><span class="n">n_bins_coincidence</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s2">&quot;constant&quot;</span><span class="p">)</span>
+        <span class="n">padded_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="p">(</span><span class="n">n_bins_coincidence</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s2">"constant"</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">padded_trace</span> <span class="o">=</span> <span class="n">trace</span>
 
     <span class="n">num_frames</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">padded_trace</span><span class="p">)</span> <span class="o">-</span> <span class="n">n_bins_coincidence</span><span class="p">)</span> <span class="o">/</span> <span class="n">step</span><span class="p">)</span>
     <span class="n">num_real_frames</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">/</span> <span class="n">step</span><span class="p">)</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;length of trace </span><span class="si">{}</span><span class="s2"> samples, coincidence window </span><span class="si">{}</span><span class="s2">, num window bins </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"length of trace </span><span class="si">{}</span><span class="s2"> samples, coincidence window </span><span class="si">{}</span><span class="s2">, num window bins </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
         <span class="nb">len</span><span class="p">(</span><span class="n">padded_trace</span><span class="p">),</span> <span class="n">n_bins_coincidence</span><span class="p">,</span> <span class="n">num_frames</span><span class="p">))</span>
 
     <span class="c1"># This transforms the trace (n samples) to an array with shape (num_frames, window) where each frame</span>
@@ -738,7 +738,7 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.highLowThreshold.html#NuRadioReco.modules.trigger.highLowThreshold.get_majority_logic">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_majority_logic</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">time_coincidence</span><span class="o">=</span><span class="mi">32</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
                        <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">align_strides_to_start</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculates a majority logic trigger</span>
 
 <span class="sd">    Parameters</span>
@@ -767,18 +767,18 @@
 <span class="sd">        the bins that fulfilled the trigger</span>
 <span class="sd">    triggered_times: array of floats</span>
 <span class="sd">        the trigger times</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">n_bins_coincidence</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">time_coincidence</span> <span class="o">/</span> <span class="n">dt</span><span class="p">))</span>
     <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
     <span class="k">if</span> <span class="n">n_bins_coincidence</span> <span class="o">&gt;</span> <span class="n">n</span><span class="p">:</span>  <span class="c1"># reduce coincidence window to maximum trace length</span>
         <span class="n">n_bins_coincidence</span> <span class="o">=</span> <span class="n">n</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;specified coincidence window longer than tracelength, reducing coincidence window to trace length&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"specified coincidence window longer than tracelength, reducing coincidence window to trace length"</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tts</span><span class="p">)):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">align_strides_to_start</span><span class="p">:</span>
-            <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">tts</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">(</span><span class="n">n_bins_coincidence</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s2">&quot;constant&quot;</span><span class="p">)</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">tts</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">(</span><span class="n">n_bins_coincidence</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s2">"constant"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">trace</span> <span class="o">=</span> <span class="n">tts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
 
@@ -803,11 +803,11 @@
 <div class="viewcode-block" id="triggerSimulator">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.highLowThreshold.html#NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">triggerSimulator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculates the trigger of an event.</span>
 <span class="sd">    Uses the ARIANNA trigger logic, that a single antenna needs to cross a high and a low threshold value,</span>
 <span class="sd">    and then coincidences between antennas can be required.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
@@ -830,16 +830,16 @@
             <span class="n">coinc_window</span><span class="o">=</span><span class="mi">200</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
             <span class="n">number_concidences</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">trigger_name</span><span class="o">=</span><span class="s2">&quot;default_high_low&quot;</span><span class="p">,</span>
+            <span class="n">trigger_name</span><span class="o">=</span><span class="s2">"default_high_low"</span><span class="p">,</span>
             <span class="n">set_not_triggered</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">Vrms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">trigger_adc</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">clock_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-            <span class="n">adc_output</span><span class="o">=</span><span class="s1">&#39;voltage&#39;</span><span class="p">,</span>
+            <span class="n">adc_output</span><span class="o">=</span><span class="s1">'voltage'</span><span class="p">,</span>
             <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
             <span class="n">align_strides_to_start</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">pre_trigger_time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculates the high-low coincidence trigger for an event.</span>
 
 <span class="sd">        Parameters</span>
@@ -874,13 +874,13 @@
 <span class="sd">            If supplied, overrides adc_voltage_range as supplied in the detector description file</span>
 <span class="sd">        trigger_adc: bool</span>
 <span class="sd">            If True, the relevant ADC parameters in the config file are the ones</span>
-<span class="sd">            that start with `&#39;trigger_&#39;`</span>
+<span class="sd">            that start with `'trigger_'`</span>
 <span class="sd">        clock_offset: float</span>
 
 <span class="sd">        adc_output: string</span>
 <span class="sd">            Options:</span>
-<span class="sd">            * &#39;voltage&#39; to store the ADC output as discretised voltage trace</span>
-<span class="sd">            * &#39;counts&#39; to store the ADC output in ADC counts</span>
+<span class="sd">            * 'voltage' to store the ADC output as discretised voltage trace</span>
+<span class="sd">            * 'counts' to store the ADC output in ADC counts</span>
 
 <span class="sd">        step: int</span>
 <span class="sd">            stride length for sampling rate and clock rate mismatch in trigger logic</span>
@@ -900,7 +900,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        has_triggered: bool</span>
 <span class="sd">            True if the trigger condition was met</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">use_digitization</span><span class="p">:</span>
@@ -923,7 +923,7 @@
                     <span class="k">continue</span>
 
                 <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">!=</span> <span class="n">channel_trace_start_time</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly&#39;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">'Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly'</span><span class="p">)</span>
 
                 <span class="n">dt</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
                 <span class="n">trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">())</span>
@@ -935,7 +935,7 @@
                         <span class="n">trigger_adc</span><span class="o">=</span><span class="n">trigger_adc</span><span class="p">,</span>
                         <span class="n">clock_offset</span><span class="o">=</span><span class="n">clock_offset</span><span class="p">,</span>
                         <span class="n">return_sampling_frequency</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">adc_type</span><span class="o">=</span><span class="s1">&#39;perfect_floor_comparator&#39;</span><span class="p">,</span>
+                        <span class="n">adc_type</span><span class="o">=</span><span class="s1">'perfect_floor_comparator'</span><span class="p">,</span>
                         <span class="n">adc_output</span><span class="o">=</span><span class="n">adc_output</span><span class="p">,</span>
                         <span class="n">trigger_filter</span><span class="o">=</span><span class="kc">None</span>
                     <span class="p">)</span>
@@ -953,7 +953,7 @@
                     <span class="n">channels_that_passed_trigger</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
 
                 <span class="n">triggerd_bins_channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">triggerd_bins</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;channel </span><span class="si">{}</span><span class="s2">, len(triggerd_bins) = </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_id</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">triggerd_bins</span><span class="p">)))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"channel </span><span class="si">{}</span><span class="s2">, len(triggerd_bins) = </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_id</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">triggerd_bins</span><span class="p">)))</span>
 
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">triggerd_bins_channels</span><span class="p">):</span>
                 <span class="n">has_triggered</span><span class="p">,</span> <span class="n">triggered_bins</span><span class="p">,</span> <span class="n">triggered_times</span> <span class="o">=</span> <span class="n">get_majority_logic</span><span class="p">(</span>
@@ -970,12 +970,12 @@
 
                 <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">channels_max_amplitude</span><span class="p">,</span> <span class="n">max_signal</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;set_not_triggered flag True, setting triggered to False.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"set_not_triggered flag True, setting triggered to False."</span><span class="p">)</span>
             <span class="n">has_triggered</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="n">pre_trigger_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;pre_trigger_times&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pre_trigger_time</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s1">'pre_trigger_times'</span><span class="p">]</span> <span class="o">=</span> <span class="n">pre_trigger_time</span>
         <span class="n">trigger</span> <span class="o">=</span> <span class="n">HighLowTrigger</span><span class="p">(</span><span class="n">trigger_name</span><span class="p">,</span> <span class="n">threshold_high</span><span class="p">,</span> <span class="n">threshold_low</span><span class="p">,</span> <span class="n">high_low_window</span><span class="p">,</span>
                                  <span class="n">coinc_window</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="n">triggered_channels</span><span class="p">,</span> <span class="n">number_of_coincidences</span><span class="o">=</span><span class="n">number_concidences</span><span class="p">,</span>
                                  <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -984,13 +984,13 @@
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">has_triggered</span><span class="p">:</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Station has NOT passed trigger&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Station has NOT passed trigger"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="c1"># trigger_time= time from start of trace + start time of trace with respect to moment of first interaction = trigger time from moment of first interaction</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="n">triggered_times</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">channel_trace_start_time</span><span class="p">)</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_times</span><span class="p">(</span><span class="n">triggered_times</span> <span class="o">+</span> <span class="n">channel_trace_start_time</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Station has passed trigger, trigger time is </span><span class="si">{:.1f}</span><span class="s2"> ns&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Station has passed trigger, trigger time is </span><span class="si">{:.1f}</span><span class="s2"> ns"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">trigger</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">))</span>
 
         <span class="n">station</span><span class="o">.</span><span class="n">set_trigger</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span>
@@ -1005,20 +1005,20 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"total time used by this module is </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">dt</span></div>
 </div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_threshold_channel</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Returns channel specific threshold if threshold is a dict, otherwise returns threshold &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" Returns channel specific threshold if threshold is a dict, otherwise returns threshold """</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">threshold</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
         <span class="k">return</span> <span class="n">threshold</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Threshold must be a int/float or dict, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Threshold must be a int/float or dict, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">threshold</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 
            </div>

@@ -654,7 +654,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.EvtGen.generator</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_events_to_hdf5</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioMC.EventGen&quot;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioMC.EventGen"</span><span class="p">)</span>
 
 <span class="n">VERSION_MAJOR</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">VERSION_MINOR</span> <span class="o">=</span> <span class="mi">1</span>
@@ -663,7 +663,7 @@
 <div class="viewcode-block" id="generate_my_events">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator_skeleton.html#NuRadioMC.EvtGen.generator_skeleton.generate_my_events">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">generate_my_events</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">n_events</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Event generator skeleton</span>
 
 <span class="sd">    Parameters</span>
@@ -672,44 +672,44 @@
 <span class="sd">        the output filename of the hdf5 file</span>
 <span class="sd">    n_events: int</span>
 <span class="sd">        number of events to generate</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># first set the meta attributes</span>
     <span class="n">attributes</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">n_events</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;n_events&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_events</span>  <span class="c1"># the number of events contained in this file</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;start_event_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'n_events'</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_events</span>  <span class="c1"># the number of events contained in this file</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'start_event_id'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="c1"># define the fiducial simulation volume. Instead of specifying fiducial_rmin and fiducial_rmin one can also specify</span>
     <span class="c1"># fiducial_xmin, fiducial_xmax, fiducial_ymin and fiducial_ymax</span>
     <span class="c1"># the concept of the diducial volume is described in the NuRadioMC paper. In short: only interactions in this smaller</span>
     <span class="c1"># fiducial volume are saved. This is useful for the simulation of secondary interactions. For this dummy example</span>
     <span class="c1"># the fiduial volume is the same as the full volume.</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_rmax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;fiducial_zmax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'fiducial_rmin'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'fiducial_rmax'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'fiducial_zmin'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'fiducial_zmax'</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span>
     <span class="c1"># define the full simulation volume. Instead of specifying rmin and rmin one can also specify</span>
     <span class="c1"># xmin, xmax, ymin and ymax</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;rmin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;rmax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;zmin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;zmax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'rmin'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'rmax'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'zmin'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'zmax'</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span>
 
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;rmax&#39;</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;zmax&#39;</span><span class="p">])</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'volume'</span><span class="p">]</span> <span class="o">=</span> <span class="n">attributes</span><span class="p">[</span><span class="s1">'rmax'</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">attributes</span><span class="p">[</span><span class="s1">'zmax'</span><span class="p">])</span>
 
     <span class="c1"># if only interactions on a surface (e.g. for muons from air showers) are generated, the surface area needs to be</span>
-    <span class="c1"># specified attributes[&#39;area&#39;]</span>
+    <span class="c1"># specified attributes['area']</span>
 
     <span class="c1"># define the minumum and maximum energy</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;Emin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;Emax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'Emin'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'Emax'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span>
 
     <span class="c1"># the interval of zenith directions</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;thetamax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'thetamin'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'thetamax'</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
     <span class="c1"># the interval of azimuths directions</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;phimin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;phimax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'phimin'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">attributes</span><span class="p">[</span><span class="s1">'phimax'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
 
     <span class="c1"># now generate the events and fill all required data sets</span>
     <span class="c1"># here we fill all data sets with dummy values</span>
@@ -719,47 +719,47 @@
     <span class="c1"># the shower energy, the shower type and the event group id are required. We set them first</span>
     <span class="n">data_sets</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="c1"># the direction of the shower</span>
-    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;azimuths&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
-    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;zeniths&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">"azimuths"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">"zeniths"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
     <span class="c1"># the position of the shower</span>
-    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;xx&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
-    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;yy&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
-    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;zz&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">"xx"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">"yy"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">"zz"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
     <span class="c1"># the shower energy</span>
-    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;shower_energies&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">"shower_energies"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span>
     <span class="c1"># the shower type (here we only generate hadronic showers). This infomration is needed for the Askaryan emission model</span>
-    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;shower_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;had&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_events</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">"shower_type"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'had'</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_events</span>
     <span class="c1"># give each shower a unique id (we can also have multiple showers for a single event by just giving several showers</span>
     <span class="c1"># the same event_group_id)</span>
-    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;event_group_ids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
-    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;shower_ids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">"event_group_ids"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">"shower_ids"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
 
     <span class="c1"># there are a couple of additional parameters that are required to run a NuRadioMC simulations. These parameters</span>
-    <span class="c1"># don&#39;t influence the simulated radio signals but are required for other post analysis tasks. If these parameters</span>
-    <span class="c1"># are not relevant for the type of data you&#39;re generating, just set them to any value.</span>
+    <span class="c1"># don't influence the simulated radio signals but are required for other post analysis tasks. If these parameters</span>
+    <span class="c1"># are not relevant for the type of data you're generating, just set them to any value.</span>
 
     <span class="c1"># specify which interaction it is (only relevant if multiple showers from the same initial neutrino are simulated)</span>
     <span class="c1"># here it is just 1 for all events.</span>
-    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;n_interaction&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">"n_interaction"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
 
     <span class="c1"># the neutrino flavor. Here we only generate electron neutinos which have the integer code 12.</span>
-    <span class="c1"># the neutrino flavor is only used in the calculation of the &quot;weight&quot;, i.e. the probability of the neutrino reaching</span>
+    <span class="c1"># the neutrino flavor is only used in the calculation of the "weight", i.e. the probability of the neutrino reaching</span>
     <span class="c1"># the detector. If other particles than a neutrino are simulated, just set the flavor to the corresponding particle code</span>
     <span class="c1"># following https://pdg.lbl.gov/2019/reviews/rpp2019-rev-monte-carlo-numbering.pdf or just set it to zero.</span>
-    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;flavors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">12</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">"flavors"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">12</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
     <span class="c1"># the neutrino energy. This field is also only used for the weight calculation.</span>
-    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;energies&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">"energies"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">EeV</span>
 
     <span class="c1"># optionally one can also directly set the event weight here (useful if particles other than neutrinos, or calibration</span>
     <span class="c1"># setups are simulated</span>
-    <span class="c1"># data_sets[&quot;weights&quot;] = np.ones(n_events)</span>
+    <span class="c1"># data_sets["weights"] = np.ones(n_events)</span>
 
     <span class="c1"># the interaction type. For neutrino interactions is can be either CC or NC. This parameter is not used but passed</span>
     <span class="c1"># to the output file for information purposes.</span>
-    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;interaction_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="s2">&quot;nc&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U2&#39;</span><span class="p">)</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">"interaction_type"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n_events</span><span class="p">,</span> <span class="s2">"nc"</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'U2'</span><span class="p">)</span>
     <span class="c1"># The inelasiticiy, i.e. the fraction of the neutrino energy that is transferred into the hadronic shower.</span>
     <span class="c1"># This parameter is not used but saved into the output file for information purposes.</span>
-    <span class="n">data_sets</span><span class="p">[</span><span class="s2">&quot;inelasticity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
+    <span class="n">data_sets</span><span class="p">[</span><span class="s2">"inelasticity"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_events</span><span class="p">)</span>
 
     <span class="c1"># write events to file</span>
     <span class="n">write_events_to_hdf5</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">data_sets</span><span class="p">,</span> <span class="n">attributes</span><span class="p">)</span></div>
@@ -767,8 +767,8 @@
 
 
 <span class="c1"># add some test code</span>
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">generate_my_events</span><span class="p">(</span><span class="s2">&quot;testfile.hdf5&quot;</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">generate_my_events</span><span class="p">(</span><span class="s2">"testfile.hdf5"</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
 
 </pre></div>
 

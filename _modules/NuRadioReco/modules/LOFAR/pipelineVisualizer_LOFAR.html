@@ -650,11 +650,11 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">This module contains the pipelineVisualizer class for LOFAR.</span>
 
 <span class="sd">.. moduleauthor:: Karen Terveer &lt;karen.terveer@fau.de&gt;</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -670,7 +670,7 @@
 <div class="viewcode-block" id="check_for_good_ant">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.html#NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.check_for_good_ant">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check_for_good_ant</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">detector</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Create a list of good (non-flagged) antennas</span>
 
 <span class="sd">    Create a dictionary, which for every station in the event contains</span>
@@ -685,7 +685,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    good_antenna_dict : dict</span>
 <span class="sd">        Dictionary listing non-flagged antennas</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">good_antennas_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">event</span><span class="o">.</span><span class="n">get_stations</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">triggered</span><span class="p">):</span>
@@ -717,18 +717,18 @@
 <div class="viewcode-block" id="pipelineVisualizer">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.html#NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.pipelineVisualizer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">pipelineVisualizer</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Creates debug plots from the LOFAR pipeline.</span>
 
 <span class="sd">    This is the pipelineVisualizerTM for LOFAR.</span>
 <span class="sd">    Any significant plots resulting from the pipeline</span>
 <span class="sd">    should be added here by creating a function for them,</span>
 <span class="sd">    and calling all functions sequentially.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plots</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.pipelineVisualizer&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.pipelineVisualizer"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="pipelineVisualizer.begin">
@@ -741,7 +741,7 @@
 <div class="viewcode-block" id="pipelineVisualizer.plot_polarization">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.html#NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.pipelineVisualizer.plot_polarization">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">plot_polarization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">detector</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Plot the polarization of the electric field.</span>
 
 <span class="sd">        This method calculates the stokes parameters of the pulse</span>
@@ -764,7 +764,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        fig_pol : matplotlib Figure object</span>
 <span class="sd">            The generated figure object containing the polarization plot.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.electric_field</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_stokes</span>
 
@@ -775,15 +775,15 @@
         <span class="p">]</span>
         <span class="n">num_stations</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">triggered_station_ids</span><span class="p">)</span>
 
-        <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;jet&#39;</span><span class="p">)</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">'jet'</span><span class="p">)</span>
         <span class="n">norm</span> <span class="o">=</span> <span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">num_stations</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> 
 
-        <span class="n">lora_core</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">&quot;LORA&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
+        <span class="n">lora_core</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">"LORA"</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">core</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_first_shower</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No radio core found, using LORA core instead&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"No radio core found, using LORA core instead"</span><span class="p">)</span>
             <span class="n">core</span> <span class="o">=</span> <span class="n">lora_core</span>
 
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">station</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">get_stations</span><span class="p">()):</span>
@@ -793,7 +793,7 @@
                 <span class="n">azimuth</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">cr_azimuth</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span>
 
                 <span class="n">cs</span> <span class="o">=</span> <span class="n">radiotools</span><span class="o">.</span><span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span>
-                    <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">magnetic_field_vector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s2">&quot;lofar&quot;</span>
+                    <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">magnetic_field_vector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="s2">"lofar"</span>
                 <span class="p">)</span>
 
                 <span class="n">efields</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">()</span>
@@ -804,7 +804,7 @@
 
                 <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span>
                     <span class="n">station_pos_vB</span><span class="p">,</span> <span class="n">station_pos_vvB</span><span class="p">,</span>
-                    <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span> <span class="n">s</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s1">03d</span><span class="si">}</span><span class="s1">&#39;</span>
+                    <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span> <span class="n">s</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">'Station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s1">03d</span><span class="si">}</span><span class="s1">'</span>
                 <span class="p">)</span>
 
                 <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">efields</span><span class="p">:</span>
@@ -847,7 +847,7 @@
                     <span class="c1"># this could indicate something wrong with the antenna. Show a warning including</span>
                     <span class="c1"># the channel ids</span>
                     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">U</span><span class="p">,</span><span class="n">Q</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">80</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span><span class="p">:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;strange polarization direction in channel group </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">ids</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"strange polarization direction in channel group </span><span class="si">%s</span><span class="s2">"</span> <span class="o">%</span> <span class="n">ids</span><span class="p">)</span>
 
                     <span class="n">pol_degree</span><span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">U</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">Q</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">V</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">I</span>
                     <span class="n">pol_degree</span> <span class="o">*=</span> <span class="mi">7</span> <span class="c1"># scale for better visibility</span>
@@ -880,15 +880,15 @@
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">core</span> <span class="o">!=</span> <span class="n">lora_core</span><span class="p">):</span>
             <span class="n">lora_vB</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">transform_to_vxB_vxvxB</span><span class="p">(</span><span class="n">lora_core</span><span class="p">,</span> <span class="n">core</span><span class="o">=</span><span class="n">core</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">lora_vvB</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">transform_to_vxB_vxvxB</span><span class="p">(</span><span class="n">lora_core</span><span class="p">,</span> <span class="n">core</span><span class="o">=</span><span class="n">core</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">lora_vB</span><span class="p">,</span> <span class="n">lora_vvB</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;tab:red&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;LORA core&#39;</span><span class="p">,</span> <span class="n">marker</span> <span class="o">=</span> <span class="s1">&#39;x&#39;</span><span class="p">)</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;radio core&#39;</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">lora_vB</span><span class="p">,</span> <span class="n">lora_vvB</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'tab:red'</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'LORA core'</span><span class="p">,</span> <span class="n">marker</span> <span class="o">=</span> <span class="s1">'x'</span><span class="p">)</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="s1">'radio core'</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;LORA core&#39;</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="s1">'LORA core'</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">marker</span> <span class="o">=</span> <span class="s1">&#39;x&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">'black'</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">marker</span> <span class="o">=</span> <span class="s1">'x'</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Direction along $v </span><span class="se">\\</span><span class="s1">times B$ [m]&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Direction along $v </span><span class="se">\\</span><span class="s1">times (v </span><span class="se">\\</span><span class="s1">times B)$ [m]&#39;</span><span class="p">)</span>   
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'Direction along $v </span><span class="se">\\</span><span class="s1">times B$ [m]'</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Direction along $v </span><span class="se">\\</span><span class="s1">times (v </span><span class="se">\\</span><span class="s1">times B)$ [m]'</span><span class="p">)</span>   
 
         <span class="k">return</span> <span class="n">fig_pol</span></div>
 
@@ -896,7 +896,7 @@
 <div class="viewcode-block" id="pipelineVisualizer.show_direction_plot">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.html#NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.pipelineVisualizer.show_direction_plot">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">show_direction_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Make a comparison of the reconstructed direction per station with the LORA direction.</span>
 
 <span class="sd">        Author: Philipp Laub</span>
@@ -910,12 +910,12 @@
 <span class="sd">        -------</span>
 <span class="sd">        fig_dir : matplotlib Figure object</span>
 <span class="sd">            The generated figure object containing the direction plot.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         
         <span class="c1"># plot reconstructed directions of all stations and compare to LORA in polar plot:</span>
-        <span class="n">fig_dir</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">subplot_kw</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;projection&#39;</span><span class="p">:</span> <span class="s1">&#39;polar&#39;</span><span class="p">})</span>
+        <span class="n">fig_dir</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">subplot_kw</span><span class="o">=</span><span class="p">{</span><span class="s1">'projection'</span><span class="p">:</span> <span class="s1">'polar'</span><span class="p">})</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_theta_zero_location</span><span class="p">(</span><span class="s1">&#39;E&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_theta_zero_location</span><span class="p">(</span><span class="s1">'E'</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">set_theta_direction</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="n">triggered_station_ids</span> <span class="o">=</span> <span class="p">[</span>
@@ -923,7 +923,7 @@
         <span class="p">]</span>
         <span class="n">num_stations</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">triggered_station_ids</span><span class="p">)</span>
 
-        <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;jet&#39;</span><span class="p">)</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">'jet'</span><span class="p">)</span>
         <span class="n">norm</span> <span class="o">=</span> <span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">num_stations</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> 
 
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">station</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">get_stations</span><span class="p">()):</span>
@@ -933,31 +933,31 @@
                     <span class="n">azimuth</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">cr_azimuth</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2"> does not have a reconstructed direction, &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;so I am not plotting this one.&quot;</span>
+                        <span class="sa">f</span><span class="s2">"Station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2"> does not have a reconstructed direction, "</span>
+                        <span class="sa">f</span><span class="s2">"so I am not plotting this one."</span>
                     <span class="p">)</span>
                     <span class="k">continue</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
                     <span class="n">azimuth</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span>
-                    <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s1">03d</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-                    <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;P&#39;</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">'Station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s1">03d</span><span class="si">}</span><span class="s1">'</span><span class="p">,</span>
+                    <span class="n">marker</span><span class="o">=</span><span class="s1">'P'</span><span class="p">,</span>
                     <span class="n">markersize</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
-                    <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+                    <span class="n">linestyle</span><span class="o">=</span><span class="s1">''</span><span class="p">,</span>
                     <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
                 <span class="p">)</span>
 
         <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-            <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">&quot;LORA&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">),</span>
-            <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">&quot;LORA&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">),</span>
-            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;LORA&#39;</span><span class="p">,</span>
-            <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;X&quot;</span><span class="p">,</span>
+            <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">"LORA"</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">),</span>
+            <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">"LORA"</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">),</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">'LORA'</span><span class="p">,</span>
+            <span class="n">marker</span><span class="o">=</span><span class="s2">"X"</span><span class="p">,</span>
             <span class="n">markersize</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
-            <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-            <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span>
+            <span class="n">linestyle</span><span class="o">=</span><span class="s1">''</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="s1">'black'</span>
         <span class="p">)</span>
 
         <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Reconstructed arrival directions&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"Reconstructed arrival directions"</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig_dir</span></div>
 
@@ -966,7 +966,7 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.html#NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.pipelineVisualizer.show_time_fluence_plot">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">show_time_fluence_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">min_number_good_antennas</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
 
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Plot the antenna positions, marking arrival time by color and pseudofluence by markersize.</span>
 <span class="sd">        The reconstructed arrival direction per station is indicated with an arrow.</span>
 
@@ -986,11 +986,11 @@
 <span class="sd">        -------</span>
 <span class="sd">        fig_pol : matplotlib Figure object</span>
 <span class="sd">            The generated figure object containing the polarization plot.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">time</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_detector_time</span><span class="p">()</span><span class="o">.</span><span class="n">utc</span>
 
         <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">mjd</span> <span class="o">&lt;</span> <span class="mi">56266</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Event was before Dec 1, 2012. The non-core station clocks might be off.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Event was before Dec 1, 2012. The non-core station clocks might be off."</span><span class="p">)</span>
 
         <span class="n">good_antennas_dict</span> <span class="o">=</span> <span class="n">check_for_good_ant</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">detector</span><span class="p">)</span>
 
@@ -1001,7 +1001,7 @@
         <span class="p">]</span>
         <span class="n">num_stations</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">triggered_station_ids</span><span class="p">)</span>
 
-        <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;jet&#39;</span><span class="p">)</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">'jet'</span><span class="p">)</span>
         <span class="n">norm</span> <span class="o">=</span> <span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">num_stations</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> 
         
         <span class="n">fluences</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1013,8 +1013,8 @@
                     <span class="n">azimuth</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">cr_azimuth</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">&quot;Station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2"> does not have a reconstructed direction, &quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;so I am not plotting this one.&quot;</span>
+                        <span class="sa">f</span><span class="s2">"Station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2"> does not have a reconstructed direction, "</span>
+                        <span class="sa">f</span><span class="s2">"so I am not plotting this one."</span>
                     <span class="p">)</span>
                     <span class="k">continue</span>
                 <span class="n">good_antennas</span> <span class="o">=</span> <span class="n">good_antennas_dict</span><span class="p">[</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span>
@@ -1029,10 +1029,10 @@
                     <span class="n">station_pos</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_absolute_position</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
                     <span class="n">ax</span><span class="o">.</span><span class="n">quiver</span><span class="p">(</span><span class="n">station_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">station_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> 
                             <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">azimuth</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">azimuth</span><span class="p">),</span> 
-                            <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> 
+                            <span class="n">color</span><span class="o">=</span><span class="s1">'black'</span><span class="p">,</span> 
                             <span class="n">scale</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> 
-                            <span class="n">scale_units</span><span class="o">=</span><span class="s1">&#39;xy&#39;</span><span class="p">,</span> 
-                            <span class="n">angles</span><span class="o">=</span><span class="s1">&#39;uv&#39;</span><span class="p">,</span>
+                            <span class="n">scale_units</span><span class="o">=</span><span class="s1">'xy'</span><span class="p">,</span> 
+                            <span class="n">angles</span><span class="o">=</span><span class="s1">'uv'</span><span class="p">,</span>
                             <span class="n">width</span><span class="o">=</span><span class="mf">0.005</span><span class="p">)</span>
         
         <span class="n">timelags</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1047,7 +1047,7 @@
             <span class="c1"># plot absolute station positions</span>
             <span class="k">if</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">triggered</span><span class="p">):</span>
                 <span class="n">station_pos</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_absolute_position</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">())</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">station_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">station_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span> <span class="n">s</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s1">03d</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">station_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">station_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">cmap</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span> <span class="n">s</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">'Station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s1">03d</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
         <span class="n">timelags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">timelags</span><span class="p">)</span>
         <span class="n">timelags</span> <span class="o">-=</span> <span class="n">timelags</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># get timelags wrt 1st antenna</span>
@@ -1061,15 +1061,15 @@
             <span class="n">positions</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> 
             <span class="n">c</span><span class="o">=</span><span class="n">timelags</span><span class="p">,</span> 
             <span class="n">s</span><span class="o">=</span><span class="mi">15</span> <span class="o">*</span> <span class="n">fluence_norm</span><span class="p">(</span><span class="n">fluences</span><span class="p">),</span> 
-            <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="s1">'viridis'</span><span class="p">,</span>
             <span class="n">zorder</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">sc</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Relative arrival time [ns]&#39;</span><span class="p">,</span> <span class="n">shrink</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Meters east [m]&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Meters north [m]&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">'equal'</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">sc</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Relative arrival time [ns]'</span><span class="p">,</span> <span class="n">shrink</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'Meters east [m]'</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Meters north [m]'</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Antenna positions and arrival time&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">"Antenna positions and arrival time"</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">fig_time</span></div>
 
@@ -1078,8 +1078,8 @@
 <div class="viewcode-block" id="pipelineVisualizer.run">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.html#NuRadioReco.modules.LOFAR.pipelineVisualizer_LOFAR.pipelineVisualizer.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">save_dir</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">polarization</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">save_dir</span><span class="o">=</span><span class="s1">'.'</span><span class="p">,</span> <span class="n">polarization</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Produce pipeline plots for the given event.</span>
 
 <span class="sd">        Parameters</span>
@@ -1091,22 +1091,22 @@
 <span class="sd">        save_dir : str, optional</span>
 <span class="sd">            The directory to save the plots to. Default is the </span>
 <span class="sd">            current directory.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">plots</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">polarization</span><span class="p">:</span>
             <span class="n">pol_plot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_polarization</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">detector</span><span class="p">)</span>
             <span class="n">plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pol_plot</span><span class="p">)</span>
-            <span class="n">pol_plot</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">save_dir</span><span class="si">}</span><span class="s1">/polarization_plot_</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">.png&#39;</span><span class="p">)</span>
+            <span class="n">pol_plot</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">save_dir</span><span class="si">}</span><span class="s1">/polarization_plot_</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">.png'</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">direction</span><span class="p">:</span>
             <span class="n">dir_plot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_direction_plot</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
             <span class="n">plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dir_plot</span><span class="p">)</span>
-            <span class="n">dir_plot</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">save_dir</span><span class="si">}</span><span class="s1">/direction_plot_</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">.png&#39;</span><span class="p">)</span>
+            <span class="n">dir_plot</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">save_dir</span><span class="si">}</span><span class="s1">/direction_plot_</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">.png'</span><span class="p">)</span>
 
             <span class="n">time_fluence_plot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_time_fluence_plot</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">detector</span><span class="p">)</span>
             <span class="n">plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time_fluence_plot</span><span class="p">)</span>
-            <span class="n">time_fluence_plot</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">save_dir</span><span class="si">}</span><span class="s1">/time_fluence_plot_</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">.png&#39;</span><span class="p">)</span>
+            <span class="n">time_fluence_plot</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">save_dir</span><span class="si">}</span><span class="s1">/time_fluence_plot_</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">.png'</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">plots</span> <span class="o">=</span> <span class="p">[</span><span class="n">plot</span> <span class="k">for</span> <span class="n">plot</span> <span class="ow">in</span> <span class="n">plots</span><span class="p">]</span></div>
 

@@ -657,19 +657,19 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.phasedEnvelopeTriggerSimulator&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.phasedEnvelopeTriggerSimulator'</span><span class="p">)</span>
 
 <div class="viewcode-block" id="PhasedEnvelopeTriggerSimulator">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger.html#NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger.PhasedEnvelopeTriggerSimulator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">PhasedEnvelopeTriggerSimulator</span><span class="p">(</span><span class="n">PhasedArrayBase</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculates the trigger for a phased array with primary beam locations</span>
 <span class="sd">    using a Hilbert envelope. This module allows access to lower level options</span>
 <span class="sd">    used during trigger calculations that allow for realistic models of firmware, such as </span>
 <span class="sd">    upsampling with FIR filters and integer math specifics like rounding and saturation.</span>
 <span class="sd">    An ideal Hilbert transformer using scipy or a FIR-based Hilbert transformer with a crude</span>
 <span class="sd">    square root can be used.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="PhasedEnvelopeTriggerSimulator.run">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger.html#NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger.PhasedEnvelopeTriggerSimulator.run">[docs]</a>
@@ -678,17 +678,17 @@
             <span class="n">Vrms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">threshold</span><span class="o">=</span><span class="mi">60</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span>
             <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">trigger_name</span><span class="o">=</span><span class="s1">&#39;digital_envelope_phased_threshold&#39;</span><span class="p">,</span>
+            <span class="n">trigger_name</span><span class="o">=</span><span class="s1">'digital_envelope_phased_threshold'</span><span class="p">,</span>
             <span class="n">phasing_angles</span><span class="o">=</span><span class="n">default_angles</span><span class="p">,</span>
             <span class="n">set_not_triggered</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">ref_index</span><span class="o">=</span><span class="mf">1.75</span><span class="p">,</span>
             <span class="n">trigger_adc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># by default, assumes the trigger ADC is the same as the channels ADC</span>
             <span class="n">clock_offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-            <span class="n">adc_output</span><span class="o">=</span><span class="s1">&#39;voltage&#39;</span><span class="p">,</span>
+            <span class="n">adc_output</span><span class="o">=</span><span class="s1">'voltage'</span><span class="p">,</span>
             <span class="n">trigger_filter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">upsampling_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
             <span class="n">apply_digitization</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">upsampling_method</span><span class="o">=</span><span class="s1">&#39;fft&#39;</span><span class="p">,</span>
+            <span class="n">upsampling_method</span><span class="o">=</span><span class="s1">'fft'</span><span class="p">,</span>
             <span class="n">coeff_gain</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
             <span class="n">filter_taps</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span>
             <span class="n">saturation_bits</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
@@ -696,7 +696,7 @@
             <span class="n">return_n_triggers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="p">):</span>
 
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Simulates phased array trigger for each event</span>
 
 <span class="sd">        Several channels are phased by delaying their signals by an amount given</span>
@@ -734,14 +734,14 @@
 <span class="sd">            detector file. See analogToDigitalConverter module for information</span>
 <span class="sd">        clock_offset: float (default 0)</span>
 <span class="sd">            Overall clock offset, for adc clock jitter reasons</span>
-<span class="sd">        adc_output: string (default &#39;voltage&#39;)</span>
+<span class="sd">        adc_output: string (default 'voltage')</span>
 
-<span class="sd">            - &#39;voltage&#39; to store the ADC output as discretised voltage trace</span>
-<span class="sd">            - &#39;counts&#39; to store the ADC output in ADC counts</span>
+<span class="sd">            - 'voltage' to store the ADC output as discretised voltage trace</span>
+<span class="sd">            - 'counts' to store the ADC output in ADC counts</span>
 
 <span class="sd">        trigger_filter: array floats (default None)</span>
 <span class="sd">            Freq. domain of the response to be applied to post-ADC traces</span>
-<span class="sd">            Must be length for &quot;MC freq&quot;</span>
+<span class="sd">            Must be length for "MC freq"</span>
 <span class="sd">        upsampling_factor: integer (default 1)</span>
 <span class="sd">            Upsampling factor. The trace will be a upsampled to a</span>
 <span class="sd">            sampling frequency int_factor times higher than the original one</span>
@@ -756,7 +756,7 @@
 <span class="sd">        apply_digitization: bool (default True)</span>
 <span class="sd">            Perform the quantization of the ADC. If set to true, should also set options</span>
 <span class="sd">            `trigger_adc`, `adc_output`, `clock_offset`</span>
-<span class="sd">        upsampling_method: str (default &#39;fft&#39;)</span>
+<span class="sd">        upsampling_method: str (default 'fft')</span>
 <span class="sd">            Choose between FFT, FIR, or Linear Interpolaion based upsampling methods</span>
 <span class="sd">        coeff_gain: int (default 1)</span>
 <span class="sd">            If using the FIR upsampling, this will convert the floating point output of the</span>
@@ -779,7 +779,7 @@
 <span class="sd">            True if the triggering condition is met</span>
 <span class="sd">        n_triggers: int (Optional)</span>
 <span class="sd">            Count of the total number of triggers in all beamformed traces</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">set_not_triggered</span><span class="p">:</span>
             <span class="n">is_triggered</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">trigger_delays</span> <span class="o">=</span> <span class="p">{}</span>
@@ -812,7 +812,7 @@
                         <span class="n">ideal_transformer</span><span class="o">=</span><span class="n">ideal_transformer</span><span class="p">,</span>
                         <span class="n">hilbert_n_taps</span><span class="o">=</span><span class="mi">31</span><span class="p">,</span>
                         <span class="n">hilbert_coeff_gain</span><span class="o">=</span><span class="mi">128</span><span class="p">),</span>
-                    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;hilbert_env&quot;</span>
+                    <span class="n">mode</span><span class="o">=</span><span class="s2">"hilbert_env"</span>
                     <span class="p">)</span>
 
         <span class="c1"># Create a trigger object to be returned to the station</span>

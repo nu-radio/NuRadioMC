@@ -650,14 +650,14 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.utilities.io_utilities</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">IO utilities for NuRadioReco/NuRadioMC</span>
 
 <span class="sd">This module provides some pickling functions to allow</span>
 <span class="sd">for faster, numpy 2 cross-compatible pickled numpy arrays. This mostly happens</span>
-<span class="sd">&#39;internally&#39;, so end users normally do not need to use this module.</span>
+<span class="sd">'internally', so end users normally do not need to use this module.</span>
 
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">copyreg</span>
@@ -668,7 +668,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">astropy.time</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.utilities.io_utilities&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.utilities.io_utilities'</span><span class="p">)</span>
 
 <span class="c1"># we overwrite the default pickling mechanism for numpy arrays</span>
 <span class="c1"># and scalars. We store arrays using custom, faster versions of np.save/np.load,</span>
@@ -683,7 +683,7 @@
     <span class="k">return</span> <span class="n">unpack</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_pickle_numpy_scalar</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a numpy scalar to its pure Python equivalent&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Convert a numpy scalar to its pure Python equivalent"""</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">),)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">):</span>
@@ -697,17 +697,17 @@
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">bytes_</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">bytes</span><span class="p">,</span> <span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">i</span><span class="p">),)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported type of numpy scalar </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> (type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unsupported type of numpy scalar </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> (type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">_NurPickler</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">Pickler</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Custom pickler class that overwrites the pickling of numpy objects</span>
 
 <span class="sd">    This class is used to overwrite the pickling mechanism</span>
 <span class="sd">    of numpy arrays and scalars for better IO compatibility,</span>
 <span class="sd">    as directly pickled numpy arrays are not read-compatible</span>
 <span class="sd">    between numpy versions ``&lt;2`` ``&gt;=2``.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">dispatch_table</span> <span class="o">=</span> <span class="n">copyreg</span><span class="o">.</span><span class="n">dispatch_table</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="c1"># the __reduce__ methods are overwritten by pickle.dispatch_table</span>
     <span class="c1"># see https://docs.python.org/3/library/pickle.html#pickle.Pickler.dispatch_table</span>
@@ -717,18 +717,18 @@
     <span class="c1"># we overwrite the pickling __reduce__ for all of them</span>
     <span class="c1"># note that this might upcast in some cases</span>
     <span class="k">for</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ScalarType</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">dtype</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">==</span> <span class="s1">&#39;numpy&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">dtype</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">==</span> <span class="s1">'numpy'</span><span class="p">:</span>
             <span class="n">dispatch_table</span><span class="p">[</span><span class="n">dtype</span><span class="p">]</span> <span class="o">=</span> <span class="n">_pickle_numpy_scalar</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_dumps</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fix_imports</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Return the pickled representation of the object as a bytes object.</span>
 
 <span class="sd">    This is a copy of the standard `pickle.dumps` implementation,</span>
 <span class="sd">    but uses the custom `_NurPickler` class for pickling instead of the</span>
 <span class="sd">    global pickling mechanism. Currently, this affects only the pickling</span>
 <span class="sd">    of numpy objects.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">f</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
     <span class="n">_NurPickler</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">fix_imports</span><span class="o">=</span><span class="n">fix_imports</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
     <span class="n">res</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
@@ -737,8 +737,8 @@
 
 <div class="viewcode-block" id="read_pickle">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.io_utilities.html#NuRadioReco.utilities.io_utilities.read_pickle">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">read_pickle</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;latin1&#39;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_pickle</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">'latin1'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Read in a pickle file and return the result</span>
 <span class="sd">    This utility is supposed to provide compatibility for pickles created with</span>
 <span class="sd">    different python versions. If a simple pickle.load fails, it will try to</span>
@@ -750,31 +750,31 @@
 <span class="sd">        Name of the pickle file to be opened</span>
 <span class="sd">    encoding: string</span>
 <span class="sd">        Encoding to be used if the first attempt to open the pickle fails</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">'rb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
     <span class="k">except</span><span class="p">:</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">'rb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span></div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_astropy_to_dict</span><span class="p">(</span><span class="n">time</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Convert an astropy object to a dictionary.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    time: astropy.time.Time</span>
 <span class="sd">        Time object to be converted to a dictionary</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Input is not an astropy object: </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Input is not an astropy object: </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Input is not an astropy object: </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Input is not an astropy object: </span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
     <span class="c1"># Internally, astropy stores the time in the julian date (jd) fornat with a tuple of two double-precision floats.</span>
     <span class="c1"># The first float has an integer value and represents the number of days since the epoch (12:00 at January 1, 4713 BC)</span>
@@ -782,17 +782,17 @@
     <span class="c1"># 3600 * 24 * 1e9 / 2^52 = 0.02 ns. We choose to store the time object in its native format.</span>
 
     <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">jd1</span><span class="p">,</span>
-        <span class="s2">&quot;val2&quot;</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">jd2</span><span class="p">,</span>
-        <span class="s2">&quot;scale&quot;</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
-        <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;jd&quot;</span><span class="p">,</span>
+        <span class="s2">"val"</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">jd1</span><span class="p">,</span>
+        <span class="s2">"val2"</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">jd2</span><span class="p">,</span>
+        <span class="s2">"scale"</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+        <span class="s2">"format"</span><span class="p">:</span> <span class="s2">"jd"</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">data</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_time_object_to_astropy</span><span class="p">(</span><span class="n">time_object</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Convert a time_object to an astropy object.</span>
 
 <span class="sd">    This function tries to encompases all the different possible ways</span>
@@ -807,7 +807,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    time: astropy.time.Time</span>
 <span class="sd">        The time object</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">time_object</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
 
@@ -822,33 +822,33 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time_object</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
         <span class="c1"># For backward compatibility, we also keep supporting station times stored as datetime objects</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-            <span class="s2">&quot;Time object created from a `datetime` object. &quot;</span>
-            <span class="s2">&quot;Nanosecond accuracy is not ensured.&quot;</span><span class="p">)</span>
+            <span class="s2">"Time object created from a `datetime` object. "</span>
+            <span class="s2">"Nanosecond accuracy is not ensured."</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">time_object</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time_object</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
 
-        <span class="k">if</span> <span class="s1">&#39;value&#39;</span> <span class="ow">in</span> <span class="n">time_object</span> <span class="ow">and</span> <span class="s1">&#39;format&#39;</span> <span class="ow">in</span> <span class="n">time_object</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">'value'</span> <span class="ow">in</span> <span class="n">time_object</span> <span class="ow">and</span> <span class="s1">'format'</span> <span class="ow">in</span> <span class="n">time_object</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;Time object created from a dictionary which does not store the nano second separately. &quot;</span>
-                <span class="s2">&quot;Nanosecond accuracy is not ensured.&quot;</span><span class="p">)</span>
+                <span class="s2">"Time object created from a dictionary which does not store the nano second separately. "</span>
+                <span class="s2">"Nanosecond accuracy is not ensured."</span><span class="p">)</span>
 
-            <span class="k">return</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">time_object</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="n">time_object</span><span class="p">[</span><span class="s1">&#39;format&#39;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">time_object</span><span class="p">[</span><span class="s1">'value'</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="n">time_object</span><span class="p">[</span><span class="s1">'format'</span><span class="p">])</span>
 
-        <span class="k">elif</span> <span class="s1">&#39;val&#39;</span> <span class="ow">in</span> <span class="n">time_object</span> <span class="ow">and</span> <span class="s1">&#39;val2&#39;</span> <span class="ow">in</span> <span class="n">time_object</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s2">&quot;format&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">time_object</span> <span class="ow">or</span> <span class="n">time_object</span><span class="p">[</span><span class="s2">&quot;format&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;jd&quot;</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time object is a dictionary but the format is wrong: </span><span class="si">{</span><span class="n">time_object</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time object is a dictionary but the format is wrong: </span><span class="si">{</span><span class="n">time_object</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s1">'val'</span> <span class="ow">in</span> <span class="n">time_object</span> <span class="ow">and</span> <span class="s1">'val2'</span> <span class="ow">in</span> <span class="n">time_object</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">"format"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">time_object</span> <span class="ow">or</span> <span class="n">time_object</span><span class="p">[</span><span class="s2">"format"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"jd"</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Time object is a dictionary but the format is wrong: </span><span class="si">{</span><span class="n">time_object</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Time object is a dictionary but the format is wrong: </span><span class="si">{</span><span class="n">time_object</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="k">return</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="o">**</span><span class="n">time_object</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time object dictionary not recognized: </span><span class="si">{</span><span class="n">time_object</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time object dictionary not recognized: </span><span class="si">{</span><span class="n">time_object</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Time object dictionary not recognized: </span><span class="si">{</span><span class="n">time_object</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Time object dictionary not recognized: </span><span class="si">{</span><span class="n">time_object</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time object not recognized: </span><span class="si">{</span><span class="n">time_object</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Time object not recognized: </span><span class="si">{</span><span class="n">time_object</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Time object not recognized: </span><span class="si">{</span><span class="n">time_object</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Time object not recognized: </span><span class="si">{</span><span class="n">time_object</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 
            </div>

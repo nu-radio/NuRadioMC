@@ -657,17 +657,17 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.trigger</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntegratedPowerTrigger</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.diodeSimulator</span><span class="w"> </span><span class="kn">import</span> <span class="n">diodeSimulator</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.ARA.triggerSimulator&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.ARA.triggerSimulator'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="triggerSimulator">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.ARA.triggerSimulator.html#NuRadioReco.modules.ARA.triggerSimulator.triggerSimulator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">triggerSimulator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculates the trigger of an event.</span>
 <span class="sd">    Uses the ARA trigger logic of a tunnel diode.</span>
 <span class="sd">    Implementation similar to PyRex by Ben Hokanson-Fasig/</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
@@ -675,12 +675,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_power_std</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_diode</span> <span class="o">=</span> <span class="n">diodeSimulator</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">power_threshold</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;This module does not contain cutting the trace to ARA specific parameters.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"This module does not contain cutting the trace to ARA specific parameters."</span><span class="p">)</span>
 
 <div class="viewcode-block" id="triggerSimulator.has_triggered">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.ARA.triggerSimulator.html#NuRadioReco.modules.ARA.triggerSimulator.triggerSimulator.has_triggered">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">has_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Check if the detector system triggers on a given channel.</span>
 <span class="sd">        Passes the signal through the tunnel diode. Then compares the maximum</span>
 <span class="sd">        and minimum values to a tunnel diode noise signal. Triggers if one of</span>
@@ -696,7 +696,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        boolean</span>
 <span class="sd">            Whether or not the antenna triggers on `channel`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># Send signal through tunnel_diode</span>
         <span class="n">after_tunnel_diode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_diode</span><span class="o">.</span><span class="n">tunnel_diode</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
@@ -715,8 +715,8 @@
             <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">power_mean</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">power_std</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">trigger_name</span><span class="o">=</span><span class="s1">&#39;default_integrated_power&#39;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+            <span class="n">trigger_name</span><span class="o">=</span><span class="s1">'default_integrated_power'</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        simulate ARA trigger logic</span>
 
 <span class="sd">        Parameters</span>
@@ -743,7 +743,7 @@
 <span class="sd">            If not given, it is calculated from generic noise</span>
 <span class="sd">        trigger_name: string</span>
 <span class="sd">            a unique name of this particular trigger</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># if the run method specifies power mean and rms we use these values,</span>
         <span class="c1"># if the parameters are None, the power mean and rms gets calculated for</span>
         <span class="c1"># some standard assumptions on the noise RMS and it needs to be done only once</span>
@@ -753,9 +753,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_power_mean</span> <span class="o">=</span> <span class="n">power_mean</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_power_std</span> <span class="o">=</span> <span class="n">power_std</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">error_msg</span> <span class="o">=</span> <span class="s1">&#39;The power_mean and power_std parameters are not defined. &#39;</span>
-            <span class="n">error_msg</span> <span class="o">+=</span> <span class="s1">&#39;Please define them. You can use the calculate_noise_parameters &#39;</span>
-            <span class="n">error_msg</span> <span class="o">+=</span> <span class="s1">&#39;function in utilities.diodeSimulator to do so.&#39;</span>
+            <span class="n">error_msg</span> <span class="o">=</span> <span class="s1">'The power_mean and power_std parameters are not defined. '</span>
+            <span class="n">error_msg</span> <span class="o">+=</span> <span class="s1">'Please define them. You can use the calculate_noise_parameters '</span>
+            <span class="n">error_msg</span> <span class="o">+=</span> <span class="s1">'function in utilities.diodeSimulator to do so.'</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">power_threshold</span> <span class="o">=</span> <span class="n">power_threshold</span>
@@ -807,13 +807,13 @@
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">has_triggered</span><span class="p">:</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Station has NOT passed trigger&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Station has NOT passed trigger"</span><span class="p">)</span>
             <span class="n">trigger_time</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="n">trigger_time</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="n">trigger_time</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Station has passed trigger, trigger time is </span><span class="si">{:.1f}</span><span class="s2"> ns (sample </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Station has passed trigger, trigger time is </span><span class="si">{:.1f}</span><span class="s2"> ns (sample </span><span class="si">{}</span><span class="s2">)"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">trigger</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">trigger_time</span><span class="p">))</span>
 
         <span class="n">station</span><span class="o">.</span><span class="n">set_trigger</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span></div>
@@ -824,7 +824,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"total time used by this module is </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">dt</span></div>
 </div>
 

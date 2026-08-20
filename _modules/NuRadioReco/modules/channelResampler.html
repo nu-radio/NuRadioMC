@@ -657,9 +657,9 @@
 <div class="viewcode-block" id="channelResampler">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelResampler.html#NuRadioReco.modules.channelResampler.channelResampler">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelResampler</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Resamples the trace to a new sampling rate.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
@@ -674,7 +674,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelResampler.html#NuRadioReco.modules.channelResampler.channelResampler.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Resample channel traces.</span>
 
 <span class="sd">        Parameters</span>
@@ -683,9 +683,9 @@
 <span class="sd">        evt, station, det</span>
 <span class="sd">            Event, Station, Detector</span>
 <span class="sd">        sampling_rate: float (Default: None)</span>
-<span class="sd">            In units &#39;1 / time&#39; provides the desired sampling rate of the data.</span>
+<span class="sd">            In units '1 / time' provides the desired sampling rate of the data.</span>
 <span class="sd">            If None, take sampling rate from detector description.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">sampling_rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">channel</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">det</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()))</span>

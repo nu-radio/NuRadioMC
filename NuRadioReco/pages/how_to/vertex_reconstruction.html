@@ -711,7 +711,7 @@ be created, for example, with this code snippet:</p>
 <span class="n">n_samples</span> <span class="o">=</span> <span class="mi">1024</span>
 <span class="n">viewing_angle</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
 <span class="n">sampling_rate</span> <span class="o">=</span> <span class="mf">5.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span>
-<span class="n">ice</span> <span class="o">=</span> <span class="n">NuRadioMC</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">get_ice_model</span><span class="p">(</span><span class="s1">&#39;greenland_simple&#39;</span><span class="p">)</span>
+<span class="n">ice</span> <span class="o">=</span> <span class="n">NuRadioMC</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">medium</span><span class="o">.</span><span class="n">get_ice_model</span><span class="p">(</span><span class="s1">'greenland_simple'</span><span class="p">)</span>
 <span class="n">ior</span> <span class="o">=</span> <span class="n">ice</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">])</span>
 <span class="n">cherenkov_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">ior</span><span class="p">)</span>
 <span class="n">efield_spec</span> <span class="o">=</span> <span class="n">NuRadioMC</span><span class="o">.</span><span class="n">SignalGen</span><span class="o">.</span><span class="n">askaryan</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">(</span>
@@ -719,10 +719,10 @@ be created, for example, with this code snippet:</p>
     <span class="n">theta</span><span class="o">=</span><span class="n">viewing_angle</span> <span class="o">+</span> <span class="n">cherenkov_angle</span><span class="p">,</span>
     <span class="n">N</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
     <span class="n">dt</span><span class="o">=</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">,</span>
-    <span class="n">shower_type</span><span class="o">=</span><span class="s1">&#39;HAD&#39;</span><span class="p">,</span>
+    <span class="n">shower_type</span><span class="o">=</span><span class="s1">'HAD'</span><span class="p">,</span>
     <span class="n">n_index</span><span class="o">=</span><span class="n">ior</span><span class="p">,</span>
     <span class="n">R</span><span class="o">=</span><span class="mf">5.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">,</span>
-    <span class="n">model</span><span class="o">=</span><span class="s1">&#39;ARZ2019&#39;</span>
+    <span class="n">model</span><span class="o">=</span><span class="s1">'ARZ2019'</span>
 <span class="p">)</span>
 <span class="n">efield_template</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="p">()</span>
 <span class="n">efield_template</span><span class="o">.</span><span class="n">set_frequency_spectrum</span><span class="p">(</span><span class="n">efield_spec</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>

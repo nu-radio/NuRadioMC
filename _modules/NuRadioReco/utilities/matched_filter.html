@@ -655,12 +655,12 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">fft</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.utilities.matched_filter&quot;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.utilities.matched_filter"</span><span class="p">)</span>
 
 <div class="viewcode-block" id="MatchedFilter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.matched_filter.html#NuRadioReco.utilities.matched_filter.MatchedFilter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MatchedFilter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Matched filter class for multiple antennas with equal sampling rate and trace length. Calculates</span>
 <span class="sd">    the best matching time, matched filter SNR, and likelihood for a template [n_antennas, n_samples]</span>
 <span class="sd">    to a data trace [n_antennas, n_samples] using the noise power spectral density.</span>
@@ -697,7 +697,7 @@
 <span class="sd">        spectra_threshold_fraction: float, optional</span>
 <span class="sd">            The fraction of the maximum of the noise spectra to be used as threshold. Frequencies</span>
 <span class="sd">            with noise spectra below this threshold are ignored in the matched filter calculation.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">n_antennas</span><span class="p">,</span> <span class="n">data_traces</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">template_traces</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">noise_power_spectral_density</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spectra_threshold_fraction</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="n">n_samples</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">=</span> <span class="n">sampling_rate</span>
@@ -714,28 +714,28 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_results_valid</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Matched Filter initialized with </span><span class="si">{}</span><span class="s2"> antennas, </span><span class="si">{}</span><span class="s2"> samples, and </span><span class="si">{}</span><span class="s2"> Hz sampling rate&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_antennas</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Matched Filter initialized with </span><span class="si">{}</span><span class="s2"> antennas, </span><span class="si">{}</span><span class="s2"> samples, and </span><span class="si">{}</span><span class="s2"> Hz sampling rate"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_antennas</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">noise_power_spectral_density</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_noise_psd</span><span class="p">(</span><span class="n">noise_power_spectral_density</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No noise power spectral density set. Run set_noise_psd(), set_noise_psd_from_data(), or set_noise_psd_from_spectra()&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"No noise power spectral density set. Run set_noise_psd(), set_noise_psd_from_data(), or set_noise_psd_from_spectra()"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">data_traces</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="n">data_traces</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No data traces set. Run set_data() to set data traces&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"No data traces set. Run set_data() to set data traces"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">template_traces</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_template</span><span class="p">(</span><span class="n">template_traces</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No template traces set. Run set_template() to set template traces&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"No template traces set. Run set_template() to set template traces"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="MatchedFilter.set_data">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.matched_filter.html#NuRadioReco.utilities.matched_filter.MatchedFilter.set_data">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_traces</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the data traces (one event) and calculate the data normalization factor</span>
 
 <span class="sd">        Parameters</span>
@@ -743,10 +743,10 @@
 <span class="sd">            data_traces: np.ndarray</span>
 <span class="sd">                Traces containing the data with shape [n_antennas, n_samples], or</span>
 <span class="sd">                optionally [n_samples] for one antenna</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">data_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">data_traces</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">data_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Data trace shape </span><span class="si">{</span><span class="n">data_traces</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match the number of antennas, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">assert</span> <span class="n">data_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Data trace shape </span><span class="si">{</span><span class="n">data_traces</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match the number of samples, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">assert</span> <span class="n">data_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Data trace shape </span><span class="si">{</span><span class="n">data_traces</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match the number of antennas, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">assert</span> <span class="n">data_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Data trace shape </span><span class="si">{</span><span class="n">data_traces</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match the number of samples, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="si">}</span><span class="s2">"</span>
 
         <span class="c1">#self.data = data_traces</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_fft</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">data_traces</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
@@ -760,7 +760,7 @@
 <div class="viewcode-block" id="MatchedFilter.set_template">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.matched_filter.html#NuRadioReco.utilities.matched_filter.MatchedFilter.set_template">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">template_traces</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the template traces (one event) and calculate the data normalization factor</span>
 
 <span class="sd">        Parameters</span>
@@ -768,10 +768,10 @@
 <span class="sd">            template_traces: np.ndarray</span>
 <span class="sd">                Traces containing the template with shape [n_antennas, n_samples], or</span>
 <span class="sd">                optionally [n_samples] for one antenna</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">template_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">template_traces</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">template_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Template trace shape </span><span class="si">{</span><span class="n">template_traces</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match the number of antennas, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">assert</span> <span class="n">template_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Template trace shape </span><span class="si">{</span><span class="n">template_traces</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match the number of samples, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">assert</span> <span class="n">template_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Template trace shape </span><span class="si">{</span><span class="n">template_traces</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match the number of antennas, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">assert</span> <span class="n">template_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Template trace shape </span><span class="si">{</span><span class="n">template_traces</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match the number of samples, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="si">}</span><span class="s2">"</span>
 
         <span class="c1">#self.template = template_traces</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">template_fft</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">template_traces</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
@@ -785,7 +785,7 @@
 <div class="viewcode-block" id="MatchedFilter.set_noise_psd">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.matched_filter.html#NuRadioReco.utilities.matched_filter.MatchedFilter.set_noise_psd">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_noise_psd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">noise_power_spectral_density</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the noise power spectral density, which is here defined as 2*mean(abs(fft.time2freq(noise))^2)*df</span>
 <span class="sd">        and has units of V^2/GHz.</span>
 
@@ -797,13 +797,13 @@
 <span class="sd">            noise_power_spectral_density: np.ndarray</span>
 <span class="sd">                Traces containing the noise power spectral density with shape [n_antennas, n_frequencies], or</span>
 <span class="sd">                optionally [n_frequencies] for one antenna</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">noise_power_spectral_density</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">noise_psd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">noise_power_spectral_density</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">noise_power_spectral_density</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">noise_psd</span> <span class="o">=</span> <span class="n">noise_power_spectral_density</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Noise power spectral density has wrong shape&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Noise power spectral density has wrong shape"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">noise_psd_threshold</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noise_psd</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">spectra_threshold_fraction</span><span class="o">**</span><span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fmask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_psd</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_psd_threshold</span></div>
@@ -812,7 +812,7 @@
 <div class="viewcode-block" id="MatchedFilter.set_noise_psd_from_data">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.matched_filter.html#NuRadioReco.utilities.matched_filter.MatchedFilter.set_noise_psd_from_data">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_noise_psd_from_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">noise_traces</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the noise power spectral density using data containing purely noise.</span>
 
 <span class="sd">        Parameters</span>
@@ -820,10 +820,10 @@
 <span class="sd">            noise_traces: np.ndarray</span>
 <span class="sd">                Traces containing the noise with shape [n_events, n_antennas, n_samples]</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="n">noise_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;The noise PSD should be calculated using more than one noise trace&quot;</span>
-        <span class="k">assert</span> <span class="n">noise_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Noise trace shape </span><span class="si">{</span><span class="n">noise_traces</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match the number of antennas, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">assert</span> <span class="n">noise_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Noise trace shape </span><span class="si">{</span><span class="n">noise_traces</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match the number of samples, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="sd">        """</span>
+        <span class="k">assert</span> <span class="n">noise_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"The noise PSD should be calculated using more than one noise trace"</span>
+        <span class="k">assert</span> <span class="n">noise_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Noise trace shape </span><span class="si">{</span><span class="n">noise_traces</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match the number of antennas, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">assert</span> <span class="n">noise_traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"Noise trace shape </span><span class="si">{</span><span class="n">noise_traces</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match the number of samples, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="si">}</span><span class="s2">"</span>
 
         <span class="n">noise_fft</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">noise_traces</span><span class="p">[:,:],</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">)</span>
         <span class="n">noise_psd</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span> <span class="n">noise_fft</span> <span class="o">*</span> <span class="n">noise_fft</span><span class="o">.</span><span class="n">conj</span><span class="p">()),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
@@ -834,7 +834,7 @@
 <div class="viewcode-block" id="MatchedFilter.set_noise_psd_from_spectra">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.matched_filter.html#NuRadioReco.utilities.matched_filter.MatchedFilter.set_noise_psd_from_spectra">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_noise_psd_from_spectra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spectra</span><span class="p">,</span> <span class="n">Vrms</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the noise power spectral density using the spectra of the noise defined</span>
 <span class="sd">        as sqrt(mean(abs(fft.time2freq(noise))^2)). By specifying Vrms, the spectra normalizations</span>
 <span class="sd">        of the spectra are ignored and rescale to the given Vrms values, and spectra can then be</span>
@@ -849,8 +849,8 @@
 <span class="sd">                The Vrms value(s) to which the spectra should be rescaled. If a float is given,</span>
 <span class="sd">                all antennas are rescaled to the same Vrms. If an array is given it should have</span>
 <span class="sd">                shape [n_antennas]. If None, the spectra normalizations are not changed.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="n">spectra</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="nb">complex</span><span class="p">,</span> <span class="s2">&quot;Provided spectra are complex. Please provide the magnitude of the spectra/filter(s) instead.&quot;</span>
+<span class="sd">        """</span>
+        <span class="k">assert</span> <span class="n">spectra</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="nb">complex</span><span class="p">,</span> <span class="s2">"Provided spectra are complex. Please provide the magnitude of the spectra/filter(s) instead."</span>
         <span class="n">noise_psd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_frequencies</span><span class="p">])</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_antennas</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">spectra</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -875,7 +875,7 @@
 <div class="viewcode-block" id="MatchedFilter.matched_filter_search">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.matched_filter.html#NuRadioReco.utilities.matched_filter.MatchedFilter.matched_filter_search">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">matched_filter_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_shift_array</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Perform the matched filter search for the template and the data to find the best matching time</span>
 <span class="sd">        and matched filter output.</span>
 
@@ -896,7 +896,7 @@
 <span class="sd">                The best matching time shift</span>
 <span class="sd">            matched_filter_output: float</span>
 <span class="sd">                The matched filter output at the best matching time shift</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">integrand</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_fft</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">fmask</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_fft</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">fmask</span><span class="p">]</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_psd</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">fmask</span><span class="p">])[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequencies_flattened</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fmask</span><span class="p">]</span> <span class="o">*</span> <span class="n">time_shift_array</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">])</span>
         <span class="n">output</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">integrand</span><span class="p">[:,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span>
 
@@ -907,8 +907,8 @@
         <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mi">20</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">time_shift_array</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Time [ns]&quot;</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Matched filter output&quot;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">"Time [ns]"</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">"Matched filter output"</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
@@ -917,10 +917,10 @@
             <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies_flattened</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noise_psd</span><span class="o">/</span><span class="mi">2</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span> <span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies_flattened</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_fft</span><span class="p">),</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies_flattened</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">template_fft</span><span class="p">))</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">hlines</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">noise_psd_threshold</span><span class="o">/</span><span class="mi">2</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies_flattened</span><span class="p">),</span> <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Frequency [GHz]&quot;</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Amplitude [V/√GHz]&quot;</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s2">&quot;Noise PSD&quot;</span><span class="p">,</span> <span class="s2">&quot;Data spectrum&quot;</span><span class="p">,</span> <span class="s2">&quot;Template spectrum&quot;</span><span class="p">])</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">hlines</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">noise_psd_threshold</span><span class="o">/</span><span class="mi">2</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies_flattened</span><span class="p">),</span> <span class="n">colors</span><span class="o">=</span><span class="s1">'gray'</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="s1">'dashed'</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">"Frequency [GHz]"</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">"Amplitude [V/√GHz]"</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s2">"Noise PSD"</span><span class="p">,</span> <span class="s2">"Data spectrum"</span><span class="p">,</span> <span class="s2">"Template spectrum"</span><span class="p">])</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
@@ -930,7 +930,7 @@
 <div class="viewcode-block" id="MatchedFilter.calculate_matched_filter_SNR">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.matched_filter.html#NuRadioReco.utilities.matched_filter.MatchedFilter.calculate_matched_filter_SNR">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate_matched_filter_SNR</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the matched filter SNR (or matched filter score) using the matched filter output and</span>
 <span class="sd">        the template normalization factor. If SNR &gt;&gt; 1, the data is likely to contain the signal template.</span>
 <span class="sd">        The matched filter SNR can be seen as the matched filter score and is the relevant quantity to compare</span>
@@ -940,8 +940,8 @@
 <span class="sd">        -------</span>
 <span class="sd">            SNR: float</span>
 <span class="sd">                The matched filter SNR, i.e. the matched filter score</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results_valid</span><span class="p">,</span> <span class="s2">&quot;Calculated matched_filter_output is not valid, since either the template or the data were re-defined after the matched_filter_search method was called.&quot;</span>
+<span class="sd">        """</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results_valid</span><span class="p">,</span> <span class="s2">"Calculated matched_filter_output is not valid, since either the template or the data were re-defined after the matched_filter_search method was called."</span>
 
         <span class="n">SNR</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matched_filter_output</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">template_factor</span><span class="p">)</span>
 
@@ -951,37 +951,37 @@
 <div class="viewcode-block" id="MatchedFilter.calculate_matched_filter_delta_log_likelihood">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.matched_filter.html#NuRadioReco.utilities.matched_filter.MatchedFilter.calculate_matched_filter_delta_log_likelihood">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate_matched_filter_delta_log_likelihood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">relative_to</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the matched filter delta log likelihood of the template given the data using the matched</span>
 <span class="sd">        filter output, the template normalization factor, and the data normalization factor. This is the </span>
 <span class="sd">        likelihood marginalized over the signal amplitude and time. </span>
 
-<span class="sd">        If relative_to is None, the the &quot;delta&quot; refers to the constants in the log likelihood being</span>
+<span class="sd">        If relative_to is None, the the "delta" refers to the constants in the log likelihood being</span>
 <span class="sd">        omitted, and it can be seen as the log likelihood relative to the most probable template (the data</span>
 <span class="sd">        itself). In this case, if the template describes the signal in the data and the noise PSD describes</span>
 <span class="sd">        the noise, the delta log likelihood should follow a chi2 distribution with degrees of freedom equal</span>
 <span class="sd">        to two times the number of noise_psd amplitudes above the threshold (see self.get_degrees_of_freedom()).</span>
 
-<span class="sd">        If relative_to is &quot;zeros&quot;, the delta log likelihood is calculated relative to a template with zeros, i.e.</span>
+<span class="sd">        If relative_to is "zeros", the delta log likelihood is calculated relative to a template with zeros, i.e.</span>
 <span class="sd">        no signal. In this case, the delta log likelihood can be used to test the significance of the detected signal.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">            delta_log_likelihood: float</span>
 <span class="sd">                The matched filter delta log likelihood (profiled over amplitude and time)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results_valid</span><span class="p">,</span> <span class="s2">&quot;Calculated matched_filter_output is not valid, since either the template or the data were re-defined after the matched_filter_search method was called.&quot;</span>
+<span class="sd">        """</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results_valid</span><span class="p">,</span> <span class="s2">"Calculated matched_filter_output is not valid, since either the template or the data were re-defined after the matched_filter_search method was called."</span>
 
         <span class="k">if</span> <span class="n">relative_to</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>  <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_factor</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">matched_filter_output</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_factor</span>
-        <span class="k">elif</span> <span class="n">relative_to</span> <span class="o">==</span> <span class="s2">&quot;zeros&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">relative_to</span> <span class="o">==</span> <span class="s2">"zeros"</span><span class="p">:</span>
             <span class="k">return</span>  <span class="mi">1</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">matched_filter_output</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_factor</span></div>
 
 
 <div class="viewcode-block" id="MatchedFilter.calculate_matched_filter_amplitude_estimate">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.matched_filter.html#NuRadioReco.utilities.matched_filter.MatchedFilter.calculate_matched_filter_amplitude_estimate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">calculate_matched_filter_amplitude_estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the matched filter estimate of the amplitude, i.e., the factor the template</span>
 <span class="sd">        has to be multiplied with to best match the data.</span>
 
@@ -989,8 +989,8 @@
 <span class="sd">        -------</span>
 <span class="sd">            amplitude_estimate: float</span>
 <span class="sd">                The matched filter amplitude estimate</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results_valid</span><span class="p">,</span> <span class="s2">&quot;Calculated matched_filter_output is not valid, since either the template or the data were re-defined after the matched_filter_search method was called.&quot;</span>
+<span class="sd">        """</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results_valid</span><span class="p">,</span> <span class="s2">"Calculated matched_filter_output is not valid, since either the template or the data were re-defined after the matched_filter_search method was called."</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">matched_filter_output</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">template_factor</span></div>
 
@@ -998,7 +998,7 @@
 <div class="viewcode-block" id="MatchedFilter.get_degrees_of_freedom">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.matched_filter.html#NuRadioReco.utilities.matched_filter.MatchedFilter.get_degrees_of_freedom">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_degrees_of_freedom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get the degrees of freedom of the matched filter delta log likelihood, which is equal to</span>
 <span class="sd">        two times the number of noise_psd amplitudes above the threshold.</span>
 
@@ -1006,7 +1006,7 @@
 <span class="sd">        -------</span>
 <span class="sd">            dof: int</span>
 <span class="sd">                The degrees of freedom of the matched filter delta log likelihood</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fmask</span><span class="p">)</span></div>
 </div>
 

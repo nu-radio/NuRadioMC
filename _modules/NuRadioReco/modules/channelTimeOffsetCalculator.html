@@ -664,7 +664,7 @@
 <div class="viewcode-block" id="channelTimeOffsetCalculator">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeOffsetCalculator.html#NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelTimeOffsetCalculator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Determines the difference in signal arrival times between channels, the ray types and the signal</span>
 <span class="sd">    arrival direction from the vertex position.</span>
 
@@ -682,10 +682,10 @@
 <span class="sd">    This module assumes that the ray path type for all channels is the same, e.g. each channel sees a direct</span>
 <span class="sd">    ray. Therefore it should only be used for channels that are relatively close to each other.</span>
 <span class="sd">    </span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__use_sim</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__raytracing_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;direct&#39;</span><span class="p">,</span> <span class="s1">&#39;refracted&#39;</span><span class="p">,</span> <span class="s1">&#39;reflected&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__raytracing_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'direct'</span><span class="p">,</span> <span class="s1">'refracted'</span><span class="p">,</span> <span class="s1">'reflected'</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__electric_field_template</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__medium</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_provider</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">antennapattern</span><span class="o">.</span><span class="n">AntennaPatternProvider</span><span class="p">()</span>
@@ -693,7 +693,7 @@
 <div class="viewcode-block" id="channelTimeOffsetCalculator.begin">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeOffsetCalculator.html#NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">electric_field_template</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">use_sim</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Setup method for the module</span>
 
 <span class="sd">        Parameters</span>
@@ -706,7 +706,7 @@
 <span class="sd">        use_sim: Boolean (default: False)</span>
 <span class="sd">            If true, the simulated vertex is used, otherwise it is assumed that the vertex is stored on either the</span>
 <span class="sd">            vertex_2D_fit (for the neutrino2DVertexReconstructor) or the nu_vertex station parameter</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__use_sim</span> <span class="o">=</span> <span class="n">use_sim</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__electric_field_template</span> <span class="o">=</span> <span class="n">electric_field_template</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__medium</span> <span class="o">=</span> <span class="n">medium</span></div>
@@ -716,7 +716,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeOffsetCalculator.html#NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">channel_ids</span><span class="p">,</span> <span class="n">passband</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Run the module on a station</span>
 
 <span class="sd">        Parameters</span>
@@ -733,7 +733,7 @@
 <span class="sd">            Lower and upper bound of the bandpass filter that is applied to the</span>
 <span class="sd">            channel waveforms when determining correlation to the template. Can</span>
 <span class="sd">            be used to filter out frequencies that are dominated by noise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># Create data structured to store pulse properties</span>
         <span class="n">propagation_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">channel_ids</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
@@ -753,13 +753,13 @@
                 <span class="n">vertex_2d</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">vertex_2D_fit</span><span class="p">)</span>
                 <span class="n">vertex_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vertex_2d</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">vertex_2d</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
         <span class="k">if</span> <span class="n">vertex_position</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Could not find vertex position&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">'Could not find vertex position'</span><span class="p">)</span>
         <span class="n">correlation_size</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">i_channel</span><span class="p">,</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">channel_ids</span><span class="p">):</span>
             <span class="n">channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__electric_field_template</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">():</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                    <span class="s1">&#39;The channels and the electric field remplate need to have the same sampling rate.&#39;</span>
+                    <span class="s1">'The channels and the electric field remplate need to have the same sampling rate.'</span>
                 <span class="p">)</span>
             <span class="c1"># Calculate size of largest autocorrelation</span>
             <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__electric_field_template</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">&gt;</span> <span class="n">correlation_size</span><span class="p">:</span>
@@ -803,7 +803,7 @@
                     <span class="p">)</span>
                     <span class="c1"># For simplicity, we assume equal contribution on the E_theta and E_phi component</span>
                     <span class="n">channel_template_spec</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__electric_field_template</span><span class="o">.</span><span class="n">get_filtered_trace</span><span class="p">(</span><span class="n">passband</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__electric_field_template</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span> <span class="o">*</span> \
-                        <span class="n">det</span><span class="o">.</span><span class="n">get_amplifier_response</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__electric_field_template</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">())</span> <span class="o">*</span> <span class="p">(</span><span class="n">antenna_response</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">antenna_response</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">])</span>
+                        <span class="n">det</span><span class="o">.</span><span class="n">get_amplifier_response</span><span class="p">(</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__electric_field_template</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">())</span> <span class="o">*</span> <span class="p">(</span><span class="n">antenna_response</span><span class="p">[</span><span class="s1">'theta'</span><span class="p">]</span> <span class="o">+</span> <span class="n">antenna_response</span><span class="p">[</span><span class="s1">'phi'</span><span class="p">])</span>
                     <span class="n">channel_template_trace</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">channel_template_spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__electric_field_template</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
                     <span class="c1"># We apply the expected time shift for the raytracing solution and calculate the correlation with the template</span>
                     <span class="n">channel</span><span class="o">.</span><span class="n">apply_time_shift</span><span class="p">(</span><span class="o">-</span><span class="n">propagation_times</span><span class="p">[</span><span class="n">i_channel</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">],</span> <span class="kc">True</span><span class="p">)</span>

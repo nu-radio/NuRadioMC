@@ -665,16 +665,16 @@
 <div class="viewcode-block" id="NuRadioLogger">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.logging.html#NuRadioReco.utilities.logging.NuRadioLogger">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">NuRadioLogger</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Custom logging class for NuRadio modules and applications. It adds a custom log level STATUS,</span>
 <span class="sd">    which has level=`LOGGING_STATUS` as defined in `logging.py` (as of February 2024, its value is 25).</span>
 <span class="sd">    The associated `status()` call is also implemented.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
         <span class="c1"># Add STATUS as the level name, to be used in message formatting</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">addLevelName</span><span class="p">(</span><span class="n">LOGGING_STATUS</span><span class="p">,</span> <span class="s2">&quot;STATUS&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">addLevelName</span><span class="p">(</span><span class="n">LOGGING_STATUS</span><span class="p">,</span> <span class="s2">"STATUS"</span><span class="p">)</span>
 
 <div class="viewcode-block" id="NuRadioLogger.status">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.logging.html#NuRadioReco.utilities.logging.NuRadioLogger.status">[docs]</a>
@@ -688,7 +688,7 @@
 <div class="viewcode-block" id="addLoggingLevel">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.logging.html#NuRadioReco.utilities.logging.addLoggingLevel">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">addLoggingLevel</span><span class="p">(</span><span class="n">levelName</span><span class="p">,</span> <span class="n">levelNum</span><span class="p">,</span> <span class="n">methodName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Comprehensively adds a new logging level to the `logging` module and the</span>
 <span class="sd">    currently configured logging class.</span>
 
@@ -704,10 +704,10 @@
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    &gt;&gt;&gt; addLoggingLevel(&#39;TRACE&#39;, logging.DEBUG - 5)</span>
-<span class="sd">    &gt;&gt;&gt; logging.getLogger(__name__).setLevel(&quot;TRACE&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; logging.getLogger(__name__).trace(&#39;that worked&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; logging.trace(&#39;so did this&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; addLoggingLevel('TRACE', logging.DEBUG - 5)</span>
+<span class="sd">    &gt;&gt;&gt; logging.getLogger(__name__).setLevel("TRACE")</span>
+<span class="sd">    &gt;&gt;&gt; logging.getLogger(__name__).trace('that worked')</span>
+<span class="sd">    &gt;&gt;&gt; logging.trace('so did this')</span>
 <span class="sd">    &gt;&gt;&gt; logging.TRACE</span>
 <span class="sd">    5</span>
 
@@ -716,16 +716,16 @@
 <span class="sd">    This function was taken from</span>
 <span class="sd">    `this answer  &lt;https://stackoverflow.com/questions/2183233/how-to-add-a-custom-loglevel-to-pythons-logging-facility/35804945#35804945&gt;`_</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">methodName</span><span class="p">:</span>
         <span class="n">methodName</span> <span class="o">=</span> <span class="n">levelName</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">levelName</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> already defined in logging module&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">levelName</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">'</span><span class="si">{}</span><span class="s1"> already defined in logging module'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">levelName</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">methodName</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> already defined in logging module&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">methodName</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">'</span><span class="si">{}</span><span class="s1"> already defined in logging module'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">methodName</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">getLoggerClass</span><span class="p">(),</span> <span class="n">methodName</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> already defined in logger class&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">methodName</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">'</span><span class="si">{}</span><span class="s1"> already defined in logger class'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">methodName</span><span class="p">))</span>
 
     <span class="c1"># This method was inspired by the answers to Stack Overflow post</span>
     <span class="c1"># http://stackoverflow.com/q/2183233/2988730, especially</span>
@@ -744,8 +744,8 @@
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_setup_logger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;NuRadioReco&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_setup_logger</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"NuRadioReco"</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Set up the parent logger which all module loggers should pass their logs on to. If this one already</span>
 <span class="sd">    exists, nothing is done and the logger is returned as is. Otherwise, a single new `logging.StreamHandler()`</span>
 <span class="sd">    with a custom formatter is added.</span>
@@ -757,17 +757,17 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    name : str, default=&quot;NuRadioReco&quot;</span>
+<span class="sd">    name : str, default="NuRadioReco"</span>
 <span class="sd">        The name of the base logger</span>
 <span class="sd">    level : int, default=25</span>
 <span class="sd">        The logging level to use for the base logger</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># method hasHandlers() also checks parents -&gt; ends up at root logger</span>
-        <span class="c1"># Don&#39;t change the logger if it already exists</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Logger </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> already has handlers. Not changing anything, returning the existing logger...&quot;</span><span class="p">)</span>
+        <span class="c1"># Don't change the logger if it already exists</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Logger </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> already has handlers. Not changing anything, returning the existing logger..."</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">logger</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">propagate</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -791,43 +791,48 @@
 <div class="viewcode-block" id="get_fancy_formatter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.logging.html#NuRadioReco.utilities.logging.get_fancy_formatter">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_fancy_formatter</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns the formatter used in the NuRadio logger.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    formatter : logging.Formatter</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">class</span><span class="w"> </span><span class="nc">CustomFormatter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">):</span>
 
         <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">format</span><span class="p">,</span> <span class="n">datefmt</span><span class="p">):</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">datefmt</span><span class="o">=</span><span class="n">datefmt</span><span class="p">)</span>
-            <span class="n">grey</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[38;1m&quot;</span>
-            <span class="n">yellow</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[33;1m&quot;</span>
-            <span class="n">purple</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[35;1m&quot;</span>
-            <span class="n">green</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[32;1m&quot;</span>
-            <span class="n">red</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[31;1m&quot;</span>
-            <span class="n">reset</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[0m&quot;</span>
+            <span class="n">grey</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\033</span><span class="s2">[38;1m"</span>
+            <span class="n">yellow</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\033</span><span class="s2">[33;1m"</span>
+            <span class="n">purple</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\033</span><span class="s2">[35;1m"</span>
+            <span class="n">green</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\033</span><span class="s2">[32;1m"</span>
+            <span class="n">red</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\033</span><span class="s2">[31;1m"</span>
+            <span class="n">reset</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\033</span><span class="s2">[0m"</span>
 
+            <span class="c1"># One formatter per level, built once: constructing them in format() would</span>
+            <span class="c1"># drop `datefmt` and allocate a Formatter per record.</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">FORMATS</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span> <span class="n">grey</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span> <span class="o">+</span> <span class="n">reset</span> <span class="o">+</span> <span class="nb">format</span><span class="p">,</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">:</span> <span class="n">green</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span> <span class="o">+</span> <span class="n">reset</span> <span class="o">+</span> <span class="nb">format</span><span class="p">,</span>
-                <span class="n">LOGGING_STATUS</span><span class="p">:</span> <span class="n">yellow</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span> <span class="o">+</span> <span class="n">reset</span> <span class="o">+</span> <span class="nb">format</span><span class="p">,</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">:</span> <span class="n">purple</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span> <span class="o">+</span> <span class="n">reset</span> <span class="o">+</span> <span class="nb">format</span><span class="p">,</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">:</span> <span class="n">red</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span> <span class="o">+</span> <span class="n">reset</span> <span class="o">+</span> <span class="nb">format</span><span class="p">,</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">:</span> <span class="n">red</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span> <span class="o">+</span> <span class="n">reset</span> <span class="o">+</span> <span class="nb">format</span>
+                <span class="n">level</span><span class="p">:</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">color</span> <span class="o">+</span> <span class="s2">"</span><span class="si">%(levelname)s</span><span class="s2"> - "</span> <span class="o">+</span> <span class="n">reset</span> <span class="o">+</span> <span class="nb">format</span><span class="p">,</span> <span class="n">datefmt</span><span class="o">=</span><span class="n">datefmt</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">level</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="p">[</span>
+                    <span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">grey</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="n">green</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">LOGGING_STATUS</span><span class="p">,</span> <span class="n">yellow</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">,</span> <span class="n">purple</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">,</span> <span class="n">red</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">CRITICAL</span><span class="p">,</span> <span class="n">red</span><span class="p">),</span>
+                <span class="p">]</span>
             <span class="p">}</span>
+            <span class="c1"># Used for levels which have no color assigned</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">default_format</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="nb">format</span><span class="p">,</span> <span class="n">datefmt</span><span class="o">=</span><span class="n">datefmt</span><span class="p">)</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
-            <span class="n">log_fmt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">FORMATS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">levelno</span><span class="p">)</span>
-            <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">log_fmt</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">FORMATS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">levelno</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_format</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
 
 
     <span class="n">formatter</span> <span class="o">=</span> <span class="n">CustomFormatter</span><span class="p">(</span>
-        <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[33m</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="se">\033</span><span class="s1">[32m</span><span class="si">%(name)s</span><span class="s1"> - </span><span class="se">\033</span><span class="s1">[0m</span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
-        <span class="n">datefmt</span><span class="o">=</span><span class="s2">&quot;%H:%M:%S&quot;</span>
+        <span class="nb">format</span><span class="o">=</span><span class="s1">'</span><span class="se">\033</span><span class="s1">[33m</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="se">\033</span><span class="s1">[32m</span><span class="si">%(name)s</span><span class="s1"> - </span><span class="se">\033</span><span class="s1">[0m</span><span class="si">%(message)s</span><span class="s1">'</span><span class="p">,</span>
+        <span class="n">datefmt</span><span class="o">=</span><span class="s2">"%H:%M:%S"</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">formatter</span></div>
@@ -837,18 +842,18 @@
 <div class="viewcode-block" id="set_general_log_level">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.logging.html#NuRadioReco.utilities.logging.set_general_log_level">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">set_general_log_level</span><span class="p">(</span><span class="n">level</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Set the logging level of the NuRadioMC and NuRadioReco loggers to `level`.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    level : int</span>
 <span class="sd">        The desired logging level</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">nrr_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco&quot;</span><span class="p">)</span>
+<span class="sd">    """</span>
+    <span class="n">nrr_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco"</span><span class="p">)</span>
     <span class="n">nrr_logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
 
-    <span class="n">nrmc_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioMC&quot;</span><span class="p">)</span>
+    <span class="n">nrmc_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioMC"</span><span class="p">)</span>
     <span class="n">nrmc_logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span></div>
 
 
@@ -858,7 +863,7 @@
 <div class="viewcode-block" id="deprecated">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.logging.html#NuRadioReco.utilities.logging.deprecated">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">deprecated</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">category</span><span class="o">=</span><span class="ne">DeprecationWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Decorator for deprecated functions/classes</span>
+<span class="w">        </span><span class="sd">"""Decorator for deprecated functions/classes</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -871,7 +876,7 @@
 <span class="sd">            Type of warning to emit (default: DeprecationWarning)</span>
 <span class="sd">        stacklevel : int, optional</span>
 <span class="sd">            stacklevel passed on to `warnings.warn`. Default is 1.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">func_decorator</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
 

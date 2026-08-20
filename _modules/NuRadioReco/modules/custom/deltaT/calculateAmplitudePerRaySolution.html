@@ -659,16 +659,16 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">signal</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">fft</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.calculateAmplitudePerRaySolution&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.calculateAmplitudePerRaySolution'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="calculateAmplitudePerRaySolution">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution.html#NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution.calculateAmplitudePerRaySolution">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">calculateAmplitudePerRaySolution</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Convolves the signal from each ray tracing solution with the antenna response</span>
 <span class="sd">    and calculates the maximum signal amplitude</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
@@ -679,10 +679,10 @@
 <div class="viewcode-block" id="calculateAmplitudePerRaySolution.begin">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution.html#NuRadioReco.modules.custom.deltaT.calculateAmplitudePerRaySolution.calculateAmplitudePerRaySolution.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        begin method, sets general parameters of module</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="n">debug</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">antenna_provider</span> <span class="o">=</span> <span class="n">antennapattern</span><span class="o">.</span><span class="n">AntennaPatternProvider</span><span class="p">()</span></div>
 
@@ -704,7 +704,7 @@
             <span class="c1"># and transform it to the time domain to calculate the max. amplitude</span>
             <span class="n">channel_ids</span> <span class="o">=</span> <span class="n">efield</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">channel_ids</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;channel id </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_id</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'channel id </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_id</span><span class="p">))</span>
 
                 <span class="n">zenith</span> <span class="o">=</span> <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">zenith</span><span class="p">]</span>
                 <span class="n">azimuth</span> <span class="o">=</span> <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">]</span>
@@ -714,13 +714,13 @@
 
                 <span class="c1"># get antenna pattern for current channel</span>
                 <span class="n">antenna_model</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_antenna_model</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">zenith</span><span class="p">)</span>
-                <span class="n">antenna_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">antenna_provider</span><span class="o">.</span><span class="n">load_antenna_pattern</span><span class="p">(</span><span class="n">antenna_model</span><span class="p">,</span> <span class="n">interpolation_method</span><span class="o">=</span><span class="s1">&#39;complex&#39;</span><span class="p">)</span>
+                <span class="n">antenna_pattern</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">antenna_provider</span><span class="o">.</span><span class="n">load_antenna_pattern</span><span class="p">(</span><span class="n">antenna_model</span><span class="p">,</span> <span class="n">interpolation_method</span><span class="o">=</span><span class="s1">'complex'</span><span class="p">)</span>
                 <span class="n">ori</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_antenna_orientation</span><span class="p">(</span><span class="n">sim_station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;zen </span><span class="si">{:.0f}</span><span class="s2">, az </span><span class="si">{:.0f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">zenith</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">azimuth</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"zen </span><span class="si">{:.0f}</span><span class="s2">, az </span><span class="si">{:.0f}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">zenith</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">azimuth</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">))</span>
                 <span class="n">VEL</span> <span class="o">=</span> <span class="n">antenna_pattern</span><span class="o">.</span><span class="n">get_antenna_response_vectorized</span><span class="p">(</span><span class="n">ff</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="o">*</span><span class="n">ori</span><span class="p">)</span>
 
                 <span class="c1"># Apply antenna response to electric field</span>
-                <span class="n">voltage_fft</span> <span class="o">=</span> <span class="n">efield_fft</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">VEL</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">efield_fft</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">VEL</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span>
+                <span class="n">voltage_fft</span> <span class="o">=</span> <span class="n">efield_fft</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">VEL</span><span class="p">[</span><span class="s1">'phi'</span><span class="p">]</span> <span class="o">+</span> <span class="n">efield_fft</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">VEL</span><span class="p">[</span><span class="s1">'theta'</span><span class="p">]</span>
 
                 <span class="c1"># Remove DC offset</span>
                 <span class="n">voltage_fft</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ff</span> <span class="o">&lt;</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">0.</span>
@@ -752,7 +752,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"total time used by this module is </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">dt</span></div>
 </div>
 

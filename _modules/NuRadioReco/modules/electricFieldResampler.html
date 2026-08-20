@@ -652,15 +652,15 @@
   <h1>Source code for NuRadioReco.modules.electricFieldResampler</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.stationResampler&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.stationResampler'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="electricFieldResampler">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.electricFieldResampler.html#NuRadioReco.modules.electricFieldResampler.electricFieldResampler">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">electricFieldResampler</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    resamples the electric field trace to a new sampling rate</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__max_upsampling_factor</span> <span class="o">=</span> <span class="kc">None</span>
@@ -677,7 +677,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.electricFieldResampler.html#NuRadioReco.modules.electricFieldResampler.electricFieldResampler.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        resample electric field</span>
 
 <span class="sd">        Parameters</span>
@@ -691,7 +691,7 @@
 <span class="sd">        sampling_rate: float</span>
 <span class="sd">            desired new sampling rate</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">():</span>
             <span class="n">efield</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">sampling_rate</span><span class="p">)</span></div>
 

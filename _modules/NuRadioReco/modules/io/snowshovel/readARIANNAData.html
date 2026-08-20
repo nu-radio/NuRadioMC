@@ -663,25 +663,25 @@
 <div class="viewcode-block" id="readARIANNAData">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.snowshovel.readARIANNAData.html#NuRadioReco.modules.io.snowshovel.readARIANNAData.readARIANNAData">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">readARIANNAData</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Assumes a tree with calibrated data, shifted by the stop. Very basic module for now.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="readARIANNAData.begin">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.snowshovel.readARIANNAData.html#NuRadioReco.modules.io.snowshovel.readARIANNAData.readARIANNAData.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data_tree</span> <span class="o">=</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TChain</span><span class="p">(</span><span class="s2">&quot;CalibTree&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_tree</span> <span class="o">=</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TChain</span><span class="p">(</span><span class="s2">"CalibTree"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_tree</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">calwv</span> <span class="o">=</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TSnCalWvData</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data_tree</span><span class="o">.</span><span class="n">SetBranchAddress</span><span class="p">(</span><span class="s2">&quot;AmpOutDataShifted.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">calwv</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_tree</span><span class="o">.</span><span class="n">SetBranchAddress</span><span class="p">(</span><span class="s2">"AmpOutDataShifted."</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">calwv</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">=</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TSnRawWaveform</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data_tree</span><span class="o">.</span><span class="n">SetBranchAddress</span><span class="p">(</span><span class="s2">&quot;RawData.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">calwv</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_tree</span><span class="o">.</span><span class="n">SetBranchAddress</span><span class="p">(</span><span class="s2">"RawData."</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">calwv</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">config_tree</span> <span class="o">=</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TChain</span><span class="p">(</span><span class="s2">&quot;ConfigTree&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_tree</span> <span class="o">=</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TChain</span><span class="p">(</span><span class="s2">"ConfigTree"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config_tree</span><span class="o">.</span><span class="n">Add</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">readout_config</span> <span class="o">=</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">TSnReadoutConfig</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">config_tree</span><span class="o">.</span><span class="n">SetBranchAddress</span><span class="p">(</span><span class="s2">&quot;ReadoutConfig.&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">readout_config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_tree</span><span class="o">.</span><span class="n">SetBranchAddress</span><span class="p">(</span><span class="s2">"ReadoutConfig."</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">readout_config</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">n_events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_tree</span><span class="o">.</span><span class="n">GetEntries</span><span class="p">()</span>
 

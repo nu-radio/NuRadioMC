@@ -660,11 +660,11 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector.RNO_G</span><span class="w"> </span><span class="kn">import</span> <span class="n">rnog_detector</span>
 
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.detector&quot;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.detector"</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_find_path</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Checks for file relative to local folder and detector.py &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" Checks for file relative to local folder and detector.py """</span>
     <span class="n">dir_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>  <span class="c1"># get the directory of this file</span>
     <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dir_path</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
@@ -672,48 +672,48 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># try local folder instead</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t locate json database file in: </span><span class="si">{}</span><span class="s2"> or </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">NameError</span><span class="p">(</span><span class="s2">"Can't locate json database file in: </span><span class="si">{}</span><span class="s2"> or </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">name</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_find_reference_entry</span><span class="p">(</span><span class="n">station_dict</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Search for the strings &quot;reference_station&quot; or &quot;reference_channel&quot; in the detector description.</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Search for the strings "reference_station" or "reference_channel" in the detector description.</span>
 <span class="sd">    This is used to determine whether to use the detector_base or generic_detector class.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="s1">&#39;reference_station&#39;</span> <span class="ow">in</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;stations&#39;</span><span class="p">][</span><span class="n">station</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">'stations'</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="s1">'reference_station'</span> <span class="ow">in</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">'stations'</span><span class="p">][</span><span class="n">station</span><span class="p">]:</span>
             <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="s1">&#39;reference_channel&#39;</span> <span class="ow">in</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">][</span><span class="n">channel</span><span class="p">]</span> <span class="ow">or</span> <span class="s1">&#39;reference_station&#39;</span> <span class="ow">in</span> \
-                <span class="n">station_dict</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">][</span><span class="n">channel</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">'channels'</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="s1">'reference_channel'</span> <span class="ow">in</span> <span class="n">station_dict</span><span class="p">[</span><span class="s1">'channels'</span><span class="p">][</span><span class="n">channel</span><span class="p">]</span> <span class="ow">or</span> <span class="s1">'reference_station'</span> <span class="ow">in</span> \
+                <span class="n">station_dict</span><span class="p">[</span><span class="s1">'channels'</span><span class="p">][</span><span class="n">channel</span><span class="p">]:</span>
             <span class="k">return</span> <span class="kc">True</span>
 
     <span class="k">return</span> <span class="kc">False</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_if_not_None</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">default</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Return `value` if `value is not None`, otherwise return `default` &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""" Return `value` if `value is not None`, otherwise return `default` """</span>
     <span class="k">return</span> <span class="n">value</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default</span>
 
 
 <div class="viewcode-block" id="Detector">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.detector.html#NuRadioReco.detector.detector.Detector">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">Detector</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        This function returns a detector class object.</span>
 
-<span class="sd">        It chooses the correct class based on the &quot;source&quot; argument.</span>
+<span class="sd">        It chooses the correct class based on the "source" argument.</span>
 <span class="sd">        The returned object is of one of these classes:</span>
 
-<span class="sd">            - kwargs[&quot;source&quot;] == &quot;rnog_mongo&quot; -&gt; `NuRadioReco.detector.RNO_G.rnog_detector`</span>
-<span class="sd">            - kwargs[&quot;source&quot;] == &quot;sql&quot; -&gt; `NuRadioReco.detector.detector_base`</span>
-<span class="sd">            - kwargs[&quot;source&quot;] == &quot;json&quot; or &quot;dictionary&quot; -&gt; `NuRadioReco.detector.detector_base` or</span>
+<span class="sd">            - kwargs["source"] == "rnog_mongo" -&gt; `NuRadioReco.detector.RNO_G.rnog_detector`</span>
+<span class="sd">            - kwargs["source"] == "sql" -&gt; `NuRadioReco.detector.detector_base`</span>
+<span class="sd">            - kwargs["source"] == "json" or "dictionary" -&gt; `NuRadioReco.detector.detector_base` or</span>
 <span class="sd">              `NuRadioReco.detector.generic_detector`</span>
 
-<span class="sd">        For &#39;kwargs[&quot;source&quot;] == &quot;json&quot;&#39;, whether to use &quot;detector_base&quot; or &quot;generic_detector&quot;</span>
+<span class="sd">        For 'kwargs["source"] == "json"', whether to use "detector_base" or "generic_detector"</span>
 <span class="sd">        depends on whether a reference station / channel is defined in the json file / dictionary</span>
 <span class="sd">        or not.</span>
 
@@ -723,15 +723,15 @@
 <span class="sd">        args: Positional arguments (arguments without keyword)</span>
 <span class="sd">            For backwards compatibility, when source is sql | json | dictionary, args are interpreted as follows:</span>
 
-<span class="sd">                - json_filename = args[0] only when source == &quot;json&quot;)</span>
+<span class="sd">                - json_filename = args[0] only when source == "json")</span>
 <span class="sd">                - source = args[1]</span>
 <span class="sd">                - dictionary = args[2]</span>
 <span class="sd">                - assume_inf = args[3]</span>
 <span class="sd">                - antenna_by_depth = args[4]</span>
 
 <span class="sd">        kwargs: Optional arguments (arguments with keyword)</span>
-<span class="sd">            Keyword arguments passed to detector object. The argument &quot;source&quot; is used to select the</span>
-<span class="sd">            correct class (see description above). If no keyword &quot;source&quot; is passed, the default &quot;json&quot;</span>
+<span class="sd">            Keyword arguments passed to detector object. The argument "source" is used to select the</span>
+<span class="sd">            correct class (see description above). If no keyword "source" is passed, the default "json"</span>
 <span class="sd">            is used.</span>
 
 <span class="sd">        Returns</span>
@@ -739,89 +739,89 @@
 
 <span class="sd">        det: NuRadioReco.detector.* (see options above)</span>
 <span class="sd">            Detector class object</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># Interprete positional arguments (args) for backwards compatibility</span>
         <span class="c1"># when source is sql | json | dictionary</span>
-        <span class="c1"># json_filename = args[0] is used below (when source == &#39;json&#39;).</span>
+        <span class="c1"># json_filename = args[0] is used below (when source == 'json').</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
             <span class="n">source</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">source</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="s2">&quot;json&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"source"</span><span class="p">,</span> <span class="s2">"json"</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
             <span class="n">dictionary</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">dictionary</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;dictionary&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">dictionary</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"dictionary"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
             <span class="n">assume_inf</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">assume_inf</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;assume_inf&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">assume_inf</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"assume_inf"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">:</span>
             <span class="n">antenna_by_depth</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># None because the default argument for GenericDetector and DetectorBase are different</span>
-            <span class="n">antenna_by_depth</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;antenna_by_depth&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">antenna_by_depth</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"antenna_by_depth"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">&quot;sql&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">"sql"</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">detector_base</span><span class="o">.</span><span class="n">DetectorBase</span><span class="p">(</span>
                 <span class="n">json_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">dictionary</span><span class="o">=</span><span class="n">dictionary</span><span class="p">,</span>
                 <span class="n">assume_inf</span><span class="o">=</span><span class="n">_if_not_None</span><span class="p">(</span><span class="n">assume_inf</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
                 <span class="n">antenna_by_depth</span><span class="o">=</span><span class="n">_if_not_None</span><span class="p">(</span><span class="n">antenna_by_depth</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
 
-        <span class="k">elif</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">&quot;rnog_mongo&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">"rnog_mongo"</span> <span class="ow">or</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">"rnog"</span> <span class="ow">or</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">"mongo"</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">rnog_detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">&quot;dictionary&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="o">==</span> <span class="s2">"dictionary"</span><span class="p">:</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Argument </span><span class="se">\&quot;</span><span class="s2">dictionary</span><span class="se">\&quot;</span><span class="s2"> is not correct while source=</span><span class="se">\&quot;</span><span class="s2">dictionary</span><span class="se">\&quot;</span><span class="s2"> is set.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Argument </span><span class="se">\"</span><span class="s2">dictionary</span><span class="se">\"</span><span class="s2"> is not correct while source=</span><span class="se">\"</span><span class="s2">dictionary</span><span class="se">\"</span><span class="s2"> is set."</span><span class="p">)</span>
 
             <span class="n">station_dict</span> <span class="o">=</span> <span class="n">dictionary</span>
 
             <span class="c1"># in this case, `json_filname` not need and should not be passed twice</span>
-            <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;json_filename&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"json_filename"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="s1">''</span>
 
-        <span class="k">elif</span> <span class="n">source</span> <span class="o">==</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">source</span> <span class="o">==</span> <span class="s1">'json'</span><span class="p">:</span>
 
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
                 <span class="n">json_filename</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># used to be passed as positional argument</span>
-            <span class="k">elif</span> <span class="s2">&quot;json_filename&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="n">json_filename</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;json_filename&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="s2">"json_filename"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">json_filename</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"json_filename"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No possitional arguments and no argument </span><span class="se">\&quot;</span><span class="s2">json_filename</span><span class="se">\&quot;</span><span class="s2"> &quot;</span>
-                                 <span class="s2">&quot;was not passed while source=</span><span class="se">\&quot;</span><span class="s2">json</span><span class="se">\&quot;</span><span class="s2"> (default) is set.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"No possitional arguments and no argument </span><span class="se">\"</span><span class="s2">json_filename</span><span class="se">\"</span><span class="s2"> "</span>
+                                 <span class="s2">"was not passed while source=</span><span class="se">\"</span><span class="s2">json</span><span class="se">\"</span><span class="s2"> (default) is set."</span><span class="p">)</span>
 
             <span class="n">filename</span> <span class="o">=</span> <span class="n">_find_path</span><span class="p">(</span><span class="n">json_filename</span><span class="p">)</span>
 
-            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span>
             <span class="n">station_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unknown source specifed (</span><span class="se">\&quot;</span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="se">\&quot;</span><span class="s1">). &#39;</span>
-                             <span class="sa">f</span><span class="s1">&#39;Must be one of </span><span class="se">\&quot;</span><span class="s1">json</span><span class="se">\&quot;</span><span class="s1">, </span><span class="se">\&quot;</span><span class="s1">sql</span><span class="se">\&quot;</span><span class="s1">, </span><span class="se">\&quot;</span><span class="s1">dictionary</span><span class="se">\&quot;</span><span class="s1">, </span><span class="se">\&quot;</span><span class="s1">mongo</span><span class="se">\&quot;</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Unknown source specifed (</span><span class="se">\"</span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="se">\"</span><span class="s1">). '</span>
+                             <span class="sa">f</span><span class="s1">'Must be one of </span><span class="se">\"</span><span class="s1">json</span><span class="se">\"</span><span class="s1">, </span><span class="se">\"</span><span class="s1">sql</span><span class="se">\"</span><span class="s1">, </span><span class="se">\"</span><span class="s1">dictionary</span><span class="se">\"</span><span class="s1">, </span><span class="se">\"</span><span class="s1">mongo</span><span class="se">\"</span><span class="s1"> (</span><span class="se">\"</span><span class="s1">rnog_mongo</span><span class="se">\"</span><span class="s1"> or </span><span class="se">\"</span><span class="s1">rnog</span><span class="se">\"</span><span class="s1"> work too))'</span><span class="p">)</span>
 
         <span class="n">has_reference_entry</span> <span class="o">=</span> <span class="n">_find_reference_entry</span><span class="p">(</span><span class="n">station_dict</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s1">&#39;json&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">source</span> <span class="o">==</span> <span class="s1">'json'</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
         <span class="n">has_default</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">([</span><span class="n">arg</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                              <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;default_station&quot;</span><span class="p">,</span> <span class="s2">&quot;default_channel&quot;</span><span class="p">,</span> <span class="s2">&quot;default_device&quot;</span><span class="p">]])</span>
+                              <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"default_station"</span><span class="p">,</span> <span class="s2">"default_channel"</span><span class="p">,</span> <span class="s2">"default_device"</span><span class="p">]])</span>
 
         <span class="k">if</span> <span class="n">has_reference_entry</span> <span class="ow">or</span> <span class="n">has_default</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">has_default</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s1">&#39;Deprecation warning: Passing the default detector station is deprecated. Default stations &#39;</span>
-                    <span class="s1">&#39;and default channel should be specified in the detector description directly.&#39;</span>
+                    <span class="s1">'Deprecation warning: Passing the default detector station is deprecated. Default stations '</span>
+                    <span class="s1">'and default channel should be specified in the detector description directly.'</span>
                 <span class="p">)</span>
 
-                <span class="k">if</span> <span class="s2">&quot;default_station&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Default detector station provided (station &#39;</span>
-                                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;default_station&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">) -&gt; Using generic detector&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="s2">"default_station"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'Default detector station provided (station '</span>
+                                <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">"default_station"</span><span class="p">]</span><span class="si">}</span><span class="s1">) -&gt; Using generic detector'</span><span class="p">)</span>
 
             <span class="k">return</span> <span class="n">generic_detector</span><span class="o">.</span><span class="n">GenericDetector</span><span class="p">(</span>
                 <span class="n">json_filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">dictionary</span><span class="o">=</span><span class="n">dictionary</span><span class="p">,</span>
@@ -829,8 +829,8 @@
                 <span class="n">antenna_by_depth</span><span class="o">=</span><span class="n">_if_not_None</span><span class="p">(</span><span class="n">antenna_by_depth</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Keys might be present (but should be None). Keys are deprecated, keep them for backwards compatibility</span>
-            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;default_station&quot;</span><span class="p">,</span> <span class="s2">&quot;default_channel&quot;</span><span class="p">,</span> <span class="s2">&quot;default_device&quot;</span><span class="p">]:</span>
-                <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s2">&quot;None&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"default_station"</span><span class="p">,</span> <span class="s2">"default_channel"</span><span class="p">,</span> <span class="s2">"default_device"</span><span class="p">]:</span>
+                <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s2">"None"</span><span class="p">)</span>
 
             <span class="k">return</span> <span class="n">detector_base</span><span class="o">.</span><span class="n">DetectorBase</span><span class="p">(</span>
                 <span class="n">json_filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">dictionary</span><span class="o">=</span><span class="n">dictionary</span><span class="p">,</span>

@@ -653,26 +653,26 @@
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.channelLengthAdjuster&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.channelLengthAdjuster'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="channelLengthAdjuster">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelLengthAdjuster.html#NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelLengthAdjuster</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    cuts the trace to detector specifications, uses a simple algorithm to determine the location of the pulse</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">number_of_samples</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;In most cases it is advisable to run a trigger module and use the channelReadoutWindowCutter module to cut the traces to the readout window &quot;</span>
-                       <span class="s2">&quot;instead of this simple module.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"In most cases it is advisable to run a trigger module and use the channelReadoutWindowCutter module to cut the traces to the readout window "</span>
+                       <span class="s2">"instead of this simple module."</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">(())</span>
 
 <div class="viewcode-block" id="channelLengthAdjuster.begin">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelLengthAdjuster.html#NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">number_of_samples</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Defines number of samples to cut the data to and how many samples before maximum in trace</span>
 
 <span class="sd">        Parameters</span>
@@ -682,7 +682,7 @@
 <span class="sd">        offset: int</span>
 <span class="sd">            (roughly) How many samples before pulse</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">number_of_samples</span> <span class="o">=</span> <span class="n">number_of_samples</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">offset</span></div>
@@ -692,7 +692,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelLengthAdjuster.html#NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Run method for the channelLengthAdjuster</span>
 
 <span class="sd">        Parameters</span>
@@ -707,7 +707,7 @@
 <span class="sd">        channel_ids: List of ints</span>
 <span class="sd">            Can be used to specify, which channels shall be cut. If it is None,</span>
 <span class="sd">            all channels are cut.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">max_pos</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">channel_ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
@@ -721,11 +721,11 @@
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
             <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_samples</span> <span class="o">&gt;</span> <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Input has fewer samples than desired output. Channels has only </span><span class="si">{}</span><span class="s2"> samples but </span><span class="si">{}</span><span class="s2"> samples are requested.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_samples</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Input has fewer samples than desired output. Channels has only </span><span class="si">{}</span><span class="s2"> samples but </span><span class="si">{}</span><span class="s2"> samples are requested."</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_samples</span><span class="p">))</span>
                 <span class="n">new_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">number_of_samples</span><span class="p">)</span>
                 <span class="n">new_trace</span><span class="p">[:</span><span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">trace</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_samples</span> <span class="o">==</span> <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Channel already at desired length, nothing done.&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Channel already at desired length, nothing done."</span><span class="p">)</span>
                 <span class="k">continue</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># shift trace to be in the correct location for cutting</span>

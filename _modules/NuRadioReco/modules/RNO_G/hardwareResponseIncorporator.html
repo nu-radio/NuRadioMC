@@ -666,14 +666,14 @@
 <div class="viewcode-block" id="hardwareResponseIncorporator">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">hardwareResponseIncorporator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Incorporates the compex response of the RNO-G hardware. The response is obtained from the detector description.</span>
 <span class="sd">    The response is applied in the frequency domain.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span>
-            <span class="s2">&quot;NuRadioReco.RNOG.hardwareResponseIncorporator&quot;</span><span class="p">)</span>
+            <span class="s2">"NuRadioReco.RNOG.hardwareResponseIncorporator"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__mingainlin</span> <span class="o">=</span> <span class="kc">None</span>
@@ -683,12 +683,12 @@
 <div class="viewcode-block" id="hardwareResponseIncorporator.begin">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        trigger_channels: list of int</span>
 <span class="sd">            List of channels for which an extra trigger channel with a different response is used. (Default: None)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trigger_channels</span> <span class="o">=</span> <span class="n">trigger_channels</span></div>
 
 
@@ -697,7 +697,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">get_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span>
                    <span class="n">temp</span><span class="o">=</span><span class="mf">293.15</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">phase_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                    <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mingainlin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_trigger</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Helper function to return the filter that the module applies.</span>
 
 <span class="sd">        Parameters</span>
@@ -725,15 +725,15 @@
 <span class="sd">        phase_only: bool (default False)</span>
 <span class="sd">            if True, only the phases response is applied but not the amplitude response</span>
 
-<span class="sd">        mode: {None, &#39;phase_only&#39;, &#39;relative&#39;}, default None</span>
+<span class="sd">        mode: {None, 'phase_only', 'relative'}, default None</span>
 <span class="sd">            Options:</span>
 
-<span class="sd">            * &#39;phase_only&#39;: only the phases response is applied but not the amplitude response</span>
+<span class="sd">            * 'phase_only': only the phases response is applied but not the amplitude response</span>
 <span class="sd">              (identical to phase_only=True )</span>
-<span class="sd">            * &#39;relative&#39;: gain of amp is divided by maximum of the gain, i.e. at the maximum of the</span>
+<span class="sd">            * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the</span>
 <span class="sd">              filter response is 1 (before applying cable response). This makes it easier to compare</span>
 <span class="sd">              the filtered to unfiltered signal</span>
-<span class="sd">            * None : default, gain and phase effects are applied &#39;normally&#39;</span>
+<span class="sd">            * None : default, gain and phase effects are applied 'normally'</span>
 
 <span class="sd">        mingainlin: float</span>
 <span class="sd">            In frequency ranges where the gain gets very small, the reconstruction of the original signal (obtained by</span>
@@ -751,7 +751,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        array of complex floats</span>
 <span class="sd">            the complex filter amplitudes</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">detector</span><span class="o">.</span><span class="n">rnog_detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">):</span>
             <span class="n">amp_response</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_signal_chain_response</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">is_trigger</span><span class="p">)</span>
@@ -759,10 +759,10 @@
             <span class="n">amp_type</span> <span class="o">=</span> <span class="n">det</span><span class="o">.</span><span class="n">get_amplifier_type</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
             <span class="c1"># it reads the log file. change this to load_amp_measurement if you want the RI file</span>
             <span class="n">amp_response</span> <span class="o">=</span> <span class="n">analog_components</span><span class="o">.</span><span class="n">load_amp_response</span><span class="p">(</span><span class="n">amp_type</span><span class="p">)</span>
-            <span class="n">response_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">amp_response</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">](</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">temp</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">amp_response</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">](</span><span class="n">frequencies</span><span class="p">))]</span>
-            <span class="n">amp_response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">Response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">response_list</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">,</span> <span class="s2">&quot;rad&quot;</span><span class="p">],</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
+            <span class="n">response_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">amp_response</span><span class="p">[</span><span class="s1">'gain'</span><span class="p">](</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">temp</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">amp_response</span><span class="p">[</span><span class="s1">'phase'</span><span class="p">](</span><span class="n">frequencies</span><span class="p">))]</span>
+            <span class="n">amp_response</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">Response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">response_list</span><span class="p">,</span> <span class="p">[</span><span class="s2">"mag"</span><span class="p">,</span> <span class="s2">"rad"</span><span class="p">],</span> <span class="n">station_id</span><span class="o">=</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="o">=</span><span class="n">channel_id</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Detector type not implemented&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"Detector type not implemented"</span><span class="p">)</span>
 
         <span class="n">amp_response</span> <span class="o">=</span> <span class="n">amp_response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
 
@@ -777,14 +777,14 @@
         <span class="n">cable_response</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">pass</span>
-        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;phase_only&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">'phase_only'</span><span class="p">:</span>
             <span class="n">cable_response</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">cable_response</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">cable_response</span><span class="p">))</span>
             <span class="n">amp_response</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">amp_response</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">amp_response</span><span class="p">))</span>
-        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;relative&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">'relative'</span><span class="p">:</span>
             <span class="n">ampmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">amp_response</span><span class="p">))</span>
             <span class="n">amp_response</span> <span class="o">/=</span> <span class="n">ampmax</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Operating mode </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2"> has not been implemented.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Operating mode </span><span class="se">\"</span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="se">\"</span><span class="s2"> has not been implemented."</span><span class="p">)</span>
 
         <span class="n">signal_chain_response</span> <span class="o">=</span> <span class="n">amp_response</span> <span class="o">*</span> <span class="n">cable_response</span>
 
@@ -798,7 +798,7 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.html#NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="mf">293.15</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">phase_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mingainlin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Switch sim_to_data to go from simulation to data or otherwise.</span>
 
 <span class="sd">        Parameters</span>
@@ -825,12 +825,12 @@
 <span class="sd">        mode: string or None, default None</span>
 <span class="sd">            Options:</span>
 
-<span class="sd">            * &#39;phase_only&#39;: only the phases response is applied but not the amplitude response</span>
+<span class="sd">            * 'phase_only': only the phases response is applied but not the amplitude response</span>
 <span class="sd">              (identical to phase_only=True)</span>
-<span class="sd">            * &#39;relative&#39;: gain of amp is divided by maximum of the gain, i.e. at the maximum of the</span>
+<span class="sd">            * 'relative': gain of amp is divided by maximum of the gain, i.e. at the maximum of the</span>
 <span class="sd">              filter response is 1 (before applying cable response). This makes it easier to compare</span>
 <span class="sd">              the filtered to unfiltered signal</span>
-<span class="sd">            * None: default, gain and phase effects are applied &#39;normally&#39;</span>
+<span class="sd">            * None: default, gain and phase effects are applied 'normally'</span>
 
 <span class="sd">        mingainlin: float</span>
 <span class="sd">            In frequency ranges where the gain gets very small, the reconstruction of the original signal (obtained by</span>
@@ -841,18 +841,18 @@
 <span class="sd">            Note: The adjustment to the minimal gain is NOT visible when getting the amp response from</span>
 <span class="sd">            ``analog_components.get_amplifier_response()``</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__mingainlin</span> <span class="o">=</span> <span class="n">mingainlin</span>
         <span class="k">if</span> <span class="n">phase_only</span><span class="p">:</span>
-            <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;phase_only&#39;</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s1">'phase_only'</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s1">&#39;Please use option mode=&#39;&#39;phase_only&#39;&#39; in the future, use of option phase_only will be phased out&#39;</span><span class="p">)</span>
+                <span class="s1">'Please use option mode=''phase_only'' in the future, use of option phase_only will be phased out'</span><span class="p">)</span>
 
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trigger_channels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">detector</span><span class="o">.</span><span class="n">rnog_detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class."</span><span class="p">)</span>
 
         <span class="n">has_trigger_channels</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
@@ -865,7 +865,7 @@
             <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trigger_channels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
                 <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">trigger_channels</span> <span class="ow">and</span>
                 <span class="nb">isinstance</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">station</span><span class="o">.</span><span class="n">Station</span><span class="p">)):</span>
-<span class="w">                </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">                </span><span class="sd">"""</span>
 <span class="sd">                Create a copy of the channel and apply the readout and trigger channel response respectively.</span>
 <span class="sd">                We do this here under the assumption that up to this point no difference between the two channels</span>
 <span class="sd">                had to be made. This is acutally not strictly true. The cable delay is already added in the</span>
@@ -874,7 +874,7 @@
 <span class="sd">                this holds for the future. You have been warned!</span>
 
 <span class="sd">                See Also: https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/event_structure.html#channel for a bit more context.</span>
-<span class="sd">                &quot;&quot;&quot;</span>
+<span class="sd">                """</span>
                 <span class="n">trig_filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filter</span><span class="p">(</span>
                     <span class="n">frequencies</span><span class="p">,</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">(),</span> <span class="n">det</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="p">,</span>
                     <span class="n">phase_only</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">mingainlin</span><span class="p">,</span> <span class="n">is_trigger</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -901,20 +901,20 @@
                 <span class="n">trace_fft</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">sim_to_data</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">evt</span><span class="o">.</span><span class="n">_has_been_processed_by_module</span><span class="p">(</span><span class="s1">&#39;channelAddCableDelay&#39;</span><span class="p">,</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">evt</span><span class="o">.</span><span class="n">_has_been_processed_by_module</span><span class="p">(</span><span class="s1">'channelAddCableDelay'</span><span class="p">,</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">&quot;The hardwareResponseIncorporator module should _not_ be used to remove the cable delay &quot;</span>
-                    <span class="s2">&quot;from data anymore. Please use channelAddCableDelay module for this (before running &quot;</span>
-                    <span class="s2">&quot;the hardwareResponseIncorporator module). The channelAddCableDelay was not applied &quot;</span>
-                    <span class="s2">&quot;to this event, hence, you are receiving this warning. The cable delay is now &quot;</span>
-                    <span class="s2">&quot;removed. Please add the channelAddCableDelay module to your processing chain &quot;</span>
-                    <span class="s2">&quot;to avoid this warning in the future (in that case the cable delay will not be &quot;</span>
-                    <span class="s2">&quot;removed by this module).&quot;</span><span class="p">)</span>
+                    <span class="s2">"The hardwareResponseIncorporator module should _not_ be used to remove the cable delay "</span>
+                    <span class="s2">"from data anymore. Please use channelAddCableDelay module for this (before running "</span>
+                    <span class="s2">"the hardwareResponseIncorporator module). The channelAddCableDelay was not applied "</span>
+                    <span class="s2">"to this event, hence, you are receiving this warning. The cable delay is now "</span>
+                    <span class="s2">"removed. Please add the channelAddCableDelay module to your processing chain "</span>
+                    <span class="s2">"to avoid this warning in the future (in that case the cable delay will not be "</span>
+                    <span class="s2">"removed by this module)."</span><span class="p">)</span>
 
                 <span class="c1"># Subtraces the cable delay. For `sim_to_data=True`, the cable delay is added</span>
                 <span class="c1"># in the efieldToVoltageConverter or with the channelCableDelayAdder</span>
                 <span class="c1"># (if efieldToVoltageConverterPerEfield was used).</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">channelAddCableDelay</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;subtract&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">channelAddCableDelay</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">'subtract'</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t</span></div>
 
@@ -925,14 +925,14 @@
         <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"total time used by this module is </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">dt</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__calculate_time_delays_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">amp_type</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        helper function to calculate the time delay of the amp for a delta pulse</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">amp_response_f</span> <span class="o">=</span> <span class="n">analog_components</span><span class="o">.</span><span class="n">load_amp_response</span><span class="p">(</span><span class="n">amp_type</span><span class="p">)</span>
         <span class="c1"># assume a huge sampling rate to have a good time resolution</span>
         <span class="n">sampling_rate</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span>
@@ -942,8 +942,8 @@
         <span class="n">max_time</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span> <span class="o">/</span> <span class="n">sampling_rate</span>
         <span class="n">spec</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
         <span class="n">ff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span>
-        <span class="n">amp_response_gain</span> <span class="o">=</span> <span class="n">amp_response_f</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">](</span><span class="n">ff</span><span class="p">)</span>
-        <span class="n">amp_response_phase</span> <span class="o">=</span> <span class="n">amp_response_f</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">](</span><span class="n">ff</span><span class="p">)</span>
+        <span class="n">amp_response_gain</span> <span class="o">=</span> <span class="n">amp_response_f</span><span class="p">[</span><span class="s1">'gain'</span><span class="p">](</span><span class="n">ff</span><span class="p">)</span>
+        <span class="n">amp_response_phase</span> <span class="o">=</span> <span class="n">amp_response_f</span><span class="p">[</span><span class="s1">'phase'</span><span class="p">](</span><span class="n">ff</span><span class="p">)</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">ff</span> <span class="o">&lt;</span> <span class="mi">70</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">ff</span> <span class="o">&gt;</span> <span class="mi">40</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)</span>
         <span class="n">spec</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">trace2</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span>
@@ -959,7 +959,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">[</span><span class="n">amp_type</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__calculate_time_delays_amp</span><span class="p">(</span>
                 <span class="n">amp_type</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s2">&quot;time delays of amp </span><span class="si">{}</span><span class="s2"> have not yet been calculated -&gt; calculating -&gt; time delay is </span><span class="si">{:.2f}</span><span class="s2"> ns&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="s2">"time delays of amp </span><span class="si">{}</span><span class="s2"> have not yet been calculated -&gt; calculating -&gt; time delay is </span><span class="si">{:.2f}</span><span class="s2"> ns"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">amp_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">[</span><span class="n">amp_type</span><span class="p">]</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_delays</span><span class="p">[</span><span class="n">amp_type</span><span class="p">]</span></div>
@@ -973,7 +973,7 @@
 
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
@@ -981,13 +981,13 @@
     <span class="n">file_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
 
     <span class="n">detectorfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-        <span class="n">file_dir</span><span class="p">,</span> <span class="s2">&quot;../../detector/RNO_G/RNO_single_station.json&quot;</span><span class="p">)</span>
+        <span class="n">file_dir</span><span class="p">,</span> <span class="s2">"../../detector/RNO_G/RNO_single_station.json"</span><span class="p">)</span>
     <span class="n">det_old</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">generic_detector</span><span class="o">.</span><span class="n">GenericDetector</span><span class="p">(</span>
         <span class="n">json_filename</span><span class="o">=</span><span class="n">detectorfile</span><span class="p">,</span>
         <span class="n">default_station</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">antenna_by_depth</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="n">det</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">rnog_detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span> <span class="n">over_write_handset_values</span><span class="o">=</span><span class="p">{</span>
-        <span class="s2">&quot;sampling_frequency&quot;</span><span class="p">:</span> <span class="mf">2.4</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">},</span> <span class="n">always_query_entire_description</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="s2">"sampling_frequency"</span><span class="p">:</span> <span class="mf">2.4</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">},</span> <span class="n">always_query_entire_description</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">det</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 
     <span class="n">hri</span> <span class="o">=</span> <span class="n">hardwareResponseIncorporator</span><span class="p">()</span>
@@ -1000,12 +1000,12 @@
 
     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
 
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">filter_old</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;old detector class&quot;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="nb">filter</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;new detector class&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">filter_old</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">"old detector class"</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="nb">filter</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">"new detector class"</span><span class="p">)</span>
 
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;frequency / GHz&quot;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">"log"</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"frequency / GHz"</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s2">"both"</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">1e-2</span><span class="p">,</span> <span class="mf">5e3</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>

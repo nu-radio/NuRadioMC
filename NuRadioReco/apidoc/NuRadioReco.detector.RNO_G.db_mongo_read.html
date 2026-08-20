@@ -1079,18 +1079,18 @@ returns primary unless measurement_name is not None</p>
 
 <span class="c1"># gives you the entry in the database</span>
 <span class="n">database_entry</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_component_data</span><span class="p">(</span>
-    <span class="n">collection_name</span><span class="o">=</span><span class="s1">&#39;iglu_board&#39;</span><span class="p">,</span>
-    <span class="n">component_name</span><span class="o">=</span><span class="s1">&#39;C0069&#39;</span><span class="p">,</span>
-    <span class="n">supplementary_info</span><span class="o">=</span><span class="p">{},</span> <span class="c1"># if you want a DRAB you have to specify the channel: {&#39;channel_id&#39;:0}</span>
+    <span class="n">collection_name</span><span class="o">=</span><span class="s1">'iglu_board'</span><span class="p">,</span>
+    <span class="n">component_name</span><span class="o">=</span><span class="s1">'C0069'</span><span class="p">,</span>
+    <span class="n">supplementary_info</span><span class="o">=</span><span class="p">{},</span> <span class="c1"># if you want a DRAB you have to specify the channel: {'channel_id':0}</span>
     <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">sparameter</span><span class="o">=</span><span class="s1">&#39;S21&#39;</span><span class="p">,</span> <span class="c1"># you can also read the other S parameters</span>
+    <span class="n">sparameter</span><span class="o">=</span><span class="s1">'S21'</span><span class="p">,</span> <span class="c1"># you can also read the other S parameters</span>
     <span class="n">primary_time</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
 
 <span class="c1"># extract the gain + phase data</span>
-<span class="n">y_axis_units</span> <span class="o">=</span> <span class="n">database_entry</span><span class="p">[</span><span class="s1">&#39;y-axis_units&#39;</span><span class="p">]</span>
-<span class="n">frequencies</span> <span class="o">=</span> <span class="n">database_entry</span><span class="p">[</span><span class="s1">&#39;frequencies&#39;</span><span class="p">]</span>
-<span class="n">gain_data</span> <span class="o">=</span> <span class="n">database_entry</span><span class="p">[</span><span class="s1">&#39;mag&#39;</span><span class="p">]</span>
-<span class="n">phase_data</span> <span class="o">=</span> <span class="n">database_entry</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span>
+<span class="n">y_axis_units</span> <span class="o">=</span> <span class="n">database_entry</span><span class="p">[</span><span class="s1">'y-axis_units'</span><span class="p">]</span>
+<span class="n">frequencies</span> <span class="o">=</span> <span class="n">database_entry</span><span class="p">[</span><span class="s1">'frequencies'</span><span class="p">]</span>
+<span class="n">gain_data</span> <span class="o">=</span> <span class="n">database_entry</span><span class="p">[</span><span class="s1">'mag'</span><span class="p">]</span>
+<span class="n">phase_data</span> <span class="o">=</span> <span class="n">database_entry</span><span class="p">[</span><span class="s1">'phase'</span><span class="p">]</span>
 </pre></div>
 </div>
 </dd></dl>

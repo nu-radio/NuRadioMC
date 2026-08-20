@@ -668,18 +668,18 @@
 <div class="viewcode-block" id="channelGlitchDetector">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelGlitchDetector.html#NuRadioReco.modules.RNO_G.channelGlitchDetector.channelGlitchDetector">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelGlitchDetector</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This module detects scrambled data (digitizer &quot;glitches&quot;) in the channels.</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    This module detects scrambled data (digitizer "glitches") in the channels.</span>
 
 <span class="sd">    RNO-G data (in particular the RNO-G data recorded with the LAB4D digitizers on the</span>
-<span class="sd">    first-generation radiants) is known to have &quot;glitches&quot; in the channels.</span>
+<span class="sd">    first-generation radiants) is known to have "glitches" in the channels.</span>
 <span class="sd">    When a glitch is present in a channel, the 64-sample readout blocks were scrambled</span>
 <span class="sd">    by the readout electronics which results in sudden unphyiscal jumps in the signal.</span>
 <span class="sd">    These jumps are detected with this module (but not corrected).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cut_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">glitch_fraction_warn_level</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        cut_value : float</span>
@@ -698,9 +698,9 @@
 <span class="sd">            Set verbosity level of logger. If logging.DEBUG, set mattak to verbose (unless specified in mattak_kwargs).</span>
 <span class="sd">            (Default: logging.NOTSET, ie adhere to general log level)</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.RNO_G.channelGlitchDetector&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.RNO_G.channelGlitchDetector'</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">ts_cut_value</span> <span class="o">=</span> <span class="n">cut_value</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">glitch_fraction_warn_level</span> <span class="o">=</span> <span class="n">glitch_fraction_warn_level</span>
@@ -726,18 +726,18 @@
         <span class="k">for</span> <span class="n">ch_id</span><span class="p">,</span> <span class="n">events_glitching</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">events_glitching_per_channel</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">glitching_fraction</span> <span class="o">=</span> <span class="n">events_glitching</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">events_checked</span>
             <span class="k">if</span> <span class="n">glitching_fraction</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">glitch_fraction_warn_level</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Channel </span><span class="si">{</span><span class="n">ch_id</span><span class="si">}</span><span class="s2"> shows glitches in </span><span class="si">{</span><span class="n">events_glitching</span><span class="si">}</span><span class="s2"> &quot;</span>
-                                    <span class="sa">f</span><span class="s2">&quot;/ </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">events_checked</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="mi">100</span><span class="o">*</span><span class="n">glitching_fraction</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">% of events!&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Channel </span><span class="si">{</span><span class="n">ch_id</span><span class="si">}</span><span class="s2"> shows glitches in </span><span class="si">{</span><span class="n">events_glitching</span><span class="si">}</span><span class="s2"> "</span>
+                                    <span class="sa">f</span><span class="s2">"/ </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">events_checked</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="mi">100</span><span class="o">*</span><span class="n">glitching_fraction</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">% of events!"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Channel </span><span class="si">{</span><span class="n">ch_id</span><span class="si">}</span><span class="s2"> shows glitches in </span><span class="si">{</span><span class="n">events_glitching</span><span class="si">}</span><span class="s2"> &quot;</span>
-                                 <span class="sa">f</span><span class="s2">&quot;/ </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">events_checked</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="mi">100</span><span class="o">*</span><span class="n">glitching_fraction</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">% of events!&quot;</span><span class="p">)</span></div>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Channel </span><span class="si">{</span><span class="n">ch_id</span><span class="si">}</span><span class="s2"> shows glitches in </span><span class="si">{</span><span class="n">events_glitching</span><span class="si">}</span><span class="s2"> "</span>
+                                 <span class="sa">f</span><span class="s2">"/ </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">events_checked</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="mi">100</span><span class="o">*</span><span class="n">glitching_fraction</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">% of events!"</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="channelGlitchDetector.run">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelGlitchDetector.html#NuRadioReco.modules.RNO_G.channelGlitchDetector.channelGlitchDetector.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Run over channel traces and sets `channelParameter.glitch`.</span>
+<span class="w">        </span><span class="sd">""" Run over channel traces and sets `channelParameter.glitch`.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -747,7 +747,7 @@
 <span class="sd">            The station object</span>
 <span class="sd">        det : `NuRadioReco.detector.detector.Detector` (default: None)</span>
 <span class="sd">            Detector object, not used!</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># update event counter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">events_checked</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -774,7 +774,7 @@
 <div class="viewcode-block" id="unscramble">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelGlitchDetector.html#NuRadioReco.modules.RNO_G.channelGlitchDetector.unscramble">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">unscramble</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="n">LAB4D_SAMPLING_BLOCK_SIZE</span><span class="p">,</span> <span class="n">readout_size</span><span class="o">=</span><span class="n">LAB4D_READOUT_SIZE</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Applies an unscrambling operation to the passed `trace`.</span>
 <span class="sd">    Note: the first and last sampling block are unusable and hence replaced by zeros in the returned waveform.</span>
 
@@ -787,7 +787,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    new_trace: np.ndarray</span>
 <span class="sd">        The unscrambled trace</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">twice_block_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">block_size</span>
 
@@ -810,7 +810,7 @@
 <div class="viewcode-block" id="diff_sq">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelGlitchDetector.html#NuRadioReco.modules.RNO_G.channelGlitchDetector.diff_sq">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">diff_sq</span><span class="p">(</span><span class="n">eventdata</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="n">LAB4D_SAMPLING_BLOCK_SIZE</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns sum of squared differences of samples across seams of 128-sample chunks.</span>
 <span class="sd">    Ignores the first and last `block_size` samples, which `unscramble` cannot reconstruct.</span>
 
@@ -818,7 +818,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    eventdata: np.ndarray</span>
 <span class="sd">        The channel waveform</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">twice_block_size</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">block_size</span>
 
     <span class="n">runsum</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -830,8 +830,8 @@
 <div class="viewcode-block" id="has_glitch">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelGlitchDetector.html#NuRadioReco.modules.RNO_G.channelGlitchDetector.has_glitch">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">has_glitch</span><span class="p">(</span><span class="n">event_or_station</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns true if any channel in any station has a &quot;glitch&quot;.</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Returns true if any channel in any station has a "glitch".</span>
 
 <span class="sd">    Requires the RNO_G.channelGlitchDetector module to have ran on the event.</span>
 
@@ -849,7 +849,7 @@
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
 <span class="sd">    NuRadioReco.modules.RNO_G.channelGlitchDetector</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event_or_station</span><span class="p">,</span> <span class="n">Event</span><span class="p">):</span>
         <span class="c1"># This will throw an error if the event has more than one station</span>
         <span class="n">station</span> <span class="o">=</span> <span class="n">event_or_station</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span>

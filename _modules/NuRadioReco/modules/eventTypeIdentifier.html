@@ -652,15 +652,15 @@
   <h1>Source code for NuRadioReco.modules.eventTypeIdentifier</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.eventTypeIdentifier&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.eventTypeIdentifier'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="eventTypeIdentifier">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.eventTypeIdentifier.html#NuRadioReco.modules.eventTypeIdentifier.eventTypeIdentifier">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">eventTypeIdentifier</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Use this module to distinguish cosmic ray events from neutrino events</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="eventTypeIdentifier.begin">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.eventTypeIdentifier.html#NuRadioReco.modules.eventTypeIdentifier.eventTypeIdentifier.begin">[docs]</a>
@@ -671,8 +671,8 @@
 <div class="viewcode-block" id="eventTypeIdentifier.run">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.eventTypeIdentifier.html#NuRadioReco.modules.eventTypeIdentifier.eventTypeIdentifier.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">forced_event_type</span><span class="o">=</span><span class="s1">&#39;neutrino&#39;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">forced_event_type</span><span class="o">=</span><span class="s1">'neutrino'</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Determines the type of event so that the correct modules can be</span>
 <span class="sd">        executed accordingly. Currently neutrino and cosmic ray events are</span>
 <span class="sd">        supported, but others can be added in the future.</span>
@@ -685,22 +685,22 @@
 
 <span class="sd">        mode: string</span>
 <span class="sd">            specifies which criteria the decision to flag the event as cosmic ray</span>
-<span class="sd">            or neutrino should be based on. Currently only supports &#39;forced&#39;,</span>
+<span class="sd">            or neutrino should be based on. Currently only supports 'forced',</span>
 <span class="sd">            which automatically flags the event to a specified type. Add new</span>
 <span class="sd">            modes to use different criteria</span>
 <span class="sd">        forced_event_type: string</span>
 <span class="sd">            if the mode is set to forced, this is the type the event will be set to.</span>
 <span class="sd">            Currently supported options are neutrino and cosmic_ray</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;forced&#39;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">forced_event_type</span> <span class="o">==</span> <span class="s1">&#39;neutrino&#39;</span><span class="p">:</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">'forced'</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">forced_event_type</span> <span class="o">==</span> <span class="s1">'neutrino'</span><span class="p">:</span>
                 <span class="n">station</span><span class="o">.</span><span class="n">set_is_neutrino</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="n">forced_event_type</span> <span class="o">==</span> <span class="s1">&#39;cosmic_ray&#39;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">forced_event_type</span> <span class="o">==</span> <span class="s1">'cosmic_ray'</span><span class="p">:</span>
                 <span class="n">station</span><span class="o">.</span><span class="n">set_is_cosmic_ray</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unsupported event type </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">forced_event_type</span><span class="p">))</span>
+                <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Unsupported event type </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">forced_event_type</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unsupported mode </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Unsupported mode </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span></div>
 </div>
 
 </pre></div>

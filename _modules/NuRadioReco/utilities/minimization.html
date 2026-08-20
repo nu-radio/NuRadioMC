@@ -659,11 +659,11 @@
 <div class="viewcode-block" id="Minimizer">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.minimization.html#NuRadioReco.utilities.minimization.Minimizer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Minimizer</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Class for radio signal reconstruction and general minimization tasks.</span>
 
 <span class="sd">    This class unifies the interfaces of different minimization algorithms</span>
-<span class="sd">    like SciPy and Minuit. The class has two &quot;modes&quot;. If no signal_function</span>
+<span class="sd">    like SciPy and Minuit. The class has two "modes". If no signal_function</span>
 <span class="sd">    is provided, it behaves like a standard minimizer, which minimizes an</span>
 <span class="sd">    objective function with respect to its parameters. If a signal_function</span>
 <span class="sd">    is provided, the class behaves like a minimizer specialized for fitting</span>
@@ -708,7 +708,7 @@
 <span class="sd">            and make the minimization slow.</span>
 <span class="sd">        debug : bool (optional)</span>
 <span class="sd">            Whether to print debug information during the minimization process.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objective_function</span><span class="p">,</span> <span class="n">parameters_initial</span><span class="p">,</span> <span class="n">parameters_bounds</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">signal_function</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">save_history</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="kc">None</span>
@@ -750,21 +750,21 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">history</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">,</span> <span class="p">[</span><span class="n">parameters_physical</span><span class="p">],</span> <span class="n">axis</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Function call </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_function_calls</span><span class="si">}</span><span class="s2">: parameters=</span><span class="si">{</span><span class="n">parameters_physical</span><span class="si">}</span><span class="s2">, result=</span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Function call </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_function_calls</span><span class="si">}</span><span class="s2">: parameters=</span><span class="si">{</span><span class="n">parameters_physical</span><span class="si">}</span><span class="s2">, result=</span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">result</span>
 
 <div class="viewcode-block" id="Minimizer.fix_parameters">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.minimization.html#NuRadioReco.utilities.minimization.Minimizer.fix_parameters">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fix_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fixed</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">fixed</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_parameters</span><span class="p">,</span> <span class="s2">&quot;Fixed parameters should match number of parameters&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">fixed</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_parameters</span><span class="p">,</span> <span class="s2">"Fixed parameters should match number of parameters"</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fixed</span> <span class="o">=</span> <span class="n">fixed</span></div>
 
         
 <div class="viewcode-block" id="Minimizer.run_minimization">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.minimization.html#NuRadioReco.utilities.minimization.Minimizer.run_minimization">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">run_minimization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">method_kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Run minimization algorithm for the objective function. If a signal_function is provided,</span>
 <span class="sd">        a data array must be provided which the signal is fitted using the objective_function.</span>
 
@@ -776,23 +776,23 @@
 <span class="sd">                Should only be provided if a signal_function is set. The type and shape depends on the objective_function,</span>
 <span class="sd">                but it could be a numpy array with shape [n_antennas, n_samples] containing data traces to fit the signal to,</span>
 <span class="sd">                or a list of channels.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">signal_function</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Data must be provided for minimization if a signal_function is set&quot;</span>
+            <span class="k">assert</span> <span class="n">data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"Data must be provided for minimization if a signal_function is set"</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
 
-        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;scipy&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"scipy"</span><span class="p">:</span>
             <span class="n">result_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scipy_minimization</span><span class="p">(</span><span class="o">**</span><span class="n">method_kwargs</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;minuit&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"minuit"</span><span class="p">:</span>
             <span class="n">result_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minuit_minimization</span><span class="p">(</span><span class="o">**</span><span class="n">method_kwargs</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;noisyopt&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"noisyopt"</span><span class="p">:</span>
             <span class="n">result_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noisyopt_minimization</span><span class="p">(</span><span class="o">**</span><span class="n">method_kwargs</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;skopt&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"skopt"</span><span class="p">:</span>
             <span class="n">result_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_skopt_minimization</span><span class="p">(</span><span class="o">**</span><span class="n">method_kwargs</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;simple_minimizer&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">"simple_minimizer"</span><span class="p">:</span>
             <span class="n">result_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simple_minimizer</span><span class="p">(</span><span class="o">**</span><span class="n">method_kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown minimizer: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown minimizer: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">result_object</span></div>
 
@@ -800,10 +800,10 @@
 <div class="viewcode-block" id="Minimizer.profile_scan_1D">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.minimization.html#NuRadioReco.utilities.minimization.Minimizer.profile_scan_1D">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">profile_scan_1D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">i_parameter_scan</span><span class="p">,</span> <span class="n">parameter_grid_x</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">true_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">method_kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Perform minimization and a 1D profile (likelihood) scan around the minimum of the i_parameter_scan&#39;th parameter by fixing it to different values on a grid</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Perform minimization and a 1D profile (likelihood) scan around the minimum of the i_parameter_scan'th parameter by fixing it to different values on a grid</span>
 <span class="sd">        and optimizing the objective function with respect to the other parameters.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         
         <span class="n">n_x</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">)</span>
 
@@ -828,16 +828,16 @@
 
         <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">,</span> <span class="n">objective_values</span><span class="o">-</span><span class="n">best_fit_value</span><span class="p">,</span> <span class="s2">&quot;b-&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$-2 \Delta LLH$&quot;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">,</span> <span class="n">objective_values</span><span class="o">-</span><span class="n">best_fit_value</span><span class="p">,</span> <span class="s2">"b-"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">"$-2 \Delta LLH$"</span><span class="p">)</span>
             <span class="n">axis</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">()</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="nb">min</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">)],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$1\sigma$&quot;</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="nb">min</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">)],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$2\sigma$&quot;</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="nb">min</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">)],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;$3\sigma$&quot;</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">best_fit_x</span><span class="p">,</span><span class="n">best_fit_x</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">100</span><span class="p">],</span> <span class="s2">&quot;y--&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Fit&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">true_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">true_value</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;True&quot;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="nb">min</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">)],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="s2">":"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">"$1\sigma$"</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="nb">min</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">)],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="s2">":"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">"$2\sigma$"</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="nb">min</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">)],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">],</span> <span class="s2">":"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">"$3\sigma$"</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">best_fit_x</span><span class="p">,</span><span class="n">best_fit_x</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">100</span><span class="p">],</span> <span class="s2">"y--"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Fit"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">true_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">true_value</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'r'</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">'--'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"True"</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">([</span><span class="n">parameter_grid_x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">parameter_grid_x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">*</span><span class="mf">1.2</span><span class="p">])</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Parameter [au]&quot;</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Objective value&quot;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">"Parameter [au]"</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">"Objective value"</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 
@@ -850,11 +850,11 @@
 
 <div class="viewcode-block" id="Minimizer.profile_scan_2D">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.minimization.html#NuRadioReco.utilities.minimization.Minimizer.profile_scan_2D">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">profile_scan_2D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">i_parameter_x</span><span class="p">,</span> <span class="n">i_parameter_y</span><span class="p">,</span> <span class="n">parameter_grid_x</span><span class="p">,</span> <span class="n">parameter_grid_y</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">true_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;Blues_r&quot;</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="o">**</span><span class="n">method_kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Perform minimization and a 2D profile (likelihood) scan around the minimum of the i_parameter_x&#39;th and i_parameter_y&#39;th parameters by fixing them to different values on a grid</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">profile_scan_2D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">i_parameter_x</span><span class="p">,</span> <span class="n">i_parameter_y</span><span class="p">,</span> <span class="n">parameter_grid_x</span><span class="p">,</span> <span class="n">parameter_grid_y</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">true_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">"Blues_r"</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="o">**</span><span class="n">method_kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Perform minimization and a 2D profile (likelihood) scan around the minimum of the i_parameter_x'th and i_parameter_y'th parameters by fixing them to different values on a grid</span>
 <span class="sd">        and optimizing the objective function with respect to the other parameters.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         
         <span class="n">n_x</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">)</span>
         <span class="n">n_y</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameter_grid_y</span><span class="p">)</span>
@@ -885,18 +885,18 @@
         <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mf">4.2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">,</span> <span class="n">parameter_grid_y</span><span class="p">,</span> <span class="n">objective_values</span><span class="o">.</span><span class="n">T</span><span class="o">-</span><span class="n">best_fit_value</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;Objective value&quot;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s2">"Objective value"</span><span class="p">)</span>
             <span class="n">CS</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">parameter_grid_x</span><span class="p">,</span> <span class="n">parameter_grid_y</span><span class="p">,</span> <span class="n">objective_values</span><span class="o">.</span><span class="n">T</span><span class="o">-</span><span class="n">best_fit_value</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="mf">1.15</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="mf">3.09</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="mf">5.91</span><span class="o">*</span><span class="mi">2</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">true_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">true_values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">true_values</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;r*&quot;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;True&quot;</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">best_fit_x</span><span class="p">,</span> <span class="n">best_fit_y</span><span class="p">,</span> <span class="s2">&quot;g*&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Fit&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">true_values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">true_values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">true_values</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">"r*"</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s2">"True"</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">best_fit_x</span><span class="p">,</span> <span class="n">best_fit_y</span><span class="p">,</span> <span class="s2">"g*"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Fit"</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Parameter 1 [au]&quot;</span><span class="p">)</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Parameter 2 [au]&quot;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">"Parameter 1 [au]"</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">"Parameter 2 [au]"</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 
             <span class="c1"># Contour labels:</span>
             <span class="n">fmt</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">strs</span> <span class="o">=</span> <span class="p">[</span><span class="sa">r</span><span class="s1">&#39;$1\sigma$&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;$2\sigma$&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;$3\sigma$&#39;</span><span class="p">]</span>
+            <span class="n">strs</span> <span class="o">=</span> <span class="p">[</span><span class="sa">r</span><span class="s1">'$1\sigma$'</span><span class="p">,</span> <span class="sa">r</span><span class="s1">'$2\sigma$'</span><span class="p">,</span> <span class="sa">r</span><span class="s1">'$3\sigma$'</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">levels</span><span class="p">,</span> <span class="n">strs</span><span class="p">):</span>
                 <span class="n">fmt</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span>
 
@@ -912,7 +912,7 @@
 
     <span class="c1">### Minimization methods: ###</span>
     
-    <span class="k">def</span><span class="w"> </span><span class="nf">_scipy_minimization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">scipy_method</span><span class="o">=</span><span class="s2">&quot;L-BFGS-B&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_scipy_minimization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">scipy_method</span><span class="o">=</span><span class="s2">"L-BFGS-B"</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{}):</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">opt</span>
         
         <span class="c1"># Fix parameters:</span>
@@ -937,7 +937,7 @@
 
         <span class="k">return</span> <span class="n">result</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_minuit_minimization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minuit_method</span> <span class="o">=</span> <span class="s2">&quot;migrad&quot;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_minuit_minimization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minuit_method</span> <span class="o">=</span> <span class="s2">"migrad"</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">iminuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">Minuit</span>
         
         <span class="c1"># Initialze minimizer:</span>
@@ -955,12 +955,12 @@
                 <span class="n">m</span><span class="o">.</span><span class="n">fixed</span><span class="p">[</span><span class="n">i_param</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
         
         <span class="c1"># Run minimization:</span>
-        <span class="k">if</span> <span class="n">minuit_method</span> <span class="o">==</span> <span class="s2">&quot;migrad&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">minuit_method</span> <span class="o">==</span> <span class="s2">"migrad"</span><span class="p">:</span>
             <span class="n">m</span><span class="o">.</span><span class="n">migrad</span><span class="p">()</span>
-        <span class="k">elif</span> <span class="n">minuit_method</span> <span class="o">==</span> <span class="s2">&quot;simplex&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">minuit_method</span> <span class="o">==</span> <span class="s2">"simplex"</span><span class="p">:</span>
             <span class="n">m</span><span class="o">.</span><span class="n">simplex</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Minuit method </span><span class="si">{</span><span class="n">minuit_method</span><span class="si">}</span><span class="s2"> not recognized&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Minuit method </span><span class="si">{</span><span class="n">minuit_method</span><span class="si">}</span><span class="s2"> not recognized"</span><span class="p">)</span>
         
         <span class="c1"># Save results:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">success</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">valid</span>
@@ -1011,9 +1011,9 @@
         <span class="k">return</span> <span class="n">res</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_simple_minimizer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_step_size</span><span class="p">,</span> <span class="n">decrease_rate</span><span class="p">,</span> <span class="n">max_calls</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">print_steps</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        This is a very simple minimizer, which has not been thoroughly tested. It can be used for debugging.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">opt</span>
 
         <span class="c1"># Initialize variables</span>

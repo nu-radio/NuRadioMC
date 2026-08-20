@@ -696,7 +696,7 @@
     <span class="n">mean</span> <span class="o">=</span> <span class="n">ift</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">from_global_data</span><span class="p">(</span><span class="n">slope</span><span class="o">.</span><span class="n">domain</span><span class="p">,</span> <span class="n">mean</span><span class="p">)</span>
     <span class="n">sig</span> <span class="o">=</span> <span class="n">ift</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">from_global_data</span><span class="p">(</span><span class="n">slope</span><span class="o">.</span><span class="n">domain</span><span class="p">,</span> <span class="n">sig</span><span class="p">)</span>
     <span class="n">linear_operator</span> <span class="o">=</span> <span class="n">flipper</span> <span class="o">@</span> <span class="n">slope</span> <span class="o">@</span> <span class="n">ift</span><span class="o">.</span><span class="n">Adder</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span> <span class="o">@</span> <span class="n">ift</span><span class="o">.</span><span class="n">makeOp</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">linear_operator</span><span class="o">.</span><span class="n">ducktape</span><span class="p">(</span><span class="s1">&#39;slope&#39;</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">linear_operator</span><span class="o">.</span><span class="n">ducktape</span><span class="p">(</span><span class="s1">'slope'</span><span class="p">)</span></div>
 
 
 
@@ -723,9 +723,9 @@
 <div class="viewcode-block" id="DomainFlipper">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.operators.html#NuRadioReco.modules.iftElectricFieldReconstructor.operators.DomainFlipper">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DomainFlipper</span><span class="p">(</span><span class="n">ift</span><span class="o">.</span><span class="n">LinearOperator</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Operator that changes a field&#39;s domain to its default codomain</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Operator that changes a field's domain to its default codomain</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_domain</span> <span class="o">=</span> <span class="n">ift</span><span class="o">.</span><span class="n">DomainTuple</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -755,7 +755,7 @@
 <div class="viewcode-block" id="SymmetrizingOperator">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.iftElectricFieldReconstructor.operators.html#NuRadioReco.modules.iftElectricFieldReconstructor.operators.SymmetrizingOperator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SymmetrizingOperator</span><span class="p">(</span><span class="n">ift</span><span class="o">.</span><span class="n">EndomorphicOperator</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adds the field axes-wise in reverse order to itself.</span>
+<span class="w">    </span><span class="sd">"""Adds the field axes-wise in reverse order to itself.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -763,7 +763,7 @@
 <span class="sd">        Domain of the operator.</span>
 <span class="sd">    space : int</span>
 <span class="sd">        Index of space in domain on which the operator shall act. Default is 0.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_domain</span> <span class="o">=</span> <span class="n">ift</span><span class="o">.</span><span class="n">DomainTuple</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_capability</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TIMES</span> <span class="o">|</span> <span class="bp">self</span><span class="o">.</span><span class="n">ADJOINT_TIMES</span>

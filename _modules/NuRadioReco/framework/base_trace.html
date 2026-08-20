@@ -662,7 +662,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.BaseTrace&quot;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.BaseTrace"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="BaseTrace">
@@ -670,7 +670,7 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">BaseTrace</span><span class="p">:</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trace</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trace_start_time</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initialize the BaseTrace object.</span>
 
 <span class="sd">        Parameters</span>
@@ -681,7 +681,7 @@
 <span class="sd">            The sampling rate of the trace, i.e., the inverse of the bin width.</span>
 <span class="sd">        trace_start_time : float (default: 0)</span>
 <span class="sd">            The start time of the trace.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">=</span> <span class="kc">None</span>
@@ -693,7 +693,7 @@
 <div class="viewcode-block" id="BaseTrace.get_trace">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_trace">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the time trace.</span>
 
 <span class="sd">        If the frequency spectrum was modified before,</span>
@@ -704,7 +704,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        trace: np.array of floats</span>
 <span class="sd">            the time trace</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span> <span class="o">=</span> <span class="kc">True</span>
@@ -714,8 +714,8 @@
 
 <div class="viewcode-block" id="BaseTrace.get_filtered_trace">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_filtered_trace">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_filtered_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">filter_type</span><span class="o">=</span><span class="s1">&#39;butter&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_filtered_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">filter_type</span><span class="o">=</span><span class="s1">'butter'</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the trace after applying a filter to it. This does not change the stored trace.</span>
 
 <span class="sd">        Parameters</span>
@@ -726,7 +726,7 @@
 <span class="sd">            type of the applied filter. Options are rectangular, butter and butterabs</span>
 <span class="sd">        order: int</span>
 <span class="sd">            Order of the Butterworth filter, if the filter types butter or butterabs are chosen</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">spec</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">())</span>
         <span class="n">freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
         <span class="n">filter_response</span> <span class="o">=</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">get_filter_response</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">filter_type</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">rp</span><span class="p">)</span>
@@ -737,7 +737,7 @@
 <div class="viewcode-block" id="BaseTrace.get_frequency_spectrum">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_frequency_spectrum">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_frequency_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the frequency spectrum.</span>
 
 <span class="sd">        Parameters</span>
@@ -749,7 +749,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        frequency_spectrum: np.array of floats</span>
 <span class="sd">            The frequency spectrum.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">window_mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span>
@@ -766,7 +766,7 @@
 <div class="viewcode-block" id="BaseTrace.set_trace">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.set_trace">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trace</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">trace_start_time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Sets the time trace.</span>
 
 <span class="sd">        Parameters</span>
@@ -775,29 +775,29 @@
 <span class="sd">            The time series</span>
 <span class="sd">        sampling_rate : float or str</span>
 <span class="sd">            The sampling rate of the trace, i.e., the inverse of the bin width.</span>
-<span class="sd">            If `sampling_rate=&quot;same&quot;`, sampling rate is not changed (requires previous initialisation).</span>
+<span class="sd">            If `sampling_rate="same"`, sampling rate is not changed (requires previous initialisation).</span>
 <span class="sd">        trace_start_time : float (default: None)</span>
 <span class="sd">            Set the start time of the trace. If None, the start time is not changed/set.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">trace</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s1">&#39;Attempted to set trace with an uneven number (</span><span class="si">{</span><span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">trace</span><span class="o">.</span><span class="n">ndim</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">) &#39;</span>
-                    <span class="s1">&#39;of samples. Only traces with an even number of samples are allowed.&#39;</span><span class="p">)</span>
+                    <span class="sa">f</span><span class="s1">'Attempted to set trace with an uneven number (</span><span class="si">{</span><span class="n">trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">trace</span><span class="o">.</span><span class="n">ndim</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s1">) '</span>
+                    <span class="s1">'of samples. Only traces with an even number of samples are allowed.'</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sampling_rate</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sampling_rate</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;same&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sampling_rate</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sampling_rate</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"same"</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;You specified to keep the sampling rate but no value have been set previously.&quot;</span><span class="p">)</span>
+                    <span class="s2">"You specified to keep the sampling rate but no value have been set previously."</span><span class="p">)</span>
                 <span class="k">pass</span>  <span class="c1"># keep value of self._sampling_rate</span>
         <span class="k">elif</span> <span class="n">sampling_rate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">=</span> <span class="n">sampling_rate</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You have to specify a sampling rate for `BaseTrace.set_trace(...)`&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"You have to specify a sampling rate for `BaseTrace.set_trace(...)`"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">trace_start_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">trace_start_time</span><span class="p">)</span></div>
@@ -806,7 +806,7 @@
 <div class="viewcode-block" id="BaseTrace.set_frequency_spectrum">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.set_frequency_spectrum">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_frequency_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequency_spectrum</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Sets the frequency spectrum.</span>
 
 <span class="sd">        Parameters</span>
@@ -815,34 +815,34 @@
 <span class="sd">            The frequency spectrum</span>
 <span class="sd">        sampling_rate : float or str</span>
 <span class="sd">            The sampling rate of the trace, i.e., the inverse of the bin width.</span>
-<span class="sd">            If `sampling_rate=&quot;same&quot;`, sampling rate is not changed (requires previous initialisation).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            If `sampling_rate="same"`, sampling rate is not changed (requires previous initialisation).</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">frequency_spectrum</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sampling_rate</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sampling_rate</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;same&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sampling_rate</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sampling_rate</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"same"</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="s2">&quot;You specified to keep the sampling rate but no value have been set previously.&quot;</span><span class="p">)</span>
+                    <span class="s2">"You specified to keep the sampling rate but no value have been set previously."</span><span class="p">)</span>
             <span class="k">pass</span>  <span class="c1"># keep value of self._sampling_rate</span>
         <span class="k">elif</span> <span class="n">sampling_rate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">=</span> <span class="n">sampling_rate</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You have to specify a sampling rate for `BaseTrace.set_frequency_spectrum(...)`&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"You have to specify a sampling rate for `BaseTrace.set_frequency_spectrum(...)`"</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseTrace.get_sampling_rate">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_sampling_rate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_sampling_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the sampling rate of the trace.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        sampling_rate: float</span>
 <span class="sd">            sampling rate, i.e., the inverse of the bin width</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span></div>
 
 
@@ -854,8 +854,8 @@
             <span class="n">times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">length</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">-</span> <span class="mf">0.1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">,</span>
                 <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trace_start_time</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">!=</span> <span class="n">length</span><span class="p">:</span>
-                <span class="n">err</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;time array does not have the same length as the trace. &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;n_samples = </span><span class="si">{</span><span class="n">length</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, sampling rate = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="si">:</span><span class="s2">.5g</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">err</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"time array does not have the same length as the trace. "</span>
+                    <span class="sa">f</span><span class="s2">"n_samples = </span><span class="si">{</span><span class="n">length</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">, sampling rate = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="si">:</span><span class="s2">.5g</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
@@ -884,7 +884,7 @@
 <div class="viewcode-block" id="BaseTrace.get_frequencies">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_frequencies">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_frequencies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the frequencies of the frequency spectrum.</span>
 
 <span class="sd">        Parameters</span>
@@ -896,7 +896,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        frequencies: np.array of floats</span>
 <span class="sd">            The frequencies of the frequency spectrum.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">window_mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">nsamples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -924,14 +924,14 @@
 <div class="viewcode-block" id="BaseTrace.get_number_of_samples">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.get_number_of_samples">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_number_of_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the number of samples in the time domain.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        n_samples: int</span>
 <span class="sd">            number of samples in time domain</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__time_domain_up_to_date</span><span class="p">:</span>
             <span class="n">length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_trace</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># returns the correct length independent of the dimension of the array (channels are 1dim, efields are 3dim)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -942,7 +942,7 @@
 <div class="viewcode-block" id="BaseTrace.apply_time_shift">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.apply_time_shift">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">apply_time_shift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta_t</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fourier_shift_threshold</span> <span class="o">=</span> <span class="mf">1e-5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Uses the fourier shift theorem to apply a time shift to the trace</span>
 <span class="sd">        Note that this is a cyclic shift, which means the trace will wrap</span>
 <span class="sd">        around, which might lead to problems, especially for large time shifts.</span>
@@ -959,9 +959,9 @@
 <span class="sd">            Threshold for the Fourier shift. If the shift is closer to a multiple of</span>
 <span class="sd">            1 / sampling_rate than this, the trace is rolled instead of using the Fourier</span>
 <span class="sd">            shift theorem to save time and avoid numerical errors in the Fourier transforms.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">delta_t</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">.1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">silent</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Trace is shifted by more than 10</span><span class="si">% o</span><span class="s1">f its length&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">'Trace is shifted by more than 10</span><span class="si">% o</span><span class="s1">f its length'</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">delta_t</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span> <span class="o">-</span> <span class="n">delta_t</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span> <span class="o">&lt;</span> <span class="n">fourier_shift_threshold</span><span class="p">:</span>
             <span class="n">roll_by</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">delta_t</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()))</span>
@@ -977,13 +977,13 @@
 <div class="viewcode-block" id="BaseTrace.resample">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.resample">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">resample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Resamples the trace to a new sampling rate.</span>
+<span class="w">        </span><span class="sd">""" Resamples the trace to a new sampling rate.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        sampling_rate: float</span>
 <span class="sd">            The new sampling rate.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">sampling_rate</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">():</span>
             <span class="k">return</span>
 
@@ -998,9 +998,9 @@
         <span class="c1"># if there is no trace, the above will return np.array(None).</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">time_trace</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;sampling_rate&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">(),</span>
-                <span class="s1">&#39;time_trace&#39;</span><span class="p">:</span> <span class="n">time_trace</span><span class="p">,</span>
-                <span class="s1">&#39;trace_start_time&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()}</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'sampling_rate'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">(),</span>
+                <span class="s1">'time_trace'</span><span class="p">:</span> <span class="n">time_trace</span><span class="p">,</span>
+                <span class="s1">'trace_start_time'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()}</span>
         <span class="k">return</span> <span class="n">_dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
 
@@ -1008,21 +1008,21 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.deserialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;time_trace&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sampling_rate&#39;</span><span class="p">])</span>
-        <span class="k">if</span> <span class="s1">&#39;trace_start_time&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;trace_start_time&#39;</span><span class="p">])</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">'time_trace'</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">'sampling_rate'</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s1">'trace_start_time'</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_trace_start_time</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">'trace_start_time'</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="BaseTrace.add_to_trace">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.add_to_trace">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_to_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">min_residual_time_offset</span><span class="o">=</span><span class="mf">1e-5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">raise_error</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Adds the trace of another channel to the trace of this channel.</span>
 
 <span class="sd">        The trace of the incoming channel is only added within the time window of the current</span>
 <span class="sd">        channel. If the current channel has an empty trace (i.e., a trace containing zeros) with</span>
 <span class="sd">        a defined trace_start_time, this function can be seen as recording the incoming channel</span>
-<span class="sd">        in the specified readout window. Hence, the current channel is referred to as the &quot;readout&quot;</span>
+<span class="sd">        in the specified readout window. Hence, the current channel is referred to as the "readout"</span>
 <span class="sd">        in the comments of this function.</span>
 
 <span class="sd">        Parameters</span>
@@ -1036,9 +1036,9 @@
 <span class="sd">        raise_error: bool (default: True)</span>
 <span class="sd">            If True, an error is raised if (part of) the current channel</span>
 <span class="sd">            (readout window) is outside the incoming channel.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;No trace is set for this channel&quot;</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">==</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">(),</span> <span class="s2">&quot;Sampling rates of the two channels do not match&quot;</span>
+<span class="sd">        """</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"No trace is set for this channel"</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">==</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">(),</span> <span class="s2">"Sampling rates of the two channels do not match"</span>
 
         <span class="n">tt_readout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_times</span><span class="p">()</span>
         <span class="n">t0_readout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span>
@@ -1056,8 +1056,8 @@
         <span class="c1"># 1. Channel is completely outside readout window:</span>
         <span class="k">if</span> <span class="n">t1_channel</span> <span class="o">&lt;</span> <span class="n">t0_readout</span> <span class="ow">or</span> <span class="n">t1_readout</span> <span class="o">&lt;</span> <span class="n">t0_channel</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">raise_error</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The channel is completely outside the readout window&quot;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The channel is completely outside the readout window&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"The channel is completely outside the readout window"</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The channel is completely outside the readout window'</span><span class="p">)</span>
             <span class="k">return</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">floor</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
@@ -1075,8 +1075,8 @@
         <span class="c1"># 3. Channel starts after readout window:</span>
         <span class="k">elif</span> <span class="n">t0_channel</span> <span class="o">&gt;</span> <span class="n">t0_readout</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">raise_error</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The readout window starts before the incoming channel&quot;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The readout window starts before the incoming channel&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"The readout window starts before the incoming channel"</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The readout window starts before the incoming channel'</span><span class="p">)</span>
 
             <span class="n">i_start_readout</span> <span class="o">=</span> <span class="n">floor</span><span class="p">((</span><span class="n">t0_channel</span> <span class="o">-</span> <span class="n">t0_readout</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_readout</span><span class="p">)</span> <span class="c1"># The bin of readout right before channel starts</span>
             <span class="n">t_start_readout</span> <span class="o">=</span> <span class="n">tt_readout</span><span class="p">[</span><span class="n">i_start_readout</span><span class="p">]</span>
@@ -1090,8 +1090,8 @@
         <span class="c1"># 5. Channel ends before readout window:</span>
         <span class="k">elif</span> <span class="n">t1_channel</span> <span class="o">&lt;</span> <span class="n">t1_readout</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">t1_channel</span> <span class="o">&gt;</span> <span class="n">t1_readout</span> <span class="ow">and</span> <span class="n">raise_error</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The readout window ends after the incoming channel&quot;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The readout window ends after the incoming channel&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"The readout window ends after the incoming channel"</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The readout window ends after the incoming channel'</span><span class="p">)</span>
 
             <span class="n">i_end_readout</span> <span class="o">=</span> <span class="n">floor</span><span class="p">((</span><span class="n">t1_channel</span> <span class="o">-</span> <span class="n">t0_readout</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling_rate_readout</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="c1"># The bin of readout right before channel ends</span>
             <span class="n">i_end_channel</span> <span class="o">=</span> <span class="n">n_samples_channel</span>
@@ -1107,8 +1107,8 @@
             <span class="n">trace_to_add</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">i_end_readout</span> <span class="o">-</span> <span class="n">i_start_readout</span> <span class="o">!=</span> <span class="n">i_end_channel</span> <span class="o">-</span> <span class="n">i_start_channel</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The traces do not have the same length. This should not happen.&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The traces do not have the same length. This should not happen.&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"The traces do not have the same length. This should not happen."</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The traces do not have the same length. This should not happen.'</span><span class="p">)</span>
 
         <span class="c1"># Add the trace to the original trace:</span>
         <span class="n">original_trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
@@ -1121,7 +1121,7 @@
 <div class="viewcode-block" id="BaseTrace.show">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.show">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_parameters</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">print_stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Print an overview of the structure of this Channel/ElectricField object.</span>
 
 <span class="sd">        Parameters</span>
@@ -1140,23 +1140,23 @@
 <span class="sd">        str_output : str, optional</span>
 <span class="sd">            A string representation of this Channel/ElectricField object structure.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;get_id&#39;</span><span class="p">):</span> <span class="c1"># Channel</span>
-            <span class="n">string_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">)&#39;</span>
-        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;get_unique_identifier&#39;</span><span class="p">):</span> <span class="c1"># SimChannel / ElectricField</span>
-            <span class="n">string_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">'get_id'</span><span class="p">):</span> <span class="c1"># Channel</span>
+            <span class="n">string_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">)'</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">'get_unique_identifier'</span><span class="p">):</span> <span class="c1"># SimChannel / ElectricField</span>
+            <span class="n">string_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span><span class="si">}</span><span class="s1">'</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">string_id</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">string_id</span> <span class="o">=</span> <span class="s1">''</span>
 
-        <span class="n">self_string</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}{</span><span class="n">string_id</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span>
+        <span class="n">self_string</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}{</span><span class="n">string_id</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s1">'</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">show_parameters</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">self_string</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;    Parameters&#39;</span><span class="p">]</span>
-            <span class="n">par_string</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;      </span><span class="si">{</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s1">16s</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">self_string</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">'    Parameters'</span><span class="p">]</span>
+            <span class="n">par_string</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">'      </span><span class="si">{</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s1">16s</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s1">'</span>
                 <span class="k">for</span> <span class="n">par</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
             <span class="n">self_string</span> <span class="o">+=</span> <span class="n">par_string</span>
 
-        <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">self_string</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">self_string</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">print_stdout</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
             <span class="k">return</span>
@@ -1166,25 +1166,25 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Redefine the &quot;+&quot; operator for BaseTrace objects. The operation will return a</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Redefine the "+" operator for BaseTrace objects. The operation will return a</span>
 <span class="sd">        new BaseTrace object containing the sum of the two traces. If the two traces</span>
 <span class="sd">        have different sampling rates, one of them is upsampled to the higher sampling</span>
 <span class="sd">        rate.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Some sanity checks</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">BaseTrace</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;+ operator is only defined for 2 BaseTrace objects&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">'+ operator is only defined for 2 BaseTrace objects'</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">x</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;One of the trace objects has no trace set&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'One of the trace objects has no trace set'</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Traces have different dimensions&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Traces have different dimensions'</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">!=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">():</span>
             <span class="c1"># Upsample trace with lower sampling rate</span>
-            <span class="c1"># Create new baseTrace object for the resampling so we don&#39;t change the originals</span>
+            <span class="c1"># Create new baseTrace object for the resampling so we don't change the originals</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">x</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">():</span>
                 <span class="n">upsampled_trace</span> <span class="o">=</span> <span class="n">BaseTrace</span><span class="p">()</span>
                 <span class="n">upsampled_trace</span><span class="o">.</span><span class="n">set_trace</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="n">x</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">())</span>
@@ -1260,11 +1260,11 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">*=</span> <span class="n">x</span>
                 <span class="k">return</span> <span class="bp">self</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cant multiply baseTrace with number because no value is set for trace.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Cant multiply baseTrace with number because no value is set for trace.'</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">Response</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="bp">self</span>  <span class="c1"># operation defined in detector.response.Response</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Multiplication of baseTrace object with object of type </span><span class="si">{}</span><span class="s1"> is not defined&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">'Multiplication of baseTrace object with object of type </span><span class="si">{}</span><span class="s1"> is not defined'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__mul__</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -1277,9 +1277,9 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_frequency_spectrum</span> <span class="o">/</span> <span class="n">x</span>
                 <span class="k">return</span> <span class="bp">self</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cant divide baseTrace by number because no value is set for trace.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'Cant divide baseTrace by number because no value is set for trace.'</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Division of baseTrace object with object of type </span><span class="si">{}</span><span class="s1"> is not defined&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span></div>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">'Division of baseTrace object with object of type </span><span class="si">{}</span><span class="s1"> is not defined'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span></div>
 
 </pre></div>
 

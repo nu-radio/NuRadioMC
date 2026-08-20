@@ -657,9 +657,9 @@
 <div class="viewcode-block" id="get_averaged_channel_parameter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.framework_utilities.html#NuRadioReco.utilities.framework_utilities.get_averaged_channel_parameter">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_averaged_channel_parameter</span><span class="p">(</span><span class="n">event_or_station</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">channels_to_include</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return average across all channels to include for a channel parameter &quot;param&quot;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Return average across all channels to include for a channel parameter "param"</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event_or_station</span><span class="p">,</span> <span class="n">Event</span><span class="p">):</span>
         <span class="c1"># This will throw an error if the event has more than one station</span>
         <span class="n">station</span> <span class="o">=</span> <span class="n">event_or_station</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span>
@@ -669,7 +669,7 @@
     <span class="n">params</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">(</span><span class="n">channels_to_include</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">channel</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Channel </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> has no parameter </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Channel </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> has no parameter </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
 
         <span class="n">param</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
 
@@ -685,7 +685,7 @@
 
             <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown type (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">param</span><span class="p">)</span><span class="si">}</span><span class="s2">) for parameter </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown type (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">param</span><span class="p">)</span><span class="si">}</span><span class="s2">) for parameter </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>

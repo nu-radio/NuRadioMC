@@ -666,17 +666,17 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp</span><span class="w"> </span><span class="kn">import</span> <span class="n">propagation</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.ShowerSimulator&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.ShowerSimulator'</span><span class="p">)</span>
 
 <span class="n">channelAddCableDelay</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelAddCableDelay</span><span class="o">.</span><span class="n">channelAddCableDelay</span><span class="p">()</span>
 
 <div class="viewcode-block" id="ShowerSimulator">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.likelihood_reconstruction.shower_simulator.html#NuRadioReco.modules.likelihood_reconstruction.shower_simulator.ShowerSimulator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ShowerSimulator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Class to simulate voltage traces for a specific shower(s) with user-defined vertex,</span>
 <span class="sd">    energy, direction, etc. The Askaryan emission, propagation effects and detector response</span>
-<span class="sd">    are simulated consistently with simulation.py, but no noise is added and triggers aren&#39;t</span>
+<span class="sd">    are simulated consistently with simulation.py, but no noise is added and triggers aren't</span>
 <span class="sd">    run. This is, e.g., useful for studies where only the MC true neutrino signal is of</span>
 <span class="sd">    interest, and it can act as a pure neutrino signal model, which is needed in forward-folding</span>
 <span class="sd">    reconstruction.</span>
@@ -727,7 +727,7 @@
 <span class="sd">        antenna group delay).</span>
 <span class="sd">        This reparametrization is useful for forward-folding reconstruction since it decreases the</span>
 <span class="sd">        correlation between the parameters.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
@@ -744,7 +744,7 @@
         <span class="p">):</span>
 
         <span class="k">if</span> <span class="n">detectorfile</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">det</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either a detector file or a detector object needs to be provided.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Either a detector file or a detector object needs to be provided."</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">station_id</span> <span class="o">=</span> <span class="n">station_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reference_channel</span> <span class="o">=</span> <span class="n">reference_channel</span>
@@ -752,8 +752,8 @@
         <span class="c1"># Initialize the relavant detector, simulation config, ice model, and propagator:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">det</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">(</span><span class="n">json_filename</span><span class="o">=</span><span class="n">detectorfile</span><span class="p">)</span> <span class="k">if</span> <span class="n">det</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">det</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_config</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ice</span> <span class="o">=</span> <span class="n">medium</span><span class="o">.</span><span class="n">get_ice_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;ice_model&#39;</span><span class="p">])</span>
-        <span class="n">prop_module</span> <span class="o">=</span> <span class="n">propagation</span><span class="o">.</span><span class="n">get_propagation_module</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;module&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ice</span> <span class="o">=</span> <span class="n">medium</span><span class="o">.</span><span class="n">get_ice_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'ice_model'</span><span class="p">])</span>
+        <span class="n">prop_module</span> <span class="o">=</span> <span class="n">propagation</span><span class="o">.</span><span class="n">get_propagation_module</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'module'</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">propagator</span> <span class="o">=</span> <span class="n">prop_module</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ice</span><span class="p">,</span> <span class="n">detector</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">use_channels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -761,7 +761,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">channel_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
 
-        <span class="k">assert</span> <span class="n">reference_channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_ids</span><span class="p">,</span> <span class="s2">&quot;Reference channel is not in use_channels or det.get_channel_ids(station_id)&quot;</span>
+        <span class="k">assert</span> <span class="n">reference_channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">channel_ids</span><span class="p">,</span> <span class="s2">"Reference channel is not in use_channels or det.get_channel_ids(station_id)"</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">detector_simulation_filter_amp</span> <span class="o">=</span> <span class="n">detector_simulation_filter_amp</span>
 
@@ -786,7 +786,7 @@
 <div class="viewcode-block" id="ShowerSimulator.simulate_showers">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.likelihood_reconstruction.shower_simulator.html#NuRadioReco.modules.likelihood_reconstruction.shower_simulator.ShowerSimulator.simulate_showers">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">simulate_showers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">showers</span><span class="p">,</span> <span class="n">trace_start_times</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Simulate the traces for a list of user-defined showers (e.g. from a neutrino interaction).</span>
 
 <span class="sd">        Parameters</span>
@@ -805,7 +805,7 @@
 <span class="sd">            Numpy array of the simulated traces</span>
 <span class="sd">        trace_start_times:</span>
 <span class="sd">            Start times of the traces for each readout channel calculated dynamically if not trace_start_times is provided.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">evt</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">station</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">station</span><span class="o">.</span><span class="n">Station</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">station_id</span><span class="p">)</span>
@@ -827,8 +827,8 @@
 
                 <span class="n">trace_start_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">reference_travel_time</span> <span class="o">+</span> <span class="n">reference_cable_delay</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre_pulse_time</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_ids</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No ray-tracing solutions found for reference channel. It may be in the shadow zone.&quot;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;No ray-tracing solutions found for reference channel. It may be in the shadow zone.&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"No ray-tracing solutions found for reference channel. It may be in the shadow zone."</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">"No ray-tracing solutions found for reference channel. It may be in the shadow zone."</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">trace_start_times</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">trace_start_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">trace_start_times</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_ids</span><span class="p">))</span>
@@ -844,7 +844,7 @@
 
             <span class="c1"># Add cable delays:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_cable_delay</span><span class="p">:</span>
-                <span class="n">channelAddCableDelay</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;add&quot;</span><span class="p">)</span>
+                <span class="n">channelAddCableDelay</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">det</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"add"</span><span class="p">)</span>
 
             <span class="c1"># Make empty channel and add sim channels to it:</span>
             <span class="n">readout_channel</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">channel</span><span class="o">.</span><span class="n">Channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
@@ -866,8 +866,8 @@
                 <span class="n">readout_times</span> <span class="o">=</span> <span class="n">readout_channel</span><span class="o">.</span><span class="n">get_times</span><span class="p">()</span>
                 <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">sim_signal_times</span> <span class="o">&lt;</span> <span class="n">readout_times</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span><span class="n">sim_signal_times</span> <span class="o">&gt;</span> <span class="n">readout_times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                        <span class="s2">&quot;The signals in the reference antenna appear outside the requested readout window. Are you sure this is the intended result?</span><span class="se">\n</span><span class="s2">&quot;</span>
-                        <span class="sa">f</span><span class="s2">&quot;Time of signals: </span><span class="si">{</span><span class="n">sim_signal_times</span><span class="si">}</span><span class="s2">, Trace start time: </span><span class="si">{</span><span class="n">readout_channel</span><span class="o">.</span><span class="n">get_times</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, Trace end time: </span><span class="si">{</span><span class="n">readout_channel</span><span class="o">.</span><span class="n">get_times</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="s2">"The signals in the reference antenna appear outside the requested readout window. Are you sure this is the intended result?</span><span class="se">\n</span><span class="s2">"</span>
+                        <span class="sa">f</span><span class="s2">"Time of signals: </span><span class="si">{</span><span class="n">sim_signal_times</span><span class="si">}</span><span class="s2">, Trace start time: </span><span class="si">{</span><span class="n">readout_channel</span><span class="o">.</span><span class="n">get_times</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, Trace end time: </span><span class="si">{</span><span class="n">readout_channel</span><span class="o">.</span><span class="n">get_times</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
                 <span class="p">)</span>
 
             <span class="c1"># Add readout channel to station and save trace:</span>
@@ -881,7 +881,7 @@
 <div class="viewcode-block" id="ShowerSimulator.simulate_single_shower">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.likelihood_reconstruction.shower_simulator.html#NuRadioReco.modules.likelihood_reconstruction.shower_simulator.ShowerSimulator.simulate_single_shower">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">simulate_single_shower</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">vertex_time</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">charge_excess_profile_id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">trace_start_times</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Simulate the traces for a single shower with the given parameters, which can be used to simulate the</span>
 <span class="sd">        neutrino signal with a given energy, direction, vertex position, and vertex time.</span>
 
@@ -898,7 +898,7 @@
 <span class="sd">        vertex_time: float</span>
 <span class="sd">            Time of the shower</span>
 <span class="sd">        type: string</span>
-<span class="sd">            Type of the shower, either &quot;HAD&quot; or &quot;EM&quot;</span>
+<span class="sd">            Type of the shower, either "HAD" or "EM"</span>
 <span class="sd">        charge_excess_profile_id: int</span>
 <span class="sd">            Id of the charge excess profile to use for the simulation, default 1.</span>
 <span class="sd">        trace_start_times: array-like</span>
@@ -915,7 +915,7 @@
 <span class="sd">        trace_start_times:</span>
 <span class="sd">            Start times of the traces for each readout channel which</span>
 <span class="sd">            are automatically calcualted if trace_start_times is None.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">shower</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">radio_shower</span><span class="o">.</span><span class="n">RadioShower</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">zenith</span><span class="p">]</span> <span class="o">=</span> <span class="n">zenith</span>
@@ -935,7 +935,7 @@
 <div class="viewcode-block" id="ShowerSimulator.simulate_single_shower_spherical_vertex_coordinates">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.likelihood_reconstruction.shower_simulator.html#NuRadioReco.modules.likelihood_reconstruction.shower_simulator.ShowerSimulator.simulate_single_shower_spherical_vertex_coordinates">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">simulate_single_shower_spherical_vertex_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">vertex_r</span><span class="p">,</span> <span class="n">vertex_theta</span><span class="p">,</span> <span class="n">vertex_phi</span><span class="p">,</span> <span class="n">vertex_time</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">charge_excess_profile_id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">trace_start_times</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Reparameterization of simulate_single_shower where the vertex position is given in spherical</span>
 <span class="sd">        coordinates instead of Cartesian coordinates. This often gives less correlated parameters for</span>
 <span class="sd">        forward-folding reconstruction.</span>
@@ -957,7 +957,7 @@
 <span class="sd">        vertex_time: float</span>
 <span class="sd">            Time of the shower</span>
 <span class="sd">        type: string</span>
-<span class="sd">            Type of the shower, either &quot;HAD&quot; or &quot;EM&quot;</span>
+<span class="sd">            Type of the shower, either "HAD" or "EM"</span>
 <span class="sd">        charge_excess_profile_id: int</span>
 <span class="sd">            Id of the charge excess profile to use for the simulation, default 1.</span>
 <span class="sd">        trace_start_times: array-like</span>
@@ -975,7 +975,7 @@
 <span class="sd">            Start times of the traces for each readout channel. If None, the start times will be set such</span>
 <span class="sd">            that the pulse appears self.pre_pulse_time + vertex_time into the trace of the reference channel.</span>
 <span class="sd">            If a single trace_start_time is provided, it will be used for all channels.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">shower</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">radio_shower</span><span class="o">.</span><span class="n">RadioShower</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">zenith</span><span class="p">]</span> <span class="o">=</span> <span class="n">zenith</span>
@@ -995,7 +995,7 @@
 <div class="viewcode-block" id="ShowerSimulator.simulate_single_shower_forward_folding">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.likelihood_reconstruction.shower_simulator.html#NuRadioReco.modules.likelihood_reconstruction.shower_simulator.ShowerSimulator.simulate_single_shower_forward_folding">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">simulate_single_shower_forward_folding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span> <span class="n">vertex_r_rel</span><span class="p">,</span> <span class="n">vertex_theta_rel</span><span class="p">,</span> <span class="n">vertex_phi_rel</span><span class="p">,</span> <span class="n">pulse_time</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">trace_start_times</span><span class="p">,</span> <span class="n">charge_excess_profile_id</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Reparameterization of simulate_single_shower where the vertex position is given in spherical</span>
 <span class="sd">        coordinates relative to the reference antenna, and the pulse_time is the approximate time of</span>
 <span class="sd">        the pulse relative to the trace start times (does not account for antenna group delay).</span>
@@ -1018,11 +1018,11 @@
 <span class="sd">            Azimuthal angle of the shower vertex relative to the reference antenna</span>
 <span class="sd">        pulse_time: float</span>
 <span class="sd">            Time of the pulse in the trace of the reference channel relative to the</span>
-<span class="sd">            trace_start_time (doesn&#39;t account for antenna group delays). This convention</span>
+<span class="sd">            trace_start_time (doesn't account for antenna group delays). This convention</span>
 <span class="sd">            removes the correlation between the vertex time and the radial distance of</span>
 <span class="sd">            the vertex, which are otherwise highly correlated.</span>
 <span class="sd">        type: string</span>
-<span class="sd">            Type of the shower, either &quot;HAD&quot; or &quot;EM&quot;</span>
+<span class="sd">            Type of the shower, either "HAD" or "EM"</span>
 <span class="sd">        trace_start_times: array-like</span>
 <span class="sd">            Start times of the traces for each readout channel. The readout window has to be</span>
 <span class="sd">            fixed for stable forward-folding reconstruction and should be taken from the trace</span>
@@ -1036,7 +1036,7 @@
 <span class="sd">            Station object containing the simulated channels.</span>
 <span class="sd">        traces: numpy.ndarray</span>
 <span class="sd">            Numpy array of the simulated traces</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">shower</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">radio_shower</span><span class="o">.</span><span class="n">RadioShower</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">shower</span><span class="p">[</span><span class="n">shp</span><span class="o">.</span><span class="n">zenith</span><span class="p">]</span> <span class="o">=</span> <span class="n">zenith</span>
@@ -1061,7 +1061,7 @@
         <span class="c1"># Sometimes the ray-tracer fails to find any solutions. In this case we skip running</span>
         <span class="c1"># the simulation and return traces containing zeros instead:</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">propagator</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No solution found for the given vertex position. Returning empty traces.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"No solution found for the given vertex position. Returning empty traces."</span><span class="p">)</span>
             <span class="n">station</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">station</span><span class="o">.</span><span class="n">Station</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">station_id</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">channels_are_similar</span><span class="p">:</span>
                 <span class="n">traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">channel_ids</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">readout_n_samples</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>

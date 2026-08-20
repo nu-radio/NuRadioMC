@@ -660,11 +660,11 @@
 <div class="viewcode-block" id="channelTimeWindow">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeWindow.html#NuRadioReco.modules.channelTimeWindow.channelTimeWindow">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelTimeWindow</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Set trace outside time window to zero.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.channelTimeWindow&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.channelTimeWindow"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
 
@@ -680,12 +680,12 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelTimeWindow.html#NuRadioReco.modules.channelTimeWindow.channelTimeWindow.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">window_function</span><span class="o">=</span><span class="s1">&#39;rectangular&#39;</span><span class="p">,</span>
+            <span class="n">window_function</span><span class="o">=</span><span class="s1">'rectangular'</span><span class="p">,</span>
             <span class="n">around_pulse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">window_width</span><span class="o">=</span><span class="mi">50</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
             <span class="n">window_rise_time</span><span class="o">=</span><span class="mi">20</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span>
             <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        evt, station, det</span>
@@ -697,13 +697,13 @@
 <span class="sd">            * rectangular</span>
 <span class="sd">            * hanning</span>
 <span class="sd">        around_pulse: float or None</span>
-<span class="sd">            if not None: specifies time interval around &#39;signal_time&#39;,</span>
-<span class="sd">            if this option is set, &#39;window&#39; is ignored</span>
+<span class="sd">            if not None: specifies time interval around 'signal_time',</span>
+<span class="sd">            if this option is set, 'window' is ignored</span>
 <span class="sd">        window_width: float</span>
 <span class="sd">            if around_pulse is set, defines the time width of the trace where the filter is 1.</span>
 <span class="sd">        window_rise_time: float</span>
 <span class="sd">            if window_function is not rectangular, defines the rise time where the filter goes from 0 to 1.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
             <span class="n">times</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_times</span><span class="p">()</span>
@@ -711,10 +711,10 @@
 
             <span class="k">if</span><span class="p">(</span><span class="n">around_pulse</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
                 <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">channel</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">chp</span><span class="o">.</span><span class="n">signal_time</span><span class="p">)):</span>
-                    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;channel parameter &#39;signal_time&#39; is not set. Did you forget to run the channelSignalReconstructor?&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">"channel parameter 'signal_time' is not set. Did you forget to run the channelSignalReconstructor?"</span><span class="p">)</span>
                 <span class="n">tmax</span> <span class="o">=</span> <span class="n">channel</span><span class="p">[</span><span class="n">chp</span><span class="o">.</span><span class="n">signal_time</span><span class="p">]</span>
                 <span class="n">window</span> <span class="o">=</span> <span class="p">[</span><span class="n">tmax</span> <span class="o">-</span> <span class="n">window_width</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">tmax</span> <span class="o">+</span> <span class="n">window_width</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">]</span>
-            <span class="k">if</span><span class="p">(</span><span class="n">window_function</span> <span class="o">==</span> <span class="s1">&#39;rectangular&#39;</span><span class="p">):</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">window_function</span> <span class="o">==</span> <span class="s1">'rectangular'</span><span class="p">):</span>
                 <span class="n">trace</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">times</span> <span class="o">&lt;</span> <span class="n">window</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="o">=</span> <span class="mf">0.</span>
                 <span class="n">trace</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">times</span> <span class="o">&gt;</span> <span class="n">window</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span> <span class="o">=</span> <span class="mf">0.</span>
             <span class="k">else</span><span class="p">:</span>
@@ -724,19 +724,19 @@
                 <span class="n">i10</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">times</span> <span class="o">-</span> <span class="n">window</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
                 <span class="n">i11</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">times</span> <span class="o">-</span> <span class="p">(</span><span class="n">window</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">window_rise_time</span><span class="p">)))</span>
 <span class="c1">#                 print(window)</span>
-<span class="c1">#                 self.logger.debug(&quot;times = {:.2f} {:.2f} {:.2f} {:.2f}&quot;.format(times - (window[0] - window_rise_time),</span>
+<span class="c1">#                 self.logger.debug("times = {:.2f} {:.2f} {:.2f} {:.2f}".format(times - (window[0] - window_rise_time),</span>
 <span class="c1">#                                                           times - window[0],</span>
 <span class="c1">#                                                           times - window[1],</span>
 <span class="c1">#                                                           times - (window[1] + window_rise_time)))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;indices = </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i00</span><span class="p">,</span> <span class="n">i01</span><span class="p">,</span> <span class="n">i10</span><span class="p">,</span> <span class="n">i11</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"indices = </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i00</span><span class="p">,</span> <span class="n">i01</span><span class="p">,</span> <span class="n">i10</span><span class="p">,</span> <span class="n">i11</span><span class="p">))</span>
                 <span class="n">window_fkt</span><span class="p">[</span><span class="n">i01</span><span class="p">:</span><span class="n">i10</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-                <span class="k">if</span><span class="p">(</span><span class="n">window_function</span> <span class="o">==</span> <span class="s1">&#39;hanning&#39;</span><span class="p">):</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">window_function</span> <span class="o">==</span> <span class="s1">'hanning'</span><span class="p">):</span>
                     <span class="n">n</span> <span class="o">=</span> <span class="n">i01</span> <span class="o">-</span> <span class="n">i00</span>
                     <span class="n">window_fkt</span><span class="p">[</span><span class="n">i00</span><span class="p">:</span><span class="n">i01</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hanning</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)[:</span><span class="n">n</span><span class="p">]</span>
                     <span class="n">n</span> <span class="o">=</span> <span class="n">i11</span> <span class="o">-</span> <span class="n">i10</span>
                     <span class="n">window_fkt</span><span class="p">[</span><span class="n">i10</span><span class="p">:</span><span class="n">i11</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hanning</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)[</span><span class="n">n</span><span class="p">:]</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;window function </span><span class="si">{}</span><span class="s2"> is not implemented&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">window_function</span><span class="p">))</span>
+                    <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"window function </span><span class="si">{}</span><span class="s2"> is not implemented"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">window_function</span><span class="p">))</span>
                 <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__debug</span><span class="p">):</span>
                     <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
                     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>

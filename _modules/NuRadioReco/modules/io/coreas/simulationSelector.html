@@ -662,16 +662,16 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.simulationSelector.html#NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">simulationSelector</span><span class="p">:</span>
 
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Module that let&#39;s you select CoREAS simulations</span>
+<span class="w">    </span><span class="sd">'''</span>
+<span class="sd">    Module that let's you select CoREAS simulations</span>
 <span class="sd">    based on certain criteria, e.g. signal in a relevant band</span>
 <span class="sd">    certain arrival directions, energies, etc.</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    '''</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.coreas.simulationSelector&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.coreas.simulationSelector'</span><span class="p">)</span>
 
 <div class="viewcode-block" id="simulationSelector.begin">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.simulationSelector.html#NuRadioReco.modules.io.coreas.simulationSelector.simulationSelector.begin">[docs]</a>
@@ -684,7 +684,7 @@
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">sim_station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">frequency_window</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">500</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">],</span> <span class="n">n_std</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
 
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        run method, selects CoREAS simulations that have any signal in</span>
 <span class="sd">        desired frequency_window.</span>
 <span class="sd">        Crude approximation with n_std sigma * noise</span>
@@ -705,7 +705,7 @@
 <span class="sd">        selected_sim: bool</span>
 <span class="sd">            if True then simulation has signal in desired range</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="n">efields</span> <span class="o">=</span> <span class="n">sim_station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">()</span>
         <span class="n">selected_sim</span> <span class="o">=</span> <span class="kc">False</span>
@@ -727,15 +727,15 @@
             <span class="n">noise_region</span> <span class="o">=</span> <span class="n">fft</span><span class="p">[</span><span class="n">max_pol</span><span class="p">][</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">freq</span> <span class="o">&gt;</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">)]</span>
             <span class="n">noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">noise_region</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">noise</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Trace seems to have bee upsampled beyong 1.5 GHz, using lower noise window&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Trace seems to have bee upsampled beyong 1.5 GHz, using lower noise window"</span><span class="p">)</span>
                 <span class="n">noise_region</span> <span class="o">=</span> <span class="n">fft</span><span class="p">[</span><span class="n">max_pol</span><span class="p">][</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">freq</span> <span class="o">&gt;</span> <span class="mf">1.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">)]</span>
                 <span class="n">noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">noise_region</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">noise</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Trace seems to have bee upsampled beyong 1. GHz, using lower noise window&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Trace seems to have bee upsampled beyong 1. GHz, using lower noise window"</span><span class="p">)</span>
                 <span class="n">noise_region</span> <span class="o">=</span> <span class="n">fft</span><span class="p">[</span><span class="n">max_pol</span><span class="p">][</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">freq</span> <span class="o">&gt;</span> <span class="mf">800.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">)]</span>
                 <span class="n">noise</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">noise_region</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">noise</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Trace seems to have bee upsampled beyong 800 MHz, unsuitable simulations&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Trace seems to have bee upsampled beyong 800 MHz, unsuitable simulations"</span><span class="p">)</span>
 
             <span class="n">noise_std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">noise_region</span><span class="p">)</span>
 
@@ -757,7 +757,7 @@
         <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"total time used by this module is </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">dt</span></div>
 </div>
 

@@ -666,19 +666,19 @@
 <div class="viewcode-block" id="noiseImporter">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.RNO_G.noiseImporter.html#NuRadioReco.modules.measured_noise.RNO_G.noiseImporter.noiseImporter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">noiseImporter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Imports recorded traces from RNOG stations. Uses forced/software triggers.</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="noiseImporter.begin">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.measured_noise.RNO_G.noiseImporter.html#NuRadioReco.modules.measured_noise.RNO_G.noiseImporter.noiseImporter.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">noise_folders</span><span class="p">,</span> <span class="n">file_pattern</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">noise_folders</span><span class="p">,</span> <span class="n">file_pattern</span><span class="o">=</span><span class="s2">"*"</span><span class="p">,</span>
             <span class="n">match_station_id</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">station_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">channel_mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scramble_noise_file_order</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reader_kwargs</span><span class="o">=</span><span class="p">{}):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -686,7 +686,7 @@
 <span class="sd">            Folder(s) containing noise file(s). Search in any subfolder as well.</span>
 
 <span class="sd">        file_pattern: str</span>
-<span class="sd">            File pattern used to search for directories, (Default: &quot;*&quot;, other examples might be &quot;combined&quot;)</span>
+<span class="sd">            File pattern used to search for directories, (Default: "*", other examples might be "combined")</span>
 
 <span class="sd">        match_station_id: bool</span>
 <span class="sd">            If True, add only noise from stations with the same id. (Default: False)</span>
@@ -711,9 +711,9 @@
 
 <span class="sd">        reader_kwargs: dict</span>
 <span class="sd">            Optional arguements passed to readRNOGDataMattak</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.RNOG.noiseImporter&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.RNOG.noiseImporter'</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__random_gen</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Generator</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">Philox</span><span class="p">(</span><span class="n">random_seed</span><span class="p">))</span>
 
@@ -722,10 +722,10 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__channel_mapping</span> <span class="o">=</span> <span class="n">channel_mapping</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Match station id: </span><span class="si">{</span><span class="n">match_station_id</span><span class="si">}</span><span class="s2">&quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Use noise from only those stations: </span><span class="si">{</span><span class="n">station_ids</span><span class="si">}</span><span class="s2">&quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Use the following channel mapping: </span><span class="si">{</span><span class="n">channel_mapping</span><span class="si">}</span><span class="s2">&quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">Randomize sequence of noise files: </span><span class="si">{</span><span class="n">scramble_noise_file_order</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Match station id: </span><span class="si">{</span><span class="n">match_station_id</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Use noise from only those stations: </span><span class="si">{</span><span class="n">station_ids</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Use the following channel mapping: </span><span class="si">{</span><span class="n">channel_mapping</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Randomize sequence of noise files: </span><span class="si">{</span><span class="n">scramble_noise_file_order</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">noise_folders</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">noise_folders</span> <span class="o">=</span> <span class="p">[</span><span class="n">noise_folders</span><span class="p">]</span>
@@ -733,16 +733,16 @@
         <span class="c1"># find all subfolders</span>
         <span class="n">noise_files</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">noise_folder</span> <span class="ow">in</span> <span class="n">noise_folders</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">noise_folder</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">noise_folder</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
                 <span class="k">continue</span>
 
-            <span class="n">noise_files</span> <span class="o">+=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">noise_folder</span><span class="si">}</span><span class="s2">/**/</span><span class="si">{</span><span class="n">file_pattern</span><span class="si">}</span><span class="s2">root&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">noise_files</span> <span class="o">+=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">noise_folder</span><span class="si">}</span><span class="s2">/**/</span><span class="si">{</span><span class="n">file_pattern</span><span class="si">}</span><span class="s2">root"</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__noise_folders</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">([</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">noise_files</span><span class="p">])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__noise_folders</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__noise_folders</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__noise_folders</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No folders found&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;No folders found&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"No folders found"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">"No folders found"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">scramble_noise_file_order</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__random_gen</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__noise_folders</span><span class="p">)</span>
@@ -750,22 +750,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_noise_reader</span> <span class="o">=</span> <span class="n">readRNOGData</span><span class="p">()</span>
 
         <span class="n">default_reader_kwargs</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;selectors&quot;</span><span class="p">:</span> <span class="p">[</span><span class="k">lambda</span> <span class="n">einfo</span><span class="p">:</span> <span class="n">einfo</span><span class="o">.</span><span class="n">triggerType</span> <span class="o">==</span> <span class="s2">&quot;FORCE&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;log_level&quot;</span><span class="p">:</span> <span class="n">log_level</span><span class="p">,</span> <span class="s2">&quot;select_runs&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;max_trigger_rate&quot;</span><span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="p">,</span>
-            <span class="s2">&quot;run_types&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;physics&quot;</span><span class="p">]</span>
+            <span class="s2">"selectors"</span><span class="p">:</span> <span class="p">[</span><span class="k">lambda</span> <span class="n">einfo</span><span class="p">:</span> <span class="n">einfo</span><span class="o">.</span><span class="n">triggerType</span> <span class="o">==</span> <span class="s2">"FORCE"</span><span class="p">],</span>
+            <span class="s2">"log_level"</span><span class="p">:</span> <span class="n">log_level</span><span class="p">,</span> <span class="s2">"select_runs"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"max_trigger_rate"</span><span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="p">,</span>
+            <span class="s2">"run_types"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"physics"</span><span class="p">]</span>
         <span class="p">}</span>
         <span class="n">default_reader_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">reader_kwargs</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_noise_reader</span><span class="o">.</span><span class="n">begin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__noise_folders</span><span class="p">,</span> <span class="o">**</span><span class="n">default_reader_kwargs</span><span class="p">)</span>
 
         <span class="c1"># instead of reading all noise events into memory we only get certain information here and read all data in run()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Get event informations ...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Get event informations ..."</span><span class="p">)</span>
         <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-        <span class="n">noise_information</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noise_reader</span><span class="o">.</span><span class="n">get_events_information</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;station&quot;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;... of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">noise_information</span><span class="p">)</span><span class="si">}</span><span class="s2"> (selected) events in </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t0</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+        <span class="n">noise_information</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noise_reader</span><span class="o">.</span><span class="n">get_events_information</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"station"</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"... of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">noise_information</span><span class="p">)</span><span class="si">}</span><span class="s2"> (selected) events in </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t0</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__event_index_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">noise_information</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__station_id_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ele</span><span class="p">[</span><span class="s2">&quot;station&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">noise_information</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__station_id_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ele</span><span class="p">[</span><span class="s2">"station"</span><span class="p">]</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">noise_information</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_use_event</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span></div>
 
@@ -779,7 +779,7 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__draw_noise_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        reader.get_event_by_index can return None when, e.g., the trigger time is inf or the sampling rate 0.</span>
 <span class="sd">        Hence, try again if that happens (should only occur rearly).</span>
 
@@ -795,7 +795,7 @@
 
 <span class="sd">        i_noise: int</span>
 <span class="sd">            The index of the drawn event</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">tries</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">while</span> <span class="n">tries</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
             <span class="c1"># int(..) necessary because pyroot can not handle np.int64</span>
@@ -806,7 +806,7 @@
                 <span class="k">break</span>
 
         <span class="k">if</span> <span class="n">noise_event</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">err</span> <span class="o">=</span> <span class="s2">&quot;Could not draw a random station which is not None after 100 tries. Stop.&quot;</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="s2">"Could not draw a random station which is not None after 100 tries. Stop."</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
 
@@ -823,7 +823,7 @@
             <span class="c1"># select only noise events from simulated station id</span>
             <span class="n">station_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__station_id_list</span> <span class="o">==</span> <span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">station_mask</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No station with id </span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> in noise data.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No station with id </span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2"> in noise data."</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># select all noise events</span>
@@ -835,9 +835,9 @@
         <span class="n">noise_station</span> <span class="o">=</span> <span class="n">noise_event</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="n">station_id</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__station_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__station_ids</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Station id </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> not in list of allowed ids: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_ids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Station id </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2"> not in list of allowed ids: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__station_ids</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Selected noise event </span><span class="si">{}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2">, run </span><span class="si">{}</span><span class="s2">, event </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"Selected noise event </span><span class="si">{}</span><span class="s2"> (</span><span class="si">{}</span><span class="s2">, run </span><span class="si">{}</span><span class="s2">, event </span><span class="si">{}</span><span class="s2">)"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">i_noise</span><span class="p">,</span> <span class="n">noise_station</span><span class="o">.</span><span class="n">get_station_time</span><span class="p">(),</span> <span class="n">noise_event</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span>
             <span class="n">noise_event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()))</span>
 
@@ -849,18 +849,18 @@
             <span class="n">noise_trace</span> <span class="o">=</span> <span class="n">noise_channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
 
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2048</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Simulated trace is longer than 2048 bins... trim with :2048&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Simulated trace is longer than 2048 bins... trim with :2048"</span><span class="p">)</span>
                 <span class="n">trace</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[:</span><span class="mi">2048</span><span class="p">]</span>
 
             <span class="c1"># sanity checks</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">noise_trace</span><span class="p">):</span>
-                <span class="n">erg_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Mismatch in trace lenght: Noise has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">noise_trace</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span> <span class="o">+</span> \
-                    <span class="s2">&quot;and simulation has {len(trace)} samples&quot;</span>
+                <span class="n">erg_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Mismatch in trace lenght: Noise has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">noise_trace</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span> <span class="o">+</span> \
+                    <span class="s2">"and simulation has {len(trace)} samples"</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">erg_msg</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">erg_msg</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">!=</span> <span class="n">noise_channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">():</span>
-                <span class="n">erg_msg</span> <span class="o">=</span> <span class="s2">&quot;Mismatch in sampling rate: Noise has </span><span class="si">{}</span><span class="s2"> and simulation has </span><span class="si">{}</span><span class="s2"> GHz&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">erg_msg</span> <span class="o">=</span> <span class="s2">"Mismatch in sampling rate: Noise has </span><span class="si">{}</span><span class="s2"> and simulation has </span><span class="si">{}</span><span class="s2"> GHz"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                     <span class="n">noise_channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">erg_msg</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">erg_msg</span><span class="p">)</span>
@@ -876,8 +876,8 @@
         <span class="n">n_use</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_use_event</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
         <span class="n">sort</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">n_use</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s2">&quot;</span><span class="se">\n\t</span><span class="s2">The five most used noise events have been used: </span><span class="si">{}</span><span class="s2">&quot;</span>
-            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">n_use</span><span class="p">[</span><span class="n">sort</span><span class="p">][:</span><span class="mi">5</span><span class="p">]])))</span>
+            <span class="s2">"</span><span class="se">\n\t</span><span class="s2">The five most used noise events have been used: </span><span class="si">{}</span><span class="s2">"</span>
+            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">ele</span><span class="p">)</span> <span class="k">for</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">n_use</span><span class="p">[</span><span class="n">sort</span><span class="p">][:</span><span class="mi">5</span><span class="p">]])))</span>
         <span class="k">pass</span></div>
 </div>
 

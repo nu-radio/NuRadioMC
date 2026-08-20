@@ -658,7 +658,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.io_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_dumps</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.SimStation&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.SimStation'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="SimStation">
@@ -675,7 +675,7 @@
 <div class="viewcode-block" id="SimStation.set_candidate">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.set_candidate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_candidate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidate_status</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">            </span><span class="sd">"""</span>
 <span class="sd">            Set the candidate for the simulation station. True means the station is a candidate for producing a trigger.</span>
 
 <span class="sd">            Parameters</span>
@@ -686,25 +686,25 @@
 <span class="sd">            Returns</span>
 <span class="sd">            -------</span>
 <span class="sd">            None</span>
-<span class="sd">            &quot;&quot;&quot;</span>
+<span class="sd">            """</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">candidate_status</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">and</span> <span class="n">candidate_status</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The candidate_status must be a bool or None.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The candidate_status must be a bool or None."</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__candidate</span> <span class="o">=</span> <span class="n">candidate_status</span></div>
 
 
 <div class="viewcode-block" id="SimStation.is_candidate">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.is_candidate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_candidate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns whether the station is a candidate for producing a trigger.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        bool</span>
 <span class="sd">            True if the station is a candidate for producing a trigger, False otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__candidate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The candidate status has not been set.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The candidate status has not been set."</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__candidate</span></div>
 
 
@@ -742,7 +742,7 @@
 <div class="viewcode-block" id="SimStation.add_channel">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.add_channel">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add a `SimChannel` to the `SimStation`.</span>
 
 <span class="sd">        Parameters</span>
@@ -752,13 +752,13 @@
 <span class="sd">        overwrite: bool (Default: False)</span>
 <span class="sd">            If True, allow to overwrite a existing channel (i.e., a channel with the same unique identifier).</span>
 <span class="sd">            If False, raise AttributeError if a channel with the same identifier is being added</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">sim_channel</span><span class="o">.</span><span class="n">SimChannel</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;`Channel` needs to be of type `NuRadioReco.framework.sim_channel.SimChannel`&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">"`Channel` needs to be of type `NuRadioReco.framework.sim_channel.SimChannel`"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Channel with the unique identifier </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span><span class="si">}</span><span class="s2"> is already present in SimStation&quot;</span><span class="p">)</span>
+                <span class="sa">f</span><span class="s2">"Channel with the unique identifier </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span><span class="si">}</span><span class="s2"> is already present in SimStation"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">[</span><span class="n">channel</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()]</span> <span class="o">=</span> <span class="n">channel</span></div>
 
@@ -766,18 +766,18 @@
 <div class="viewcode-block" id="SimStation.get_channel">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_channel">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unique_identifier</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns channel identified by the triple (channel_id, shower_id, ray_tracing_id)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">[</span><span class="n">unique_identifier</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="SimStation.get_channel_ids">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_channel_ids">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_channel_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns a list with the channel IDs of all simChannels of the simStation</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">channel_ids</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">unique_identifier</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">unique_identifier</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">channel_ids</span><span class="p">:</span>
@@ -789,9 +789,9 @@
 <div class="viewcode-block" id="SimStation.get_shower_ids">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_shower_ids">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_shower_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns a list with the shower IDs of all simChannels of the simStation</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">shower_ids</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">unique_identifier</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">unique_identifier</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">shower_ids</span><span class="p">:</span>
@@ -803,9 +803,9 @@
 <div class="viewcode-block" id="SimStation.get_ray_tracing_ids">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_ray_tracing_ids">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_ray_tracing_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns a list with the raytracing IDs of all simChannels of the simStation</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">ray_tracing_ids</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">unique_identifier</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">unique_identifier</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ray_tracing_ids</span><span class="p">:</span>
@@ -817,9 +817,9 @@
 <div class="viewcode-block" id="SimStation.get_channels_by_channel_id">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_channels_by_channel_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_channels_by_channel_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns all simChannels that have the given channel_id</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="o">==</span> <span class="n">channel_id</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">channel</span></div>
@@ -828,9 +828,9 @@
 <div class="viewcode-block" id="SimStation.get_channels_by_shower_id">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_channels_by_shower_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_channels_by_shower_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shower_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns all simChannels that have the given shower_id</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_shower_id</span><span class="p">()</span> <span class="o">==</span> <span class="n">shower_id</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">channel</span></div>
@@ -839,9 +839,9 @@
 <div class="viewcode-block" id="SimStation.get_channels_by_ray_tracing_id">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.get_channels_by_ray_tracing_id">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_channels_by_ray_tracing_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ray_tracing_id</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns all simChannels that have the given ray_tracing_id</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_ray_tracing_solution_id</span><span class="p">()</span> <span class="o">==</span> <span class="n">ray_tracing_id</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">channel</span></div>
@@ -854,10 +854,10 @@
         <span class="n">channels_pkl</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
             <span class="n">channels_pkl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">save_trace</span><span class="o">=</span><span class="n">save_channel_traces</span><span class="p">))</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;__magnetic_field_vector&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__magnetic_field_vector</span><span class="p">,</span>
-                <span class="s1">&#39;__simulation_weight&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__simulation_weight</span><span class="p">,</span>
-                <span class="s1">&#39;channels&#39;</span><span class="p">:</span> <span class="n">channels_pkl</span><span class="p">,</span>
-                <span class="s1">&#39;base_station&#39;</span><span class="p">:</span> <span class="n">base_station_pkl</span><span class="p">}</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'__magnetic_field_vector'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__magnetic_field_vector</span><span class="p">,</span>
+                <span class="s1">'__simulation_weight'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__simulation_weight</span><span class="p">,</span>
+                <span class="s1">'channels'</span><span class="p">:</span> <span class="n">channels_pkl</span><span class="p">,</span>
+                <span class="s1">'base_station'</span><span class="p">:</span> <span class="n">base_station_pkl</span><span class="p">}</span>
         <span class="k">return</span> <span class="n">_dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
 
@@ -865,33 +865,33 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.deserialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
-        <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;base_station&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__magnetic_field_vector</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;__magnetic_field_vector&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__simulation_weight</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;__simulation_weight&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="s1">&#39;channels&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="k">for</span> <span class="n">channel_pkl</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;channels&#39;</span><span class="p">]:</span>
+        <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">'base_station'</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__magnetic_field_vector</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">'__magnetic_field_vector'</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__simulation_weight</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">'__simulation_weight'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">'channels'</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">channel_pkl</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">'channels'</span><span class="p">]:</span>
                 <span class="n">channel</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">sim_channel</span><span class="o">.</span><span class="n">SimChannel</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
                 <span class="n">channel</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">channel_pkl</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        adds a SimStation object to another SimStation object</span>
 <span class="sd">        WARNING: Only channel and efield objects are added but no other meta information</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">SimStation</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Can only add SimStation to SimStation&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">"Can only add SimStation to SimStation"</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="o">!=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_id</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Can only add SimStations with the same ID&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">"Can only add SimStations with the same ID"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channels</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Channel with ID </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span><span class="si">}</span><span class="s2"> already present in SimStation&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Channel with ID </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span><span class="si">}</span><span class="s2"> already present in SimStation"</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
         <span class="n">efield_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_electric_field_ids</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">efield</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span> <span class="ow">in</span> <span class="n">efield_ids</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Electric field with unique identifier </span><span class="si">{</span><span class="n">efield</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span><span class="si">}</span><span class="s2"> already present in SimStation&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Electric field with unique identifier </span><span class="si">{</span><span class="n">efield</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">()</span><span class="si">}</span><span class="s2"> already present in SimStation"</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_electric_field</span><span class="p">(</span><span class="n">efield</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 

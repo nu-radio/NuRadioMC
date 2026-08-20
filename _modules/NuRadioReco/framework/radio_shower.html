@@ -683,8 +683,8 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">base_shower_pickle</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_shower</span><span class="o">.</span><span class="n">BaseShower</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;station_ids&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__station_ids</span><span class="p">,</span>
-            <span class="s1">&#39;base_shower&#39;</span><span class="p">:</span> <span class="n">base_shower_pickle</span>
+            <span class="s1">'station_ids'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__station_ids</span><span class="p">,</span>
+            <span class="s1">'base_shower'</span><span class="p">:</span> <span class="n">base_shower_pickle</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="n">_dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
@@ -693,8 +693,8 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.radio_shower.html#NuRadioReco.framework.radio_shower.RadioShower.deserialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
-        <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_shower</span><span class="o">.</span><span class="n">BaseShower</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;base_shower&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__station_ids</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;station_ids&#39;</span><span class="p">]</span></div>
+        <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_shower</span><span class="o">.</span><span class="n">BaseShower</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">'base_shower'</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__station_ids</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">'station_ids'</span><span class="p">]</span></div>
 </div>
 
 </pre></div>

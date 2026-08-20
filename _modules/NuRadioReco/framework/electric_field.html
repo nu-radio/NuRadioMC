@@ -660,7 +660,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.io_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_dumps</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.ElectricField&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.ElectricField'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="ElectricField">
@@ -669,7 +669,7 @@
                     <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel_ids</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">shower_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ray_tracing_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initialize a new electric field object</span>
 
 <span class="sd">        This object stores a 3 dimensional trace plus additional meta parameters</span>
@@ -688,7 +688,7 @@
 <span class="sd">            the id of the corresponding shower object</span>
 <span class="sd">        ray_tracing_id: int or None</span>
 <span class="sd">            the id of the corresponding ray tracing solution</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">.</span><span class="n">electricFieldParameters</span><span class="p">)</span>
@@ -704,9 +704,9 @@
 <div class="viewcode-block" id="ElectricField.get_unique_identifier">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.get_unique_identifier">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_unique_identifier</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns a unique identifier consisting of the tuple channel_ids, shower_id and ray_tracing_id</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_channel_ids</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shower_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ray_tracing_id</span><span class="p">)</span></div>
 
 
@@ -746,18 +746,18 @@
 <div class="viewcode-block" id="ElectricField.get_position">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.get_position">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        get position of the electric field relative to station position</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_position</span></div>
 
 
 <div class="viewcode-block" id="ElectricField.set_position">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.set_position">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        set position of the electric field relative to station position</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_position</span> <span class="o">=</span> <span class="n">position</span></div>
 
 
@@ -767,7 +767,7 @@
             <span class="bp">self</span><span class="p">,</span> <span class="n">window_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vxB_vxvxB</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">magnetic_field_vector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">site</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filter_kwargs</span><span class="o">=</span><span class="kc">None</span>
         <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Return the stokes parameters for the electric field.</span>
 
 <span class="sd">        By default, the stokes parameters are returned in (eTheta, ePhi);</span>
@@ -810,7 +810,7 @@
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
 <span class="sd">        NuRadioReco.utilities.trace_utilities.get_stokes : Function that computes the stokes parameters</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">filter_kwargs</span><span class="p">:</span>
             <span class="n">trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filtered_trace</span><span class="p">(</span><span class="o">**</span><span class="n">filter_kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -829,7 +829,7 @@
                 <span class="p">)</span>
                 <span class="k">return</span> <span class="n">get_stokes</span><span class="p">(</span><span class="o">*</span><span class="n">efield_trace_vxB_vxvxB</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="n">window_samples</span><span class="o">=</span><span class="n">window_samples</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to compute stokes parameters in (vxB, vxvxB), electric field does not have a signal direction&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Failed to compute stokes parameters in (vxB, vxvxB), electric field does not have a signal direction"</span><span class="p">)</span>
                 <span class="k">raise</span><span class="p">(</span><span class="n">e</span><span class="p">)</span></div>
 
 
@@ -844,11 +844,11 @@
         <span class="n">data</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
         <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-            <span class="s1">&#39;channel_ids&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_ids</span><span class="p">,</span>
-            <span class="s1">&#39;_shower_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shower_id</span><span class="p">,</span>
-            <span class="s1">&#39;_ray_tracing_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ray_tracing_id</span><span class="p">,</span>
-            <span class="s1">&#39;position&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_position</span><span class="p">,</span>
-            <span class="s1">&#39;base_trace&#39;</span><span class="p">:</span> <span class="n">base_trace_pkl</span>
+            <span class="s1">'channel_ids'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_channel_ids</span><span class="p">,</span>
+            <span class="s1">'_shower_id'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shower_id</span><span class="p">,</span>
+            <span class="s1">'_ray_tracing_id'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ray_tracing_id</span><span class="p">,</span>
+            <span class="s1">'position'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_position</span><span class="p">,</span>
+            <span class="s1">'base_trace'</span><span class="p">:</span> <span class="n">base_trace_pkl</span>
         <span class="p">})</span>
 
         <span class="k">return</span> <span class="n">_dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
@@ -858,17 +858,17 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.electric_field.html#NuRadioReco.framework.electric_field.ElectricField.deserialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;base_trace&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;base_trace&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">'base_trace'</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">'base_trace'</span><span class="p">])</span>
 
         <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">&#39;position&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>  <span class="c1"># for backward compatibility</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_position</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;position&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">'position'</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>  <span class="c1"># for backward compatibility</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_position</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">'position'</span><span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_channel_ids</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;channel_ids&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_shower_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_shower_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ray_tracing_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_ray_tracing_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_channel_ids</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">'channel_ids'</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shower_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'_shower_id'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ray_tracing_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'_ray_tracing_id'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
 </div>
 
 </pre></div>

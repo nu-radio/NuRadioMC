@@ -661,13 +661,13 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.RNO_G.stationCoherentlySummedWaveforms&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.RNO_G.stationCoherentlySummedWaveforms'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="stationCoherentlySummedWaveforms">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms.html#NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms.stationCoherentlySummedWaveforms">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">stationCoherentlySummedWaveforms</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Generates a coherently-summed waveform (CSW) and calculates its signal-to-noise-ratio (SNR).</span>
 
 <span class="sd">    When multiple waveforms and a referance waveform are given,</span>
@@ -679,16 +679,16 @@
 <span class="sd">    Thermal noise is random so it scales with the square root of added waveforms while coherent signals</span>
 <span class="sd">    will added up linearly. Once summed the CSW is treated as a regular waveform and different analysis variables</span>
 <span class="sd">    are calculated.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;(Unused)&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""(Unused)"""</span>
         <span class="k">pass</span>
 
 <div class="viewcode-block" id="stationCoherentlySummedWaveforms.begin">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms.html#NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms.stationCoherentlySummedWaveforms.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coincidence_window_size</span><span class="o">=</span><span class="mi">6</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">pad_length</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">channel_ids</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        coincidence_window_size: float (default: 6 * units.ns)</span>
@@ -699,7 +699,7 @@
 
 <span class="sd">        channel_ids: array of int (default: [0, 1, 2, 3])</span>
 <span class="sd">            Channels for which to calculate the variables</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__coincidence_window_size</span> <span class="o">=</span> <span class="n">coincidence_window_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span> <span class="o">=</span> <span class="n">pad_length</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__channel_ids</span> <span class="o">=</span> <span class="n">channel_ids</span></div>
@@ -710,7 +710,7 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms.html#NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms.stationCoherentlySummedWaveforms.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">ref_ch_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">use_envelope</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the SNR of the coherently-summed waveform and add to the station object.</span>
 
 <span class="sd">        Parameters</span>
@@ -721,7 +721,7 @@
 <span class="sd">            Reference channel for the coherent sum</span>
 <span class="sd">        use_envelope: bool (default: True)</span>
 <span class="sd">            If use Hilbert envelopes to find the cross correlation or not</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">ref_ch</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">ref_ch_id</span><span class="p">)</span>
         <span class="n">ref_trace</span> <span class="o">=</span> <span class="n">ref_ch</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
@@ -729,7 +729,7 @@
 
         <span class="n">coincidence_window_size_bins_ref</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__coincidence_window_size</span> <span class="o">*</span> <span class="n">ref_ch</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()))</span>
         <span class="k">if</span> <span class="n">coincidence_window_size_bins_ref</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Coincidence window size of </span><span class="si">{</span><span class="n">coincidence_window_size_bins_ref</span><span class="si">}</span><span class="s2"> samples is too small for channel </span><span class="si">{</span><span class="n">ref_ch</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Coincidence window size of </span><span class="si">{</span><span class="n">coincidence_window_size_bins_ref</span><span class="si">}</span><span class="s2"> samples is too small for channel </span><span class="si">{</span><span class="n">ref_ch</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
 
         <span class="n">sum_trace</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_coherent_sum</span><span class="p">(</span><span class="n">trace_set</span><span class="p">,</span> <span class="n">ref_trace</span><span class="p">,</span> <span class="n">use_envelope</span><span class="p">)</span>
         <span class="n">rms</span> <span class="o">=</span> <span class="n">trace_utilities</span><span class="o">.</span><span class="n">get_split_trace_noise_RMS</span><span class="p">(</span><span class="n">sum_trace</span><span class="p">,</span> <span class="n">segments</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">lowest</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
@@ -747,32 +747,32 @@
 <div class="viewcode-block" id="stationCoherentlySummedWaveforms.end">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms.html#NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms.stationCoherentlySummedWaveforms.end">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;(Unused)&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""(Unused)"""</span>
         <span class="k">pass</span></div>
 
 
 <div class="viewcode-block" id="stationCoherentlySummedWaveforms.coherent_sum_step_by_step">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms.html#NuRadioReco.modules.RNO_G.stationCoherentlySummedWaveforms.stationCoherentlySummedWaveforms.coherent_sum_step_by_step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">coherent_sum_step_by_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Plot the four original waveforms before any alignment and save &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Plot the four original waveforms before any alignment and save """</span>
 
-        <span class="n">matplotlib</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;font.size&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">})</span>
+        <span class="n">matplotlib</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"font.size"</span><span class="p">:</span> <span class="mi">20</span><span class="p">})</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">(</span><span class="n">use_channels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channel_ids</span><span class="p">):</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Original wf[</span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">]&#39;</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Original Waveforms&#39;</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Sample&#39;</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Amplitude&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'Original wf[</span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">]'</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Original Waveforms'</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'Sample'</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'Amplitude'</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;original_waveforms.png&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'original_waveforms.png'</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
         <span class="c1"># Iterate over each channel as a potential reference</span>
         <span class="k">for</span> <span class="n">ref_ch</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">(</span><span class="n">use_channels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channel_ids</span><span class="p">):</span>
             <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>  <span class="c1"># Create 2x2 grid for each step with a single reference</span>
-            <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Coherent Sum Steps with Reference: wf[</span><span class="si">{</span><span class="n">ref_ch</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">]&#39;</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">16</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Coherent Sum Steps with Reference: wf[</span><span class="si">{</span><span class="n">ref_ch</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">]'</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">16</span><span class="p">)</span>
 
-            <span class="n">sum_chan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">ref_ch</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;constant&#39;</span><span class="p">)</span>  <span class="c1"># Pad reference waveform</span>
+            <span class="n">sum_chan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">ref_ch</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">'constant'</span><span class="p">)</span>  <span class="c1"># Pad reference waveform</span>
             <span class="n">channels</span> <span class="o">=</span> <span class="p">[</span><span class="n">ch</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">(</span><span class="n">use_channels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__channel_ids</span><span class="p">)</span> <span class="k">if</span> <span class="n">ch</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="o">!=</span> <span class="n">ref_ch</span><span class="o">.</span><span class="n">get_id</span><span class="p">()]</span>  <span class="c1"># Exclude the reference channel</span>
 
             <span class="c1"># Initialize the coherent sum with the padded reference waveform</span>
@@ -782,29 +782,29 @@
                 <span class="n">ax</span> <span class="o">=</span> <span class="n">axs</span><span class="p">[</span><span class="n">step</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">step</span> <span class="o">%</span> <span class="mi">2</span><span class="p">]</span>  <span class="c1"># Select subplot for each step</span>
 
                 <span class="c1"># Perform full-range cross-correlation to find the necessary shift</span>
-                <span class="n">cor</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">correlate</span><span class="p">(</span><span class="n">current_sum</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">],</span> <span class="n">ch</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;full&#39;</span><span class="p">)</span>
+                <span class="n">cor</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">correlate</span><span class="p">(</span><span class="n">current_sum</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">],</span> <span class="n">ch</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">'full'</span><span class="p">)</span>
                 <span class="n">shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">cor</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">get_trace</span><span class="p">())</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># Calculate shift based on maximum correlation</span>
 
                 <span class="c1"># Pad and shift the waveform to align with the reference sum</span>
-                <span class="n">padded_wf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;constant&#39;</span><span class="p">)</span>
+                <span class="n">padded_wf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">ch</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s1">'constant'</span><span class="p">)</span>
                 <span class="n">aligned_wf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">padded_wf</span><span class="p">,</span> <span class="n">shift</span><span class="p">)</span>
 
                 <span class="c1"># Plot the current coherent sum before adding the next waveform</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">current_sum</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">],</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;Current Coherent Sum&#39;</span><span class="p">,</span> <span class="n">linestyle</span> <span class="o">=</span> <span class="s1">&#39;--&#39;</span><span class="p">)</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">aligned_wf</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">],</span> <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;Next wf[</span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">]&#39;</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">current_sum</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">],</span> <span class="n">label</span> <span class="o">=</span> <span class="s1">'Current Coherent Sum'</span><span class="p">,</span> <span class="n">linestyle</span> <span class="o">=</span> <span class="s1">'--'</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">aligned_wf</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">__pad_length</span><span class="p">],</span> <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'Next wf[</span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">]'</span><span class="p">,</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.7</span><span class="p">)</span>
 
                 <span class="c1"># Add the aligned waveform to the current sum</span>
                 <span class="n">current_sum</span> <span class="o">+=</span> <span class="n">aligned_wf</span>
 
                 <span class="c1"># Customize plot</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span> <span class="o">=</span> <span class="s1">&#39;upper right&#39;</span><span class="p">)</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Sample&#39;</span><span class="p">)</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Amplitude&#39;</span><span class="p">)</span>
-                <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Step </span><span class="si">{</span><span class="n">step</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s1">: Adding wf[</span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">]&#39;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span> <span class="o">=</span> <span class="s1">'upper right'</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'Sample'</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Amplitude'</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Step </span><span class="si">{</span><span class="n">step</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s1">: Adding wf[</span><span class="si">{</span><span class="n">ch</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">]'</span><span class="p">)</span>
 
             <span class="c1"># Save each coherent summing figure for the current reference</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">rect</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.96</span><span class="p">])</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;coherent_sum_steps_reference_</span><span class="si">{</span><span class="n">ref_ch</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">.png&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">'coherent_sum_steps_reference_</span><span class="si">{</span><span class="n">ref_ch</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">.png'</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 </div>
 

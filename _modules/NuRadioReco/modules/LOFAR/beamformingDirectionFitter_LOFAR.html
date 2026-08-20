@@ -672,12 +672,12 @@
 <div class="viewcode-block" id="beamformingDirectionFitter">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.html#NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.beamformingDirectionFitter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">beamformingDirectionFitter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Fits the direction per station using interferometry between all the channels with a good enough signal.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.LOFAR.beamFormingDirectionFitter&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.LOFAR.beamFormingDirectionFitter"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__max_iter</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__cr_snr</span> <span class="o">=</span> <span class="kc">None</span>
@@ -685,7 +685,7 @@
 <div class="viewcode-block" id="beamformingDirectionFitter.begin">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.html#NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.beamformingDirectionFitter.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_iter</span><span class="p">,</span> <span class="n">cr_snr</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the values for the fitting procedures.</span>
 
 <span class="sd">        Parameters</span>
@@ -696,7 +696,7 @@
 <span class="sd">            The minimum SNR a channel should have to be considered having a CR signal.</span>
 <span class="sd">        logger_level : int, default=logging.NOTSET</span>
 <span class="sd">            Use this parameter to override the logging level for this module.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__cr_snr</span> <span class="o">=</span> <span class="n">cr_snr</span>
 
@@ -704,7 +704,7 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_direction_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">ant_positions</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Fit the arrival direction by iteratively beamforming the signal and maximising the peak of the time trace.</span>
 
 <span class="sd">        Parameters</span>
@@ -713,7 +713,7 @@
 <span class="sd">            The station for which to fit the direction</span>
 <span class="sd">        ant_positions : np.ndarray, 2D</span>
 <span class="sd">            The array of antenna positions, to be extracted from the detector description.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">freq</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_electric_fields</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
 
         <span class="c1"># Determine dominant polarisation in Efield by looking for strongest signal in 5 randomly selected traces</span>
@@ -723,7 +723,7 @@
             <span class="n">trace_envelope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">hilbert</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">get_trace</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
             <span class="n">dominant_pol_traces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">trace_envelope</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)))</span>
         <span class="n">dominant_pol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">dominant_pol_traces</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dominant polarisation is </span><span class="si">{</span><span class="n">dominant_pol</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Dominant polarisation is </span><span class="si">{</span><span class="n">dominant_pol</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="c1"># Collect the Efield traces</span>
         <span class="n">fft_traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">trace</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()[</span><span class="n">dominant_pol</span><span class="p">]</span>
@@ -740,19 +740,19 @@
 
         <span class="n">start_direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span>
                                     <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial guess for fit routine is </span><span class="si">{</span><span class="n">start_direction</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Initial guess for fit routine is </span><span class="si">{</span><span class="n">start_direction</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="c1"># Using &quot;minimize&quot; with the &quot;Powell&quot; method allows to use the same minimization routine as before,</span>
+        <span class="c1"># Using "minimize" with the "Powell" method allows to use the same minimization routine as before,</span>
         <span class="c1"># but also add bounds to the fit. However, this changes the result of the fitting routine, even if</span>
-        <span class="c1"># without bounds the fit converges within the bounds. So currently we stick to the &quot;fmin_powell&quot; method.</span>
+        <span class="c1"># without bounds the fit converges within the bounds. So currently we stick to the "fmin_powell" method.</span>
         <span class="c1"># fit_result = minimize(negative_beamed_signal, start_direction,</span>
-        <span class="c1">#                       method=&#39;Powell&#39;, bounds=Bounds((0, -np.pi), (np.pi / 2, np.pi), (True, True)),</span>
-        <span class="c1">#                       options={&#39;maxiter&#39;: self.__max_iter, &#39;xtol&#39;: 1.0, &#39;disp&#39;: False,</span>
-        <span class="c1">#                                &#39;direc&#39;: np.array([[0.1, 0], [0, 0.1]])})</span>
+        <span class="c1">#                       method='Powell', bounds=Bounds((0, -np.pi), (np.pi / 2, np.pi), (True, True)),</span>
+        <span class="c1">#                       options={'maxiter': self.__max_iter, 'xtol': 1.0, 'disp': False,</span>
+        <span class="c1">#                                'direc': np.array([[0.1, 0], [0, 0.1]])})</span>
         <span class="c1">#</span>
-        <span class="c1"># self.logger.debug(f&quot;Fit returned the following message: {fit_result.message}&quot;)</span>
+        <span class="c1"># self.logger.debug(f"Fit returned the following message: {fit_result.message}")</span>
         <span class="c1"># if not fit_result.success:</span>
-        <span class="c1">#     self.logger.warning(f&quot;The fit failed with the following message: {fit_result.message}&quot;)</span>
+        <span class="c1">#     self.logger.warning(f"The fit failed with the following message: {fit_result.message}")</span>
         <span class="c1">#     raise RuntimeError</span>
         <span class="c1">#</span>
         <span class="c1"># fit_direction = fit_result.x</span>
@@ -763,7 +763,7 @@
                           <span class="n">disp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">fit_direction</span> <span class="o">=</span> <span class="n">fit_result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fit finished with following direc vector: </span><span class="si">{</span><span class="n">fit_result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Fit finished with following direc vector: </span><span class="si">{</span><span class="n">fit_result</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">direction_cartesian</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">spherical_to_cartesian</span><span class="p">(</span><span class="o">*</span><span class="n">fit_direction</span><span class="p">)</span>
 
@@ -775,7 +775,7 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.html#NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR.beamformingDirectionFitter.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">detector</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        reconstruct signal arrival direction for all events through beam forming.</span>
 <span class="sd">        https://arxiv.org/pdf/1009.0345.pdf</span>
 
@@ -786,7 +786,7 @@
 <span class="sd">        detector: Detector</span>
 <span class="sd">            The detector object</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">converter</span> <span class="o">=</span> <span class="n">voltageToEfieldConverter</span><span class="p">()</span>
         <span class="n">converter</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
 
@@ -795,8 +795,8 @@
                 <span class="c1"># Not triggered means no reliable pulse found or not enough antennas to do the fit</span>
                 <span class="k">continue</span>
 
-            <span class="n">zenith</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">&quot;LORA&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span>
-            <span class="n">azimuth</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">&quot;LORA&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span>
+            <span class="n">zenith</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">"LORA"</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span>
+            <span class="n">azimuth</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">"LORA"</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span>
 
             <span class="c1"># Get all group IDs which are still present in the Station</span>
             <span class="n">station_channel_group_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">channel</span><span class="o">.</span><span class="n">get_group_id</span><span class="p">()</span> <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">()])</span>
@@ -838,13 +838,13 @@
                         <span class="n">station</span><span class="p">,</span> <span class="n">position_array</span>
                     <span class="p">)</span>
                 <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Direction fit could not be completed for station  CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Direction fit could not be completed for station  CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                     <span class="k">break</span>
 
                 <span class="c1"># Check if fit produced unphysical results</span>
                 <span class="k">if</span> <span class="n">direction_fit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">90</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Zenith angle </span><span class="si">{</span><span class="n">direction_fit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">}</span><span class="s2"> is larger than 90 degrees!&quot;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Direction fit could not be completed for station  CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Zenith angle </span><span class="si">{</span><span class="n">direction_fit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">}</span><span class="s2"> is larger than 90 degrees!"</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Direction fit could not be completed for station  CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                     <span class="k">break</span>
 
                 <span class="c1"># See if the fit converged</span>
@@ -857,10 +857,10 @@
                 <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">,</span> <span class="n">direction_fit</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">,</span> <span class="n">direction_fit</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Difference after another fit iteration is </span><span class="si">%s</span><span class="s1">;&#39;</span> <span class="o">%</span> <span class="n">direction_difference</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Direction after this fit iteration is </span><span class="si">%s</span><span class="s1">;&#39;</span> <span class="o">%</span> <span class="n">direction_fit</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'Difference after another fit iteration is </span><span class="si">%s</span><span class="s1">;'</span> <span class="o">%</span> <span class="n">direction_difference</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'Direction after this fit iteration is </span><span class="si">%s</span><span class="s1">;'</span> <span class="o">%</span> <span class="n">direction_fit</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Azimuth (wrt to North) and elevation for station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Azimuth (wrt to North) and elevation for station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">:"</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">((</span><span class="mi">90</span> <span class="o">-</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span>
                               <span class="mi">90</span> <span class="o">-</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">))</span>
 

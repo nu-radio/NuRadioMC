@@ -661,16 +661,16 @@
 <div class="viewcode-block" id="channelGenericNoiseAdder">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelGenericNoiseAdder</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Module that generates noise in some generic fashion (not based on measured data), which can be added to data.</span>
 
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="channelGenericNoiseAdder.add_random_phases">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_random_phases">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_random_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">amps</span><span class="p">,</span> <span class="n">n_samples_time_domain</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Adding random phase information to given amplitude spectrum.</span>
 
 <span class="sd">        Parameters</span>
@@ -680,8 +680,8 @@
 <span class="sd">            Data that random phase is added to.</span>
 <span class="sd">        n_samples_time_domain: int</span>
 <span class="sd">            number of samples in the time domain to differentiate between odd and even number of samples</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">amps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">amps</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex&#39;</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">amps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">amps</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'complex'</span><span class="p">)</span>
         <span class="n">Np</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_samples_time_domain</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
         <span class="n">phases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">Np</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
         <span class="n">phases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span>
@@ -693,7 +693,7 @@
 <div class="viewcode-block" id="channelGenericNoiseAdder.fftnoise_fullfft">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.fftnoise_fullfft">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">fftnoise_fullfft</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Adding random phase information to given amplitude spectrum.</span>
 
 <span class="sd">        Parameters</span>
@@ -701,34 +701,34 @@
 
 <span class="sd">        f: array of floats</span>
 <span class="sd">            Data that random phase is added to.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;complex&#39;</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'complex'</span><span class="p">)</span>
         <span class="n">Np</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
         <span class="n">phases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">Np</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
         <span class="n">phases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span>
         <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">Np</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="n">phases</span>  <span class="c1"># Note that the last entry of the index slice is f[Np] !</span>
         <span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span> <span class="o">-</span> <span class="n">Np</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">Np</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39; fftnoise: Length of frequency array = </span><span class="si">{}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39; fftnoise: Number of points for unilateral spectrum = </span><span class="si">{}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Np</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39; fftnoise: Max index and amplitude of positive part of spectrum: index = </span><span class="si">{}</span><span class="s1">, A = |</span><span class="si">{}</span><span class="s1">| = </span><span class="si">{}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Np</span><span class="p">,</span> <span class="n">f</span><span class="p">[</span><span class="n">Np</span><span class="p">],</span> <span class="nb">abs</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">Np</span><span class="p">])))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39; fftnoise: Min index and amplitude of negative part of spectrum: index = </span><span class="si">{}</span><span class="s1">, A = |</span><span class="si">{}</span><span class="s1">| &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">-</span> <span class="n">Np</span><span class="p">,</span> <span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="n">Np</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">' fftnoise: Length of frequency array = </span><span class="si">{}</span><span class="s1"> '</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">' fftnoise: Number of points for unilateral spectrum = </span><span class="si">{}</span><span class="s1"> '</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Np</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">' fftnoise: Max index and amplitude of positive part of spectrum: index = </span><span class="si">{}</span><span class="s1">, A = |</span><span class="si">{}</span><span class="s1">| = </span><span class="si">{}</span><span class="s1"> '</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Np</span><span class="p">,</span> <span class="n">f</span><span class="p">[</span><span class="n">Np</span><span class="p">],</span> <span class="nb">abs</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="n">Np</span><span class="p">])))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">' fftnoise: Min index and amplitude of negative part of spectrum: index = </span><span class="si">{}</span><span class="s1">, A = |</span><span class="si">{}</span><span class="s1">| '</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">-</span> <span class="n">Np</span><span class="p">,</span> <span class="n">f</span><span class="p">[</span><span class="o">-</span><span class="n">Np</span><span class="p">]))</span>
 
         <span class="n">fftprec</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">real</span><span class="p">))</span>
         <span class="n">fftcheck</span> <span class="o">=</span> <span class="n">fftprec</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">resolution</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39; fftnoise: fft precision </span><span class="si">{}</span><span class="s1"> &lt; </span><span class="si">{}</span><span class="s1"> (float resolution) is : </span><span class="si">{}</span><span class="s1"> !&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fftprec</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">resolution</span><span class="p">,</span> <span class="n">fftcheck</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">' fftnoise: fft precision </span><span class="si">{}</span><span class="s1"> &lt; </span><span class="si">{}</span><span class="s1"> (float resolution) is : </span><span class="si">{}</span><span class="s1"> !'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fftprec</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">resolution</span><span class="p">,</span> <span class="n">fftcheck</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">fftcheck</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39; fftnoise: Non negligibe imagniary part of inverse FFT: </span><span class="si">{}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fftcheck</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">' fftnoise: Non negligibe imagniary part of inverse FFT: </span><span class="si">{}</span><span class="s1"> '</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fftcheck</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">real</span></div>
 
 
 <div class="viewcode-block" id="channelGenericNoiseAdder.bandlimited_noise">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;perfect_white&#39;</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'perfect_white'</span><span class="p">,</span>
                           <span class="n">time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bandwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Generating noise of n_samples in a bandwidth [min_freq,max_freq].</span>
 
 <span class="sd">        Parameters</span>
@@ -765,9 +765,9 @@
 <span class="sd">        *   Note that by design the max frequency is the Nyquist frequency, even if a bigger max_freq</span>
 <span class="sd">            is implemented (RL 17-Sept-2018)</span>
 
-<span class="sd">        *   Add &#39;multi_white&#39; noise option on 20-Sept-2018 (RL)</span>
+<span class="sd">        *   Add 'multi_white' noise option on 20-Sept-2018 (RL)</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">frequencies</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
 
         <span class="n">n_samples_freq</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
@@ -778,24 +778,24 @@
             <span class="c1"># to take the difference between two frequencies to determine the minimum frequency, in case</span>
             <span class="c1"># future versions of numpy change the order and maybe put the negative frequencies first</span>
             <span class="n">min_freq</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">frequencies</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">frequencies</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Set min_freq from None to </span><span class="si">{}</span><span class="s1"> MHz!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">min_freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'Set min_freq from None to </span><span class="si">{}</span><span class="s1"> MHz!'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">min_freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">max_freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># sample up to Nyquist frequency</span>
             <span class="n">max_freq</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Set max_freq from None to </span><span class="si">{}</span><span class="s1"> GHz!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">max_freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'Set max_freq from None to </span><span class="si">{}</span><span class="s1"> GHz!'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">max_freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">round</span><span class="p">(</span><span class="n">max_freq</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">round</span><span class="p">(</span><span class="n">frequencies</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">3</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s1">&#39;max_freq (</span><span class="si">{</span><span class="n">max_freq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> MHz) is above the Nyquist frequency &#39;</span>
-                    <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">frequencies</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> MHz). This means the simulated noise ampitude &#39;</span>
-                    <span class="s1">&#39;might deviate from what you intended. To fix that, you either need to lower &#39;</span>
-                    <span class="s1">&#39;max_freq or increase the sampling_rate.&#39;</span><span class="p">)</span>
+                    <span class="sa">f</span><span class="s1">'max_freq (</span><span class="si">{</span><span class="n">max_freq</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> MHz) is above the Nyquist frequency '</span>
+                    <span class="sa">f</span><span class="s1">'(</span><span class="si">{</span><span class="n">frequencies</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> MHz). This means the simulated noise ampitude '</span>
+                    <span class="s1">'might deviate from what you intended. To fix that, you either need to lower '</span>
+                    <span class="s1">'max_freq or increase the sampling_rate.'</span><span class="p">)</span>
 
         <span class="n">selection</span> <span class="o">=</span> <span class="p">(</span><span class="n">frequencies</span> <span class="o">&gt;=</span> <span class="n">min_freq</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">frequencies</span> <span class="o">&lt;=</span> <span class="n">max_freq</span><span class="p">)</span>
 
         <span class="n">nbinsactive</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Total number of frequency bins (bilateral spectrum) : </span><span class="si">{}</span><span class="s1"> , of those active: </span><span class="si">{}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">nbinsactive</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'Total number of frequency bins (bilateral spectrum) : </span><span class="si">{}</span><span class="s1"> , of those active: </span><span class="si">{}</span><span class="s1"> '</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">nbinsactive</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">bandwidth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">sampling_bandwidth</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">)</span> <span class="o">-</span> <span class="n">min_freq</span>
@@ -803,17 +803,17 @@
 
         <span class="n">ampl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_samples_freq</span><span class="p">)</span>
         <span class="n">sigscale</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">*</span> <span class="n">n_samples</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">nbinsactive</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;perfect_white&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'perfect_white'</span><span class="p">:</span>
             <span class="n">ampl</span><span class="p">[</span><span class="n">selection</span><span class="p">]</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">sigscale</span>
-        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;rayleigh&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'rayleigh'</span><span class="p">:</span>
             <span class="n">fsigma</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">sigscale</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.</span><span class="p">)</span>
             <span class="n">ampl</span><span class="p">[</span><span class="n">selection</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span><span class="o">.</span><span class="n">rayleigh</span><span class="p">(</span><span class="n">fsigma</span><span class="p">,</span> <span class="n">nbinsactive</span><span class="p">)</span>
-        <span class="c1"># FIXME: amplitude normalization is not correct for &#39;white&#39;</span>
-        <span class="c1"># elif type == &#39;white&#39;:</span>
+        <span class="c1"># FIXME: amplitude normalization is not correct for 'white'</span>
+        <span class="c1"># elif type == 'white':</span>
         <span class="c1">#   ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Other types of noise not yet implemented.&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Other types of noise not yet implemented.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Other types of noise not yet implemented."</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"Other types of noise not yet implemented."</span><span class="p">)</span>
 
         <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_random_phases</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span> <span class="o">/</span> <span class="n">sampling_rate</span>
         <span class="k">if</span> <span class="n">time_domain</span><span class="p">:</span>
@@ -826,8 +826,8 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.precalculate_bandlimited_noise_parameters">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">precalculate_bandlimited_noise_parameters</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span>
-            <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;perfect_white&#39;</span><span class="p">,</span> <span class="n">bandwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+            <span class="nb">type</span><span class="o">=</span><span class="s1">'perfect_white'</span><span class="p">,</span> <span class="n">bandwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Generating noise of n_samples in a bandwidth [min_freq,max_freq].</span>
 
 <span class="sd">        Parameters</span>
@@ -864,9 +864,9 @@
 <span class="sd">        *   Note that by design the max frequency is the Nyquist frequency, even if a bigger max_freq</span>
 <span class="sd">            is implemented (RL 17-Sept-2018)</span>
 
-<span class="sd">        *   Add &#39;multi_white&#39; noise option on 20-Sept-2018 (RL)</span>
+<span class="sd">        *   Add 'multi_white' noise option on 20-Sept-2018 (RL)</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">frequencies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span>
 
         <span class="n">n_samples_freq</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
@@ -877,15 +877,15 @@
             <span class="c1"># to take the difference between two frequencies to determine the minimum frequency, in case</span>
             <span class="c1"># future versions of numpy change the order and maybe put the negative frequencies first</span>
             <span class="n">min_freq</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">frequencies</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">frequencies</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; Set min_freq from None to </span><span class="si">{}</span><span class="s1"> MHz!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">min_freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">' Set min_freq from None to </span><span class="si">{}</span><span class="s1"> MHz!'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">min_freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">max_freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># sample up to Nyquist frequency</span>
             <span class="n">max_freq</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; Set max_freq from None to </span><span class="si">{}</span><span class="s1"> GHz!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">max_freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">' Set max_freq from None to </span><span class="si">{}</span><span class="s1"> GHz!'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">max_freq</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">))</span>
         <span class="n">selection</span> <span class="o">=</span> <span class="p">(</span><span class="n">frequencies</span> <span class="o">&gt;=</span> <span class="n">min_freq</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">frequencies</span> <span class="o">&lt;=</span> <span class="n">max_freq</span><span class="p">)</span>
 
         <span class="n">nbinsactive</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Total number of frequency bins (bilateral spectrum) : </span><span class="si">{}</span><span class="s1"> , of those active: </span><span class="si">{}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">nbinsactive</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'Total number of frequency bins (bilateral spectrum) : </span><span class="si">{}</span><span class="s1"> , of those active: </span><span class="si">{}</span><span class="s1"> '</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">nbinsactive</span><span class="p">))</span>
 
         <span class="k">if</span><span class="p">(</span><span class="n">bandwidth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
             <span class="n">sampling_bandwidth</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">)</span> <span class="o">-</span> <span class="n">min_freq</span>
@@ -897,23 +897,23 @@
 
 
         <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;n_samples_freq&quot;</span><span class="p">:</span> <span class="n">n_samples_freq</span><span class="p">,</span>
-                <span class="s2">&quot;selection&quot;</span><span class="p">:</span> <span class="n">selection</span><span class="p">,</span>
-                <span class="s2">&quot;nbinsactive&quot;</span><span class="p">:</span> <span class="n">nbinsactive</span><span class="p">,</span>
-                <span class="s2">&quot;sigscale&quot;</span><span class="p">:</span> <span class="n">sigscale</span><span class="p">,</span>
-                <span class="s2">&quot;fsigma&quot;</span><span class="p">:</span> <span class="n">fsigma</span><span class="p">,</span>
-                <span class="s2">&quot;sampling_rate&quot;</span><span class="p">:</span> <span class="n">sampling_rate</span><span class="p">,</span>
-                <span class="s2">&quot;frequencies&quot;</span><span class="p">:</span> <span class="n">frequencies</span><span class="p">,</span>
-                <span class="s2">&quot;n_samples&quot;</span><span class="p">:</span> <span class="n">n_samples</span>
+                <span class="s2">"n_samples_freq"</span><span class="p">:</span> <span class="n">n_samples_freq</span><span class="p">,</span>
+                <span class="s2">"selection"</span><span class="p">:</span> <span class="n">selection</span><span class="p">,</span>
+                <span class="s2">"nbinsactive"</span><span class="p">:</span> <span class="n">nbinsactive</span><span class="p">,</span>
+                <span class="s2">"sigscale"</span><span class="p">:</span> <span class="n">sigscale</span><span class="p">,</span>
+                <span class="s2">"fsigma"</span><span class="p">:</span> <span class="n">fsigma</span><span class="p">,</span>
+                <span class="s2">"sampling_rate"</span><span class="p">:</span> <span class="n">sampling_rate</span><span class="p">,</span>
+                <span class="s2">"frequencies"</span><span class="p">:</span> <span class="n">frequencies</span><span class="p">,</span>
+                <span class="s2">"n_samples"</span><span class="p">:</span> <span class="n">n_samples</span>
                 <span class="p">}</span></div>
 
 
 
 <div class="viewcode-block" id="channelGenericNoiseAdder.bandlimited_noise_from_precalculated_parameters">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_precalculated_parameters">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise_from_precalculated_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;perfect_white&#39;</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise_from_precalculated_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'perfect_white'</span><span class="p">,</span>
                           <span class="n">time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Generating noise of n_samples in a bandwidth [min_freq,max_freq].</span>
 
 <span class="sd">        Parameters</span>
@@ -950,25 +950,25 @@
 <span class="sd">        *   Note that by design the max frequency is the Nyquist frequency, even if a bigger max_freq</span>
 <span class="sd">            is implemented (RL 17-Sept-2018)</span>
 
-<span class="sd">        *   Add &#39;multi_white&#39; noise option on 20-Sept-2018 (RL)</span>
+<span class="sd">        *   Add 'multi_white' noise option on 20-Sept-2018 (RL)</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
-        <span class="n">ampl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">&quot;n_samples_freq&quot;</span><span class="p">])</span>
-        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;perfect_white&#39;</span><span class="p">:</span>
-            <span class="n">ampl</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">&quot;selection&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">&quot;amplitude&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">&quot;sigscale&quot;</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;rayleigh&#39;</span><span class="p">:</span>
-            <span class="n">ampl</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">&quot;selection&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span><span class="o">.</span><span class="n">rayleigh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">&quot;fsigma&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">&quot;nbinsactive&quot;</span><span class="p">])</span>
-<span class="c1">#         elif type == &#39;white&#39;:</span>
-<span class="c1"># FIXME: amplitude normalization is not correct for &#39;white&#39;</span>
+        <span class="n">ampl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"n_samples_freq"</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'perfect_white'</span><span class="p">:</span>
+            <span class="n">ampl</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"selection"</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"amplitude"</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"sigscale"</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'rayleigh'</span><span class="p">:</span>
+            <span class="n">ampl</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"selection"</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span><span class="o">.</span><span class="n">rayleigh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"fsigma"</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"nbinsactive"</span><span class="p">])</span>
+<span class="c1">#         elif type == 'white':</span>
+<span class="c1"># FIXME: amplitude normalization is not correct for 'white'</span>
 <span class="c1">#             ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Other types of noise not yet implemented.&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Other types of noise not yet implemented.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Other types of noise not yet implemented."</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"Other types of noise not yet implemented."</span><span class="p">)</span>
 
-        <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_random_phases</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">&quot;n_samples&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">&quot;sampling_rate&quot;</span><span class="p">]</span>
+        <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_random_phases</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"n_samples"</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"sampling_rate"</span><span class="p">]</span>
         <span class="k">if</span><span class="p">(</span><span class="n">time_domain</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">&quot;sampling_rate&quot;</span><span class="p">],</span> <span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">&quot;n_samples&quot;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"sampling_rate"</span><span class="p">],</span> <span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"n_samples"</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">noise</span></div>
 
@@ -976,9 +976,9 @@
 
 <div class="viewcode-block" id="channelGenericNoiseAdder.bandlimited_noise_from_spectrum">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_spectrum">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise_from_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;perfect_white&#39;</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise_from_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'perfect_white'</span><span class="p">,</span>
                           <span class="n">time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Generating noise of n_samples in a bandwidth [min_freq,max_freq].</span>
 
 <span class="sd">        Parameters</span>
@@ -990,7 +990,7 @@
 <span class="sd">        spectrum: numpy.ndarray, function</span>
 <span class="sd">            disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function</span>
 <span class="sd">            that takes the frequencies as an argument and returns the amplitudes. The overall normalization</span>
-<span class="sd">            of the spectrum is ignored if the paramter &quot;amplitude&quot; is set.</span>
+<span class="sd">            of the spectrum is ignored if the paramter "amplitude" is set.</span>
 <span class="sd">        amplitude: float, optional</span>
 <span class="sd">            desired voltage of noise as V_rms. If set to None the power of the noise will be equal to the</span>
 <span class="sd">            power of the spectrum.</span>
@@ -1001,7 +1001,7 @@
 <span class="sd">        time_domain: bool (default True)</span>
 <span class="sd">            if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter</span>
 <span class="sd">            might be more performant as the noise is generated internally in the frequency domain.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">frequencies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span>
         <span class="n">selection</span> <span class="o">=</span> <span class="n">frequencies</span> <span class="o">&gt;</span> <span class="mi">0</span>
         <span class="n">n_samples_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
@@ -1020,14 +1020,14 @@
             <span class="n">sigscale</span> <span class="o">=</span> <span class="mi">1</span>
 
         <span class="n">ampl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;perfect_white&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'perfect_white'</span><span class="p">:</span>
             <span class="n">ampl</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">sigscale</span>
-        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">&#39;rayleigh&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'rayleigh'</span><span class="p">:</span>
             <span class="n">fsigma</span> <span class="o">=</span> <span class="n">amplitude</span> <span class="o">*</span> <span class="n">sigscale</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.</span><span class="p">)</span>
             <span class="n">ampl</span><span class="p">[</span><span class="n">selection</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span><span class="o">.</span><span class="n">rayleigh</span><span class="p">(</span><span class="n">fsigma</span><span class="p">,</span> <span class="n">n_samples_freq</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Other types of noise not yet implemented.&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Other types of noise not yet implemented.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Other types of noise not yet implemented."</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"Other types of noise not yet implemented."</span><span class="p">)</span>
 
         <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_random_phases</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">)</span> <span class="o">/</span> <span class="n">sampling_rate</span>
         <span class="n">noise</span> <span class="o">*=</span> <span class="n">spectrum</span>
@@ -1040,7 +1040,7 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.channelGenericNoiseAdder&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.channelGenericNoiseAdder'</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
 
 <div class="viewcode-block" id="channelGenericNoiseAdder.begin">
@@ -1059,11 +1059,11 @@
             <span class="n">amplitude</span><span class="o">=</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span>
             <span class="n">min_freq</span><span class="o">=</span><span class="mi">50</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span>
             <span class="n">max_freq</span><span class="o">=</span><span class="mi">2000</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span>
-            <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;perfect_white&#39;</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="s1">'perfect_white'</span><span class="p">,</span>
             <span class="n">excluded_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">bandwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add noise to given event.</span>
 
 <span class="sd">        Parameters</span>
@@ -1093,7 +1093,7 @@
 <span class="sd">            Otherwise the amplitude is interpreted for the bandwidth of min(max_freq, 0.5 * sampling rate) - min_freq</span>
 <span class="sd">            If `bandwidth` is larger then (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as `None`</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">excluded_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">excluded_channels</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">channels</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">()</span>
@@ -1120,8 +1120,8 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span><span class="p">:</span>
                 <span class="n">new_trace</span> <span class="o">=</span> <span class="n">trace</span> <span class="o">+</span> <span class="n">noise</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;imput amplitude </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">amplitude</span><span class="p">))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;voltage RMS </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">noise</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"imput amplitude </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">amplitude</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"voltage RMS </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">noise</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))))</span>
 
                 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
                 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>

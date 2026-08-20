@@ -660,14 +660,14 @@
 <div class="viewcode-block" id="channelBandPassFilter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelBandPassFilter.html#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelBandPassFilter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Band pass filters the channels using different band-pass filters.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">__filter_cached</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">__filter_args</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">caching</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        caching: bool, default True</span>
@@ -675,11 +675,11 @@
 <span class="sd">            the (common) case where the same filter is applied to multiple</span>
 <span class="sd">            channels.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="o">=</span> <span class="n">caching</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.channelBandPassFilter&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.channelBandPassFilter'</span><span class="p">)</span>
 
 <div class="viewcode-block" id="channelBandPassFilter.begin">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelBandPassFilter.html#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.begin">[docs]</a>
@@ -728,9 +728,9 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelBandPassFilter.html#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">passband</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">filter_type</span><span class="o">=</span><span class="s1">&#39;rectangular&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">filter_type</span><span class="o">=</span><span class="s1">'rectangular'</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">roll_width</span><span class="o">=</span><span class="mf">2.5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">half_hann_percent</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Run the filter</span>
 
 <span class="sd">        Parameters</span>
@@ -744,13 +744,13 @@
 <span class="sd">            a dict can be used to specify a different bandwidth per channel, the key is the channel_id</span>
 <span class="sd">        filter_type: string or dict</span>
 
-<span class="sd">            * &#39;rectangular&#39;: perfect straight line filter</span>
-<span class="sd">            * &#39;butter&#39;: butterworth filter from scipy</span>
-<span class="sd">            * &#39;butterabs&#39;: absolute of butterworth filter from scipy</span>
-<span class="sd">            * &#39;gaussian_tapered&#39; : a rectangular bandpass filter convolved with a Gaussian</span>
-<span class="sd">            * &#39;hann_tapered&#39; : a rectangular bandpass filter with the ends replaced by a half-Hann window to applied</span>
+<span class="sd">            * 'rectangular': perfect straight line filter</span>
+<span class="sd">            * 'butter': butterworth filter from scipy</span>
+<span class="sd">            * 'butterabs': absolute of butterworth filter from scipy</span>
+<span class="sd">            * 'gaussian_tapered' : a rectangular bandpass filter convolved with a Gaussian</span>
+<span class="sd">            * 'hann_tapered' : a rectangular bandpass filter with the ends replaced by a half-Hann window to applied</span>
 <span class="sd">              in the time domain. In this case the passband parameter is ignored</span>
-<span class="sd">            * &#39;FIR &lt;type&gt; &lt;parameter&gt;&#39; - see below for FIR filter options</span>
+<span class="sd">            * 'FIR &lt;type&gt; &lt;parameter&gt;' - see below for FIR filter options</span>
 
 <span class="sd">            or any filter that is implemented in :mod:`NuRadioReco.detector.filterresponse`. In this case the</span>
 <span class="sd">            passband parameter is ignored</span>
@@ -778,10 +778,10 @@
 <span class="sd">        for window types; some windows need additional parameters; Default window is hamming</span>
 <span class="sd">        (does not need parameters). Examples:</span>
 
-<span class="sd">        * filter_type=&#39;FIR&#39; : use hamming window</span>
-<span class="sd">        * filter_type=&#39;FIR hamming&#39;: same as above</span>
-<span class="sd">        * filter_type=&#39;FIR kaiser 10&#39; : Use Kaiser window with beta parameter 10</span>
-<span class="sd">        * filter_type=&#39;FIR kaiser&#39; : Use Kaiser window with default beta parameter 6</span>
+<span class="sd">        * filter_type='FIR' : use hamming window</span>
+<span class="sd">        * filter_type='FIR hamming': same as above</span>
+<span class="sd">        * filter_type='FIR kaiser 10' : Use Kaiser window with beta parameter 10</span>
+<span class="sd">        * filter_type='FIR kaiser' : Use Kaiser window with default beta parameter 6</span>
 
 <span class="sd">        In principle, window names are just passed on to signal.firwin(), but if parameters</span>
 <span class="sd">        are required, then these cases must be explicitly implemented in the code below.</span>
@@ -793,7 +793,7 @@
 <span class="sd">        * BP: passband[0]=f_cut_low, passband[1] = f_cut_high</span>
 <span class="sd">        * BS: passband[0]=f_cut_high, passband[1] = f_cut_low (i.e. passband[0] &gt; passband[1])</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">passband</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">passband</span> <span class="o">=</span> <span class="p">[</span><span class="mi">55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">():</span>
@@ -809,14 +809,14 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelBandPassFilter.html#NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter.get_filter">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">filter_type</span><span class="p">,</span>
                    <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">roll_width</span><span class="o">=</span><span class="mf">2.5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">half_hann_percent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        helper function to return the filter that the module applies.</span>
 
 <span class="sd">        The unused parameters station_id, channel_id, det are needed to have the same signature as the</span>
 <span class="sd">        ``get_filter`` functions of other modules, e.g. the hardwareResponseIncorporator.</span>
 
 <span class="sd">        Note that this function returns the filter response in the **frequency domain**. Filters</span>
-<span class="sd">        which are applied in the time domain (e.g. &#39;FIR&#39;, &#39;hann_tapered&#39;) will raise a</span>
+<span class="sd">        which are applied in the time domain (e.g. 'FIR', 'hann_tapered') will raise a</span>
 <span class="sd">        ``NotImplementedError``</span>
 
 <span class="sd">        Parameters</span>
@@ -834,10 +834,10 @@
 <span class="sd">            a dict can be used to specify a different bandwidth per channel, the key is the channel_id</span>
 <span class="sd">        filter_type: string or dict</span>
 
-<span class="sd">            * &#39;rectangular&#39;: perfect straight line filter</span>
-<span class="sd">            * &#39;butter&#39;: butterworth filter from scipy</span>
-<span class="sd">            * &#39;butterabs&#39;: absolute of butterworth filter from scipy</span>
-<span class="sd">            * &#39;gaussian_tapered&#39; : Gaussian tapered version of the rectangular filter</span>
+<span class="sd">            * 'rectangular': perfect straight line filter</span>
+<span class="sd">            * 'butter': butterworth filter from scipy</span>
+<span class="sd">            * 'butterabs': absolute of butterworth filter from scipy</span>
+<span class="sd">            * 'gaussian_tapered' : Gaussian tapered version of the rectangular filter</span>
 
 <span class="sd">            or any filter that is implemented in :mod:`NuRadioReco.detector.filterresponse`. In this case the</span>
 <span class="sd">            passband parameter is ignored</span>
@@ -864,7 +864,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        array of complex floats</span>
 <span class="sd">            the complex filter amplitudes</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">tmp_passband</span><span class="p">,</span> <span class="n">tmp_order</span><span class="p">,</span> <span class="n">tmp_filter_type</span><span class="p">,</span> <span class="n">tmp_rp</span><span class="p">,</span> <span class="n">tmp_roll_width</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">get_filter_arguments</span><span class="p">(</span><span class="n">channel_id</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">filter_type</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">roll_width</span><span class="p">)</span>
         <span class="n">filter_args</span> <span class="o">=</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">tmp_passband</span><span class="p">,</span> <span class="n">tmp_order</span><span class="p">,</span> <span class="n">tmp_filter_type</span><span class="p">,</span> <span class="n">tmp_rp</span><span class="p">,</span> <span class="n">tmp_roll_width</span>
@@ -895,36 +895,36 @@
 
         <span class="n">isFIR</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="k">if</span> <span class="n">filter_type</span> <span class="o">==</span> <span class="s1">&#39;rectangular&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">filter_type</span> <span class="o">==</span> <span class="s1">'rectangular'</span><span class="p">:</span>
             <span class="n">trace_fft</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filter</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">filter_type</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">filter_type</span> <span class="o">==</span> <span class="s1">&#39;butter&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">filter_type</span> <span class="o">==</span> <span class="s1">'butter'</span><span class="p">:</span>
             <span class="n">trace_fft</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filter</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">filter_type</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">filter_type</span> <span class="o">==</span> <span class="s1">&#39;butterabs&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">filter_type</span> <span class="o">==</span> <span class="s1">'butterabs'</span><span class="p">:</span>
             <span class="n">trace_fft</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filter</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">filter_type</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">filter_type</span> <span class="o">==</span> <span class="s1">&#39;cheby1&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">filter_type</span> <span class="o">==</span> <span class="s1">'cheby1'</span><span class="p">:</span>
             <span class="n">trace_fft</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filter</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">filter_type</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">rp</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">filter_type</span> <span class="o">==</span> <span class="s1">&#39;gaussian_tapered&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">filter_type</span> <span class="o">==</span> <span class="s1">'gaussian_tapered'</span><span class="p">:</span>
             <span class="n">trace_fft</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_filter</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">filter_type</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">roll_width</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">filter_type</span> <span class="o">==</span> <span class="s1">&#39;hann_tapered&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">filter_type</span> <span class="o">==</span> <span class="s1">'hann_tapered'</span><span class="p">:</span>
             <span class="n">trace_fir</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span>
             <span class="n">trace_fir</span> <span class="o">*=</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">half_hann_window</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trace_fir</span><span class="p">),</span> <span class="n">half_percent</span><span class="o">=</span><span class="n">half_hann_percent</span><span class="p">)</span>
             <span class="c1"># This filter is applied in the time domain, so use the isFIR variable to set the time trace back</span>
             <span class="n">isFIR</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">elif</span> <span class="n">filter_type</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;FIR&#39;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># print(&#39;This is a FIR filter&#39;)</span>
+        <span class="k">elif</span> <span class="n">filter_type</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">'FIR'</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># print('This is a FIR filter')</span>
             <span class="n">firarray</span> <span class="o">=</span> <span class="n">filter_type</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">firarray</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">wtype</span> <span class="o">=</span> <span class="s1">&#39;hamming&#39;</span>
-                <span class="c1"># print(&#39;hamming window&#39;)</span>
+                <span class="n">wtype</span> <span class="o">=</span> <span class="s1">'hamming'</span>
+                <span class="c1"># print('hamming window')</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">wtype</span> <span class="o">=</span> <span class="n">firarray</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">wtype</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;kaiser&#39;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">wtype</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">'kaiser'</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">firarray</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
                         <span class="n">beta</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">firarray</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">beta</span> <span class="o">=</span> <span class="mf">6.0</span>
-                    <span class="n">wtype</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;kaiser&#39;</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span>
-            <span class="c1"># print(&#39;window type: &#39;, wtype)</span>
+                    <span class="n">wtype</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'kaiser'</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span>
+            <span class="c1"># print('window type: ', wtype)</span>
             <span class="n">Nfir</span> <span class="o">=</span> <span class="n">order</span> <span class="o">+</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="n">passband</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># this is a low pass filter</span>
@@ -944,11 +944,11 @@
                 <span class="n">fcut</span> <span class="o">=</span> <span class="p">[</span><span class="n">passband</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">passband</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># something went wrong!!</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error, could not define filter type&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"Error, could not define filter type"</span><span class="p">)</span>
             <span class="n">taps</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">firwin</span><span class="p">(</span><span class="n">Nfir</span><span class="p">,</span> <span class="n">fcut</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">wtype</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pass_zero</span><span class="o">=</span><span class="n">pass_zero</span><span class="p">,</span> <span class="n">fs</span><span class="o">=</span><span class="n">sample_rate</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="p">(</span><span class="n">Nfir</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">==</span> <span class="n">Nfir</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;odd filter order, rolling is off by T_s/2&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"odd filter order, rolling is off by T_s/2"</span><span class="p">)</span>
 
             <span class="n">ndelay</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">Nfir</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
             <span class="n">trace_fir</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">lfilter</span><span class="p">(</span><span class="n">taps</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">())</span>
@@ -971,7 +971,7 @@
 <div class="viewcode-block" id="test_equality">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelBandPassFilter.html#NuRadioReco.modules.channelBandPassFilter.test_equality">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">test_equality</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Test if two things are equal.</span>
 
 <span class="sd">    Generalizes a==b to support lists, lists of lists and arrays etc.</span>
@@ -987,7 +987,7 @@
 <span class="sd">    is_equal: bool</span>
 <span class="sd">        True if and only if a == b</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
         <span class="n">a</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
@@ -998,8 +998,8 @@
 
     <span class="n">isequal</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)):</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s1">&#39;__len__&#39;</span><span class="p">):</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s1">&#39;__len__&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s1">'__len__'</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="s1">'__len__'</span><span class="p">):</span>
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]):</span>
                 <span class="k">return</span> <span class="kc">False</span>

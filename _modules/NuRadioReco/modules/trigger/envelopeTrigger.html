@@ -660,14 +660,14 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.trigger.highLowThreshold</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_majority_logic</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.envelopeTrigger&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.envelopeTrigger'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_envelope_triggers">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.envelopeTrigger.html#NuRadioReco.modules.trigger.envelopeTrigger.get_envelope_triggers">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_envelope_triggers</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>  <span class="c1"># define trigger constraint for each channel</span>
 
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    calculates a Hilbert-envelope based trigger</span>
 
 <span class="sd">    Parameters</span>
@@ -681,7 +681,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    triggered bins: array of bools</span>
 <span class="sd">        the bins where the trigger condition is satisfied</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">scipy</span><span class="o">.</span><span class="n">signal</span><span class="o">.</span><span class="n">hilbert</span><span class="p">(</span><span class="n">trace</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">threshold</span></div>
 
 
@@ -689,9 +689,9 @@
 <div class="viewcode-block" id="triggerSimulator">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.envelopeTrigger.html#NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">triggerSimulator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate a simple amplitude trigger depending on the Hilbert-envelope.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
@@ -706,8 +706,8 @@
 <div class="viewcode-block" id="triggerSimulator.run">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.envelopeTrigger.html#NuRadioReco.modules.trigger.envelopeTrigger.triggerSimulator.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">coinc_window</span><span class="p">,</span> <span class="n">number_coincidences</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger_name</span><span class="o">=</span><span class="s1">&#39;envelope_trigger&#39;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">passband</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">coinc_window</span><span class="p">,</span> <span class="n">number_coincidences</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">trigger_name</span><span class="o">=</span><span class="s1">'envelope_trigger'</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Simulates simple threshold trigger based on a Hilbert-envelope of the trace. Passband of the trigger, coincidence</span>
 <span class="sd">        window within different channels should have triggered, and the number of channels needed to trigger can be specified.</span>
 
@@ -734,7 +734,7 @@
 <span class="sd">            time window in which number_coincidences channels need to trigger</span>
 <span class="sd">        trigger_name: string</span>
 <span class="sd">            a unique name of this particular trigger</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>  <span class="c1"># absolute time of system</span>
 
         <span class="k">if</span> <span class="n">triggered_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -753,13 +753,13 @@
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_trigger_channels</span><span class="p">():</span>
             <span class="n">channel_id</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">triggered_channels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">channel_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">triggered_channels</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;skipping channel </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_id</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"skipping channel </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_id</span><span class="p">))</span>
                 <span class="k">continue</span>
-            <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_filtered_trace</span><span class="p">(</span><span class="n">passband</span><span class="p">,</span> <span class="s1">&#39;butter&#39;</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+            <span class="n">trace</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_filtered_trace</span><span class="p">(</span><span class="n">passband</span><span class="p">,</span> <span class="s1">'butter'</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">!=</span> <span class="n">channel_trace_start_time</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Channel has a trace_start_time that differs from &#39;</span>
-                               <span class="s1">&#39;        the other channels. The trigger simulator may not work properly&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">'Channel has a trace_start_time that differs from '</span>
+                               <span class="s1">'        the other channels. The trigger simulator may not work properly'</span><span class="p">)</span>
 
             <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
                 <span class="n">threshold_tmp</span> <span class="o">=</span> <span class="n">threshold</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span>
@@ -787,12 +787,12 @@
         <span class="k">if</span> <span class="n">has_triggered</span><span class="p">:</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="n">triggered_times</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">channel_trace_start_time</span><span class="p">)</span>  <span class="c1"># trigger_time = time from the beginning of the trace</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;station has triggered&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"station has triggered"</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;station has NOT triggered&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"station has NOT triggered"</span><span class="p">)</span>
 
         <span class="n">station</span><span class="o">.</span><span class="n">set_trigger</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t</span></div>
@@ -803,7 +803,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"total time used by this module is </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">dt</span></div>
 </div>
 

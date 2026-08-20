@@ -659,7 +659,7 @@
 <div class="viewcode-block" id="load_system_response">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.ARA.analog_components.html#NuRadioReco.detector.ARA.analog_components.load_system_response">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">load_system_response</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Default file was imported from:</span>
 <span class="sd">    https://github.com/bhokansonfasig/pyrex/tree/master/pyrex/custom/ara/data</span>
 
@@ -667,36 +667,36 @@
 <span class="sd">    ----------</span>
 <span class="sd">    path: string</span>
 <span class="sd">        Path to the file containing the system response</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;HardwareResponses/ARA_Electronics_TotalGain_TwoFilters.txt&quot;</span><span class="p">),</span>
-                      <span class="n">skiprows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"HardwareResponses/ARA_Electronics_TotalGain_TwoFilters.txt"</span><span class="p">),</span>
+                      <span class="n">skiprows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">','</span><span class="p">)</span>
     <span class="n">default</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">default</span><span class="p">[</span><span class="s1">&#39;frequencies&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
-    <span class="n">default</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>  <span class="c1"># unitless</span>
-    <span class="n">default</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span>  <span class="c1"># rad</span>
+    <span class="n">default</span><span class="p">[</span><span class="s1">'frequencies'</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
+    <span class="n">default</span><span class="p">[</span><span class="s1">'gain'</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>  <span class="c1"># unitless</span>
+    <span class="n">default</span><span class="p">[</span><span class="s1">'phase'</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span>  <span class="c1"># rad</span>
 
     <span class="k">return</span> <span class="n">default</span></div>
 
 
 
 <span class="n">system_response</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">load_system_response</span><span class="p">()</span>
+<span class="n">system_response</span><span class="p">[</span><span class="s1">'default'</span><span class="p">]</span> <span class="o">=</span> <span class="n">load_system_response</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="get_system_response">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.ARA.analog_components.html#NuRadioReco.detector.ARA.analog_components.get_system_response">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_system_response</span><span class="p">(</span><span class="n">frequencies</span><span class="p">):</span>
-    <span class="n">orig_frequencies</span> <span class="o">=</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">][</span><span class="s1">&#39;frequencies&#39;</span><span class="p">]</span>
-    <span class="n">phase</span> <span class="o">=</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">][</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span>
-    <span class="n">gain</span> <span class="o">=</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">][</span><span class="s1">&#39;gain&#39;</span><span class="p">]</span>
+    <span class="n">orig_frequencies</span> <span class="o">=</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">'default'</span><span class="p">][</span><span class="s1">'frequencies'</span><span class="p">]</span>
+    <span class="n">phase</span> <span class="o">=</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">'default'</span><span class="p">][</span><span class="s1">'phase'</span><span class="p">]</span>
+    <span class="n">gain</span> <span class="o">=</span> <span class="n">system_response</span><span class="p">[</span><span class="s1">'default'</span><span class="p">][</span><span class="s1">'gain'</span><span class="p">]</span>
 
     <span class="n">interp_phase</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">orig_frequencies</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">unwrap</span><span class="p">(</span><span class="n">phase</span><span class="p">),</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">interp_gain</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">orig_frequencies</span><span class="p">,</span> <span class="n">gain</span><span class="p">,</span> <span class="n">bounds_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="n">system</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">system</span><span class="p">[</span><span class="s1">&#39;gain&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_gain</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
-    <span class="n">system</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">interp_phase</span><span class="p">(</span><span class="n">frequencies</span><span class="p">))</span>
+    <span class="n">system</span><span class="p">[</span><span class="s1">'gain'</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_gain</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
+    <span class="n">system</span><span class="p">[</span><span class="s1">'phase'</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">interp_phase</span><span class="p">(</span><span class="n">frequencies</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">system</span></div>
 
 </pre></div>

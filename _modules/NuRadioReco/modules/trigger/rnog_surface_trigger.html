@@ -662,12 +662,12 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.rnog_surface_trigger&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.rnog_surface_trigger'</span><span class="p">)</span>
 
 <div class="viewcode-block" id="schottky_diode">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.rnog_surface_trigger.html#NuRadioReco.modules.trigger.rnog_surface_trigger.schottky_diode">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">schottky_diode</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mi">250</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">kelvin</span><span class="p">,</span> <span class="n">Vbias</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">volt</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">'''</span>
 <span class="sd">    Returns the absolute maximum of the diode response depending on the maximum input signal.</span>
 
 <span class="sd">    Options for temperature are [300K, 273K, 250K], for the bias voltages [2, 1.5, 1, 0.5]V.</span>
@@ -689,7 +689,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    trigger: list of booleans</span>
 <span class="sd">        trigger evaluation for each entry of the trace</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    '''</span>
 
     <span class="k">if</span> <span class="n">temperature</span> <span class="o">==</span> <span class="mi">300</span> <span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">kelvin</span><span class="p">:</span>  <span class="c1">#measurements taken at 300K</span>
         <span class="k">if</span> <span class="n">Vbias</span> <span class="o">==</span> <span class="mi">2</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">volt</span><span class="p">:</span>
@@ -741,9 +741,9 @@
 <div class="viewcode-block" id="triggerSimulator">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.rnog_surface_trigger.html#NuRadioReco.modules.trigger.rnog_surface_trigger.triggerSimulator">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">triggerSimulator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculates the RNO_G surface trigger with a bandpass filter, a -10db attenuator and a schottky_diode.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
@@ -758,8 +758,8 @@
 <div class="viewcode-block" id="triggerSimulator.run">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.trigger.rnog_surface_trigger.html#NuRadioReco.modules.trigger.rnog_surface_trigger.triggerSimulator.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">coinc_window</span><span class="o">=</span><span class="mi">60</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">number_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span> <span class="n">temperature</span><span class="o">=</span><span class="mi">250</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">kelvin</span><span class="p">,</span> <span class="n">Vbias</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">volt</span><span class="p">,</span> <span class="n">trigger_name</span><span class="o">=</span><span class="s1">&#39;rnog_surface_trigger&#39;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">coinc_window</span><span class="o">=</span><span class="mi">60</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">number_coincidences</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">13</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">19</span><span class="p">],</span> <span class="n">temperature</span><span class="o">=</span><span class="mi">250</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">kelvin</span><span class="p">,</span> <span class="n">Vbias</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">volt</span><span class="p">,</span> <span class="n">trigger_name</span><span class="o">=</span><span class="s1">'rnog_surface_trigger'</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Run the surface trigger module and write trigger status into station.</span>
 
 <span class="sd">        Parameters</span>
@@ -785,7 +785,7 @@
 <span class="sd">            applied bias voltage to the diode board in Volt</span>
 <span class="sd">        trigger_name: string</span>
 <span class="sd">            a unique name of this particular trigger</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>  <span class="c1"># absolute time of system</span>
 
@@ -804,21 +804,21 @@
 
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_trigger_channels</span><span class="p">():</span>
             <span class="n">channel_id</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;channel id </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">'channel id </span><span class="si">{</span><span class="n">channel_id</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">triggered_channels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">channel_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">triggered_channels</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;skipping channel </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_id</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"skipping channel </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel_id</span><span class="p">))</span>
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">()</span> <span class="o">!=</span> <span class="n">channel_trace_start_time</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Channel has a trace_start_time that differs from &#39;</span>
-                               <span class="s1">&#39;        the other channels. The trigger simulator may not work properly&#39;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">'Channel has a trace_start_time that differs from '</span>
+                               <span class="s1">'        the other channels. The trigger simulator may not work properly'</span><span class="p">)</span>
 
             <span class="n">frequencies</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">()</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;trace before trigger </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()))</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="n">trace_filtered</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">get_filtered_trace</span><span class="p">([</span><span class="mi">80</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">180</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">],</span> <span class="s1">&#39;cheby1&#39;</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;trace after bandpass </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">trace_filtered</span><span class="p">))</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">'trace before trigger </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()))</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+            <span class="n">trace_filtered</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">base_trace</span><span class="o">.</span><span class="n">get_filtered_trace</span><span class="p">([</span><span class="mi">80</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="mi">180</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">],</span> <span class="s1">'cheby1'</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">rp</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">'trace after bandpass </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">trace_filtered</span><span class="p">))</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
             <span class="c1"># apply -10dB attenuator of signal chain</span>
             <span class="n">trace_filtered</span> <span class="o">*=</span> <span class="mi">10</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span><span class="o">/</span><span class="mi">20</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;trace after attenuator </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">trace_filtered</span><span class="p">))</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">'trace after attenuator </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">trace_filtered</span><span class="p">))</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
             <span class="n">trace</span> <span class="o">=</span> <span class="n">trace_filtered</span>
 
             <span class="k">if</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
@@ -846,12 +846,12 @@
         <span class="k">if</span> <span class="n">has_triggered</span><span class="p">:</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="n">triggered_times</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">+</span><span class="n">channel_trace_start_time</span><span class="p">)</span>  <span class="c1"># trigger_time = time from moment of first interaction</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;station has triggered&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"station has triggered"</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
             <span class="n">trigger</span><span class="o">.</span><span class="n">set_trigger_time</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;station has NOT triggered&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"station has NOT triggered"</span><span class="p">)</span>
 
         <span class="n">station</span><span class="o">.</span><span class="n">set_trigger</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t</span></div>
@@ -862,7 +862,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"total time used by this module is </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">dt</span></div>
 </div>
 

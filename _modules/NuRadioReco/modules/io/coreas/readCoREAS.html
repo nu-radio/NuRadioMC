@@ -650,12 +650,12 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.io.coreas.readCoREAS</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module can be used to read in all simulated &quot;observers&quot; from a CoREAS simulation and return within a single</span>
+<span></span><span class="sd">"""</span>
+<span class="sd">This module can be used to read in all simulated "observers" from a CoREAS simulation and return within a single</span>
 <span class="sd">event/station/sim_station object. This is useful for air shower array experiments like Auger, LOFAR or SKA.</span>
 <span class="sd">However, it is important to stress that this module will return a single `station` object. If you want to organize</span>
 <span class="sd">the simulated electric fields (observers) within multiple stations you have to do it yourself.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io.coreas</span><span class="w"> </span><span class="kn">import</span> <span class="n">coreas</span>
@@ -663,7 +663,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.coreas.readCoREAS&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.coreas.readCoREAS'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="readCoREAS">
@@ -681,7 +681,7 @@
 <div class="viewcode-block" id="readCoREAS.begin">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREAS.html#NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_files</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">set_ascending_run_and_event_number</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        begin method</span>
 
 <span class="sd">        initialize readCoREAS module</span>
@@ -701,7 +701,7 @@
 <span class="sd">            self.__ascending_run_and_event_number instead of beeing taken</span>
 <span class="sd">            from the simulation file. The value is increases monoton.</span>
 <span class="sd">            This can be used to avoid ambiguities values (default: False)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__input_files</span> <span class="o">=</span> <span class="n">input_files</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logger_level</span><span class="p">)</span>
@@ -712,7 +712,7 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREAS.html#NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">declination</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Reads in CoREAS file(s) and returns one event containing all simulated observer positions as stations.</span>
 
 <span class="sd">        Parameters</span>
@@ -724,7 +724,7 @@
 <span class="sd">        ------</span>
 <span class="sd">        evt: `NuRadioReco.framework.event.Event`</span>
 <span class="sd">            The event containing the simulated observer as sim. stations.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__input_files</span><span class="p">):</span>
             <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
             <span class="n">t_per_event</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -733,11 +733,11 @@
             <span class="n">filesize</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">filesize</span> <span class="o">&lt;</span> <span class="mi">18456</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># based on the observation that a file with such a small filesize is corrupt</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                    <span class="s2">&quot;file </span><span class="si">{}</span><span class="s2"> seems to be corrupt, skipping to next file&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+                    <span class="s2">"file </span><span class="si">{}</span><span class="s2"> seems to be corrupt, skipping to next file"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">continue</span>
 
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Reading </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__input_files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span><span class="p">]</span><span class="si">}</span><span class="s1"> ...&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Reading </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__input_files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span><span class="p">]</span><span class="si">}</span><span class="s1"> ...'</span><span class="p">)</span>
 
             <span class="n">corsika_evt</span> <span class="o">=</span> <span class="n">coreas</span><span class="o">.</span><span class="n">read_CORSIKA7</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__input_files</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">__current_input_file</span><span class="p">],</span> <span class="n">declination</span><span class="o">=</span><span class="n">declination</span><span class="p">)</span>
 
@@ -756,7 +756,7 @@
 <div class="viewcode-block" id="readCoREAS.get_event">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREAS.html#NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS.get_event">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">declination</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Reads the next event &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">""" Reads the next event """</span>
         <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">declination</span><span class="o">=</span><span class="n">declination</span><span class="p">))</span></div>
 
 
@@ -766,10 +766,10 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">create event structure </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"total time used by this module is </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2">create event structure </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t_event_structure</span><span class="p">)))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;per event </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"per event </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
             <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t_per_event</span><span class="p">)))</span>
 
         <span class="k">return</span> <span class="n">dt</span></div>

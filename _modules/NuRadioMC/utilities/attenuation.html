@@ -659,15 +659,15 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioMC.attenuation&quot;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioMC.attenuation"</span><span class="p">)</span>
 
 
 
-<span class="n">model_to_int</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;SP1&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;GL1&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;MB1&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;GL2&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;GL3&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
+<span class="n">model_to_int</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"SP1"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"GL1"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"MB1"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">"GL2"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">"GL3"</span><span class="p">:</span> <span class="mi">5</span><span class="p">}</span>
 
 <span class="n">gl3_parameters</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;data/GL3_params.csv&#39;</span><span class="p">),</span>
-    <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">'data/GL3_params.csv'</span><span class="p">),</span>
+    <span class="n">delimiter</span><span class="o">=</span><span class="s1">','</span>
 <span class="p">)</span>
 
 <span class="n">_gl3_slope_interpolation</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span>
@@ -687,7 +687,7 @@
 <div class="viewcode-block" id="read_grip_temperature">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.attenuation.html#NuRadioMC.utilities.attenuation.read_grip_temperature">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">read_grip_temperature</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Read temperature file from grip.</span>
 
 <span class="sd">    Data file from footnote 5 from https://arxiv.org/pdf/2201.07846</span>
@@ -698,24 +698,24 @@
 <span class="sd">        Depths in meters (positive!).</span>
 <span class="sd">    temps: array of floats</span>
 <span class="sd">        Temperatures in Kelvin.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">&#39;data/griptemp.txt&#39;</span><span class="p">)</span>
+<span class="sd">    """</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s1">'data/griptemp.txt'</span><span class="p">)</span>
 
     <span class="n">depths</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">temps</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="c1"># search for &quot;DATA:&quot; section in file</span>
-        <span class="n">search</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;DATA:&quot;</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-        <span class="k">assert</span> <span class="n">search</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;No DATA section found in file&quot;</span>
+        <span class="c1"># search for "DATA:" section in file</span>
+        <span class="n">search</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">"DATA:"</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="k">assert</span> <span class="n">search</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"No DATA section found in file"</span>
 
-        <span class="c1"># Jumpe in file to &quot;DATA:&quot; section</span>
+        <span class="c1"># Jumpe in file to "DATA:" section</span>
         <span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">search</span><span class="o">.</span><span class="n">span</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
 
-        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^\d&#39;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># match lines beginning with a digit</span>
-                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># remove newline character</span>
-                <span class="n">depth</span><span class="p">,</span> <span class="n">temp</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">'^\d'</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># match lines beginning with a digit</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>  <span class="c1"># remove newline character</span>
+                <span class="n">depth</span><span class="p">,</span> <span class="n">temp</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="p">)]</span>
                 <span class="n">depths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">depth</span><span class="p">)</span>
                 <span class="n">temps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">temp</span><span class="p">)</span>
 
@@ -726,22 +726,22 @@
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.attenuation.html#NuRadioMC.utilities.attenuation.grip_temperature_profile">[docs]</a>
 <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">grip_temperature_profile</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns interpolation function for temperature profile from Greenland Ice Core Project (GRIP) borehole measurements.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    func : scipy.interpolate.interp1d</span>
 <span class="sd">        f(depth) -&gt; temperature in Kelvin. Depth is positivly defined: 0 is the surface, 3000 is the bottom.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">d</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">read_grip_temperature</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="s2">&quot;extrapolate&quot;</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">scipy</span><span class="o">.</span><span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="s2">"extrapolate"</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="get_grip_temperature">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.attenuation.html#NuRadioMC.utilities.attenuation.get_grip_temperature">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_grip_temperature</span><span class="p">(</span><span class="n">depth</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns temperature at a given depth from Greenland Ice Core Project (GRIP) borehole measurements.</span>
 
 <span class="sd">    Parameters</span>
@@ -753,14 +753,14 @@
 <span class="sd">    -------</span>
 <span class="sd">    float</span>
 <span class="sd">        Temperature in Kelvin.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">grip_temperature_profile</span><span class="p">()(</span><span class="n">depth</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="fit_GL1">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.attenuation.html#NuRadioMC.utilities.attenuation.fit_GL1">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">fit_GL1</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns the attenuation length at 75 MHz as a function of depth for Greenland</span>
 <span class="sd">    # Model for Greenland. Taken from DOI: https://doi.org/10.3189/2015JoG15J057</span>
 
@@ -768,13 +768,13 @@
 <span class="sd">    ----------</span>
 <span class="sd">    z: float</span>
 <span class="sd">        depth in default units</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">fit_values</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.16052586e+03</span><span class="p">,</span> <span class="mf">6.87257150e-02</span><span class="p">,</span> <span class="o">-</span><span class="mf">9.82378264e-05</span><span class="p">,</span>
         <span class="o">-</span><span class="mf">3.50628312e-07</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.21040482e-10</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.63912864e-14</span><span class="p">]</span>
     <span class="n">min_length</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">'__len__'</span><span class="p">):</span>
         <span class="n">att_length</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">att_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
@@ -782,7 +782,7 @@
     <span class="k">for</span> <span class="n">power</span><span class="p">,</span> <span class="n">coeff</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fit_values</span><span class="p">):</span>
         <span class="n">att_length</span> <span class="o">+=</span> <span class="n">coeff</span> <span class="o">*</span> <span class="n">z</span> <span class="o">**</span> <span class="n">power</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">att_length</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">att_length</span><span class="p">,</span> <span class="s1">'__len__'</span><span class="p">):</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">att_length</span> <span class="o">&lt;</span> <span class="n">min_length</span><span class="p">):</span>
             <span class="n">att_length</span> <span class="o">=</span> <span class="n">min_length</span>
     <span class="k">else</span><span class="p">:</span>
@@ -794,14 +794,14 @@
 <div class="viewcode-block" id="get_temperature">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.attenuation.html#NuRadioMC.utilities.attenuation.get_temperature">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_temperature</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns the temperature in Celsius as a function of depth for South Pole</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    z: float</span>
 <span class="sd">        depth in default units</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># from https://icecube.wisc.edu/~araproject/radio/#icetabsorption</span>
 
     <span class="n">z2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
@@ -812,7 +812,7 @@
 <div class="viewcode-block" id="get_attenuation_length">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.attenuation.html#NuRadioMC.utilities.attenuation.get_attenuation_length">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_attenuation_length</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">frequency</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Get attenuation length in ice for different ice models</span>
 
 <span class="sd">    Parameters</span>
@@ -830,11 +830,11 @@
 <span class="sd">          see: https://arxiv.org/abs/2201.07846, specifically Fig. 7</span>
 <span class="sd">        * GL3: 2021 Greenland model, using the MacGregor model for depth dependence</span>
 <span class="sd">          see: https://arxiv.org/abs/2201.07846, specifically Fig. 7</span>
-<span class="sd">        * MB1: Moore&#39;s Bay Model, from 10.3189/2015JoG14J214 and</span>
+<span class="sd">        * MB1: Moore's Bay Model, from 10.3189/2015JoG14J214 and</span>
 <span class="sd">          Phd Thesis C. Persichilli (depth dependence)</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;SP1&quot;</span><span class="p">:</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">"SP1"</span><span class="p">:</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">get_temperature</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
         <span class="n">f0</span> <span class="o">=</span> <span class="mf">0.0001</span>
         <span class="n">f2</span> <span class="o">=</span> <span class="mf">3.16</span>
@@ -845,7 +845,7 @@
         <span class="n">b0</span> <span class="o">=</span> <span class="o">-</span><span class="mf">6.74890</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.026709</span> <span class="o">-</span> <span class="n">t</span> <span class="o">*</span> <span class="mf">0.000884</span><span class="p">)</span>
         <span class="n">b1</span> <span class="o">=</span> <span class="o">-</span><span class="mf">6.22121</span> <span class="o">-</span> <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.070927</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="mf">0.001773</span><span class="p">)</span>
         <span class="n">b2</span> <span class="o">=</span> <span class="o">-</span><span class="mf">4.09468</span> <span class="o">-</span> <span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.002213</span> <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="mf">0.000332</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">frequency</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">frequency</span><span class="p">,</span> <span class="s1">'__len__'</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">frequency</span> <span class="o">&lt;</span> <span class="mf">1.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">):</span>
                 <span class="n">a</span> <span class="o">=</span> <span class="p">(</span><span class="n">b1</span> <span class="o">*</span> <span class="n">w0</span> <span class="o">-</span> <span class="n">b0</span> <span class="o">*</span> <span class="n">w1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">w0</span> <span class="o">-</span> <span class="n">w1</span><span class="p">)</span>
                 <span class="n">bb</span> <span class="o">=</span> <span class="p">(</span><span class="n">b1</span> <span class="o">-</span> <span class="n">b0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">w1</span> <span class="o">-</span> <span class="n">w0</span><span class="p">)</span>
@@ -860,11 +860,11 @@
 
         <span class="n">att_length_f</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">bb</span> <span class="o">*</span> <span class="n">w</span><span class="p">)</span>
 
-    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;GL1&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">"GL1"</span><span class="p">:</span>
         <span class="n">att_length_75</span> <span class="o">=</span> <span class="n">fit_GL1</span><span class="p">(</span><span class="n">z</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">)</span>
         <span class="n">att_length_f</span> <span class="o">=</span> <span class="n">att_length_75</span> <span class="o">-</span> <span class="mf">0.55</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">*</span> <span class="p">(</span><span class="n">frequency</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span> <span class="o">-</span> <span class="mi">75</span><span class="p">)</span>
 
-    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;GL2&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">'GL2'</span><span class="p">:</span>
         <span class="n">fit_values_GL2</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.20547286e+00</span><span class="p">,</span> <span class="mf">1.58815679e-05</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.58901767e-07</span><span class="p">,</span> <span class="o">-</span><span class="mf">5.16435542e-10</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.89124473e-13</span><span class="p">,</span> <span class="o">-</span><span class="mf">4.58987344e-17</span><span class="p">]</span>
         <span class="n">freq_slope</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.54</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
         <span class="n">freq_inter</span> <span class="o">=</span> <span class="mf">852.0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
@@ -872,8 +872,8 @@
         <span class="n">bulk_att_length_f</span> <span class="o">=</span> <span class="n">freq_inter</span> <span class="o">+</span> <span class="n">freq_slope</span> <span class="o">*</span> <span class="n">frequency</span>
         <span class="n">att_length_f</span> <span class="o">=</span> <span class="n">bulk_att_length_f</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">poly1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">fit_values_GL2</span><span class="p">))(</span><span class="n">z</span><span class="p">)</span>
 
-    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">&#39;GL3&#39;</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">):</span>
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s1">'GL3'</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">'__len__'</span><span class="p">):</span>
             <span class="c1"># If z is an array, make sure not not use the numba-compiled functions</span>
             <span class="n">slopes</span> <span class="o">=</span> <span class="n">_gl3_slope_interpolation</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">)</span>
             <span class="n">offsets</span> <span class="o">=</span> <span class="n">_gl3_offset_interpolation</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">)</span>
@@ -882,7 +882,7 @@
             <span class="n">offsets</span> <span class="o">=</span> <span class="n">gl3_offset_interpolation</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">)</span>
 
         <span class="c1"># # restric frequency to prevent negative attenuation lengths</span>
-        <span class="c1"># if hasattr(frequency, &#39;__len__&#39;):</span>
+        <span class="c1"># if hasattr(frequency, '__len__'):</span>
         <span class="c1">#     frequency[frequency &gt; 0.6 * units.GHz] = 0.6 * units.GHz</span>
         <span class="c1"># else:</span>
         <span class="c1">#     if frequency &gt; 0.6 * units.GHz:</span>
@@ -890,7 +890,7 @@
 
         <span class="n">att_length_f</span> <span class="o">=</span> <span class="n">slopes</span> <span class="o">*</span> <span class="n">frequency</span> <span class="o">+</span> <span class="n">offsets</span>
 
-    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;MB1&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">"MB1"</span><span class="p">:</span>
         <span class="c1"># 10.3189/2015JoG14J214 measured the depth-averaged attenuation length as a function of frequency</span>
         <span class="c1"># the derived parameterization assumed a reflection coefficient of 1</span>
         <span class="c1"># however a reflection coefficient of 0.82 was measured which results in a slight increase of the derived</span>
@@ -913,13 +913,13 @@
         <span class="n">att_length_f</span> <span class="o">*=</span> <span class="n">L</span> <span class="o">/</span> <span class="mf">231.21</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
 
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;attenuation model </span><span class="si">{}</span><span class="s2"> is not implemented.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"attenuation model </span><span class="si">{}</span><span class="s2"> is not implemented."</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model</span><span class="p">))</span>
 
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">z</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;You requested the attenuation length for exlusively positive depths, i.e., for air. Return inf for all frequencies.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">'__len__'</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">z</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"You requested the attenuation length for exlusively positive depths, i.e., for air. Return inf for all frequencies."</span><span class="p">)</span>
 
     <span class="n">min_length</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">frequency</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">frequency</span><span class="p">,</span> <span class="s1">'__len__'</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="s1">'__len__'</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">att_length_f</span> <span class="o">&lt;</span> <span class="n">min_length</span><span class="p">:</span>
             <span class="n">att_length_f</span> <span class="o">=</span> <span class="n">min_length</span>
         <span class="k">if</span> <span class="n">z</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -938,7 +938,7 @@
 <div class="viewcode-block" id="gl3_slope_interpolation_f">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.attenuation.html#NuRadioMC.utilities.attenuation.gl3_slope_interpolation_f">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">gl3_slope_interpolation_f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Interpolation function for the slope of the GL3 model.</span>
 
 <span class="sd">        Parameters</span>
@@ -950,7 +950,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        array-like</span>
 <span class="sd">            Slope of the attenuation length as a function of depth.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
@@ -963,7 +963,7 @@
 <div class="viewcode-block" id="gl3_offset_interpolation_f">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.attenuation.html#NuRadioMC.utilities.attenuation.gl3_offset_interpolation_f">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">gl3_offset_interpolation_f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Interpolation function for the offset of the GL3 model.</span>
 
 <span class="sd">        Parameters</span>
@@ -975,7 +975,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        array-like</span>
 <span class="sd">            Offset of the attenuation length as a function of depth.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">gl3_parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
 
@@ -994,26 +994,26 @@
     <span class="n">gl3_offset_interpolation</span> <span class="o">=</span> <span class="n">_gl3_offset_interpolation</span>
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
     <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">10</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
 
     <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">freq</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mf">0.55</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mi">1</span><span class="p">]):</span>
-        <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;GL1&quot;</span><span class="p">,</span> <span class="s2">&quot;GL3&quot;</span><span class="p">]:</span>
-            <span class="n">fmt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;C</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;GL1&quot;</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;C</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;--&quot;</span>
+        <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"GL1"</span><span class="p">,</span> <span class="s2">"GL3"</span><span class="p">]:</span>
+            <span class="n">fmt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"C</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"-"</span> <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">"GL1"</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"C</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"--"</span>
             <span class="n">atteniaton_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">get_attenuation_length</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">freq</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">GHz</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">z</span><span class="p">])</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-            <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">&quot;GL1&quot;</span><span class="p">:</span>
-                <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">freq</span><span class="si">}</span><span class="s2"> GHz&quot;</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="s2">""</span>
+            <span class="k">if</span> <span class="n">model</span> <span class="o">==</span> <span class="s2">"GL1"</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">freq</span><span class="si">}</span><span class="s2"> GHz"</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">atteniaton_length</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">fmt</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
 
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s2">&quot;k-&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;GL1&quot;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s2">&quot;k--&quot;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;GL3&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s2">"k-"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"GL1"</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s2">"k--"</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"GL3"</span><span class="p">)</span>
 
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;attenuation length [m]&quot;</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;depth [m]&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"attenuation length [m]"</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"depth [m]"</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>

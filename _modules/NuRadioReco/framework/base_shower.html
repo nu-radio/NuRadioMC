@@ -658,7 +658,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.io_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_dumps</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.Shower&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.Shower'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="BaseShower">
@@ -678,7 +678,7 @@
 <div class="viewcode-block" id="BaseShower.get_axis">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.get_axis">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the (shower) axis.</span>
 
 <span class="sd">        The axis is antiparallel to the movement of the shower particla and point</span>
@@ -690,13 +690,13 @@
 <span class="sd">        np.array(3,)</span>
 <span class="sd">            Shower axis</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span> <span class="ow">or</span> \
            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s2">&quot;Azimuth or zenith angle not set! Can not return shower axis.&quot;</span><span class="p">)</span>
+                <span class="s2">"Azimuth or zenith angle not set! Can not return shower axis."</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Azimuth or zenith angle not set! Can not return shower axis.&quot;</span><span class="p">)</span>
+                <span class="s2">"Azimuth or zenith angle not set! Can not return shower axis."</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">hp</span><span class="o">.</span><span class="n">spherical_to_cartesian</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">),</span>
                                          <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">))</span></div>
@@ -705,7 +705,7 @@
 <div class="viewcode-block" id="BaseShower.get_coordinatesystem">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.get_coordinatesystem">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_coordinatesystem</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns radiotools.coordinatesystem.cstrafo for shower geometry.</span>
 
 <span class="sd">        Can be used to transform the radio pulses or the observer coordiates</span>
@@ -717,14 +717,14 @@
 
 <span class="sd">        radiotools.coordinatesystem.cstrafo</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span> <span class="ow">or</span> \
            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span> <span class="ow">or</span> \
            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">magnetic_field_vector</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s2">&quot;Magnetic field vector, azimuth or zenith angle not set! Can not return shower coordinatesystem.&quot;</span><span class="p">)</span>
+                <span class="s2">"Magnetic field vector, azimuth or zenith angle not set! Can not return shower coordinatesystem."</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Magnetic field vector, azimuth or zenith angle not set! Can not return shower coordinatesystem.&quot;</span><span class="p">)</span>
+                <span class="s2">"Magnetic field vector, azimuth or zenith angle not set! Can not return shower coordinatesystem."</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">coordinatesystems</span><span class="o">.</span><span class="n">cstrafo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">),</span>
                                          <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">),</span>
@@ -732,21 +732,21 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">def</span><span class="w"> </span><span class="nf">print_key</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">print_key</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">add</span><span class="o">=</span><span class="s2">""</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
-                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">))</span><span class="si">}{</span><span class="n">add</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">))</span><span class="si">}{</span><span class="n">add</span><span class="si">}</span><span class="s2">"</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="s2">&quot;-&quot;</span>
+                <span class="k">return</span> <span class="s2">"-"</span>
 
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Shower </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="si">}</span><span class="s2">: E = </span><span class="si">{</span><span class="n">print_key</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39; eV&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">+</span> \
-            <span class="sa">f</span><span class="s2">&quot;, (zen, azi) = (</span><span class="si">{</span><span class="n">print_key</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39; deg&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">print_key</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39; deg&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span> <span class="o">+</span> \
-            <span class="sa">f</span><span class="s2">&quot;, (x, y, z) = (</span><span class="si">{</span><span class="n">print_key</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">vertex</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;m&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"Shower </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="si">}</span><span class="s2">: E = </span><span class="si">{</span><span class="n">print_key</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span><span class="w"> </span><span class="s1">' eV'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="o">+</span> \
+            <span class="sa">f</span><span class="s2">", (zen, azi) = (</span><span class="si">{</span><span class="n">print_key</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">,</span><span class="w"> </span><span class="s1">' deg'</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">print_key</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">,</span><span class="w"> </span><span class="s1">' deg'</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span> <span class="o">+</span> \
+            <span class="sa">f</span><span class="s2">", (x, y, z) = (</span><span class="si">{</span><span class="n">print_key</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">vertex</span><span class="p">,</span><span class="w"> </span><span class="s1">'m'</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
 
 <div class="viewcode-block" id="BaseShower.serialize">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.serialize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span>
+        <span class="n">data</span><span class="p">[</span><span class="s1">'_id'</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_id</span>
         <span class="k">return</span> <span class="n">_dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
 
@@ -755,13 +755,13 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_pkl</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
         <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_id&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'_id'</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseShower.show">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_shower.html#NuRadioReco.framework.base_shower.BaseShower.show">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_parameters</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">print_stdout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Print an overview of the structure of the Shower.</span>
 
 <span class="sd">        Parameters</span>
@@ -780,16 +780,16 @@
 <span class="sd">        str_output : str, optional</span>
 <span class="sd">            A string representation of the Shower structure.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">self_string</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;Shower(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">]</span>
+<span class="sd">        """</span>
+        <span class="n">self_string</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">'Shower(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">)'</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">show_parameters</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">self_string</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;    Parameters&#39;</span><span class="p">]</span>
-            <span class="n">par_string</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;      </span><span class="si">{</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s1">16s</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">self_string</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">'    Parameters'</span><span class="p">]</span>
+            <span class="n">par_string</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">'      </span><span class="si">{</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s1">16s</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">val</span><span class="si">}</span><span class="s1">'</span>
                 <span class="k">for</span> <span class="n">par</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
             <span class="n">self_string</span> <span class="o">+=</span> <span class="n">par_string</span>
 
-        <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">self_string</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">self_string</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">print_stdout</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>

@@ -650,12 +650,12 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">This module has been adapted from pycrtools.modules.tasks.directionfitplanewave and</span>
 <span class="sd">NuRadioReco.modules.LOFAR.beamformingDirectionFitter_LOFAR</span>
 
 <span class="sd">.. moduleauthor:: Philipp Laub &lt;philipp.laub@fau.de&gt;</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -671,8 +671,8 @@
 
 <div class="viewcode-block" id="average_direction">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.html#NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.average_direction">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">average_direction</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">average_direction</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">'normal'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate the average direction for an event based on the plane wave directions of the individual stations.</span>
 
 <span class="sd">    Parameters</span>
@@ -681,8 +681,8 @@
 <span class="sd">        The event for which to calculate the average direction.</span>
 <span class="sd">    detector : Detector object</span>
 <span class="sd">        The detector for which to calculate the average direction.</span>
-<span class="sd">    mode : str, default=&#39;normal&#39;</span>
-<span class="sd">        The mode to use for the calculation. Can be &#39;normal&#39; (just raw mean) or &#39;weighted&#39;</span>
+<span class="sd">    mode : str, default='normal'</span>
+<span class="sd">        The mode to use for the calculation. Can be 'normal' (just raw mean) or 'weighted'</span>
 <span class="sd">        (with number of good antennas as weight per station).</span>
 
 <span class="sd">    Returns</span>
@@ -691,7 +691,7 @@
 <span class="sd">        The average zenith angle for the event.</span>
 <span class="sd">    avg_azimuth : float</span>
 <span class="sd">        The average azimuth angle for the event.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">zeniths</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">azimuths</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">num_good_antennas</span> <span class="o">=</span> <span class="p">[]</span>
@@ -709,14 +709,14 @@
     <span class="n">num_good_antennas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">num_good_antennas</span><span class="p">)</span>
 
     <span class="c1"># Calculate the average direction: </span>
-    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;normal&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">'normal'</span><span class="p">:</span>
         <span class="n">avg_zenith</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">zeniths</span><span class="p">)</span>
         <span class="n">avg_azimuth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">azimuths</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;weighted&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">'weighted'</span><span class="p">:</span>
         <span class="n">avg_zenith</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">zeniths</span> <span class="o">*</span> <span class="n">num_good_antennas</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">num_good_antennas</span><span class="p">)</span>
         <span class="n">avg_azimuth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">azimuths</span> <span class="o">*</span> <span class="n">num_good_antennas</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">num_good_antennas</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown mode: </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown mode: </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">avg_zenith</span><span class="p">,</span> <span class="n">avg_azimuth</span></div>
 
@@ -725,12 +725,12 @@
 <div class="viewcode-block" id="planeWaveDirectionFitter">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.html#NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">planeWaveDirectionFitter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Fits the direction per station using timing differences of channels under the assumption of an incoming plane wave.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioReco.planeWaveDirectionFitter&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioReco.planeWaveDirectionFitter"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__cr_snr</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger_level</span> <span class="o">=</span> <span class="kc">None</span>
@@ -746,7 +746,7 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.html#NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">cr_snr</span><span class="o">=</span><span class="mf">6.5</span><span class="p">,</span> <span class="n">min_amp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rmsfactor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">force_horizontal_array</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
               <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span> <span class="n">min_number_good_antennas</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the parameters for the plane wave fit.</span>
 
 <span class="sd">        Parameters</span>
@@ -771,7 +771,7 @@
 <span class="sd">            The logging level to use for the module.</span>
 <span class="sd">        min_number_good_antennas : int, default=4</span>
 <span class="sd">            The minimum number of good antennas that should be present in a station to consider it for the fit.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__cr_snr</span> <span class="o">=</span> <span class="n">cr_snr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__min_amp</span> <span class="o">=</span> <span class="n">min_amp</span>
@@ -785,7 +785,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_timelags</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">channel_ids_dominant_pol</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get timing differences between signals in antennas with respect to some reference antenna (the first one</span>
 <span class="sd">        in the list of ids). The peak is determined using the Hilbert envelope after resampling the trace with</span>
 <span class="sd">        `resample_factor`.</span>
@@ -801,7 +801,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        timelags : np.ndarray</span>
 <span class="sd">            The timelags (in internal units) for each channel in the list, with respect to the first one</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Get the signal time found by stationPulseFinder</span>
         <span class="n">timelags</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">channel_ids_dominant_pol</span><span class="p">:</span>
@@ -813,7 +813,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_direction_horizontal_array</span><span class="p">(</span><span class="n">positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">times</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ignore_z_coordinate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">"""</span>
 <span class="sd">        --- adapted from pycrtools.modules.scrfind ---</span>
 <span class="sd">        Given N antenna positions, and (pulse) arrival times for each antenna,</span>
 <span class="sd">        get a direction of arrival (azimuth, zenith) assuming a source at infinity (plane wave).</span>
@@ -828,7 +828,7 @@
 
 <span class="sd">        where t is the array of times; x and y are arrays of coordinates of the antennas.</span>
 <span class="sd">        The C is the overall time offset in the data, that has to be subtracted out.</span>
-<span class="sd">        The optimal value of C has to be determined in the fit process (it&#39;s not just the average time,</span>
+<span class="sd">        The optimal value of C has to be determined in the fit process (it's not just the average time,</span>
 <span class="sd">        nor the time at antenna 0).</span>
 
 <span class="sd">        This is done using :mod:`numpy.linalg.lstsq`.</span>
@@ -855,7 +855,7 @@
 <span class="sd">            Zenith in the [0, 2pi] interval (given in internal units)</span>
 <span class="sd">        azimuth : float</span>
 <span class="sd">            Azimuth in the [0, 2pi] interval (given in internal units)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># make x, y arrays out of the input position array</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
@@ -864,7 +864,7 @@
         <span class="c1"># now a crude test for nonzero z-input, |z| &gt; 0.5</span>
         <span class="n">z</span> <span class="o">=</span> <span class="n">positions</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">ignore_z_coordinate</span> <span class="ow">and</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">z</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input values of z are nonzero ( &gt; 0.5) !&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Input values of z are nonzero ( &gt; 0.5) !"</span><span class="p">)</span>
 
         <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))])</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># says the linalg.lstsq doc</span>
 
@@ -879,7 +879,7 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.html#NuRadioReco.modules.LOFAR.planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">detector</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Run the plane wave fit for the given event and detector.</span>
 
 <span class="sd">        Parameters</span>
@@ -888,16 +888,16 @@
 <span class="sd">            The event for which to run the plane wave fit.</span>
 <span class="sd">        detector : Detector object</span>
 <span class="sd">            The detector for which to run the plane wave fit.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">event</span><span class="o">.</span><span class="n">get_stations</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">triggered</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2"> did not trigger, skipping...&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2"> did not trigger, skipping..."</span><span class="p">)</span>
                 <span class="k">continue</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running over station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Running over station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="c1"># get LORA initial guess for the direction</span>
-            <span class="n">lora_zenith</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">&quot;LORA&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span>
-            <span class="n">lora_azimuth</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">&quot;LORA&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span>
+            <span class="n">lora_zenith</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">"LORA"</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span>
+            <span class="n">lora_azimuth</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">get_hybrid_information</span><span class="p">()</span><span class="o">.</span><span class="n">get_hybrid_shower</span><span class="p">(</span><span class="s2">"LORA"</span><span class="p">)</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">showerParameters</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span>
 
             <span class="c1"># Get all group IDs which are still present in the station</span>
             <span class="n">station_channel_group_ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">channel</span><span class="o">.</span><span class="n">get_group_id</span><span class="p">()</span> <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">()])</span>
@@ -905,7 +905,7 @@
             <span class="c1"># Get the dominant polarisation orientation as calculated by stationPulseFinder</span>
             <span class="n">dominant_orientation</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">cr_dominant_polarisation</span><span class="p">)</span>
 
-            <span class="c1"># Collect the positions of &#39;good&#39; antennas</span>
+            <span class="c1"># Collect the positions of 'good' antennas</span>
             <span class="n">good_channel_pair_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">station_channel_group_ids</span><span class="p">),</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
             <span class="n">relative_position_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">station_channel_group_ids</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
             <span class="n">good_amp_or_snr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">station_channel_group_ids</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
@@ -941,11 +941,11 @@
                 <span class="n">niter</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="c1"># if only three antennas (or less) remain, fit should not be trusted as it always has a solution (fails)</span>
                 <span class="k">if</span> <span class="n">num_good_antennas</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">__min_number_good_antennas</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Only </span><span class="si">{</span><span class="n">num_good_antennas</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2"> good antennas remaining!&quot;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Too few good antennas for direction fit!&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Only </span><span class="si">{</span><span class="n">num_good_antennas</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2"> good antennas remaining!"</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Too few good antennas for direction fit!"</span><span class="p">)</span>
                     <span class="k">break</span>
 
-                <span class="c1"># update arrays to use only previously found &quot;good&quot; antennas:</span>
+                <span class="c1"># update arrays to use only previously found "good" antennas:</span>
                 <span class="n">position_array</span> <span class="o">=</span> <span class="n">position_array</span><span class="p">[</span><span class="n">mask_good_antennas</span><span class="p">]</span>
                 <span class="n">good_antennas</span> <span class="o">=</span> <span class="n">good_antennas</span><span class="p">[</span><span class="n">mask_good_antennas</span><span class="p">]</span>
 
@@ -974,8 +974,8 @@
 
                 <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">zenith</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">azimuth</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                        <span class="s1">&#39;Plane wave fit returns NaN. I will try to recover by setting zenith and azimuth &#39;</span>
-                        <span class="s1">&#39;to the LORA estimate and recalculating the residual delays.&#39;</span>
+                        <span class="s1">'Plane wave fit returns NaN. I will try to recover by setting zenith and azimuth '</span>
+                        <span class="s1">'to the LORA estimate and recalculating the residual delays.'</span>
                     <span class="p">)</span>
 
                     <span class="n">zenith</span> <span class="o">=</span> <span class="n">lora_zenith</span>
@@ -994,26 +994,26 @@
                     <span class="n">hist</span><span class="p">,</span> <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="n">residual_delays</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">bins</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 
                     <span class="n">max_time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">hist</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;histogram filled: </span><span class="si">{</span><span class="n">hist</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;edges: </span><span class="si">{</span><span class="n">edges</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;maximum at: </span><span class="si">{</span><span class="n">max_time</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"histogram filled: </span><span class="si">{</span><span class="n">hist</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"edges: </span><span class="si">{</span><span class="n">edges</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"maximum at: </span><span class="si">{</span><span class="n">max_time</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
                     <span class="n">upper</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">max_time</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
                     <span class="n">lower</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">max_time</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
 
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Selecting between lower </span><span class="si">{</span><span class="n">lower</span><span class="si">}</span><span class="s2"> and upper </span><span class="si">{</span><span class="n">upper</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Selecting between lower </span><span class="si">{</span><span class="n">lower</span><span class="si">}</span><span class="s2"> and upper </span><span class="si">{</span><span class="n">upper</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                     <span class="n">mask_good_antennas</span> <span class="o">=</span> <span class="p">(</span><span class="n">residual_delays</span> <span class="o">&gt;</span> <span class="n">lower</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">residual_delays</span> <span class="o">&lt;</span> <span class="n">upper</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># remove &gt; k-sigma outliers and iterate</span>
                     <span class="n">spread</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">residual_delays</span><span class="p">)</span>
                     <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__rmsfactor</span>
                     <span class="n">mask_good_antennas</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">residual_delays</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">residual_delays</span><span class="p">))</span> <span class="o">&lt;</span> <span class="n">k</span> <span class="o">*</span> <span class="n">spread</span>
-                    <span class="c1"># gives subset of &#39;good_antennas&#39; that is &#39;good&#39; after this iteration</span>
+                    <span class="c1"># gives subset of 'good_antennas' that is 'good' after this iteration</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;station </span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;iteration </span><span class="si">{</span><span class="n">niter</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;azimuth = </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">azimuth</span><span class="p">)</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">, zenith = </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">zenith</span><span class="p">)</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;number of good antennas = </span><span class="si">{</span><span class="n">num_good_antennas</span><span class="si">:</span><span class="s1">d</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"station </span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">:"</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"iteration </span><span class="si">{</span><span class="n">niter</span><span class="si">:</span><span class="s2">d</span><span class="si">}</span><span class="s2">:"</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">'azimuth = </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">azimuth</span><span class="p">)</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">, zenith = </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">zenith</span><span class="p">)</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s1">'number of good antennas = </span><span class="si">{</span><span class="n">num_good_antennas</span><span class="si">:</span><span class="s1">d</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
                 <span class="c1"># if the next iteration has the same number of good antennae the while loop will be terminated</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">good_antennas</span><span class="p">[</span><span class="n">mask_good_antennas</span><span class="p">])</span> <span class="o">==</span> <span class="n">num_good_antennas</span><span class="p">:</span>
@@ -1022,14 +1022,14 @@
                     <span class="n">num_good_antennas</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">good_antennas</span><span class="p">[</span><span class="n">mask_good_antennas</span><span class="p">])</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Azimuth (counterclockwise wrt to East) and zenith for station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">:&quot;</span>
+                <span class="sa">f</span><span class="s2">"Azimuth (counterclockwise wrt to East) and zenith for station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">:"</span>
             <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">azimuth</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">zenith</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">azimuth</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">zenith</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Azimuth (clockwise wrt to North) and elevation for station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">:&quot;</span>
+                <span class="sa">f</span><span class="s2">"Azimuth (clockwise wrt to North) and elevation for station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">:"</span>
             <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="mi">90</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">azimuth</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="mi">90</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">zenith</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="mi">90</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">azimuth</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="mi">90</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">zenith</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="c1"># Set stationParameters.zenith/azimuth because voltageToEfieldConverter uses these to convert</span>
             <span class="c1"># NOTE: these can be the LORA direction (in case the fit failed)</span>
@@ -1039,10 +1039,10 @@
             <span class="c1"># Only set reconstructed direction if it is not identical to the LORA direction</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">zenith</span> <span class="o">==</span> <span class="n">lora_zenith</span> <span class="ow">and</span> <span class="n">azimuth</span> <span class="o">==</span> <span class="n">lora_azimuth</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;The fit for station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2"> seems to have failed.&quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;I will not set the cr_zenith and cr_azimuth station parameters, but you can&quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;still unfold the voltages to electric fields with the LORA direction as this&quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;is saved in the zenith and azimuth station parameters.&quot;</span>
+                    <span class="sa">f</span><span class="s2">"The fit for station CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2"> seems to have failed."</span>
+                    <span class="sa">f</span><span class="s2">"I will not set the cr_zenith and cr_azimuth station parameters, but you can"</span>
+                    <span class="sa">f</span><span class="s2">"still unfold the voltages to electric fields with the LORA direction as this"</span>
+                    <span class="sa">f</span><span class="s2">"is saved in the zenith and azimuth station parameters."</span>
                 <span class="p">)</span>
                 <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">cr_zenith</span><span class="p">,</span> <span class="n">zenith</span><span class="p">)</span>
                 <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">cr_azimuth</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">)</span>
@@ -1053,7 +1053,7 @@
             <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">good_channel_pair_ids</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">channel_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">good_antennas</span><span class="o">.</span><span class="n">flatten</span><span class="p">():</span>
                     <span class="c1"># TODO: this flag is not always correct, as channels excluded by SNR are also flagged</span>
-                    <span class="n">station_flagged_channels</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;planewavefit_timing_outlier&quot;</span><span class="p">)</span>
+                    <span class="n">station_flagged_channels</span><span class="p">[</span><span class="n">channel_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"planewavefit_timing_outlier"</span><span class="p">)</span>
 
             <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stationParameters</span><span class="o">.</span><span class="n">flagged_channels</span><span class="p">,</span> <span class="n">station_flagged_channels</span><span class="p">)</span></div>
 
@@ -1064,9 +1064,9 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">debug_plots</span><span class="p">(</span>
             <span class="n">event</span><span class="p">,</span> <span class="n">expected_delays</span><span class="p">,</span> <span class="n">good_antennas</span><span class="p">,</span> <span class="n">niter</span><span class="p">,</span> <span class="n">position_array</span><span class="p">,</span> <span class="n">residual_delays</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">times</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Create debug plots for the plane wave fit.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">planeWaveDirectionFitter</span><span class="o">.</span><span class="n">__debug_mosaic</span><span class="p">(</span>
             <span class="n">event</span><span class="p">,</span> <span class="n">expected_delays</span><span class="p">,</span> <span class="n">good_antennas</span><span class="p">,</span> <span class="n">niter</span><span class="p">,</span> <span class="n">position_array</span><span class="p">,</span> <span class="n">residual_delays</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">times</span>
         <span class="p">)</span>
@@ -1077,9 +1077,9 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">__debug_residuals</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">good_antennas</span><span class="p">,</span> <span class="n">residual_delays</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">niter</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Show the residuals per antenna and mark SNR</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
 
         <span class="n">antenna_SNRs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">good_antennas</span><span class="p">))</span>
@@ -1087,98 +1087,98 @@
             <span class="n">channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">antenna</span><span class="p">)</span>
             <span class="n">antenna_SNRs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">channelParameters</span><span class="o">.</span><span class="n">SNR</span><span class="p">)</span>
 
-        <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">residual_delays</span><span class="p">)),</span> <span class="n">residual_delays</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">antenna_SNRs</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">residual_delays</span><span class="p">)),</span> <span class="n">residual_delays</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">'o'</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">antenna_SNRs</span><span class="p">)</span>
 
         <span class="c1"># add colorbar</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;SNR&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">'SNR'</span><span class="p">)</span>
 
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Antenna&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Residual time [ns]&#39;</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Residuals for station </span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'Antenna'</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Residual time [ns]'</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Residuals for station </span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
         <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;pipeline_planewavefit_residuals_CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">_iteration</span><span class="si">{</span><span class="n">niter</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">,</span>
-            <span class="n">dpi</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span>
+            <span class="sa">f</span><span class="s2">"pipeline_planewavefit_residuals_CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">_iteration</span><span class="si">{</span><span class="n">niter</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">.png"</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">'tight'</span>
         <span class="p">)</span>
         <span class="c1"># fig.savefig(</span>
-        <span class="c1">#     f&quot;pipeline_planewavefit_residuals_CS{station.get_id():03d}_iteration{niter}_{event.get_id()}.svg&quot;,</span>
-        <span class="c1">#     dpi=250, bbox_inches=&#39;tight&#39;</span>
+        <span class="c1">#     f"pipeline_planewavefit_residuals_CS{station.get_id():03d}_iteration{niter}_{event.get_id()}.svg",</span>
+        <span class="c1">#     dpi=250, bbox_inches='tight'</span>
         <span class="c1"># )</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">__debug_mosaic</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">expected_delays</span><span class="p">,</span> <span class="n">good_antennas</span><span class="p">,</span> <span class="n">niter</span><span class="p">,</span> <span class="n">position_array</span><span class="p">,</span> <span class="n">residual_delays</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">times</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Plot the timings, as well as the residuals and the traces used for the fit.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mpl</span>
 
-        <span class="n">inner</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;times&#39;</span><span class="p">],</span>
-                 <span class="p">[</span><span class="s1">&#39;expected&#39;</span><span class="p">]]</span>
-        <span class="n">outer</span> <span class="o">=</span> <span class="p">[[</span><span class="n">inner</span><span class="p">,</span> <span class="s1">&#39;residuals&#39;</span><span class="p">],</span>
-                 <span class="p">[</span><span class="s1">&#39;traces&#39;</span><span class="p">,</span> <span class="s1">&#39;traces&#39;</span><span class="p">]]</span>
+        <span class="n">inner</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">'times'</span><span class="p">],</span>
+                 <span class="p">[</span><span class="s1">'expected'</span><span class="p">]]</span>
+        <span class="n">outer</span> <span class="o">=</span> <span class="p">[[</span><span class="n">inner</span><span class="p">,</span> <span class="s1">'residuals'</span><span class="p">],</span>
+                 <span class="p">[</span><span class="s1">'traces'</span><span class="p">,</span> <span class="s1">'traces'</span><span class="p">]]</span>
 
-        <span class="n">fig</span><span class="p">,</span> <span class="n">axd</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot_mosaic</span><span class="p">(</span><span class="n">outer</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="s2">&quot;constrained&quot;</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axd</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot_mosaic</span><span class="p">(</span><span class="n">outer</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="s2">"constrained"</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
 
         <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_channels</span><span class="p">(</span><span class="n">use_channels</span><span class="o">=</span><span class="n">good_antennas</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]):</span>
-            <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;traces&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">)</span>
+            <span class="n">axd</span><span class="p">[</span><span class="s1">'traces'</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">)</span>
 
         <span class="c1"># mark the signal window:</span>
         <span class="n">channel</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">good_antennas</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>  <span class="c1"># should be all the same</span>
         <span class="n">pulse_window_start</span><span class="p">,</span> <span class="n">pulse_window_end</span> <span class="o">=</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">channelParameters</span><span class="o">.</span><span class="n">signal_regions</span><span class="p">)</span>
 
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;traces&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">pulse_window_start</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;traces&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">pulse_window_end</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;traces&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">pulse_window_start</span> <span class="o">-</span> <span class="mi">500</span><span class="p">,</span> <span class="n">pulse_window_end</span> <span class="o">+</span> <span class="mi">500</span><span class="p">)</span>
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;traces&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Sample index&#39;</span><span class="p">)</span>
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;traces&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Amplitude [mV]&#39;</span><span class="p">)</span>
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;traces&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Good traces used in iteration </span><span class="si">{</span><span class="n">niter</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'traces'</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">pulse_window_start</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'r'</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'traces'</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">pulse_window_end</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'r'</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'traces'</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">pulse_window_start</span> <span class="o">-</span> <span class="mi">500</span><span class="p">,</span> <span class="n">pulse_window_end</span> <span class="o">+</span> <span class="mi">500</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'traces'</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">'Sample index'</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'traces'</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Amplitude [mV]'</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'traces'</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Good traces used in iteration </span><span class="si">{</span><span class="n">niter</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
         <span class="c1"># Plot the timing residuals</span>
         <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">times</span><span class="p">,</span> <span class="n">expected_delays</span><span class="p">]</span>
         <span class="n">norm1</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">datasets</span><span class="p">),</span> <span class="n">vmax</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">datasets</span><span class="p">))</span>
         <span class="n">norm2</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">residual_delays</span><span class="p">),</span> <span class="n">vmax</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">residual_delays</span><span class="p">))</span>
-        <span class="n">cmap1</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colormaps</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;viridis&#39;</span><span class="p">)</span>
-        <span class="n">cmap2</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colormaps</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;seismic&#39;</span><span class="p">)</span>
+        <span class="n">cmap1</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colormaps</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">'viridis'</span><span class="p">)</span>
+        <span class="n">cmap2</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">colormaps</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">'seismic'</span><span class="p">)</span>
 
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;times&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">position_array</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">position_array</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="n">times</span><span class="p">,</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'times'</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">position_array</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">position_array</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="n">times</span><span class="p">,</span>
                              <span class="n">norm</span><span class="o">=</span><span class="n">norm1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap1</span><span class="p">,</span>
-                             <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Measured&#39;</span><span class="p">)</span>
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;times&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Time delays&quot;</span><span class="p">)</span>
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;times&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+                             <span class="n">label</span><span class="o">=</span><span class="s1">'Measured'</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'times'</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"Time delays"</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'times'</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;expected&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">position_array</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">position_array</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="n">expected_delays</span><span class="p">,</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'expected'</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">position_array</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">position_array</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="n">expected_delays</span><span class="p">,</span>
                                 <span class="n">norm</span><span class="o">=</span><span class="n">norm1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap1</span><span class="p">,</span>
-                                <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Expected&#39;</span><span class="p">)</span>
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;expected&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+                                <span class="n">label</span><span class="o">=</span><span class="s1">'Expected'</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'expected'</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
 
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;residuals&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">position_array</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">position_array</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="n">residual_delays</span><span class="p">,</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'residuals'</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">position_array</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">position_array</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="n">residual_delays</span><span class="p">,</span>
                                  <span class="n">norm</span><span class="o">=</span><span class="n">norm2</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap2</span><span class="p">)</span>
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;residuals&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Residual time delays&quot;</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'residuals'</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"Residual time delays"</span><span class="p">)</span>
 
         <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">norm</span><span class="o">=</span><span class="n">norm1</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap1</span><span class="p">),</span>
-                     <span class="n">ax</span><span class="o">=</span><span class="n">axd</span><span class="p">[</span><span class="s1">&#39;expected&#39;</span><span class="p">],</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;horizontal&#39;</span><span class="p">,</span>
-                     <span class="n">location</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span>
-                     <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Time [ns]&#39;</span><span class="p">)</span>
+                     <span class="n">ax</span><span class="o">=</span><span class="n">axd</span><span class="p">[</span><span class="s1">'expected'</span><span class="p">],</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">'horizontal'</span><span class="p">,</span>
+                     <span class="n">location</span><span class="o">=</span><span class="s1">'bottom'</span><span class="p">,</span>
+                     <span class="n">label</span><span class="o">=</span><span class="s1">'Time [ns]'</span><span class="p">)</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mpl</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">norm</span><span class="o">=</span><span class="n">norm2</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap2</span><span class="p">),</span>
-                     <span class="n">ax</span><span class="o">=</span><span class="n">axd</span><span class="p">[</span><span class="s1">&#39;residuals&#39;</span><span class="p">],</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;horizontal&#39;</span><span class="p">,</span>
-                     <span class="n">location</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span>
-                     <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Time [ns]&#39;</span><span class="p">)</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Station </span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                     <span class="n">ax</span><span class="o">=</span><span class="n">axd</span><span class="p">[</span><span class="s1">'residuals'</span><span class="p">],</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">'horizontal'</span><span class="p">,</span>
+                     <span class="n">location</span><span class="o">=</span><span class="s1">'bottom'</span><span class="p">,</span>
+                     <span class="n">label</span><span class="o">=</span><span class="s1">'Time [ns]'</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Station </span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;expected&#39;</span><span class="p">,</span> <span class="s1">&#39;residuals&#39;</span><span class="p">]:</span>
-            <span class="n">axd</span><span class="p">[</span><span class="n">ax</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Easting [m]&quot;</span><span class="p">)</span>
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;residuals&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_label_position</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;residuals&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Northing [m]&quot;</span><span class="p">)</span>
-        <span class="n">axd</span><span class="p">[</span><span class="s1">&#39;residuals&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'expected'</span><span class="p">,</span> <span class="s1">'residuals'</span><span class="p">]:</span>
+            <span class="n">axd</span><span class="p">[</span><span class="n">ax</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"Easting [m]"</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'residuals'</span><span class="p">]</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_label_position</span><span class="p">(</span><span class="s2">"right"</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'residuals'</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Northing [m]"</span><span class="p">)</span>
+        <span class="n">axd</span><span class="p">[</span><span class="s1">'residuals'</span><span class="p">]</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">'equal'</span><span class="p">)</span>
 
         <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;pipeline_planewavefit_debug_CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">_iteration</span><span class="si">{</span><span class="n">niter</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">,</span>
-            <span class="n">dpi</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span>
+            <span class="sa">f</span><span class="s2">"pipeline_planewavefit_debug_CS</span><span class="si">{</span><span class="n">station</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">_iteration</span><span class="si">{</span><span class="n">niter</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span><span class="si">}</span><span class="s2">.png"</span><span class="p">,</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">'tight'</span>
         <span class="p">)</span>
         <span class="c1"># fig.savefig(</span>
-        <span class="c1">#     f&quot;pipeline_planewavefit_debug_CS{station.get_id():03d}_iteration{niter}_{event.get_id()}.svg&quot;,</span>
-        <span class="c1">#     dpi=250, bbox_inches=&#39;tight&#39;</span>
+        <span class="c1">#     f"pipeline_planewavefit_debug_CS{station.get_id():03d}_iteration{niter}_{event.get_id()}.svg",</span>
+        <span class="c1">#     dpi=250, bbox_inches='tight'</span>
         <span class="c1"># )</span>
 
         <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>

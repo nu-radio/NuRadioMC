@@ -665,14 +665,14 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">stationParameters</span> <span class="k">as</span> <span class="n">stnp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">electricFieldParameters</span> <span class="k">as</span> <span class="n">efp</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.voltageToEfieldConverter&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.voltageToEfieldConverter'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_array_of_channels">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html#NuRadioReco.modules.voltageToEfieldConverter.get_array_of_channels">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_array_of_channels</span><span class="p">(</span><span class="n">station</span><span class="p">,</span> <span class="n">use_channels</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">zenith</span><span class="p">,</span> <span class="n">azimuth</span><span class="p">,</span>
                           <span class="n">antenna_pattern_provider</span><span class="p">,</span> <span class="n">time_domain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">efield_position</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Get the voltage traces and antenna factors for the electric field reconstruction.</span>
+<span class="w">    </span><span class="sd">""" Get the voltage traces and antenna factors for the electric field reconstruction.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -704,16 +704,16 @@
 <span class="sd">        The frequency spectrum of the voltage traces for the selected channels.</span>
 <span class="sd">    V_timedomain : numpy array, optional</span>
 <span class="sd">        The time domain traces for the selected channels, if `time_domain` is True.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 
     <span class="k">if</span> <span class="n">efield_position</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;Function signiture changed. Please provide `efield_position`. &quot;</span>
-            <span class="s2">&quot;To retain old behavior, use `efield_position=np.array([0, 0, 0])`. &quot;</span>
-            <span class="s2">&quot;The return signature has also changed. Additionally the time vector &quot;</span>
-            <span class="s2">&quot;of the deconvolved electric field traces is returned as first &quot;</span>
-            <span class="s2">&quot;argument (see documentation)!&quot;</span><span class="p">)</span>
+            <span class="s2">"Function signiture changed. Please provide `efield_position`. "</span>
+            <span class="s2">"To retain old behavior, use `efield_position=np.array([0, 0, 0])`. "</span>
+            <span class="s2">"The return signature has also changed. Additionally the time vector "</span>
+            <span class="s2">"of the deconvolved electric field traces is returned as first "</span>
+            <span class="s2">"argument (see documentation)!"</span><span class="p">)</span>
 
     <span class="n">t_mins</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">t_maxs</span> <span class="o">=</span> <span class="p">[]</span>
@@ -787,13 +787,13 @@
 <div class="viewcode-block" id="stacked_lstsq">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html#NuRadioReco.modules.voltageToEfieldConverter.stacked_lstsq">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">stacked_lstsq</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Solve L x = b, via SVD least squares cutting of small singular values</span>
 <span class="sd">    L is an array of shape (..., M, N) and b of shape (..., M).</span>
 <span class="sd">    Returns x of shape (..., N)</span>
 
 <span class="sd">    Note that if L is symmetric, it is inverted analytically instead.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">L</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="n">L</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span> <span class="c1"># try analytic matrix inversion if possible</span>
 
         <span class="k">if</span> <span class="n">L</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span> <span class="c1"># use explicit formula for matrix inverse</span>
@@ -809,8 +809,8 @@
     <span class="n">s_min</span> <span class="o">=</span> <span class="n">rcond</span> <span class="o">*</span> <span class="n">s_max</span>
     <span class="n">inv_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
     <span class="n">inv_s</span><span class="p">[</span><span class="n">s</span> <span class="o">&gt;=</span> <span class="n">s_min</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">s</span><span class="p">[</span><span class="n">s</span> <span class="o">&gt;=</span> <span class="n">s_min</span><span class="p">]</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;...ji,...j-&gt;...i&#39;</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span>
-                  <span class="n">inv_s</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;...ji,...j-&gt;...i&#39;</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">conj</span><span class="p">()))</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">'...ji,...j-&gt;...i'</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span>
+                  <span class="n">inv_s</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">'...ji,...j-&gt;...i'</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">conj</span><span class="p">()))</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span></div>
 
 
@@ -818,7 +818,7 @@
 <div class="viewcode-block" id="voltageToEfieldConverter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html#NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">voltageToEfieldConverter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Unfold the electric field from the channel voltages</span>
 
 <span class="sd">    This module reconstructs the electric field by solving the system of equation</span>
@@ -830,7 +830,7 @@
 <span class="sd">    orthogonal polarization response are needed to reconstruct the 3dim electric field.</span>
 <span class="sd">    Alternatively, the polarization of the resulting efield could be forced to a</span>
 <span class="sd">    single polarization component. In that case, a single antenna is sufficient.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">antenna_provider</span> <span class="o">=</span> <span class="kc">None</span>
@@ -846,8 +846,8 @@
 <div class="viewcode-block" id="voltageToEfieldConverter.run">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.voltageToEfieldConverter.html#NuRadioReco.modules.voltageToEfieldConverter.voltageToEfieldConverter.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">use_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_MC_direction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force_Polarization</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">use_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_MC_direction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force_Polarization</span><span class="o">=</span><span class="s1">''</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        run method. This function is executed for each event</span>
 
 <span class="sd">        Parameters</span>
@@ -863,15 +863,15 @@
 <span class="sd">        force_Polarization: str, optional</span>
 <span class="sd">            If eTheta or ePhi, then only reconstructs chosen polarization of electric field,</span>
 <span class="sd">            assuming the other is 0. Otherwise (default), reconstructs electric field for both eTheta and ePhi</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">use_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;No channels specified for electric field reconstruction. &quot;</span>
-                <span class="s2">&quot;Please provide `use_channels` argument to the voltageToEfieldConverter.&quot;</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"No channels specified for electric field reconstruction. "</span>
+                <span class="s2">"Please provide `use_channels` argument to the voltageToEfieldConverter."</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">use_channels</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force_Polarization</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;At least two channels with orthogonal antenna response are needed for electric field reconstruction. &quot;</span>
-                <span class="s2">&quot;Please provide at least two channels in `use_channels` or set `force_Polarization` to &#39;eTheta&#39; or &#39;ePhi&#39;.&quot;</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"At least two channels with orthogonal antenna response are needed for electric field reconstruction. "</span>
+                <span class="s2">"Please provide at least two channels in `use_channels` or set `force_Polarization` to 'eTheta' or 'ePhi'."</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
@@ -879,7 +879,7 @@
             <span class="n">zenith</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()[</span><span class="n">stnp</span><span class="o">.</span><span class="n">zenith</span><span class="p">]</span>
             <span class="n">azimuth</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()[</span><span class="n">stnp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using reconstructed (or starting) angles as no signal arrival angles are present&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Using reconstructed (or starting) angles as no signal arrival angles are present"</span><span class="p">)</span>
             <span class="n">zenith</span> <span class="o">=</span> <span class="n">station</span><span class="p">[</span><span class="n">stnp</span><span class="o">.</span><span class="n">zenith</span><span class="p">]</span>
             <span class="n">azimuth</span> <span class="o">=</span> <span class="n">station</span><span class="p">[</span><span class="n">stnp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">]</span>
 
@@ -897,9 +897,9 @@
 
         <span class="c1"># solve it in a vectorized way</span>
         <span class="n">efield3_f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="n">n_frequencies</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">force_Polarization</span> <span class="o">==</span> <span class="s1">&#39;eTheta&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">force_Polarization</span> <span class="o">==</span> <span class="s1">'eTheta'</span><span class="p">:</span>
             <span class="n">efield3_f</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">stacked_lstsq</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">efield_antenna_factor</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">mask</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">V</span><span class="p">[:,</span> <span class="n">mask</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">force_Polarization</span> <span class="o">==</span> <span class="s1">&#39;ePhi&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">force_Polarization</span> <span class="o">==</span> <span class="s1">'ePhi'</span><span class="p">:</span>
             <span class="n">efield3_f</span><span class="p">[</span><span class="mi">2</span><span class="p">:,</span> <span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">stacked_lstsq</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">efield_antenna_factor</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">mask</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">V</span><span class="p">[:,</span> <span class="n">mask</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">efield3_f</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">stacked_lstsq</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">efield_antenna_factor</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">mask</span><span class="p">],</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">moveaxis</span><span class="p">(</span><span class="n">V</span><span class="p">[:,</span> <span class="n">mask</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>

@@ -654,20 +654,20 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">NuRadioRecoio</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.eventReader&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.eventReader'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="eventReader">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.eventReader.html#NuRadioReco.modules.io.eventReader.eventReader">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">eventReader</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    read events from file</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="eventReader.begin">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.eventReader.html#NuRadioReco.modules.io.eventReader.eventReader.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">read_detector</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Setup function for the eventReader module</span>
 
 <span class="sd">        Parameters</span>
@@ -678,7 +678,7 @@
 <span class="sd">            If True, the eventReader will parse the detector description and event event headers</span>
 <span class="sd">             in the event files. This is necessary to use the get_detector functions</span>
 <span class="sd">        log_level: logging enum</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__fin</span> <span class="o">=</span> <span class="n">NuRadioRecoio</span><span class="o">.</span><span class="n">NuRadioRecoio</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">parse_header</span><span class="o">=</span><span class="n">read_detector</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">log_level</span><span class="p">)</span></div>
 
@@ -699,22 +699,22 @@
 <div class="viewcode-block" id="eventReader.get_header">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.eventReader.html#NuRadioReco.modules.io.eventReader.eventReader.get_header">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns the header information of all events, useful to get a quick overview of all events without</span>
 <span class="sd">        looping through all events</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fin</span><span class="o">.</span><span class="n">get_header</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="eventReader.get_detector">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.eventReader.html#NuRadioReco.modules.io.eventReader.eventReader.get_detector">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_detector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        If read_detector was set True in the begin() function, this function return</span>
 <span class="sd">        the detector description (assuming there is one in the files). If several</span>
 <span class="sd">        files with different detectors are read, the detector for the last returned</span>
 <span class="sd">        event is given.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fin</span><span class="o">.</span><span class="n">get_detector</span><span class="p">()</span></div>
 </div>
 

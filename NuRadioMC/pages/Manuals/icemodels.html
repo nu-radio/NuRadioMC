@@ -694,7 +694,7 @@
 <blockquote>
 <div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">greenland_simple</span><span class="p">(</span><span class="n">IceModel_Simple</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># from C. Deaconu, fit to data from Hawley &#39;08, Alley &#39;88</span>
+        <span class="c1"># from C. Deaconu, fit to data from Hawley '08, Alley '88</span>
         <span class="c1"># rho(z) = 917 - 602 * exp (-z/37.25), using n = 1 + 0.78 rho(z)/rho_0</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">3000</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
@@ -718,9 +718,9 @@
         <span class="c1"># layers, observers to confine the model in a certain space ...</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span> <span class="o">=</span> <span class="p">{}</span>
 
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        here stands some code handling the first modules like air boundary and bottom boundary etc.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_modules</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__modules</span>
@@ -847,7 +847,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 
 <span class="c1"># Retrieving refractive index at a point</span>
-<span class="n">ref_index_model</span> <span class="o">=</span> <span class="s1">&#39;greenland_simple&#39;</span>
+<span class="n">ref_index_model</span> <span class="o">=</span> <span class="s1">'greenland_simple'</span>
 
 <span class="n">ref_index_medium</span> <span class="o">=</span> <span class="n">medium</span><span class="o">.</span><span class="n">get_ice_model</span><span class="p">(</span><span class="n">ref_index_model</span><span class="p">)</span>
 <span class="n">z_coordinate</span> <span class="o">=</span> <span class="o">-</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
@@ -855,7 +855,7 @@
 <span class="n">index_at_antenna</span> <span class="o">=</span> <span class="n">ref_index_medium</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">antenna_position</span><span class="p">)</span>
 
 <span class="c1"># Getting the attenuation length</span>
-<span class="n">attenuation_model</span> <span class="o">=</span> <span class="s1">&#39;GL1&#39;</span>
+<span class="n">attenuation_model</span> <span class="o">=</span> <span class="s1">'GL1'</span>
 <span class="n">frequency</span> <span class="o">=</span> <span class="mi">200</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span>
 <span class="n">depth</span> <span class="o">=</span> <span class="o">-</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span>
 
@@ -940,8 +940,8 @@
 <blockquote>
 <div><div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">propagation</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">birefringence</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
-<span class="w">    </span><span class="nt">birefringence_propagation</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;analytical&#39;</span>
-<span class="w">    </span><span class="nt">birefringence_model</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;southpole_A&#39;</span>
+<span class="w">    </span><span class="nt">birefringence_propagation</span><span class="p">:</span><span class="w"> </span><span class="s">'analytical'</span>
+<span class="w">    </span><span class="nt">birefringence_model</span><span class="p">:</span><span class="w"> </span><span class="s">'southpole_A'</span>
 <span class="w">    </span><span class="nt">angle_to_iceflow</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-131</span>
 </pre></div>
 </div>

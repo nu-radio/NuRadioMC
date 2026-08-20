@@ -676,7 +676,7 @@
 <div class="viewcode-block" id="get_random_core_positions">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#NuRadioReco.modules.io.coreas.readCoREASDetector.get_random_core_positions">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_random_core_positions</span><span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">,</span> <span class="n">n_cores</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Generate random core positions within a rectangle</span>
 
 <span class="sd">    Parameters</span>
@@ -698,7 +698,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    cores: np.ndarray</span>
 <span class="sd">        array containing the core positions, shaped as (n_cores, 2)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">random_generator</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">RandomState</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
 
     <span class="c1"># generate core positions randomly within a rectangle</span>
@@ -714,7 +714,7 @@
 <div class="viewcode-block" id="apply_hanning">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#NuRadioReco.modules.io.coreas.readCoREASDetector.apply_hanning">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">apply_hanning</span><span class="p">(</span><span class="n">efield</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Apply a half-Hann window to the electric field in the time domain. This smoothens the edges</span>
 <span class="sd">    to avoid ringing effects.</span>
 
@@ -727,7 +727,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    smoothed_efield: np.ndarray</span>
 <span class="sd">        The smoothed trace, shaped as (n_samples, n_polarizations)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">smoothed_trace</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">efield</span><span class="p">)</span>
     <span class="nb">filter</span> <span class="o">=</span> <span class="n">half_hann_window</span><span class="p">(</span><span class="n">efield</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">half_percent</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">pol</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">efield</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
@@ -739,7 +739,7 @@
 <div class="viewcode-block" id="select_channels_per_station">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#NuRadioReco.modules.io.coreas.readCoREASDetector.select_channels_per_station">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">select_channels_per_station</span><span class="p">(</span><span class="n">det</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">requested_channel_ids</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Returns a defaultdict object containing the requested channel ids that are in the given station.</span>
 <span class="sd">    This dict contains the channel group ids as keys with lists of channel ids as values.</span>
 
@@ -756,7 +756,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    channel_ids : defaultdict</span>
 <span class="sd">        Dictionary with channel group ids as keys and lists of channel ids as values</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">channel_ids</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">requested_channel_ids</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">channel_id</span> <span class="ow">in</span> <span class="n">det</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">(</span><span class="n">station_id</span><span class="p">):</span>
@@ -769,14 +769,14 @@
 <div class="viewcode-block" id="readCoREASDetector">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#NuRadioReco.modules.io.coreas.readCoREASDetector.readCoREASDetector">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">readCoREASDetector</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Use this as default when reading CoREAS files and combining them with a detector.</span>
 
 <span class="sd">    This module reads the electric fields of a CoREAS file with a star shaped pattern of observers.</span>
 <span class="sd">    The electric field is then interpolated at the positions of the antennas or stations of a detector.</span>
 <span class="sd">    If the angle between magnetic field and shower direction are below about 15 deg,</span>
 <span class="sd">    the interpolation is no longer reliable and the closest observer is used instead.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__t</span> <span class="o">=</span> <span class="mi">0</span>
@@ -786,13 +786,13 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">coreas_interpolator</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.readCoREASDetector&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.readCoREASDetector'</span><span class="p">)</span>
 
 <div class="viewcode-block" id="readCoREASDetector.begin">
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#NuRadioReco.modules.io.coreas.readCoREASDetector.readCoREASDetector.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">,</span> <span class="n">interp_lowfreq</span><span class="o">=</span><span class="mi">30</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">interp_highfreq</span><span class="o">=</span><span class="mi">1000</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span>
               <span class="n">site</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">declination</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Begin method to initialize readCoREASDetector module.</span>
 
 <span class="sd">        This function creates an Event using the provided CoREAS HDF5 file, using the `coreas.read_CORSIKA7()` function.</span>
@@ -818,19 +818,19 @@
 <span class="sd">            This parameter is passed on to the `coreas.read_CORSIKA7()` function.</span>
 <span class="sd">        log_level: default=logging.NOTSET</span>
 <span class="sd">            log level for the logger</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
 
         <span class="n">filesize</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">filesize</span> <span class="o">&lt;</span> <span class="mi">18456</span> <span class="o">*</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># based on the observation that a file with such a small filesize is corrupt</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;file </span><span class="si">{}</span><span class="s2"> seems to be corrupt&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">input_file</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"file </span><span class="si">{}</span><span class="s2"> seems to be corrupt"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">input_file</span><span class="p">))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__corsika_evt</span> <span class="o">=</span> <span class="n">coreas</span><span class="o">.</span><span class="n">read_CORSIKA7</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">site</span><span class="o">=</span><span class="n">site</span><span class="p">,</span> <span class="n">declination</span><span class="o">=</span><span class="n">declination</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Using coreas simulation </span><span class="si">{</span><span class="n">input_file</span><span class="si">}</span><span class="s2"> with &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;E=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__corsika_evt</span><span class="o">.</span><span class="n">get_first_sim_shower</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span><span class="si">:</span><span class="s2">.2g</span><span class="si">}</span><span class="s2">eV, &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;zenith angle = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__corsika_evt</span><span class="o">.</span><span class="n">get_first_sim_shower</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">deg and &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;azimuth angle = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__corsika_evt</span><span class="o">.</span><span class="n">get_first_sim_shower</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">deg&quot;</span>
+            <span class="sa">f</span><span class="s2">"Using coreas simulation </span><span class="si">{</span><span class="n">input_file</span><span class="si">}</span><span class="s2"> with "</span>
+            <span class="sa">f</span><span class="s2">"E=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__corsika_evt</span><span class="o">.</span><span class="n">get_first_sim_shower</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span><span class="si">:</span><span class="s2">.2g</span><span class="si">}</span><span class="s2">eV, "</span>
+            <span class="sa">f</span><span class="s2">"zenith angle = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__corsika_evt</span><span class="o">.</span><span class="n">get_first_sim_shower</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">zenith</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">deg and "</span>
+            <span class="sa">f</span><span class="s2">"azimuth angle = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__corsika_evt</span><span class="o">.</span><span class="n">get_first_sim_shower</span><span class="p">()</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">azimuth</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">deg"</span>
         <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">coreas_interpolator</span> <span class="o">=</span> <span class="n">coreasInterpolator</span><span class="o">.</span><span class="n">coreasInterpolator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__corsika_evt</span><span class="p">)</span>
@@ -841,7 +841,7 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#NuRadioReco.modules.io.coreas.readCoREASDetector.readCoREASDetector.run">[docs]</a>
     <span class="nd">@register_run</span><span class="p">()</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">detector</span><span class="p">,</span> <span class="n">core_position_list</span><span class="p">,</span> <span class="n">selected_station_channel_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        run method, get interpolated electric fields for the given detector and core positions and set them in the event.</span>
 <span class="sd">        The trace is smoothed with a half-Hann window to avoid ringing effects. When using short traces, this might have</span>
 <span class="sd">        a significant effect on the result.</span>
@@ -873,7 +873,7 @@
 <span class="sd">        but be careful to have the correct altitude, otherwise unexpected results might occur.</span>
 
 <span class="sd">        &gt;&gt;&gt; reader = readCoREASDetector()</span>
-<span class="sd">        &gt;&gt;&gt; reader.begin(&#39;coreas.hdf5&#39;, interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)</span>
+<span class="sd">        &gt;&gt;&gt; reader.begin('coreas.hdf5', interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)</span>
 <span class="sd">        &gt;&gt;&gt; for evt in reader.run(detector, [[0, 0], [10 * units.m, 10 * units.m]]):</span>
 <span class="sd">        &gt;&gt;&gt;     print(evt.get_id())</span>
 
@@ -884,7 +884,7 @@
 
 <span class="sd">        &gt;&gt;&gt; my_selection = {2: None, 7: None}</span>
 <span class="sd">        &gt;&gt;&gt; reader = readCoREASDetector()</span>
-<span class="sd">        &gt;&gt;&gt; reader.begin(&#39;coreas.hdf5&#39;, interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)</span>
+<span class="sd">        &gt;&gt;&gt; reader.begin('coreas.hdf5', interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)</span>
 <span class="sd">        &gt;&gt;&gt; for evt in reader.run(detector, [[0, 0], [10 * units.m, 10 * units.m]], selected_station_channel_ids):</span>
 <span class="sd">        &gt;&gt;&gt;     print(evt.get_id())</span>
 
@@ -894,18 +894,18 @@
 
 <span class="sd">        &gt;&gt;&gt; my_selection = {2: [2000000, 2000001, 2000002, 2000003], 7: [7000000, 7000001]}</span>
 <span class="sd">        &gt;&gt;&gt; reader = readCoREASDetector()</span>
-<span class="sd">        &gt;&gt;&gt; reader.begin(&#39;coreas.hdf5&#39;, interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)</span>
+<span class="sd">        &gt;&gt;&gt; reader.begin('coreas.hdf5', interp_lowfreq=30 * units.MHz, interp_highfreq=80 * units.MHz)</span>
 <span class="sd">        &gt;&gt;&gt; for evt in reader.run(detector, [[0, 0], [10 * units.m, 10 * units.m]], selected_station_channel_ids):</span>
 <span class="sd">        &gt;&gt;&gt;     print(evt.get_id())</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="n">selected_station_channel_ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">selected_station_ids</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">get_station_ids</span><span class="p">()</span>
             <span class="n">selected_station_channel_ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">station_id</span><span class="p">:</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">station_id</span> <span class="ow">in</span> <span class="n">selected_station_ids</span><span class="p">}</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using all station ids in detector description: </span><span class="si">{</span><span class="n">selected_station_ids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Using all station ids in detector description: </span><span class="si">{</span><span class="n">selected_station_ids</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">selected_station_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">selected_station_channel_ids</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using selected station ids: </span><span class="si">{</span><span class="n">selected_station_ids</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Using selected station ids: </span><span class="si">{</span><span class="n">selected_station_ids</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="n">t</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="n">t_per_event</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -919,7 +919,7 @@
             <span class="c1"># Create the Event and add the SimShower</span>
             <span class="n">evt</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">Event</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__corsika_evt</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">iCore</span><span class="p">)</span>
             <span class="n">corsika_sim_stn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__corsika_evt</span><span class="o">.</span><span class="n">get_station</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">get_sim_station</span><span class="p">()</span>
-            <span class="n">sim_shower</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__corsika_evt</span><span class="o">.</span><span class="n">get_first_sim_shower</span><span class="p">())</span>  <span class="c1"># Don&#39;t modify the original shower</span>
+            <span class="n">sim_shower</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__corsika_evt</span><span class="o">.</span><span class="n">get_first_sim_shower</span><span class="p">())</span>  <span class="c1"># Don't modify the original shower</span>
             <span class="n">new_core</span> <span class="o">=</span> <span class="n">sim_shower</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
             <span class="n">new_core</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">core</span><span class="p">)]</span> <span class="o">=</span> <span class="n">core</span>  <span class="c1"># If no z coordinate is given, keep the original one</span>
             <span class="n">sim_shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">core</span><span class="p">,</span> <span class="n">new_core</span><span class="p">)</span>
@@ -977,9 +977,9 @@
 <a class="viewcode-back" href="../../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.readCoREASDetector.html#NuRadioReco.modules.io.coreas.readCoREASDetector.readCoREASDetector.end">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;total time used by this module is </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">create event structure </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t_event_structure</span><span class="p">)))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;per event </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t_per_event</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"total time used by this module is </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dt</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2">create event structure </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t_event_structure</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"per event </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__t_per_event</span><span class="p">)))</span>
         <span class="k">return</span> <span class="n">dt</span></div>
 </div>
 

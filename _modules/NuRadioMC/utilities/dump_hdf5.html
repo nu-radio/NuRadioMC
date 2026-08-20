@@ -657,94 +657,94 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
 
 <span class="n">keys_event</span> <span class="o">=</span> <span class="p">[</span>
- <span class="sa">u</span><span class="s1">&#39;event_group_ids&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;azimuths&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;energies&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;flavors&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;inelasticity&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;interaction_type&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;multiple_triggers&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;n_interaction&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;triggered&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;xx&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;yy&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;zeniths&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;multiple_triggers&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;zz&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;weights&#39;</span>
+ <span class="sa">u</span><span class="s1">'event_group_ids'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'azimuths'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'energies'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'flavors'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'inelasticity'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'interaction_type'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'multiple_triggers'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'n_interaction'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'triggered'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'xx'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'yy'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'zeniths'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'multiple_triggers'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'zz'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'weights'</span>
  <span class="p">]</span>
 
 <span class="n">station_keys</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="sa">u</span><span class="s1">&#39;max_amp_shower_and_ray&#39;</span><span class="p">,</span>
-     <span class="sa">u</span><span class="s1">&#39;ray_tracing_C0&#39;</span><span class="p">,</span>
-     <span class="sa">u</span><span class="s1">&#39;ray_tracing_C1&#39;</span><span class="p">,</span>
-     <span class="sa">u</span><span class="s1">&#39;ray_tracing_solution_type&#39;</span><span class="p">,</span>
-     <span class="sa">u</span><span class="s1">&#39;travel_times&#39;</span><span class="p">,</span>
-     <span class="sa">u</span><span class="s1">&#39;travel_distances&#39;</span><span class="p">,</span>
+    <span class="sa">u</span><span class="s1">'max_amp_shower_and_ray'</span><span class="p">,</span>
+     <span class="sa">u</span><span class="s1">'ray_tracing_C0'</span><span class="p">,</span>
+     <span class="sa">u</span><span class="s1">'ray_tracing_C1'</span><span class="p">,</span>
+     <span class="sa">u</span><span class="s1">'ray_tracing_solution_type'</span><span class="p">,</span>
+     <span class="sa">u</span><span class="s1">'travel_times'</span><span class="p">,</span>
+     <span class="sa">u</span><span class="s1">'travel_distances'</span><span class="p">,</span>
      <span class="p">]</span>
 
 <span class="n">station_keys_3dim</span> <span class="o">=</span> <span class="p">[</span>
- <span class="sa">u</span><span class="s1">&#39;launch_vectors&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;polarization&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;receive_vectors&#39;</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'launch_vectors'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'polarization'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'receive_vectors'</span><span class="p">,</span>
  <span class="p">]</span>
 
 <span class="n">station_keys_event</span> <span class="o">=</span> <span class="p">[</span>
-     <span class="sa">u</span><span class="s1">&#39;maximum_amplitudes&#39;</span><span class="p">,</span>
- <span class="sa">u</span><span class="s1">&#39;maximum_amplitudes_envelope&#39;</span><span class="p">]</span>
+     <span class="sa">u</span><span class="s1">'maximum_amplitudes'</span><span class="p">,</span>
+ <span class="sa">u</span><span class="s1">'maximum_amplitudes_envelope'</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="dump">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.dump_hdf5.html#NuRadioMC.utilities.dump_hdf5.dump">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">dump</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;!!!!!!!!!!!! dumping relevant file content of </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">:!!!!!!!!!!!!!!!&quot;</span><span class="p">)</span>
-    <span class="n">fin</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"!!!!!!!!!!!! dumping relevant file content of </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">:!!!!!!!!!!!!!!!"</span><span class="p">)</span>
+    <span class="n">fin</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span>
     <span class="n">stations</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">fin</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;station_&quot;</span><span class="p">)):</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"station_"</span><span class="p">)):</span>
             <span class="n">stations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-    <span class="n">event_group_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fin</span><span class="p">[</span><span class="s1">&#39;event_group_ids&#39;</span><span class="p">])</span>
+    <span class="n">event_group_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fin</span><span class="p">[</span><span class="s1">'event_group_ids'</span><span class="p">])</span>
     <span class="k">for</span> <span class="n">iE</span><span class="p">,</span> <span class="n">evt_gid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">event_group_ids</span><span class="p">):</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="s2">&quot;index, &quot;</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="s2">"index, "</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys_event</span><span class="p">:</span>
-            <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">, &quot;</span>
+            <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">, "</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">iE</span><span class="si">}</span><span class="s2"> &quot;</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">iE</span><span class="si">}</span><span class="s2"> "</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys_event</span><span class="p">:</span>
-            <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fin</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">iE</span><span class="p">]</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fin</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">iE</span><span class="p">]</span><span class="si">}</span><span class="s2"> "</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
-        <span class="n">t</span> <span class="o">=</span> <span class="s2">&quot;stationid, channelid, rayid, &quot;</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="s2">"stationid, channelid, rayid, "</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">station_keys</span><span class="p">:</span>
-            <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">, &quot;</span>
+            <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">, "</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">station_keys_3dim</span><span class="p">:</span>
-            <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">, &quot;</span>
-        <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; zen, az&quot;</span>
+            <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">, "</span>
+        <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" zen, az"</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">station</span> <span class="ow">in</span> <span class="n">stations</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;ray_tracing_C0&#39;</span> <span class="ow">in</span> <span class="n">station</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">station</span><span class="si">}</span><span class="s1"> has not entries&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="s1">'ray_tracing_C0'</span> <span class="ow">in</span> <span class="n">station</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">station</span><span class="si">}</span><span class="s1"> has not entries'</span><span class="p">)</span>
                 <span class="k">continue</span>
 
-            <span class="n">nCh</span><span class="p">,</span> <span class="n">nR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fin</span><span class="p">[</span><span class="n">station</span><span class="p">][</span><span class="s1">&#39;ray_tracing_C0&#39;</span><span class="p">][</span><span class="n">iE</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
+            <span class="n">nCh</span><span class="p">,</span> <span class="n">nR</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fin</span><span class="p">[</span><span class="n">station</span><span class="p">][</span><span class="s1">'ray_tracing_C0'</span><span class="p">][</span><span class="n">iE</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span>
             <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nCh</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">iR</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nR</span><span class="p">):</span>
-                    <span class="n">t</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="si">{</span><span class="n">station</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">iCh</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">iR</span><span class="si">}</span><span class="s2">: &quot;</span>
+                    <span class="n">t</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\t</span><span class="si">{</span><span class="n">station</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">iCh</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">iR</span><span class="si">}</span><span class="s2">: "</span>
                     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">station_keys</span><span class="p">:</span>
-                        <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fin</span><span class="p">[</span><span class="n">station</span><span class="p">][</span><span class="n">key</span><span class="p">][</span><span class="n">iE</span><span class="p">][</span><span class="n">iCh</span><span class="p">][</span><span class="n">iR</span><span class="p">]</span><span class="si">:</span><span class="s2">.9g</span><span class="si">}</span><span class="s2"> &quot;</span>
+                        <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fin</span><span class="p">[</span><span class="n">station</span><span class="p">][</span><span class="n">key</span><span class="p">][</span><span class="n">iE</span><span class="p">][</span><span class="n">iCh</span><span class="p">][</span><span class="n">iR</span><span class="p">]</span><span class="si">:</span><span class="s2">.9g</span><span class="si">}</span><span class="s2"> "</span>
                     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">station_keys_3dim</span><span class="p">:</span>
-                        <span class="n">t</span> <span class="o">+=</span> <span class="s2">&quot;(&quot;</span>
+                        <span class="n">t</span> <span class="o">+=</span> <span class="s2">"("</span>
                         <span class="k">for</span> <span class="n">iD</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-                            <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fin</span><span class="p">[</span><span class="n">station</span><span class="p">][</span><span class="n">key</span><span class="p">][</span><span class="n">iE</span><span class="p">][</span><span class="n">iCh</span><span class="p">][</span><span class="n">iR</span><span class="p">][</span><span class="n">iD</span><span class="p">]</span><span class="si">:</span><span class="s2">.5g</span><span class="si">}</span><span class="s2">,&quot;</span>
-                        <span class="n">t</span> <span class="o">+=</span> <span class="s2">&quot;) &quot;</span>
-                    <span class="n">zen</span><span class="p">,</span> <span class="n">az</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">cartesian_to_spherical</span><span class="p">(</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fin</span><span class="p">[</span><span class="n">station</span><span class="p">][</span><span class="s2">&quot;receive_vectors&quot;</span><span class="p">][</span><span class="n">iE</span><span class="p">][</span><span class="n">iCh</span><span class="p">][</span><span class="n">iR</span><span class="p">]))</span>
-                    <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">zen</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">az</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+                            <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fin</span><span class="p">[</span><span class="n">station</span><span class="p">][</span><span class="n">key</span><span class="p">][</span><span class="n">iE</span><span class="p">][</span><span class="n">iCh</span><span class="p">][</span><span class="n">iR</span><span class="p">][</span><span class="n">iD</span><span class="p">]</span><span class="si">:</span><span class="s2">.5g</span><span class="si">}</span><span class="s2">,"</span>
+                        <span class="n">t</span> <span class="o">+=</span> <span class="s2">") "</span>
+                    <span class="n">zen</span><span class="p">,</span> <span class="n">az</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">cartesian_to_spherical</span><span class="p">(</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fin</span><span class="p">[</span><span class="n">station</span><span class="p">][</span><span class="s2">"receive_vectors"</span><span class="p">][</span><span class="n">iE</span><span class="p">][</span><span class="n">iCh</span><span class="p">][</span><span class="n">iR</span><span class="p">]))</span>
+                    <span class="n">t</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" </span><span class="si">{</span><span class="n">zen</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">az</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="p">)</span></div>
 
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Merge hdf5 files&#39;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;file&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;input file or files&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">'Merge hdf5 files'</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'file'</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">'input file or files'</span><span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
     <span class="n">dump</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>
 </pre></div>

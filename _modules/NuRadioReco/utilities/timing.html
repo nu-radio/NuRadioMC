@@ -651,7 +651,7 @@
              
   <h1>Source code for NuRadioReco.utilities.timing</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.timing&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.timing'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="analyze_timing">
@@ -663,10 +663,10 @@
         <span class="n">dt</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">end</span><span class="p">()</span>
         <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">module</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">dt</span><span class="p">])</span>
         <span class="n">t_tot_int</span> <span class="o">+=</span> <span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;timing information&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"timing information"</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">dt</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="s2">&quot;</span><span class="si">{:&lt;30}</span><span class="s2"> </span><span class="se">\t</span><span class="si">{}</span><span class="se">\t</span><span class="si">{:&gt;6.1f}</span><span class="s2">%</span><span class="se">\t</span><span class="si">{:&gt;6.1f}</span><span class="s2">%&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="s2">"</span><span class="si">{:&lt;30}</span><span class="s2"> </span><span class="se">\t</span><span class="si">{}</span><span class="se">\t</span><span class="si">{:&gt;6.1f}</span><span class="s2">%</span><span class="se">\t</span><span class="si">{:&gt;6.1f}</span><span class="s2">%"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">name</span><span class="p">,</span>
                 <span class="n">dt</span><span class="p">,</span>
                 <span class="mf">100.</span> <span class="o">*</span> <span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span> <span class="o">/</span> <span class="n">t_tot_int</span><span class="p">,</span>

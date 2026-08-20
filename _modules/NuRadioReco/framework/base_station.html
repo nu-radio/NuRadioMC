@@ -665,7 +665,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.io_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_dumps</span>
 
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.BaseStation&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.BaseStation'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="BaseStation">
@@ -681,22 +681,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_electric_fields</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">=</span> <span class="s1">''</span>
 
 <div class="viewcode-block" id="BaseStation.set_station_time">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_station_time">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_station_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the (absolute) time for the station (stored as astropy.time.Time).</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        time: astropy.time.Time or datetime.datetime or float</span>
-<span class="sd">            If &quot;time&quot; is a float, you have to specify its format.</span>
+<span class="sd">            If "time" is a float, you have to specify its format.</span>
 
 <span class="sd">        format: str</span>
-<span class="sd">            Only used when &quot;time&quot; is a float. Format to interpret &quot;time&quot;. (Default: None)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            Only used when "time" is a float. Format to interpret "time". (Default: None)</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
@@ -706,15 +706,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">format</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;If you provide a float for the time, you have to specify the format.&quot;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If you provide a float for the time, you have to specify the format.&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"If you provide a float for the time, you have to specify the format."</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"If you provide a float for the time, you have to specify the format."</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="o">=</span> <span class="n">astropy</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Time</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.get_station_time">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_station_time">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_station_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;isot&#39;</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_station_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">'isot'</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the station time as an astropy.time.Time object</span>
 
 <span class="sd">        The station time corresponds to the absolute time at which the event</span>
@@ -730,7 +730,7 @@
 <span class="sd">        -------</span>
 
 <span class="sd">        station_time: astropy.time.Time</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
@@ -747,17 +747,17 @@
 <div class="viewcode-block" id="BaseStation.remove_triggers">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.remove_triggers">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">remove_triggers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        removes all triggers from the station</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.get_trigger">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_trigger">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        returns the trigger with the name &#39;name&#39;</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        returns the trigger with the name 'name'</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -767,18 +767,18 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">            trigger: Trigger</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;trigger with name </span><span class="si">{}</span><span class="s2"> not present&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"trigger with name </span><span class="si">{}</span><span class="s2"> not present"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">[</span><span class="n">name</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.get_primary_trigger">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_primary_trigger">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_primary_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the primary trigger of the station. If no primary trigger exists, it returns None</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">trigger</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">primary_trigger_count</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="c1"># test if only one primary trigger exists</span>
@@ -789,8 +789,8 @@
 
         <span class="k">if</span> <span class="n">primary_trigger_count</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                <span class="s1">&#39;More than one primary trigger exists. Only one trigger can be the primary trigger. &#39;</span>
-                <span class="s1">&#39;Please check your code.&#39;</span><span class="p">)</span>
+                <span class="s1">'More than one primary trigger exists. Only one trigger can be the primary trigger. '</span>
+                <span class="s1">'Please check your code.'</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span>
 
         <span class="k">return</span> <span class="n">trigger</span></div>
@@ -799,13 +799,13 @@
 <div class="viewcode-block" id="BaseStation.get_first_trigger">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_first_trigger">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_first_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the first/earliest trigger. Returns None if no trigger fired.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="n">min_trigger_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+        <span class="n">min_trigger_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">'inf'</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">trig</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">trig</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">()</span> <span class="ow">and</span> <span class="n">trig</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">min_trigger_time</span><span class="p">:</span>
                 <span class="n">min_trigger_time</span> <span class="o">=</span> <span class="n">trig</span><span class="o">.</span><span class="n">get_trigger_time</span><span class="p">()</span>
@@ -817,7 +817,7 @@
 <div class="viewcode-block" id="BaseStation.has_trigger">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.has_trigger">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">has_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger_name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Checks if station has a trigger with a certain name.</span>
 <span class="sd">        WARNING: This function does not check if the trigger has triggered.</span>
 
@@ -827,33 +827,33 @@
 <span class="sd">            the name of the trigger</span>
 
 <span class="sd">        Returns bool</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">trigger_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.get_triggers">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_triggers">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_triggers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns a dictionary of the triggers. key is the trigger name, value is a trigger object</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.set_trigger">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_trigger">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        sets a trigger for the station. If a trigger with the same name already exists, it will be overridden</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        trigger: Trigger</span>
 <span class="sd">            the trigger object to set</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Station has already a trigger with name </span><span class="si">{</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2">. The previous trigger will be overridden!&quot;</span><span class="p">)</span>
+                <span class="sa">f</span><span class="s2">"Station has already a trigger with name </span><span class="si">{</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2">. The previous trigger will be overridden!"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">[</span><span class="n">trigger</span><span class="o">.</span><span class="n">get_name</span><span class="p">()]</span> <span class="o">=</span> <span class="n">trigger</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span> <span class="o">=</span> <span class="n">trigger</span><span class="o">.</span><span class="n">has_triggered</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span></div>
@@ -862,7 +862,7 @@
 <div class="viewcode-block" id="BaseStation.has_triggered">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.has_triggered">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">has_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trigger_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Checks if the station has triggered. If trigger_name is set, check if the trigger with that name has triggered.</span>
 
 <span class="sd">        Parameters</span>
@@ -870,8 +870,8 @@
 <span class="sd">        trigger_name: string or None (default None)</span>
 <span class="sd">            * if None: The function returns False if not trigger was set. If one or multiple triggers were set,</span>
 <span class="sd">                       it returns True if any of those triggers triggered</span>
-<span class="sd">            * if trigger name is set: return if the trigger with name &#39;trigger_name&#39; has a trigger</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            * if trigger name is set: return if the trigger with name 'trigger_name' has a trigger</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">trigger_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span>
         <span class="k">else</span><span class="p">:</span>
@@ -881,13 +881,13 @@
 <div class="viewcode-block" id="BaseStation.set_triggered">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_triggered">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_triggered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">triggered</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Convenience function to set a simple trigger. The recommended interface is to set triggers through the</span>
 <span class="sd">        set_trigger() interface.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;more then one trigger were set. Request is ambiguous&quot;</span><span class="p">)</span>
-        <span class="n">trigger</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">Trigger</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"more then one trigger were set. Request is ambiguous"</span><span class="p">)</span>
+        <span class="n">trigger</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">Trigger</span><span class="p">(</span><span class="s1">'default'</span><span class="p">)</span>
         <span class="n">trigger</span><span class="o">.</span><span class="n">set_triggered</span><span class="p">(</span><span class="n">triggered</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_trigger</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span></div>
 
@@ -907,13 +907,13 @@
 <div class="viewcode-block" id="BaseStation.get_electric_field_ids">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_electric_field_ids">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_electric_field_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        returns a sorted list with the electric field IDs of all simElectricFields of the simStation</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        efield_ids: list</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">efield_ids</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_electric_fields</span><span class="p">:</span>
             <span class="n">efield_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">efield</span><span class="o">.</span><span class="n">get_unique_identifier</span><span class="p">())</span>
@@ -944,45 +944,45 @@
 <div class="viewcode-block" id="BaseStation.is_neutrino">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.is_neutrino">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_neutrino</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Stations particle type has not been set. Please call the module `eventTypeIdentifier.run(event, station, mode=&#39;forced&#39;, forced_event_type=&#39;neutrino&#39;/&#39;cosmic_ray&#39;)`.&quot;</span>
-            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot; This flag is used to differentiate between signals that originate from air vs. signals that originate from within the ice which is needed to e.g. determine if refraction &quot;</span>
-            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;into the ice needs to be considered.&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">==</span> <span class="s1">''</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"Stations particle type has not been set. Please call the module `eventTypeIdentifier.run(event, station, mode='forced', forced_event_type='neutrino'/'cosmic_ray')`."</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">" This flag is used to differentiate between signals that originate from air vs. signals that originate from within the ice which is needed to e.g. determine if refraction "</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">"into the ice needs to be considered."</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">==</span> <span class="s1">&#39;nu&#39;</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">==</span> <span class="s1">'nu'</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.is_cosmic_ray">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.is_cosmic_ray">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_cosmic_ray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Stations particle type has not been set. Please call the module `eventTypeIdentifier.run(event, station, mode=&#39;forced&#39;, forced_event_type=&#39;neutrino&#39;/&#39;cosmic_ray&#39;)`.&quot;</span>
-            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot; This flag is used to differentiate between signals that originate from air vs. signals that originate from within the ice which is needed to e.g. determine if refraction &quot;</span>
-            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;into the ice needs to be considered.&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">==</span> <span class="s1">''</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"Stations particle type has not been set. Please call the module `eventTypeIdentifier.run(event, station, mode='forced', forced_event_type='neutrino'/'cosmic_ray')`."</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">" This flag is used to differentiate between signals that originate from air vs. signals that originate from within the ice which is needed to e.g. determine if refraction "</span>
+            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">"into the ice needs to be considered."</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">==</span> <span class="s1">&#39;cr&#39;</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">==</span> <span class="s1">'cr'</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.set_is_neutrino">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_is_neutrino">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_is_neutrino</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        set station type to neutrino</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">=</span> <span class="s1">&#39;nu&#39;</span></div>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">=</span> <span class="s1">'nu'</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.set_is_cosmic_ray">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_is_cosmic_ray">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_is_cosmic_ray</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        set station type to cosmic rays (relevant e.g. for refraction into the snow)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">=</span> <span class="s1">&#39;cr&#39;</span></div>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">=</span> <span class="s1">'cr'</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.serialize">
@@ -1000,12 +1000,12 @@
 
         <span class="n">data</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-            <span class="s1">&#39;_station_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span><span class="p">,</span>
-            <span class="s1">&#39;_station_time&#39;</span><span class="p">:</span> <span class="n">station_time_dict</span><span class="p">,</span>
-            <span class="s1">&#39;_particle_type&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span><span class="p">,</span>
-            <span class="s1">&#39;triggers&#39;</span><span class="p">:</span> <span class="n">trigger_pkls</span><span class="p">,</span>
-            <span class="s1">&#39;_triggered&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span><span class="p">,</span>
-            <span class="s1">&#39;electric_fields&#39;</span><span class="p">:</span> <span class="n">efield_pkls</span>
+            <span class="s1">'_station_id'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span><span class="p">,</span>
+            <span class="s1">'_station_time'</span><span class="p">:</span> <span class="n">station_time_dict</span><span class="p">,</span>
+            <span class="s1">'_particle_type'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span><span class="p">,</span>
+            <span class="s1">'triggers'</span><span class="p">:</span> <span class="n">trigger_pkls</span><span class="p">,</span>
+            <span class="s1">'_triggered'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span><span class="p">,</span>
+            <span class="s1">'electric_fields'</span><span class="p">:</span> <span class="n">efield_pkls</span>
         <span class="p">})</span>
 
         <span class="k">return</span> <span class="n">_dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
@@ -1017,33 +1017,33 @@
         <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data_pkl</span><span class="p">)</span>
         <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">parameter_storage</span><span class="o">.</span><span class="n">ParameterStorage</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">&#39;triggers&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;triggers&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s1">'triggers'</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_triggers</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">'triggers'</span><span class="p">])</span>
 
-        <span class="k">if</span> <span class="s1">&#39;triggers&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_triggered&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">'triggers'</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">'_triggered'</span><span class="p">]</span>
 
-        <span class="k">for</span> <span class="n">electric_field</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;electric_fields&#39;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">electric_field</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">'electric_fields'</span><span class="p">]:</span>
             <span class="n">efield</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">electric_field</span><span class="o">.</span><span class="n">ElectricField</span><span class="p">([])</span>
             <span class="n">efield</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">electric_field</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_electric_field</span><span class="p">(</span><span class="n">efield</span><span class="p">)</span>
 
         <span class="c1"># For backward compatibility, now ARIANNA parameters are stored in `_parameters`.</span>
-        <span class="k">if</span> <span class="s1">&#39;_ARIANNA_parameters&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_ARIANNA_parameters&#39;</span><span class="p">]:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_ARIANNA_parameters&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s1">'_ARIANNA_parameters'</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">'_ARIANNA_parameters'</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s1">'_ARIANNA_parameters'</span><span class="p">][</span><span class="n">key</span><span class="p">])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_id&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_time&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">station_time</span> <span class="o">=</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">_time_object_to_astropy</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;_station_time&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_station_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">'_station_id'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s1">'_station_time'</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">station_time</span> <span class="o">=</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">_time_object_to_astropy</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">'_station_time'</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_station_time</span><span class="p">(</span><span class="n">station_time</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;_particle_type&#39;</span><span class="p">]</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_particle_type</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">'_particle_type'</span><span class="p">]</span></div>
 
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        adds a BaseStation object to another BaseStation object</span>
 <span class="sd">        WARNING: Only channel and efield objects are added but no other meta information</span>
 
@@ -1051,12 +1051,12 @@
 <span class="sd">        ----------</span>
 <span class="sd">        x: BaseStation</span>
 <span class="sd">            the BaseStation object to add</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">BaseStation</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Can only add BaseStation to BaseStation&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">"Can only add BaseStation to BaseStation"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_id</span><span class="p">()</span> <span class="o">!=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_id</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Can only add BaseStations with the same ID&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">"Can only add BaseStations with the same ID"</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">trigger</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">get_triggers</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_trigger</span><span class="p">(</span><span class="n">trigger</span><span class="p">)</span>
@@ -1075,29 +1075,29 @@
 <div class="viewcode-block" id="BaseStation.get_ARIANNA_parameter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_ARIANNA_parameter">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_ARIANNA_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`get_ARIANNA_parameter` is deprecated. Use `get_parameter` instead.&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;`get_ARIANNA_parameter` is deprecated. Use `get_parameter` instead.&quot;</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"`get_ARIANNA_parameter` is deprecated. Use `get_parameter` instead."</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"`get_ARIANNA_parameter` is deprecated. Use `get_parameter` instead."</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.get_ARIANNA_parameters">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_ARIANNA_parameters">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_ARIANNA_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`get_ARIANNA_parameters` is deprecated. Use `get_parameters` instead.&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;`get_ARIANNA_parameters` is deprecated. Use `get_parameters` instead.&quot;</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"`get_ARIANNA_parameters` is deprecated. Use `get_parameters` instead."</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"`get_ARIANNA_parameters` is deprecated. Use `get_parameters` instead."</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.has_ARIANNA_parameter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.has_ARIANNA_parameter">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">has_ARIANNA_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`has_ARIANNA_parameter` is deprecated. Use `has_parameter` instead.&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;`has_ARIANNA_parameter` is deprecated. Use `has_parameter` instead.&quot;</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"`has_ARIANNA_parameter` is deprecated. Use `has_parameter` instead."</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"`has_ARIANNA_parameter` is deprecated. Use `has_parameter` instead."</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.set_ARIANNA_parameter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.set_ARIANNA_parameter">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_ARIANNA_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;`set_ARIANNA_parameter` is deprecated. Use `set_parameter` instead.&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;`set_ARIANNA_parameter` is deprecated. Use `set_parameter` instead.&quot;</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"`set_ARIANNA_parameter` is deprecated. Use `set_parameter` instead."</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"`set_ARIANNA_parameter` is deprecated. Use `set_parameter` instead."</span><span class="p">)</span></div>
 </div>
 
 </pre></div>

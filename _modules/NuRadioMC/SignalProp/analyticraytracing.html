@@ -663,21 +663,21 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;NuRadioMC.analytic_ray_tracing&quot;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"NuRadioMC.analytic_ray_tracing"</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ray_tracing">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ray_tracing</span><span class="p">(</span><span class="n">ray_tracing_base</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Utility class (wrapper around the 2D analytic ray tracing code) to get</span>
 <span class="sd">    ray tracing solutions in 3D for two arbitrary points x1 and x2</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">medium</span><span class="p">,</span> <span class="n">attenuation_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span>
                  <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_reflections</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">detector</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ray_tracing_2D_kwards</span><span class="o">=</span><span class="p">{},</span>
                  <span class="n">use_cpp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">compile_numba</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Class initilization</span>
 
 <span class="sd">        Parameters</span>
@@ -687,7 +687,7 @@
 
 <span class="sd">        attenuation_model: string</span>
 <span class="sd">            Signal attenuation model</span>
-<span class="sd">            (default: None -&gt; &#39;SP1&#39; (see ``ray_tracing_base._set_arguments``))</span>
+<span class="sd">            (default: None -&gt; 'SP1' (see ``ray_tracing_base._set_arguments``))</span>
 
 <span class="sd">        log_name:  string</span>
 <span class="sd">            Name under which things should be logged</span>
@@ -714,13 +714,13 @@
 
 <span class="sd">        config: dict</span>
 <span class="sd">            a dictionary with the optional config settings. If None, the config is intialized with default values,</span>
-<span class="sd">            which is needed to avoid any &quot;key not available&quot; errors. The default settings are</span>
+<span class="sd">            which is needed to avoid any "key not available" errors. The default settings are</span>
 
-<span class="sd">                * self._config = {&#39;propagation&#39;: {}}</span>
-<span class="sd">                * self._config[&#39;propagation&#39;][&#39;attenuate_ice&#39;] = True</span>
-<span class="sd">                * self._config[&#39;propagation&#39;][&#39;focusing_limit&#39;] = 2</span>
-<span class="sd">                * self._config[&#39;propagation&#39;][&#39;focusing&#39;] = False</span>
-<span class="sd">                * self._config[&#39;propagation&#39;][&#39;birefringence&#39;] = False</span>
+<span class="sd">                * self._config = {'propagation': {}}</span>
+<span class="sd">                * self._config['propagation']['attenuate_ice'] = True</span>
+<span class="sd">                * self._config['propagation']['focusing_limit'] = 2</span>
+<span class="sd">                * self._config['propagation']['focusing'] = False</span>
+<span class="sd">                * self._config['propagation']['birefringence'] = False</span>
 
 <span class="sd">        detector: detector object</span>
 
@@ -736,14 +736,14 @@
 <span class="sd">            If True, numba-compile the standalone python functions used as a fallback when not</span>
 <span class="sd">            using the CPP backend. Only relevant if `use_cpp` is (or resolves to) False.</span>
 <span class="sd">            If None, numba is used whenever it is available.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioMC.ray_tracing&#39;</span><span class="p">)</span>
+<span class="sd">        """</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioMC.ray_tracing'</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
 
         <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities.medium_base</span><span class="w"> </span><span class="kn">import</span> <span class="n">IceModelSimple</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">medium</span><span class="p">,</span> <span class="n">IceModelSimple</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;The analytic raytracer can only handle ice model of the type &#39;IceModelSimple&#39;&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The analytic raytracer can only handle ice model of the type &#39;IceModelSimple&#39;&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"The analytic raytracer can only handle ice model of the type 'IceModelSimple'"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"The analytic raytracer can only handle ice model of the type 'IceModelSimple'"</span><span class="p">)</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">medium</span><span class="o">=</span><span class="n">medium</span><span class="p">,</span>
@@ -775,13 +775,13 @@
         <span class="c1"># Check that `self.n_at_surface` is reasonably large to avoid a bug where the index of air</span>
         <span class="c1"># is returned</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span> <span class="o">&lt;</span> <span class="mf">1.1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Calculated index of refraction for ice at the ice-air boundary is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span><span class="si">}</span><span class="s2"> which is to small.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Calculated index of refraction for ice at the ice-air boundary is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span><span class="si">}</span><span class="s2"> which is to small."</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">z_air_boundary</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The configured ice model has `z_air_boundary != 0`. This is not supported by this raytracer!&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The configured ice model has `z_air_boundary != 0`. This is not supported by this raytracer!"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">z_shift</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The configured ice model has `z_shift != 0`. This is not supported by this raytracer!&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The configured ice model has `z_shift != 0`. This is not supported by this raytracer!"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_swap</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dPhi</span> <span class="o">=</span> <span class="kc">None</span>
@@ -798,11 +798,11 @@
 <div class="viewcode-block" id="ray_tracing.reset_solutions">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">reset_solutions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Resets the raytracing solutions back to None. This is useful to do when changing the start and end</span>
 <span class="sd">        points in order to not accidentally use results from previous raytracings.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">reset_solutions</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_x1</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span> <span class="o">=</span> <span class="kc">None</span>
@@ -816,7 +816,7 @@
 <div class="viewcode-block" id="ray_tracing.set_start_and_end_point">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_start_and_end_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the start and end points of the raytracing</span>
 
 <span class="sd">        If the start and end points are identical to those of the previous ray tracing,</span>
@@ -835,14 +835,14 @@
 <span class="sd">        geometry_changed: bool</span>
 <span class="sd">            False if the start and end points are unchanged with respect to the previous</span>
 <span class="sd">            ray tracing (in which case the existing solutions are kept), True otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_start_and_end_point</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_swap</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_swap</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;swap = True&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'swap = True'</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 
@@ -852,12 +852,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(((</span><span class="n">c</span><span class="p">,</span> <span class="o">-</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
         <span class="n">X1r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span>
         <span class="n">X2r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;X1 = </span><span class="si">%s</span><span class="s2">, X2 = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;dphi = </span><span class="si">%.1f</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dPhi</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;X2 - X1 = </span><span class="si">%s</span><span class="s2">, X1r = </span><span class="si">%s</span><span class="s2">, X2r = </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">X1r</span><span class="p">,</span> <span class="n">X2r</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"X1 = </span><span class="si">%s</span><span class="s2">, X2 = </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"dphi = </span><span class="si">%.1f</span><span class="s2">"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dPhi</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"X2 - X1 = </span><span class="si">%s</span><span class="s2">, X1r = </span><span class="si">%s</span><span class="s2">, X2r = </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="n">dX</span><span class="p">,</span> <span class="n">X1r</span><span class="p">,</span> <span class="n">X2r</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_x1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">X1r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">X1r</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">X2r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">X2r</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;2D points </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"2D points </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="kc">True</span></div>
 
@@ -865,44 +865,44 @@
 <div class="viewcode-block" id="ray_tracing.set_solution">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raytracing_results</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Read an already calculated raytracing solution from the input array</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        raytracing_results: dict</span>
 <span class="sd">            The dictionary containing the raytracing solution.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">C0s</span> <span class="o">=</span> <span class="n">raytracing_results</span><span class="p">[</span><span class="s1">&#39;ray_tracing_C0&#39;</span><span class="p">]</span>
+        <span class="n">C0s</span> <span class="o">=</span> <span class="n">raytracing_results</span><span class="p">[</span><span class="s1">'ray_tracing_C0'</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">C0s</span><span class="p">)):</span>
             <span class="k">if</span><span class="p">(</span><span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">C0s</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
-                <span class="k">if</span> <span class="s1">&#39;ray_tracing_reflection&#39;</span> <span class="ow">in</span> <span class="n">raytracing_results</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>  <span class="c1"># for backward compatibility: Check if reflection layer information exists in data file</span>
-                    <span class="n">reflection</span> <span class="o">=</span> <span class="n">raytracing_results</span><span class="p">[</span><span class="s1">&#39;ray_tracing_reflection&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
-                    <span class="n">reflection_case</span> <span class="o">=</span> <span class="n">raytracing_results</span><span class="p">[</span><span class="s1">&#39;ray_tracing_reflection_case&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">if</span> <span class="s1">'ray_tracing_reflection'</span> <span class="ow">in</span> <span class="n">raytracing_results</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>  <span class="c1"># for backward compatibility: Check if reflection layer information exists in data file</span>
+                    <span class="n">reflection</span> <span class="o">=</span> <span class="n">raytracing_results</span><span class="p">[</span><span class="s1">'ray_tracing_reflection'</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">reflection_case</span> <span class="o">=</span> <span class="n">raytracing_results</span><span class="p">[</span><span class="s1">'ray_tracing_reflection_case'</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">reflection</span> <span class="o">=</span> <span class="mi">0</span>
                     <span class="n">reflection_case</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="n">raytracing_results</span><span class="p">[</span><span class="s1">&#39;ray_tracing_solution_type&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span>
-                                <span class="s1">&#39;C0&#39;</span><span class="p">:</span> <span class="n">C0s</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
-                                <span class="s1">&#39;C1&#39;</span><span class="p">:</span> <span class="n">raytracing_results</span><span class="p">[</span><span class="s1">&#39;ray_tracing_C1&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">],</span>
-                                <span class="s1">&#39;reflection&#39;</span><span class="p">:</span> <span class="n">reflection</span><span class="p">,</span>
-                                <span class="s1">&#39;reflection_case&#39;</span><span class="p">:</span> <span class="n">reflection_case</span><span class="p">})</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">'type'</span><span class="p">:</span> <span class="n">raytracing_results</span><span class="p">[</span><span class="s1">'ray_tracing_solution_type'</span><span class="p">][</span><span class="n">i</span><span class="p">],</span>
+                                <span class="s1">'C0'</span><span class="p">:</span> <span class="n">C0s</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                                <span class="s1">'C1'</span><span class="p">:</span> <span class="n">raytracing_results</span><span class="p">[</span><span class="s1">'ray_tracing_C1'</span><span class="p">][</span><span class="n">i</span><span class="p">],</span>
+                                <span class="s1">'reflection'</span><span class="p">:</span> <span class="n">reflection</span><span class="p">,</span>
+                                <span class="s1">'reflection_case'</span><span class="p">:</span> <span class="n">reflection_case</span><span class="p">})</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="n">results</span></div>
 
 
 <div class="viewcode-block" id="ray_tracing.find_solutions">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.find_solutions">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">find_solutions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Find all solutions between x1 and x2</span>
 
 <span class="sd">        If solutions for the current start and end points already exist (i.e., the geometry</span>
 <span class="sd">        did not change since the last ray tracing or the solutions were set with `set_solution`),</span>
 <span class="sd">        they are kept and not recalculated. Call `reset_solutions` first to force a recalculation.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;solutions for the current geometry already exist, skipping ray tracing&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"solutions for the current geometry already exist, skipping ray tracing"</span><span class="p">)</span>
             <span class="k">return</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">find_solutions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">)</span>
@@ -912,14 +912,14 @@
 
         <span class="c1"># check if not too many solutions were found (the same solution can potentially found twice because of numerical imprecision)</span>
         <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_raytracing_solutions</span><span class="p">()):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span><span class="si">}</span><span class="s2"> were found but only </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_raytracing_solutions</span><span class="p">()</span><span class="si">}</span><span class="s2"> are allowed! Returning zero solutions&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span><span class="si">}</span><span class="s2"> were found but only </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_raytracing_solutions</span><span class="p">()</span><span class="si">}</span><span class="s2"> are allowed! Returning zero solutions"</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="p">[]</span></div>
 
 
 <div class="viewcode-block" id="ray_tracing.get_solution_type">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_solution_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Returns the type of the solution</span>
+<span class="w">        </span><span class="sd">""" Returns the type of the solution</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -931,8 +931,8 @@
 <span class="sd">        -------</span>
 <span class="sd">        solution_type: int</span>
 <span class="sd">            integer corresponding to the types in the dictionary solution_types</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">determine_solution_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">][</span><span class="s1">&#39;C0&#39;</span><span class="p">])</span></div>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">determine_solution_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">][</span><span class="s1">'C0'</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="ray_tracing.get_path">
@@ -941,12 +941,12 @@
 
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span>
         <span class="k">if</span><span class="p">(</span><span class="n">iS</span> <span class="o">&gt;=</span> <span class="n">n</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
             <span class="k">raise</span> <span class="ne">IndexError</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">]</span>
-        <span class="n">xx</span><span class="p">,</span> <span class="n">zz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_path_reflections</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span> <span class="n">n_points</span><span class="o">=</span><span class="n">n_points</span><span class="p">,</span>
-                                                 <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
-                                                 <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span>
+        <span class="n">xx</span><span class="p">,</span> <span class="n">zz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_path_reflections</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span> <span class="n">n_points</span><span class="o">=</span><span class="n">n_points</span><span class="p">,</span>
+                                                 <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span>
+                                                 <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">])</span>
         <span class="n">path_2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">xx</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">xx</span><span class="p">),</span> <span class="n">zz</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
 
         <span class="n">dP</span> <span class="o">=</span> <span class="n">path_2d</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
@@ -956,9 +956,9 @@
 
 <div class="viewcode-block" id="ray_tracing.get_pulse_propagation_birefringence">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_pulse_propagation_birefringence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pulse</span><span class="p">,</span> <span class="n">samp_rate</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">,</span> <span class="n">bire_model</span> <span class="o">=</span> <span class="s1">&#39;southpole_A&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_pulse_propagation_birefringence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pulse</span><span class="p">,</span> <span class="n">samp_rate</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">,</span> <span class="n">bire_model</span> <span class="o">=</span> <span class="s1">'southpole_A'</span><span class="p">):</span>
 
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Function for the time trace propagation according to the polarization change due to birefringence.</span>
 <span class="sd">        The trace propagation is explained in this paper: https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y</span>
 
@@ -981,19 +981,19 @@
 <span class="sd">            [0] - eR        - final frequency spectrum of the radial component - not altered by the function</span>
 <span class="sd">            [1] - eTheta    - final frequency spectrum of the theta component</span>
 <span class="sd">            [2] - ePhi      - final frequency spectrum of the phi component</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">t_fast</span> <span class="o">=</span> <span class="n">base_trace</span><span class="o">.</span><span class="n">BaseTrace</span><span class="p">()</span>
 
         <span class="n">ice_n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span>
-        <span class="n">ice_birefringence</span> <span class="o">=</span> <span class="n">medium</span><span class="o">.</span><span class="n">get_ice_model</span><span class="p">(</span><span class="s1">&#39;birefringence_medium&#39;</span><span class="p">)</span>
+        <span class="n">ice_birefringence</span> <span class="o">=</span> <span class="n">medium</span><span class="o">.</span><span class="n">get_ice_model</span><span class="p">(</span><span class="s1">'birefringence_medium'</span><span class="p">)</span>
         <span class="n">ice_birefringence</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">bire_model</span><span class="p">)</span>
 
         <span class="n">acc</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_path_length</span><span class="p">(</span><span class="n">i_solution</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">)</span>
         <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="n">i_solution</span><span class="p">,</span> <span class="n">n_points</span><span class="o">=</span><span class="n">acc</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">&#39;angle_to_iceflow&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">]:</span>
-            <span class="n">rotation_angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;angle_to_iceflow&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+        <span class="k">if</span> <span class="s1">'angle_to_iceflow'</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">]:</span>
+            <span class="n">rotation_angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'angle_to_iceflow'</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
             <span class="n">rot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">),</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">)],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">)]])</span>
             <span class="n">path</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">path</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">],</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)),</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
 
@@ -1018,7 +1018,7 @@
             <span class="n">c</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">sky_polarization</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span>
 
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">a</span> <span class="o">*</span> <span class="n">d</span> <span class="o">-</span> <span class="n">b</span> <span class="o">*</span> <span class="n">c</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">])</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;warning: Polarization vectors similar, R-matrix not invertible, iteration&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"warning: Polarization vectors similar, R-matrix not invertible, iteration"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
                 <span class="k">continue</span>
 
             <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">([[</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">],</span> <span class="p">[</span><span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">]])</span>
@@ -1037,9 +1037,9 @@
 
 <div class="viewcode-block" id="ray_tracing.get_path_properties_birefringence">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_path_properties_birefringence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">,</span> <span class="n">bire_model</span> <span class="o">=</span> <span class="s1">&#39;southpole_A&#39;</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_path_properties_birefringence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">,</span> <span class="n">bire_model</span> <span class="o">=</span> <span class="s1">'southpole_A'</span><span class="p">):</span>
 
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Function to extract important information about the birefringent propagation along the path.</span>
 <span class="sd">        The important properties include effective refractive indices, polarization eigenvectors, and incremental time delays</span>
 
@@ -1058,29 +1058,29 @@
 <span class="sd">        path_properties: dict</span>
 <span class="sd">            a dictionary containing the following keys:</span>
 
-<span class="sd">            * &#39;path&#39;: np.ndarray - propagation path in x, y, z with the same granularity as the nirefringent propagation</span>
-<span class="sd">            * &#39;nominal_refractive_index&#39;: np.ndarray - nominal refractive index if only density effects were taken into account</span>
-<span class="sd">            * &#39;refractive_index_x&#39;: np.ndarray - refractive index for the x-direction</span>
-<span class="sd">            * &#39;refractive_index_y&#39;: np.ndarray - refractive index for the y-direction</span>
-<span class="sd">            * &#39;refractive_index_z&#39;: np.ndarray - refractive index for the z-direction</span>
-<span class="sd">            * &#39;first_refractive_index&#39;: np.ndarray - effective refractive index of the first birefringent state along the full path</span>
-<span class="sd">            * &#39;second_refractive_index&#39;: np.ndarray - effective refractive index of the second birefringent state along the full path</span>
-<span class="sd">            * &#39;first_polarization_vector&#39;: np.ndarray - polarization vector of the first birefringent state in spherical coordinates along the full path</span>
-<span class="sd">            * &#39;second_polarization_vector&#39;: np.ndarray - polarization vector of the second birefringent state in spherical coordinates along the full path</span>
-<span class="sd">            * &#39;first_time_delay&#39;: np.ndarray - incremental time delays of the first birefringent state along the full path</span>
-<span class="sd">            * &#39;second_time_delay&#39;: np.ndarray - incremental time delays of the second birefringent state along the full path</span>
+<span class="sd">            * 'path': np.ndarray - propagation path in x, y, z with the same granularity as the nirefringent propagation</span>
+<span class="sd">            * 'nominal_refractive_index': np.ndarray - nominal refractive index if only density effects were taken into account</span>
+<span class="sd">            * 'refractive_index_x': np.ndarray - refractive index for the x-direction</span>
+<span class="sd">            * 'refractive_index_y': np.ndarray - refractive index for the y-direction</span>
+<span class="sd">            * 'refractive_index_z': np.ndarray - refractive index for the z-direction</span>
+<span class="sd">            * 'first_refractive_index': np.ndarray - effective refractive index of the first birefringent state along the full path</span>
+<span class="sd">            * 'second_refractive_index': np.ndarray - effective refractive index of the second birefringent state along the full path</span>
+<span class="sd">            * 'first_polarization_vector': np.ndarray - polarization vector of the first birefringent state in spherical coordinates along the full path</span>
+<span class="sd">            * 'second_polarization_vector': np.ndarray - polarization vector of the second birefringent state in spherical coordinates along the full path</span>
+<span class="sd">            * 'first_time_delay': np.ndarray - incremental time delays of the first birefringent state along the full path</span>
+<span class="sd">            * 'second_time_delay': np.ndarray - incremental time delays of the second birefringent state along the full path</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">ice_n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span>
-        <span class="n">ice_birefringence</span> <span class="o">=</span> <span class="n">medium</span><span class="o">.</span><span class="n">get_ice_model</span><span class="p">(</span><span class="s1">&#39;birefringence_medium&#39;</span><span class="p">)</span>
+        <span class="n">ice_birefringence</span> <span class="o">=</span> <span class="n">medium</span><span class="o">.</span><span class="n">get_ice_model</span><span class="p">(</span><span class="s1">'birefringence_medium'</span><span class="p">)</span>
         <span class="n">ice_birefringence</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">bire_model</span><span class="p">)</span>
 
         <span class="n">acc</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_path_length</span><span class="p">(</span><span class="n">i_solution</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">m</span><span class="p">)</span>
         <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_path</span><span class="p">(</span><span class="n">i_solution</span><span class="p">,</span> <span class="n">n_points</span><span class="o">=</span><span class="n">acc</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s1">&#39;angle_to_iceflow&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">]:</span>
-            <span class="n">rotation_angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;angle_to_iceflow&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+        <span class="k">if</span> <span class="s1">'angle_to_iceflow'</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">]:</span>
+            <span class="n">rotation_angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'angle_to_iceflow'</span><span class="p">]</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
             <span class="n">rot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">),</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">)],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rotation_angle</span><span class="p">)]])</span>
             <span class="n">path</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">path</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">],</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)),</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
 
@@ -1132,21 +1132,21 @@
 
         <span class="n">path_properties</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
-        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;nominal_refractive_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_nominal</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">'path'</span><span class="p">]</span> <span class="o">=</span> <span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">'nominal_refractive_index'</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_nominal</span>
 
-        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;refractive_index_x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Nx</span>
-        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;refractive_index_y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ny</span>
-        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;refractive_index_z&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Nz</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">'refractive_index_x'</span><span class="p">]</span> <span class="o">=</span> <span class="n">Nx</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">'refractive_index_y'</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ny</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">'refractive_index_z'</span><span class="p">]</span> <span class="o">=</span> <span class="n">Nz</span>
 
-        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;first_refractive_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N1</span>
-        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;second_refractive_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N2</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">'first_refractive_index'</span><span class="p">]</span> <span class="o">=</span> <span class="n">N1</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">'second_refractive_index'</span><span class="p">]</span> <span class="o">=</span> <span class="n">N2</span>
 
-        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;first_polarization_vector&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">P1</span>
-        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;second_polarization_vector&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">P2</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">'first_polarization_vector'</span><span class="p">]</span> <span class="o">=</span> <span class="n">P1</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">'second_polarization_vector'</span><span class="p">]</span> <span class="o">=</span> <span class="n">P2</span>
 
-        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;first_time_delay&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">T1</span>
-        <span class="n">path_properties</span><span class="p">[</span><span class="s1">&#39;second_time_delay&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">T2</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">'first_time_delay'</span><span class="p">]</span> <span class="o">=</span> <span class="n">T1</span>
+        <span class="n">path_properties</span><span class="p">[</span><span class="s1">'second_time_delay'</span><span class="p">]</span> <span class="o">=</span> <span class="n">T2</span>
 
         <span class="k">return</span> <span class="n">path_properties</span></div>
 
@@ -1154,7 +1154,7 @@
 <div class="viewcode-block" id="ray_tracing.get_launch_vector">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_launch_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculates the launch vector (in 3D) of solution iS</span>
 
 <span class="sd">        Parameters</span>
@@ -1167,20 +1167,20 @@
 <span class="sd">        -------</span>
 <span class="sd">        launch_vector: 3dim np.array</span>
 <span class="sd">            the launch vector</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span>
         <span class="k">if</span><span class="p">(</span><span class="n">iS</span> <span class="o">&gt;=</span> <span class="n">n</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
             <span class="k">raise</span> <span class="ne">IndexError</span>
 
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">]</span>
-        <span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_launch_angle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span> <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
-                                            <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_launch_angle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span> <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span>
+                                            <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">])</span>
         <span class="n">launch_vector_2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">alpha</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">alpha</span><span class="p">)])</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_swap</span><span class="p">:</span>
-            <span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_receive_angle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span>
-                                                 <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
-                                                 <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span>
+            <span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_receive_angle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span>
+                                                 <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span>
+                                                 <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">])</span>
             <span class="n">launch_vector_2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">alpha</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">alpha</span><span class="p">)])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_R</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="n">launch_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">launch_vector_2d</span><span class="p">)</span>
@@ -1190,7 +1190,7 @@
 <div class="viewcode-block" id="ray_tracing.get_receive_vector">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_receive_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculates the receive vector (in 3D) of solution iS</span>
 
 <span class="sd">        Parameters</span>
@@ -1203,21 +1203,21 @@
 <span class="sd">        -------</span>
 <span class="sd">        receive_vector: 3dim np.array</span>
 <span class="sd">            the receive vector</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span>
         <span class="k">if</span><span class="p">(</span><span class="n">iS</span> <span class="o">&gt;=</span> <span class="n">n</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
             <span class="k">raise</span> <span class="ne">IndexError</span>
 
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">]</span>
-        <span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_receive_angle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span>
-                                             <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
-                                             <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_receive_angle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span>
+                                             <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span>
+                                             <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">])</span>
         <span class="n">receive_vector_2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">alpha</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">alpha</span><span class="p">)])</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_swap</span><span class="p">:</span>
-            <span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_launch_angle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span>
-                                                <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
-                                                <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span>
+            <span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_launch_angle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span>
+                                                <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span>
+                                                <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">])</span>
             <span class="n">receive_vector_2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">alpha</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">alpha</span><span class="p">)])</span>
         <span class="n">receive_vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">receive_vector_2d</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">receive_vector</span></div>
@@ -1226,7 +1226,7 @@
 <div class="viewcode-block" id="ray_tracing.get_reflection_angle">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_reflection_angle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculates the angle of reflection at the surface (in case of a reflected ray)</span>
 
 <span class="sd">        Parameters</span>
@@ -1239,21 +1239,21 @@
 <span class="sd">        -------</span>
 <span class="sd">        reflection_angle: float or None</span>
 <span class="sd">            the reflection angle (for reflected rays) or None for direct and refracted rays</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span>
         <span class="k">if</span><span class="p">(</span><span class="n">iS</span> <span class="o">&gt;=</span> <span class="n">n</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
             <span class="k">raise</span> <span class="ne">IndexError</span>
 
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_reflection_angle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span>
-                                               <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span> <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_reflection_angle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span>
+                                               <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span> <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="ray_tracing.get_fresnel_coefficients">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_fresnel_coefficients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculates the fresnel coefficients for all interactions with the ice-air surface of solution iS</span>
 
 <span class="sd">        For rays that are reflected off the ice-air surface (emitter and receiver in the ice),</span>
@@ -1274,12 +1274,12 @@
 <span class="sd">            One dictionary per interaction with the ice-air surface (empty list for rays</span>
 <span class="sd">            that never reach the surface). Each dictionary contains:</span>
 
-<span class="sd">            * &quot;zenith&quot;: zenith angle under which the ray hits the surface</span>
-<span class="sd">            * &quot;case&quot;: &quot;reflection&quot; (in-ice reflection off the surface) or</span>
-<span class="sd">              &quot;transmission&quot; (ice-to-air / air-to-ice)</span>
-<span class="sd">            * &quot;theta&quot;: fresnel coefficient for the eTheta (p-polarization) component</span>
-<span class="sd">            * &quot;phi&quot;: fresnel coefficient for the ePhi (s-polarization) component</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            * "zenith": zenith angle under which the ray hits the surface</span>
+<span class="sd">            * "case": "reflection" (in-ice reflection off the surface) or</span>
+<span class="sd">              "transmission" (ice-to-air / air-to-ice)</span>
+<span class="sd">            * "theta": fresnel coefficient for the eTheta (p-polarization) component</span>
+<span class="sd">            * "phi": fresnel coefficient for the ePhi (s-polarization) component</span>
+<span class="sd">        """</span>
 
         <span class="n">fresnel_coefficients</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># lets handle the general case of multiple reflections off the ice-air surface</span>
@@ -1297,26 +1297,26 @@
                     <span class="c1"># ice to air case</span>
                     <span class="n">t_theta</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_t_p</span><span class="p">(</span><span class="n">zenith_reflection</span><span class="p">,</span> <span class="n">n_2</span><span class="o">=</span><span class="n">N_AIR</span><span class="p">,</span> <span class="n">n_1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span><span class="p">)</span>
                     <span class="n">t_phi</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_t_s</span><span class="p">(</span><span class="n">zenith_reflection</span><span class="p">,</span> <span class="n">n_2</span><span class="o">=</span><span class="n">N_AIR</span><span class="p">,</span> <span class="n">n_1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;propagating from ice to air: transmission coefficient is </span><span class="si">{</span><span class="n">t_theta</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">t_phi</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"propagating from ice to air: transmission coefficient is </span><span class="si">{</span><span class="n">t_theta</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">t_phi</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># air to ice</span>
                     <span class="n">incoming_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">zenith_reflection</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span> <span class="o">/</span> <span class="n">N_AIR</span><span class="p">)</span>
                     <span class="n">t_theta</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_t_p</span><span class="p">(</span><span class="n">incoming_angle</span><span class="p">,</span> <span class="n">n_1</span><span class="o">=</span><span class="n">N_AIR</span><span class="p">,</span> <span class="n">n_2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span><span class="p">)</span>
                     <span class="n">t_phi</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_t_s</span><span class="p">(</span><span class="n">incoming_angle</span><span class="p">,</span> <span class="n">n_1</span><span class="o">=</span><span class="n">N_AIR</span><span class="p">,</span> <span class="n">n_2</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;propagating from air to ice: transmission coefficient is </span><span class="si">{</span><span class="n">t_theta</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">t_phi</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"propagating from air to ice: transmission coefficient is </span><span class="si">{</span><span class="n">t_theta</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">t_phi</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
                 <span class="n">fresnel_coefficients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="p">{</span><span class="s1">&#39;zenith&#39;</span><span class="p">:</span> <span class="n">zenith_reflection</span><span class="p">,</span> <span class="s1">&#39;case&#39;</span><span class="p">:</span> <span class="s1">&#39;transmission&#39;</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="n">t_theta</span><span class="p">,</span> <span class="s1">&#39;phi&#39;</span><span class="p">:</span> <span class="n">t_phi</span><span class="p">})</span>
+                    <span class="p">{</span><span class="s1">'zenith'</span><span class="p">:</span> <span class="n">zenith_reflection</span><span class="p">,</span> <span class="s1">'case'</span><span class="p">:</span> <span class="s1">'transmission'</span><span class="p">,</span> <span class="s1">'theta'</span><span class="p">:</span> <span class="n">t_theta</span><span class="p">,</span> <span class="s1">'phi'</span><span class="p">:</span> <span class="n">t_phi</span><span class="p">})</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># in-ice propagation, reflection off the surface</span>
                 <span class="n">r_theta</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_r_p</span><span class="p">(</span><span class="n">zenith_reflection</span><span class="p">,</span> <span class="n">n_2</span><span class="o">=</span><span class="n">N_AIR</span><span class="p">,</span> <span class="n">n_1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span><span class="p">)</span>
                 <span class="n">r_phi</span> <span class="o">=</span> <span class="n">geometryUtilities</span><span class="o">.</span><span class="n">get_fresnel_r_s</span><span class="p">(</span><span class="n">zenith_reflection</span><span class="p">,</span> <span class="n">n_2</span><span class="o">=</span><span class="n">N_AIR</span><span class="p">,</span> <span class="n">n_1</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="s2">&quot;ray hits the surface at an angle </span><span class="si">{:.2f}</span><span class="s2">deg -&gt; reflection coefficient is r_theta = </span><span class="si">{:.2f}</span><span class="s2">, r_phi = </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="s2">"ray hits the surface at an angle </span><span class="si">{:.2f}</span><span class="s2">deg -&gt; reflection coefficient is r_theta = </span><span class="si">{:.2f}</span><span class="s2">, r_phi = </span><span class="si">{:.2f}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                         <span class="n">zenith_reflection</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">r_theta</span><span class="p">,</span> <span class="n">r_phi</span><span class="p">))</span>
 
                 <span class="n">fresnel_coefficients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="p">{</span><span class="s1">&#39;zenith&#39;</span><span class="p">:</span> <span class="n">zenith_reflection</span><span class="p">,</span> <span class="s1">&#39;case&#39;</span><span class="p">:</span> <span class="s1">&#39;reflection&#39;</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="n">r_theta</span><span class="p">,</span> <span class="s1">&#39;phi&#39;</span><span class="p">:</span> <span class="n">r_phi</span><span class="p">})</span>
+                    <span class="p">{</span><span class="s1">'zenith'</span><span class="p">:</span> <span class="n">zenith_reflection</span><span class="p">,</span> <span class="s1">'case'</span><span class="p">:</span> <span class="s1">'reflection'</span><span class="p">,</span> <span class="s1">'theta'</span><span class="p">:</span> <span class="n">r_theta</span><span class="p">,</span> <span class="s1">'phi'</span><span class="p">:</span> <span class="n">r_phi</span><span class="p">})</span>
 
         <span class="k">return</span> <span class="n">fresnel_coefficients</span></div>
 
@@ -1324,7 +1324,7 @@
 <div class="viewcode-block" id="ray_tracing.get_path_length">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_path_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">,</span> <span class="n">analytic</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculates the path length of solution iS</span>
 
 <span class="sd">        Parameters</span>
@@ -1343,38 +1343,38 @@
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
-<span class="sd">        The analytic solution is based on the equation in the appendix of Sjoerd Bouma&#39;s PhD thesis.</span>
+<span class="sd">        The analytic solution is based on the equation in the appendix of Sjoerd Bouma's PhD thesis.</span>
 <span class="sd">        For more details, see there, or see the notes of ``ray_tracing_2D.get_path_length_analytic``.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span>
         <span class="k">if</span><span class="p">(</span><span class="n">iS</span> <span class="o">&gt;=</span> <span class="n">n</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
             <span class="k">raise</span> <span class="ne">IndexError</span>
 
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">analytic</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">analytic_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_path_length_analytic</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span>
-                                                                      <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
-                                                                      <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span>
+                <span class="n">analytic_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_path_length_analytic</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span>
+                                                                      <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span>
+                                                                      <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">])</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">analytic_length</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
                     <span class="k">return</span> <span class="n">analytic_length</span>
             <span class="k">except</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;analytic calculation of travel time failed, switching to numerical integration&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_path_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span>
-                                                  <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
-                                                  <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"analytic calculation of travel time failed, switching to numerical integration"</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_path_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span>
+                                                  <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span>
+                                                  <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_path_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span>
-                                              <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
-                                              <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_path_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span>
+                                              <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span>
+                                              <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="ray_tracing.get_travel_time">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_travel_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">,</span> <span class="n">analytic</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculates the travel time of solution iS</span>
 
 <span class="sd">        Parameters</span>
@@ -1393,38 +1393,38 @@
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
-<span class="sd">        The analytic solution is based on the equation in the appendix of Sjoerd Bouma&#39;s PhD thesis.</span>
+<span class="sd">        The analytic solution is based on the equation in the appendix of Sjoerd Bouma's PhD thesis.</span>
 <span class="sd">        For more details, see there, or see the notes of ``ray_tracing_2D.get_travel_time_analytic``.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span>
         <span class="k">if</span><span class="p">(</span><span class="n">iS</span> <span class="o">&gt;=</span> <span class="n">n</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
             <span class="k">raise</span> <span class="ne">IndexError</span>
 
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">]</span>
         <span class="k">if</span><span class="p">(</span><span class="n">analytic</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">analytic_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_travel_time_analytic</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span>
-                                                                <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
-                                                                <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span>
+                <span class="n">analytic_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_travel_time_analytic</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span>
+                                                                <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span>
+                                                                <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">])</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">analytic_time</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">):</span>
                     <span class="k">return</span> <span class="n">analytic_time</span>
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;analytic calculation of travel time failed, switching to numerical integration&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_travel_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span>
-                                                  <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
-                                                  <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"analytic calculation of travel time failed, switching to numerical integration"</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_travel_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span>
+                                                  <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span>
+                                                  <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_travel_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span>
-                                              <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
-                                              <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_travel_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span>
+                                              <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span>
+                                              <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="ray_tracing.get_attenuation">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_attenuation">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_attenuation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">,</span> <span class="n">frequency</span><span class="p">,</span> <span class="n">max_detector_freq</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculates the signal attenuation due to attenuation in the medium (ice)</span>
 
 <span class="sd">        Parameters</span>
@@ -1446,23 +1446,23 @@
 <span class="sd">        attenuation: array of floats</span>
 <span class="sd">            the fraction of the signal that reaches the observer</span>
 <span class="sd">            (only ice attenuation, the 1/R signal falloff not considered here)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span>
         <span class="k">if</span><span class="p">(</span><span class="n">iS</span> <span class="o">&gt;=</span> <span class="n">n</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
             <span class="k">raise</span> <span class="ne">IndexError</span>
 
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">]</span>
         <span class="c1"># the C0 parameter (together with the reflection specifiers) uniquely identifies the ray path</span>
         <span class="c1"># for the current geometry, hence the attenuation only needs to be calculated once per path</span>
         <span class="c1"># and frequency grid</span>
-        <span class="n">cache_key</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(),</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">],</span>
+        <span class="n">cache_key</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(),</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">],</span>
                      <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">frequency</span><span class="p">)</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(),</span> <span class="n">max_detector_freq</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">cache_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache_attenuation</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cache_attenuation</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_attenuation_along_path</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span> <span class="n">frequency</span><span class="p">,</span> <span class="n">max_detector_freq</span><span class="p">,</span>
-                <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
-                <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span> <span class="n">frequency</span><span class="p">,</span> <span class="n">max_detector_freq</span><span class="p">,</span>
+                <span class="n">reflection</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span>
+                <span class="n">reflection_case</span><span class="o">=</span><span class="n">result</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">])</span>
 
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cache_attenuation</span><span class="p">[</span><span class="n">cache_key</span><span class="p">])</span></div>
 
@@ -1470,7 +1470,7 @@
 <div class="viewcode-block" id="ray_tracing.get_focusing">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_focusing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">,</span> <span class="n">dz</span><span class="o">=-</span><span class="mf">1.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span> <span class="n">analytic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the focusing effect in the medium</span>
 
 <span class="sd">        Parameters</span>
@@ -1509,15 +1509,15 @@
 <span class="sd">        the fresnel coefficients already include both the impedance</span>
 <span class="sd">        and a plane-wave (geometric) focusing correction. In order to avoid</span>
 <span class="sd">        double-counting, this method returns the focusing factor multiplied</span>
-<span class="sd">        by the inverse of the &#39;focusing&#39; part of the fresnel coefficients</span>
+<span class="sd">        by the inverse of the 'focusing' part of the fresnel coefficients</span>
 <span class="sd">        for air-to-ice trajectories.</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># the C0 parameter uniquely identifies the ray path for the current geometry. The focusing</span>
         <span class="c1"># factor is requested several times per solution (e.g. by `get_raytracing_output` and</span>
         <span class="c1"># `apply_propagation_effects`), hence, caching it avoids expensive recalculations</span>
         <span class="c1"># (the numerical calculation requires an additional ray tracing)</span>
-        <span class="n">cache_key</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(),</span> <span class="n">iS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">][</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span> <span class="n">dz</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">analytic</span><span class="p">)</span>
+        <span class="n">cache_key</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(),</span> <span class="n">iS</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">][</span><span class="s1">'C0'</span><span class="p">],</span> <span class="n">dz</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">analytic</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">cache_key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache_focusing</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache_focusing</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span>
 
@@ -1547,13 +1547,13 @@
             <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">iS</span><span class="p">]</span>
             <span class="n">impedance_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n1</span> <span class="o">/</span> <span class="n">n2</span><span class="p">)</span> <span class="c1"># used for debugging only</span>
             <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_focusing_analytic</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span>
-                <span class="n">res</span><span class="p">[</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span>
+                <span class="n">res</span><span class="p">[</span><span class="s1">'reflection'</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="s1">'reflection_case'</span><span class="p">]</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">f</span><span class="p">):</span> <span class="c1"># either the analytic calculation failed, or we asked for the numerical solution</span>
             <span class="n">distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_path_length</span><span class="p">(</span><span class="n">iS</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_r1&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"_r1"</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_r1</span> <span class="o">=</span> <span class="n">ray_tracing</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attenuation_model</span><span class="p">,</span>
                     <span class="n">log_level</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">level</span><span class="p">,</span>
@@ -1569,7 +1569,7 @@
                 <span class="n">lauAng1</span> <span class="o">=</span> <span class="n">_get_zenith</span><span class="p">(</span><span class="n">lauVec1</span><span class="p">)</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="s2">&quot;focusing: receive angle </span><span class="si">%.2f</span><span class="s2"> / launch angle </span><span class="si">%.2f</span><span class="s2"> / d_launch_angle </span><span class="si">%.4f</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="s2">"focusing: receive angle </span><span class="si">%.2f</span><span class="s2"> / launch angle </span><span class="si">%.2f</span><span class="s2"> / d_launch_angle </span><span class="si">%.4f</span><span class="s2">"</span><span class="p">,</span>
                     <span class="n">recAng</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">lauAng</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="p">(</span><span class="n">lauAng1</span><span class="o">-</span><span class="n">lauAng</span><span class="p">)</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
                 <span class="p">)</span>
 
@@ -1582,21 +1582,21 @@
                 <span class="n">dphi_curved</span> <span class="o">=</span> <span class="n">radius</span> <span class="o">*</span> <span class="n">sinTheta</span>
                 <span class="n">focusing</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dphi_flat</span> <span class="o">/</span> <span class="n">dphi_curved</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">iS</span><span class="p">][</span><span class="s1">&#39;reflection&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r1</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">iS</span><span class="p">][</span><span class="s1">&#39;reflection&#39;</span><span class="p">]</span>
-                        <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">iS</span><span class="p">][</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r1</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">iS</span><span class="p">][</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">]):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Number or type of reflections are different between solutions - focusing correction may not be reliable.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">iS</span><span class="p">][</span><span class="s1">'reflection'</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r1</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">iS</span><span class="p">][</span><span class="s1">'reflection'</span><span class="p">]</span>
+                        <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">iS</span><span class="p">][</span><span class="s1">'reflection_case'</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r1</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">iS</span><span class="p">][</span><span class="s1">'reflection_case'</span><span class="p">]):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Number or type of reflections are different between solutions - focusing correction may not be reliable."</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">focusing</span> <span class="o">=</span> <span class="mf">1.0</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;too few ray tracing solutions, setting focusing factor to 1&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"too few ray tracing solutions, setting focusing factor to 1"</span><span class="p">)</span>
 
             <span class="c1"># now also correct for differences in refractive index between emitter and receiver position</span>
             <span class="c1"># (this is already included in the analytic calculation)</span>
             <span class="n">impedance_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">n1</span> <span class="o">/</span> <span class="n">n2</span><span class="p">)</span>
             <span class="n">f</span> <span class="o">=</span> <span class="n">focusing</span> <span class="o">*</span> <span class="n">impedance_factor</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;amplification due to focusing of solution </span><span class="si">%d</span><span class="s1"> = </span><span class="si">%.3f</span><span class="s1"> x </span><span class="si">%.3f</span><span class="s1"> = </span><span class="si">%.3f</span><span class="s1"> &#39;</span><span class="p">,</span> <span class="n">iS</span><span class="p">,</span> <span class="n">f</span> <span class="o">/</span> <span class="n">impedance_factor</span><span class="p">,</span> <span class="n">impedance_factor</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'amplification due to focusing of solution </span><span class="si">%d</span><span class="s1"> = </span><span class="si">%.3f</span><span class="s1"> x </span><span class="si">%.3f</span><span class="s1"> = </span><span class="si">%.3f</span><span class="s1"> '</span><span class="p">,</span> <span class="n">iS</span><span class="p">,</span> <span class="n">f</span> <span class="o">/</span> <span class="n">impedance_factor</span><span class="p">,</span> <span class="n">impedance_factor</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">f</span> <span class="o">/</span> <span class="n">impedance_factor</span> <span class="o">&gt;</span> <span class="n">limit</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;amplification due to focusing is </span><span class="si">{</span><span class="n">f</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">impedance_factor</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">x -&gt; limiting amplification factor to </span><span class="si">{</span><span class="n">limit</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">x&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"amplification due to focusing is </span><span class="si">{</span><span class="n">f</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">impedance_factor</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">x -&gt; limiting amplification factor to </span><span class="si">{</span><span class="n">limit</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">x"</span><span class="p">)</span>
             <span class="n">f</span> <span class="o">=</span> <span class="n">limit</span> <span class="o">*</span> <span class="n">impedance_factor</span>
 
         <span class="c1"># for ice-to-air transmission, the fresnel amplitude coefficients include an impedance factor</span>
@@ -1606,14 +1606,14 @@
             <span class="n">reflection_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_reflection_angle</span><span class="p">(</span><span class="n">iS</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">correction_term</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
                 <span class="n">n2</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">recAng</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">reflection_angle</span><span class="p">)))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;raytracing to air - correct focusing by </span><span class="si">%.3f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">correction_term</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'raytracing to air - correct focusing by </span><span class="si">%.3f</span><span class="s1">'</span><span class="p">,</span> <span class="n">correction_term</span><span class="p">)</span>
             <span class="n">f</span> <span class="o">*=</span> <span class="n">correction_term</span>
 
         <span class="k">elif</span> <span class="n">vetPos</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># emitter in air</span>
             <span class="n">reflection_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_reflection_angle</span><span class="p">(</span><span class="n">iS</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">correction_term</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span> <span class="o">/</span> <span class="n">n1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">reflection_angle</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lauAng</span><span class="p">)))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;raytracing from air to ice - correct focusing by </span><span class="si">%.3f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">correction_term</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'raytracing from air to ice - correct focusing by </span><span class="si">%.3f</span><span class="s1">'</span><span class="p">,</span> <span class="n">correction_term</span><span class="p">)</span>
             <span class="n">f</span> <span class="o">*=</span> <span class="n">correction_term</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_cache_focusing</span><span class="p">[</span><span class="n">cache_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span>
@@ -1623,28 +1623,28 @@
 <div class="viewcode-block" id="ray_tracing.get_ray_path">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_ray_path">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_ray_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_path_reflections</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">][</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span> <span class="mi">10000</span><span class="p">,</span>
-                                   <span class="n">reflection</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">][</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
-                                   <span class="n">reflection_case</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">][</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">])</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_path_reflections</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">][</span><span class="s1">'C0'</span><span class="p">],</span> <span class="mi">10000</span><span class="p">,</span>
+                                   <span class="n">reflection</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">][</span><span class="s1">'reflection'</span><span class="p">],</span>
+                                   <span class="n">reflection_case</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">][</span><span class="s1">'reflection_case'</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="ray_tracing.get_output_parameters">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_output_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span>
-            <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;ray_tracing_C0&#39;</span><span class="p">,</span> <span class="s1">&#39;ndim&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-            <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;ray_tracing_C1&#39;</span><span class="p">,</span> <span class="s1">&#39;ndim&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-            <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;focusing_factor&#39;</span><span class="p">,</span> <span class="s1">&#39;ndim&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-            <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;ray_tracing_reflection&#39;</span><span class="p">,</span> <span class="s1">&#39;ndim&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-            <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;ray_tracing_reflection_case&#39;</span><span class="p">,</span> <span class="s1">&#39;ndim&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
-            <span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;ray_tracing_solution_type&#39;</span><span class="p">,</span> <span class="s1">&#39;ndim&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+            <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'ray_tracing_C0'</span><span class="p">,</span> <span class="s1">'ndim'</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'ray_tracing_C1'</span><span class="p">,</span> <span class="s1">'ndim'</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'focusing_factor'</span><span class="p">,</span> <span class="s1">'ndim'</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'ray_tracing_reflection'</span><span class="p">,</span> <span class="s1">'ndim'</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'ray_tracing_reflection_case'</span><span class="p">,</span> <span class="s1">'ndim'</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+            <span class="p">{</span><span class="s1">'name'</span><span class="p">:</span> <span class="s1">'ray_tracing_solution_type'</span><span class="p">,</span> <span class="s1">'ndim'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
         <span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="ray_tracing.get_raytracing_output">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_raytracing_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Get the output of the ray tracing for a specific solution</span>
 
 <span class="sd">        Parameters</span>
@@ -1660,19 +1660,19 @@
 <span class="sd">            The solution type is the type of the solution (1: direct, 2:refracted, 3: reflected off the surface).</span>
 <span class="sd">            The reflection parameter specifies the number of bottom reflections (in case of reflective layers in the ice).</span>
 <span class="sd">            The reflection case specifies if the ray starts upward or downward (1: upward, 2: downward) (only relevant if bottom reflection &gt; 0).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing&#39;</span><span class="p">]:</span>
-            <span class="n">focusing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_focusing</span><span class="p">(</span><span class="n">i_solution</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing_limit&#39;</span><span class="p">]))</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'focusing'</span><span class="p">]:</span>
+            <span class="n">focusing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_focusing</span><span class="p">(</span><span class="n">i_solution</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'focusing_limit'</span><span class="p">]))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">focusing</span> <span class="o">=</span> <span class="mi">1</span>
 
         <span class="n">output_dict</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;ray_tracing_C0&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">i_solution</span><span class="p">][</span><span class="s1">&#39;C0&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;ray_tracing_C1&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">i_solution</span><span class="p">][</span><span class="s1">&#39;C1&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;ray_tracing_reflection&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">i_solution</span><span class="p">][</span><span class="s1">&#39;reflection&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;ray_tracing_reflection_case&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">i_solution</span><span class="p">][</span><span class="s1">&#39;reflection_case&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;ray_tracing_solution_type&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_solution_type</span><span class="p">(</span><span class="n">i_solution</span><span class="p">),</span>
-            <span class="s1">&#39;focusing_factor&#39;</span><span class="p">:</span> <span class="n">focusing</span>
+            <span class="s1">'ray_tracing_C0'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">i_solution</span><span class="p">][</span><span class="s1">'C0'</span><span class="p">],</span>
+            <span class="s1">'ray_tracing_C1'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">i_solution</span><span class="p">][</span><span class="s1">'C1'</span><span class="p">],</span>
+            <span class="s1">'ray_tracing_reflection'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">i_solution</span><span class="p">][</span><span class="s1">'reflection'</span><span class="p">],</span>
+            <span class="s1">'ray_tracing_reflection_case'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">i_solution</span><span class="p">][</span><span class="s1">'reflection_case'</span><span class="p">],</span>
+            <span class="s1">'ray_tracing_solution_type'</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_solution_type</span><span class="p">(</span><span class="n">i_solution</span><span class="p">),</span>
+            <span class="s1">'focusing_factor'</span><span class="p">:</span> <span class="n">focusing</span>
         <span class="p">}</span>
         <span class="k">return</span> <span class="n">output_dict</span></div>
 
@@ -1680,7 +1680,7 @@
 <div class="viewcode-block" id="ray_tracing.apply_propagation_effects">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.apply_propagation_effects">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">apply_propagation_effects</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">efield</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Apply propagation effects to the electric field</span>
 
 <span class="sd">        Note that the 1/r weakening of the electric field is already accounted for in the signal generation.</span>
@@ -1701,12 +1701,12 @@
 <span class="sd">        -------</span>
 <span class="sd">        efield: ElectricField object</span>
 <span class="sd">            The modified ElectricField object</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">s_rate</span> <span class="o">=</span> <span class="n">efield</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span>
         <span class="n">spec</span> <span class="o">=</span> <span class="n">efield</span><span class="o">.</span><span class="n">get_frequency_spectrum</span><span class="p">()</span>
 
 
-        <span class="n">apply_attenuation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;attenuate_ice&#39;</span><span class="p">]</span>
+        <span class="n">apply_attenuation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'attenuate_ice'</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">apply_attenuation</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_detector_frequency</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">max_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">efield</span><span class="o">.</span><span class="n">get_frequencies</span><span class="p">())</span>
@@ -1718,15 +1718,15 @@
         <span class="c1"># lets handle the general case of multiple reflections off the ice-air surface</span>
         <span class="c1"># Multiple relfections are possible if a reflective bottom layer exists.</span>
         <span class="k">for</span> <span class="n">fresnel_coefficients</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fresnel_coefficients</span><span class="p">(</span><span class="n">i_solution</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">fresnel_coefficients</span><span class="p">[</span><span class="s1">&#39;case&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;reflection&#39;</span><span class="p">:</span>
-                <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">reflection_coefficient_theta</span><span class="p">]</span> <span class="o">=</span> <span class="n">fresnel_coefficients</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span>
-                <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">reflection_coefficient_phi</span><span class="p">]</span> <span class="o">=</span> <span class="n">fresnel_coefficients</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">fresnel_coefficients</span><span class="p">[</span><span class="s1">'case'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'reflection'</span><span class="p">:</span>
+                <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">reflection_coefficient_theta</span><span class="p">]</span> <span class="o">=</span> <span class="n">fresnel_coefficients</span><span class="p">[</span><span class="s1">'theta'</span><span class="p">]</span>
+                <span class="n">efield</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">reflection_coefficient_phi</span><span class="p">]</span> <span class="o">=</span> <span class="n">fresnel_coefficients</span><span class="p">[</span><span class="s1">'phi'</span><span class="p">]</span>
 
-            <span class="n">spec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="n">fresnel_coefficients</span><span class="p">[</span><span class="s1">&#39;theta&#39;</span><span class="p">]</span>
-            <span class="n">spec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="n">fresnel_coefficients</span><span class="p">[</span><span class="s1">&#39;phi&#39;</span><span class="p">]</span>
+            <span class="n">spec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="n">fresnel_coefficients</span><span class="p">[</span><span class="s1">'theta'</span><span class="p">]</span>
+            <span class="n">spec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="n">fresnel_coefficients</span><span class="p">[</span><span class="s1">'phi'</span><span class="p">]</span>
 
         <span class="c1"># Mow also take possible bottom reflections into account (not included in the previous loop!)</span>
-        <span class="n">i_reflections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">i_solution</span><span class="p">][</span><span class="s1">&#39;reflection&#39;</span><span class="p">]</span>
+        <span class="n">i_reflections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_results</span><span class="p">()[</span><span class="n">i_solution</span><span class="p">][</span><span class="s1">'reflection'</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">i_reflections</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># each reflection lowers the amplitude by the reflection coefficient and introduces a phase shift</span>
             <span class="n">reflection_coefficient</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">reflection_coefficient</span> <span class="o">**</span> <span class="n">i_reflections</span>
@@ -1735,22 +1735,22 @@
             <span class="n">spec</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*=</span> <span class="n">reflection_coefficient</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">phase_shift</span><span class="p">)</span>
             <span class="n">spec</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="n">reflection_coefficient</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">phase_shift</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="s2">&quot;ray is reflecting </span><span class="si">%d</span><span class="s2"> times at the bottom -&gt; reducing the signal by a factor of </span><span class="si">%.2f</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">"ray is reflecting </span><span class="si">%d</span><span class="s2"> times at the bottom -&gt; reducing the signal by a factor of </span><span class="si">%.2f</span><span class="s2">"</span><span class="p">,</span>
                 <span class="n">i_reflections</span><span class="p">,</span> <span class="n">reflection_coefficient</span><span class="p">)</span>
 
         <span class="c1"># apply the focusing effect</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing&#39;</span><span class="p">]:</span>
-            <span class="n">focusing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_focusing</span><span class="p">(</span><span class="n">i_solution</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing_limit&#39;</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'focusing'</span><span class="p">]:</span>
+            <span class="n">focusing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_focusing</span><span class="p">(</span><span class="n">i_solution</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'focusing_limit'</span><span class="p">]))</span>
             <span class="n">spec</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">*=</span> <span class="n">focusing</span>
 
         <span class="c1"># apply the birefringence effect</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;birefringence&#39;</span><span class="p">]:</span>
-            <span class="n">bire_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;birefringence_model&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'birefringence'</span><span class="p">]:</span>
+            <span class="n">bire_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'birefringence_model'</span><span class="p">]</span>
 
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;birefringence_propagation&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;analytical&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'birefringence_propagation'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'analytical'</span><span class="p">:</span>
                 <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pulse_propagation_birefringence</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">s_rate</span><span class="p">,</span> <span class="n">i_solution</span><span class="p">,</span> <span class="n">bire_model</span> <span class="o">=</span> <span class="n">bire_model</span><span class="p">)</span>
 
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;birefringence_propagation&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;numerical&#39;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'birefringence_propagation'</span><span class="p">]</span> <span class="o">==</span> <span class="s1">'numerical'</span><span class="p">:</span>
                 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp</span><span class="w"> </span><span class="kn">import</span> <span class="n">radioproparaytracing</span>
                 <span class="n">launch_v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_launch_vector</span><span class="p">(</span><span class="n">i_solution</span><span class="p">)</span>
                 <span class="n">radiopropa_rays</span> <span class="o">=</span> <span class="n">radioproparaytracing</span><span class="o">.</span><span class="n">radiopropa_ray_tracing</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="p">)</span>
@@ -1764,7 +1764,7 @@
 <div class="viewcode-block" id="ray_tracing.set_config">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">set_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Change the configuration file used by the raytracer</span>
 
 <span class="sd">        Parameters</span>
@@ -1772,13 +1772,13 @@
 <span class="sd">        config: dict or None</span>
 <span class="sd">            The new configuration settings</span>
 <span class="sd">            If None, the default config settings will be applied</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;propagation&#39;</span><span class="p">:</span> <span class="p">{}}</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;attenuate_ice&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing_limit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;focusing&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">&#39;propagation&#39;</span><span class="p">][</span><span class="s1">&#39;birefringence&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'propagation'</span><span class="p">:</span> <span class="p">{}}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'attenuate_ice'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'focusing_limit'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'focusing'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'birefringence'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">config</span></div>
 </div>

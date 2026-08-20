@@ -676,13 +676,13 @@
 <span class="n">channelLengthAdjuster</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">channelLengthAdjuster</span><span class="o">.</span><span class="n">channelLengthAdjuster</span><span class="p">()</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;NuRadioReco.neutrinoLikelihoodReconstructor&#39;</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.neutrinoLikelihoodReconstructor'</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="neutrinoLikelihoodReconstructor">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.likelihood_reconstruction.neutrinoLikelihoodReconstructor.html#NuRadioReco.modules.likelihood_reconstruction.neutrinoLikelihoodReconstructor.neutrinoLikelihoodReconstructor">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">neutrinoLikelihoodReconstructor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Class for reconstructing a neutrino shower in a station. This class forward-folds a simulated hadronic</span>
 <span class="sd">    shower E-field calculated using the Alvarez2009 parameterization through the detector response and compares</span>
 <span class="sd">    it to a data traces in the provided station object using a likelihood objective function. The -2DeltaLLH is</span>
@@ -693,12 +693,12 @@
 <span class="sd">    In the current implementation of this class, the initial guess of the signal parameters needs to be very close</span>
 <span class="sd">    to the true parameter values. A good guess for the vertex position can be found with interferometric vertex</span>
 <span class="sd">    reconstruction modules. The time can be estimated from the peak of the trace of the reference antenna, and it is</span>
-<span class="sd">    anyway profiled over in the first fitting stage. The energy probably doesn&#39;t need a good guess, since it is also</span>
+<span class="sd">    anyway profiled over in the first fitting stage. The energy probably doesn't need a good guess, since it is also</span>
 <span class="sd">    profiled over analytically in the first fitting stage. Finally, educated guesses of the neutrino arrival direction</span>
 <span class="sd">    can be obtained by assuming that we observe the signal close to the Cherenkov cone (i.e., signal launch angle + ~56 deg)</span>
 
 <span class="sd">    For a full description of the method, see https://arxiv.org/abs/2510.21925.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
@@ -720,7 +720,7 @@
             <span class="n">use_chi2</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
             <span class="n">debug</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -770,7 +770,7 @@
 
 <span class="sd">            debug: bool, optional</span>
 <span class="sd">                Extra plots and printouts for debugging</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span> <span class="o">=</span> <span class="n">n_channels</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="n">n_samples</span>
@@ -792,7 +792,7 @@
             <span class="n">n_antennas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">,</span>
             <span class="n">n_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span>
             <span class="n">sampling_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">,</span>
-            <span class="n">matrix_inversion_method</span> <span class="o">=</span> <span class="s2">&quot;pseudo_inv&quot;</span><span class="p">,</span>
+            <span class="n">matrix_inversion_method</span> <span class="o">=</span> <span class="s2">"pseudo_inv"</span><span class="p">,</span>
             <span class="n">threshold_amplitude</span> <span class="o">=</span> <span class="mf">0.1</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">likelihood_calculator</span><span class="o">.</span><span class="n">initialize_with_spectra</span><span class="p">(</span><span class="n">noise_spectra</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span><span class="p">)</span>
@@ -826,7 +826,7 @@
         <span class="n">full_output</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">bounds</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Run the likelihood reconstruction to fit a hadronic shower signal model to the traces in the station object.</span>
 
 <span class="sd">        The reconstructed values are saved to the station and a shower object which is added to the station.</span>
@@ -896,7 +896,7 @@
 <span class="sd">            The goodness-of-fit p-value of the reconstructed signal. This is calculated from minus_two_llh_fit</span>
 <span class="sd">            and the degrees of freedom in the likelihood_calculator.</span>
 <span class="sd">            Only returned if `full_output` enabled</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="n">use_channels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">use_channels</span> <span class="o">=</span> <span class="n">station</span><span class="o">.</span><span class="n">get_channel_ids</span><span class="p">()</span>
@@ -912,9 +912,9 @@
             <span class="n">trace_start_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace_start_time</span><span class="p">())</span>
         <span class="n">traces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">traces</span><span class="p">)</span>
 
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">use_channels</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">,</span> <span class="s2">&quot;Number of channels in use_channels does not match n_channels in begin()&quot;</span>
-        <span class="k">assert</span> <span class="n">traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span> <span class="s2">&quot;Number of samples in traces does not match n_samples in begin()&quot;</span>
-        <span class="k">assert</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">,</span> <span class="s2">&quot;Sampling rate of channel does not match sampling rate in begin()&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">use_channels</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">,</span> <span class="s2">"Number of channels in use_channels does not match n_channels in begin()"</span>
+        <span class="k">assert</span> <span class="n">traces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">,</span> <span class="s2">"Number of samples in traces does not match n_samples in begin()"</span>
+        <span class="k">assert</span> <span class="n">channel</span><span class="o">.</span><span class="n">get_sampling_rate</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">,</span> <span class="s2">"Sampling rate of channel does not match sampling rate in begin()"</span>
 
         <span class="c1"># Define signal function:</span>
         <span class="n">signal_model</span> <span class="o">=</span> <span class="n">ShowerSimulator</span><span class="p">(</span>
@@ -929,9 +929,9 @@
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">overwrite_speedup_options</span><span class="p">:</span>
-            <span class="n">signal_model</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;delta_C_cut&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">180</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
-            <span class="n">signal_model</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;min_efield_amplitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">signal_model</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;speedup&#39;</span><span class="p">][</span><span class="s1">&#39;distance_cut&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">signal_model</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">'speedup'</span><span class="p">][</span><span class="s1">'delta_C_cut'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">180</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span>
+            <span class="n">signal_model</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">'speedup'</span><span class="p">][</span><span class="s1">'min_efield_amplitude'</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">signal_model</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">'speedup'</span><span class="p">][</span><span class="s1">'distance_cut'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">signal_model_wrapper</span><span class="p">(</span><span class="n">parameters</span><span class="p">):</span>
             <span class="n">signal_station</span><span class="p">,</span> <span class="n">signal_traces</span> <span class="o">=</span> <span class="n">signal_model</span><span class="o">.</span><span class="n">simulate_single_shower_forward_folding</span><span class="p">(</span>
@@ -942,7 +942,7 @@
                 <span class="n">vertex_theta_rel</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
                 <span class="n">vertex_phi_rel</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span>
                 <span class="n">pulse_time</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="mi">6</span><span class="p">],</span>
-                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;HAD&quot;</span><span class="p">,</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">"HAD"</span><span class="p">,</span>
                 <span class="n">trace_start_times</span> <span class="o">=</span> <span class="n">trace_start_times</span><span class="p">,</span>
                 <span class="n">charge_excess_profile_id</span> <span class="o">=</span> <span class="n">charge_excess_profile_id</span><span class="p">,</span>
             <span class="p">)</span>
@@ -956,29 +956,29 @@
             <span class="n">t_array</span> <span class="o">=</span> <span class="n">trace_start_times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_t</span>
             <span class="n">fig_1</span><span class="p">,</span> <span class="n">ax_1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="o">*</span><span class="mf">2.5</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">i_ch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
-                <span class="n">ax_1</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_array</span><span class="p">,</span> <span class="n">traces</span><span class="p">[</span><span class="n">i_ch</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Data&quot;</span><span class="p">)</span>
-                <span class="n">ax_1</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_array</span><span class="p">,</span> <span class="n">signal_initial</span><span class="p">[</span><span class="n">i_ch</span><span class="p">],</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Initial guess signal&quot;</span><span class="p">)</span>
-                <span class="n">ax_1</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Voltage [V]&quot;</span><span class="p">)</span>
+                <span class="n">ax_1</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_array</span><span class="p">,</span> <span class="n">traces</span><span class="p">[</span><span class="n">i_ch</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Data"</span><span class="p">)</span>
+                <span class="n">ax_1</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_array</span><span class="p">,</span> <span class="n">signal_initial</span><span class="p">[</span><span class="n">i_ch</span><span class="p">],</span> <span class="n">ls</span><span class="o">=</span><span class="s2">"--"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Initial guess signal"</span><span class="p">)</span>
+                <span class="n">ax_1</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Voltage [V]"</span><span class="p">)</span>
                 <span class="n">ax_1</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">t_array</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t_array</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
             <span class="n">ax_1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-            <span class="n">ax_1</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time [s]&quot;</span><span class="p">)</span>
+            <span class="n">ax_1</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"Time [s]"</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;debug_neutrinoLikelihoodReconstructor.png&quot;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"debug_neutrinoLikelihoodReconstructor.png"</span><span class="p">)</span>
 
             <span class="c1"># Plot the spectra of the data and initial signal and likelihood calcualtor:</span>
             <span class="n">fig_2</span><span class="p">,</span> <span class="n">ax_2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="o">*</span><span class="mf">2.5</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">i_ch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
                 <span class="n">data_spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">traces</span><span class="p">[</span><span class="n">i_ch</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">))</span>
                 <span class="n">signal_spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">signal_initial</span><span class="p">[</span><span class="n">i_ch</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">))</span>
-                <span class="n">ax_2</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">data_spectrum</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Data&quot;</span><span class="p">)</span>
-                <span class="n">ax_2</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">signal_spectrum</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Initial guess signal&quot;</span><span class="p">)</span>
-                <span class="n">ax_2</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">likelihood_calculator</span><span class="o">.</span><span class="n">spectra</span><span class="p">[</span><span class="n">i_ch</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Assumed spectrum for likelihood&quot;</span><span class="p">)</span>
-                <span class="n">ax_2</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Amplitude [V]&quot;</span><span class="p">)</span>
+                <span class="n">ax_2</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">data_spectrum</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Data"</span><span class="p">)</span>
+                <span class="n">ax_2</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">signal_spectrum</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">"--"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Initial guess signal"</span><span class="p">)</span>
+                <span class="n">ax_2</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">likelihood_calculator</span><span class="o">.</span><span class="n">spectra</span><span class="p">[</span><span class="n">i_ch</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">"k"</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">":"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Assumed spectrum for likelihood"</span><span class="p">)</span>
+                <span class="n">ax_2</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Amplitude [V]"</span><span class="p">)</span>
                 <span class="n">ax_2</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
             <span class="n">ax_2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-            <span class="n">ax_2</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Frequency [Hz]&quot;</span><span class="p">)</span>
+            <span class="n">ax_2</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"Frequency [Hz]"</span><span class="p">)</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;debug_neutrinoLikelihoodReconstructor_spectra.png&quot;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"debug_neutrinoLikelihoodReconstructor_spectra.png"</span><span class="p">)</span>
 
         <span class="n">minus_two_llh_initial</span><span class="p">,</span> <span class="n">minus_two_llh_fit</span><span class="p">,</span> <span class="n">parameters_fit</span><span class="p">,</span> <span class="n">uncertainties_fit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reconstruct_signal</span><span class="p">(</span><span class="n">traces</span><span class="p">,</span> <span class="n">signal_model_wrapper</span><span class="p">,</span> <span class="n">parameters_initial</span><span class="p">,</span> <span class="n">two_step_optimization</span><span class="o">=</span><span class="n">two_step_optimization</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="n">bounds</span><span class="p">)</span>
 
@@ -986,18 +986,18 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">i_ch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
-                <span class="n">ax_1</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_array</span><span class="p">,</span> <span class="n">signal_fit</span><span class="p">[</span><span class="n">i_ch</span><span class="p">],</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;Fitted signal&quot;</span><span class="p">)</span>
+                <span class="n">ax_1</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_array</span><span class="p">,</span> <span class="n">signal_fit</span><span class="p">[</span><span class="n">i_ch</span><span class="p">],</span> <span class="n">ls</span><span class="o">=</span><span class="s2">":"</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s2">"Fitted signal"</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">i_ch</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">ax_1</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-            <span class="n">fig_1</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;debug_neutrinoLikelihoodReconstructor.png&quot;</span><span class="p">)</span>
+            <span class="n">fig_1</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"debug_neutrinoLikelihoodReconstructor.png"</span><span class="p">)</span>
             <span class="n">fig_1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
             <span class="k">for</span> <span class="n">i_ch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
                 <span class="n">signal_spectrum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">fft</span><span class="o">.</span><span class="n">time2freq</span><span class="p">(</span><span class="n">signal_fit</span><span class="p">[</span><span class="n">i_ch</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">))</span>
-                <span class="n">ax_2</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">signal_spectrum</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Fitted signal&quot;</span><span class="p">)</span>
+                <span class="n">ax_2</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">signal_spectrum</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">":"</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Fitted signal"</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">i_ch</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">ax_2</span><span class="p">[</span><span class="n">i_ch</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-            <span class="n">fig_2</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;debug_neutrinoLikelihoodReconstructor_spectra.png&quot;</span><span class="p">)</span>
+            <span class="n">fig_2</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"debug_neutrinoLikelihoodReconstructor_spectra.png"</span><span class="p">)</span>
             <span class="n">fig_2</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
@@ -1032,7 +1032,7 @@
         <span class="n">shower</span><span class="o">.</span><span class="n">set_parameter_error</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">vertex</span><span class="p">,</span> <span class="n">unc_xyz</span><span class="p">)</span>
         <span class="n">shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">vertex_time</span><span class="p">,</span> <span class="n">rec_vertex_time</span><span class="p">)</span>
         <span class="n">shower</span><span class="o">.</span><span class="n">set_parameter_error</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">vertex_time</span><span class="p">,</span> <span class="n">unc_vertex_time</span><span class="p">)</span>
-        <span class="n">shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="s2">&quot;HAD&quot;</span><span class="p">)</span>
+        <span class="n">shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="s2">"HAD"</span><span class="p">)</span>
         <span class="n">shower</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">shp</span><span class="o">.</span><span class="n">charge_excess_profile_id</span><span class="p">,</span> <span class="n">charge_excess_profile_id</span><span class="p">)</span>
         <span class="n">evt</span><span class="o">.</span><span class="n">add_shower</span><span class="p">(</span><span class="n">shower</span><span class="p">)</span>
 
@@ -1040,7 +1040,7 @@
         <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">nu_zenith</span><span class="p">,</span> <span class="n">rec_zenith</span><span class="p">)</span>
         <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">nu_azimuth</span><span class="p">,</span> <span class="n">rec_azimuth</span><span class="p">)</span>
         <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">nu_energy</span><span class="p">,</span> <span class="n">rec_energy</span><span class="p">)</span>
-        <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">ccnc</span><span class="p">,</span> <span class="s2">&quot;nc&quot;</span><span class="p">)</span>
+        <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">ccnc</span><span class="p">,</span> <span class="s2">"nc"</span><span class="p">)</span>
 
         <span class="c1"># Calculate goodness of fit:</span>
         <span class="n">n_dof_fit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">likelihood_calculator</span><span class="o">.</span><span class="n">get_dof</span><span class="p">()</span> <span class="o">-</span> <span class="mi">7</span>
@@ -1051,9 +1051,9 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_function_to_minimize_mf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">signal</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the objective function for the first minimization.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_chi2</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">matched_filter</span><span class="o">.</span><span class="n">set_template</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span>
@@ -1066,22 +1066,22 @@
             <span class="k">return</span> <span class="o">-</span><span class="n">cross</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_function_to_minimize_llh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">signal</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the log-likelihood objective function of the 2nd minimization</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_chi2</span><span class="p">:</span>
             <span class="n">minus_two_llh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">likelihood_calculator</span><span class="o">.</span><span class="n">calculate_minus_two_delta_llh</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">signal</span><span class="p">)</span>
-            <span class="c1">#print(&quot;Minus two delta LLH:&quot;, minus_two_llh)</span>
+            <span class="c1">#print("Minus two delta LLH:", minus_two_llh)</span>
             <span class="k">return</span> <span class="n">minus_two_llh</span>
 
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_chi2</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chi2</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">signal</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_cross_correlation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">signal</span><span class="p">,</span> <span class="n">shift_array</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the cross-correlation between the data and the signal. The shift_array</span>
 <span class="sd">        is the shift indicies to calculate the cross-correlation for.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">cross_correlation_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">shift_array</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shift</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shift_array</span><span class="p">):</span>
@@ -1093,9 +1093,9 @@
         <span class="k">return</span> <span class="n">i_max</span><span class="p">,</span> <span class="n">cross</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_chi2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">signal</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate the chi2 value between the data and the signal.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">sigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vrms</span><span class="p">[:,</span><span class="kc">None</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1105,9 +1105,9 @@
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_reconstruct_signal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">signal_function</span><span class="p">,</span> <span class="n">parameters_initial</span><span class="p">,</span> <span class="n">two_step_optimization</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Reconstruct the signal from the given data and the provided signal model using the initial guess of the signal parameters.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">normalization</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">units</span><span class="o">.</span><span class="n">EeV</span><span class="p">,</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">units</span><span class="o">.</span><span class="n">rad</span><span class="p">,</span> <span class="n">units</span><span class="o">.</span><span class="n">km</span><span class="p">,</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">])</span>
 
@@ -1133,7 +1133,7 @@
                 <span class="n">fixed</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
                 <span class="n">debug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span>
             <span class="p">)</span>
-            <span class="n">m_mf</span> <span class="o">=</span> <span class="n">minimizer_mf</span><span class="o">.</span><span class="n">run_minimization</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;minuit&quot;</span><span class="p">)</span>
+            <span class="n">m_mf</span> <span class="o">=</span> <span class="n">minimizer_mf</span><span class="o">.</span><span class="n">run_minimization</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"minuit"</span><span class="p">)</span>
 
             <span class="n">params_fit_mf</span> <span class="o">=</span> <span class="n">minimizer_mf</span><span class="o">.</span><span class="n">parameters</span>
             <span class="n">signal_fit_mf</span> <span class="o">=</span> <span class="n">signal_function</span><span class="p">(</span><span class="n">params_fit_mf</span><span class="p">)</span>
@@ -1154,7 +1154,7 @@
                 <span class="n">fixed</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
                 <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">debug</span>
             <span class="p">)</span>
-            <span class="n">m_amplitude</span> <span class="o">=</span> <span class="n">minimizer_amplitude</span><span class="o">.</span><span class="n">run_minimization</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;minuit&quot;</span><span class="p">)</span>
+            <span class="n">m_amplitude</span> <span class="o">=</span> <span class="n">minimizer_amplitude</span><span class="o">.</span><span class="n">run_minimization</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"minuit"</span><span class="p">)</span>
             <span class="n">energy_guess</span> <span class="o">=</span> <span class="n">minimizer_amplitude</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
             <span class="n">parameters_initial_llh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">energy_guess</span><span class="p">,</span> <span class="n">params_fit_mf</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">params_fit_mf</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">params_fit_mf</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">params_fit_mf</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">params_fit_mf</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="n">t_guess</span><span class="p">])</span>
@@ -1172,7 +1172,7 @@
             <span class="n">fixed</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
             <span class="n">debug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span>
         <span class="p">)</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="n">minimizer_llh</span><span class="o">.</span><span class="n">run_minimization</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;minuit&quot;</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">minimizer_llh</span><span class="o">.</span><span class="n">run_minimization</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"minuit"</span><span class="p">)</span>
 
         <span class="n">params_fit</span> <span class="o">=</span> <span class="n">minimizer_llh</span><span class="o">.</span><span class="n">parameters</span>
         <span class="n">minus_two_llh_fit</span> <span class="o">=</span> <span class="n">minimizer_llh</span><span class="o">.</span><span class="n">result</span>

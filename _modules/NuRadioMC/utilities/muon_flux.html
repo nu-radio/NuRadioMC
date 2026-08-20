@@ -670,9 +670,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">mc_ns</span> <span class="o">=</span> <span class="mf">1e-9</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__buffer</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">file_buffer</span> <span class="o">=</span> <span class="s2">&quot;data/surface_muon_buffer.pkl&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_buffer</span> <span class="o">=</span> <span class="s2">"data/surface_muon_buffer.pkl"</span>
         <span class="k">if</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_buffer</span><span class="p">)):</span>
-            <span class="n">fin</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_buffer</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+            <span class="n">fin</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_buffer</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__buffer</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fin</span><span class="p">)</span>
             <span class="n">fin</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
@@ -680,9 +680,9 @@
 <div class="viewcode-block" id="MuonFlux.get_mu_flux">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html#NuRadioMC.utilities.muon_flux.MuonFlux.get_mu_flux">[docs]</a>
     <span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_mu_flux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mi">3200</span><span class="p">,</span> <span class="n">interaction_model</span><span class="o">=</span><span class="s1">&#39;SIBYLL23C&#39;</span><span class="p">,</span> <span class="n">primary_model</span><span class="o">=</span><span class="p">(</span><span class="n">crf</span><span class="o">.</span><span class="n">GlobalSplineFitBeta</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">particle_names</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;total_mu+&quot;</span><span class="p">,</span> <span class="s2">&quot;total_mu-&quot;</span><span class="p">)):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_mu_flux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mi">3200</span><span class="p">,</span> <span class="n">interaction_model</span><span class="o">=</span><span class="s1">'SIBYLL23C'</span><span class="p">,</span> <span class="n">primary_model</span><span class="o">=</span><span class="p">(</span><span class="n">crf</span><span class="o">.</span><span class="n">GlobalSplineFitBeta</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">particle_names</span><span class="o">=</span><span class="p">(</span><span class="s2">"total_mu+"</span><span class="p">,</span> <span class="s2">"total_mu-"</span><span class="p">)):</span>
 <span class="w">        </span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The function get_mu_flux returns the muon flux at theta, for a given altitude, CR model, and hadronic interaction model. </span>
 <span class="sd">                </span>
 <span class="sd">        Parameters</span>
@@ -702,7 +702,7 @@
 <span class="sd">            energy grid in eV</span>
 <span class="sd">        flux: array of floats</span>
 <span class="sd">            flux in NuRadioReco units 1/(area * time  * energy * steradian)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
          
         <span class="n">altitude</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mc_m</span>
         <span class="n">mceq</span> <span class="o">=</span> <span class="n">MCEqRun</span><span class="p">(</span><span class="n">interaction_model</span><span class="o">=</span><span class="n">interaction_model</span><span class="p">,</span>
@@ -732,8 +732,8 @@
 <div class="viewcode-block" id="MuonFlux.get_interp_angle_mu_flux">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html#NuRadioMC.utilities.muon_flux.MuonFlux.get_interp_angle_mu_flux">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_interp_angle_mu_flux</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta_min</span><span class="p">,</span> <span class="n">theta_max</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mi">3200</span><span class="p">,</span> <span class="n">n_steps</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">primary_model</span><span class="o">=</span><span class="p">(</span><span class="n">crf</span><span class="o">.</span><span class="n">GlobalSplineFitBeta</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                          <span class="n">interaction_model</span><span class="o">=</span><span class="s1">&#39;SIBYLL23C&#39;</span><span class="p">,</span> <span class="n">particle_names</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;total_mu+&quot;</span><span class="p">,</span> <span class="s2">&quot;total_mu-&quot;</span><span class="p">)):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+                          <span class="n">interaction_model</span><span class="o">=</span><span class="s1">'SIBYLL23C'</span><span class="p">,</span> <span class="n">particle_names</span><span class="o">=</span><span class="p">(</span><span class="s2">"total_mu+"</span><span class="p">,</span> <span class="s2">"total_mu-"</span><span class="p">)):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The function get_int_angle_mu_flux returns the interpolation function of the integrated muon flux from theta_min to theta_max, </span>
 <span class="sd">        The integration is just a simple Riemannian sum that should be enough, provided the band is small. </span>
 <span class="sd">        </span>
@@ -754,12 +754,12 @@
 <span class="sd">        -------</span>
 <span class="sd">        interpolator: function</span>
 <span class="sd">            function that returns the flux for a given energy</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">angle_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_max</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_min</span><span class="p">),</span> <span class="n">n_steps</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
         <span class="n">angle_centers</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span><span class="p">(</span><span class="n">angle_edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">angle_edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">d_cos_theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_min</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_max</span><span class="p">))</span>
 
-        <span class="c1">#print(f&quot;integrating the flux from {theta_min/units.deg:.1f} deg to {theta_max/units.deg:.1f} deg by adding the flux from {angle_centers/units.deg}&quot;)</span>
+        <span class="c1">#print(f"integrating the flux from {theta_min/units.deg:.1f} deg to {theta_max/units.deg:.1f} deg by adding the flux from {angle_centers/units.deg}")</span>
 
         <span class="n">flux</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">angle</span> <span class="ow">in</span> <span class="n">angle_centers</span><span class="p">:</span>
@@ -773,15 +773,15 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">flux</span> <span class="o">+=</span> <span class="n">flux_tmp</span>
 
-        <span class="k">return</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">e_grid</span><span class="p">),</span> <span class="n">flux</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">e_grid</span><span class="p">),</span> <span class="n">flux</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">'cubic'</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="MuonFlux.get_int_angle_mu_flux_buffered">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html#NuRadioMC.utilities.muon_flux.MuonFlux.get_int_angle_mu_flux_buffered">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_int_angle_mu_flux_buffered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">theta_min</span><span class="p">,</span> <span class="n">theta_max</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mi">3200</span><span class="p">,</span> <span class="n">n_steps</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">primary_model</span><span class="o">=</span><span class="p">(</span><span class="n">crf</span><span class="o">.</span><span class="n">GlobalSplineFitBeta</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span><span class="n">interaction_model</span><span class="o">=</span><span class="s1">&#39;SIBYLL23C&#39;</span><span class="p">,</span> <span class="n">particle_names</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;total_mu+&quot;</span><span class="p">,</span> <span class="s2">&quot;total_mu-&quot;</span><span class="p">)):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_int_angle_mu_flux_buffered</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">theta_min</span><span class="p">,</span> <span class="n">theta_max</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mi">3200</span><span class="p">,</span> <span class="n">n_steps</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">primary_model</span><span class="o">=</span><span class="p">(</span><span class="n">crf</span><span class="o">.</span><span class="n">GlobalSplineFitBeta</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span><span class="n">interaction_model</span><span class="o">=</span><span class="s1">'SIBYLL23C'</span><span class="p">,</span> <span class="n">particle_names</span><span class="o">=</span><span class="p">(</span><span class="s2">"total_mu+"</span><span class="p">,</span> <span class="s2">"total_mu-"</span><span class="p">)):</span>
 
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The function get_int_angle_mu_flux evalueates the integrated muon flux from theta_min to theta_max and caches the result.</span>
 <span class="sd">            </span>
 <span class="sd">        Parameters</span>
@@ -801,19 +801,19 @@
 <span class="sd">        -------</span>
 <span class="sd">        flux: float</span>
 <span class="sd">            zenith angle integrated flux in NuRadioReco units 1/(area * time  * energy)   </span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="n">params</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">energy</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">theta_min</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">theta_max</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">altitude</span><span class="p">),</span>
                 <span class="n">n_steps</span><span class="p">,</span> <span class="n">primary_model</span><span class="p">,</span> <span class="n">interaction_model</span><span class="p">,</span> <span class="n">particle_names</span><span class="p">)</span>
 
         <span class="k">if</span><span class="p">(</span><span class="n">params</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffer</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;calculating muon flux for </span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"calculating muon flux for </span><span class="si">{</span><span class="n">params</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="n">finterp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_interp_angle_mu_flux</span><span class="p">(</span><span class="n">theta_min</span><span class="p">,</span> <span class="n">theta_max</span><span class="p">,</span> <span class="n">altitude</span><span class="p">,</span> <span class="n">n_steps</span><span class="o">=</span><span class="n">n_steps</span><span class="p">,</span> <span class="n">primary_model</span><span class="o">=</span><span class="n">primary_model</span><span class="p">,</span>
                                         <span class="n">interaction_model</span><span class="o">=</span><span class="n">interaction_model</span><span class="p">,</span> <span class="n">particle_names</span><span class="o">=</span><span class="n">particle_names</span><span class="p">)</span>
 
             <span class="n">flux</span> <span class="o">=</span> <span class="n">finterp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">energy</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__buffer</span><span class="p">[</span><span class="n">params</span><span class="p">]</span> <span class="o">=</span> <span class="n">flux</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_buffer</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_buffer</span><span class="p">,</span> <span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
                 <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffer</span><span class="p">,</span> <span class="n">fout</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffer</span><span class="p">[</span><span class="n">params</span><span class="p">]</span></div>
@@ -822,8 +822,8 @@
 
 <div class="viewcode-block" id="MuonFlux.get_e_grid">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html#NuRadioMC.utilities.muon_flux.MuonFlux.get_e_grid">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_e_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mi">50</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">interaction_model</span><span class="o">=</span><span class="s1">&#39;SIBYLL23C&#39;</span><span class="p">,</span> <span class="n">primary_model</span><span class="o">=</span><span class="p">(</span><span class="n">crf</span><span class="o">.</span><span class="n">GlobalSplineFitBeta</span><span class="p">,</span> <span class="kc">None</span><span class="p">)):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_e_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="o">=</span><span class="mi">50</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">,</span> <span class="n">interaction_model</span><span class="o">=</span><span class="s1">'SIBYLL23C'</span><span class="p">,</span> <span class="n">primary_model</span><span class="o">=</span><span class="p">(</span><span class="n">crf</span><span class="o">.</span><span class="n">GlobalSplineFitBeta</span><span class="p">,</span> <span class="kc">None</span><span class="p">)):</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Returns the energy grid for a given interaction model and primary model. Usually this is the same for all zenith angles.</span>
 <span class="sd">            </span>
 <span class="sd">        Parameters</span>
@@ -839,7 +839,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        energies: array of floats</span>
 <span class="sd">            energy grid in eV</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">mceq</span> <span class="o">=</span> <span class="n">MCEqRun</span><span class="p">(</span><span class="n">interaction_model</span><span class="o">=</span><span class="n">interaction_model</span><span class="p">,</span> <span class="n">primary_model</span><span class="o">=</span><span class="n">primary_model</span><span class="p">,</span> <span class="n">theta_deg</span><span class="o">=</span><span class="n">theta</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">)</span>
         <span class="n">e_grid</span> <span class="o">=</span> <span class="n">mceq</span><span class="o">.</span><span class="n">e_grid</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mc_eV</span>
         <span class="k">return</span> <span class="n">e_grid</span></div>
