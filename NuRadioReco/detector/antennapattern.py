@@ -1565,24 +1565,23 @@ class AntennaPattern(AntennaPatternBase):
             logger.debug("phi bounds {}, {}, {}".format(self.phi_lower_bound, phi, self.phi_upper_bound))
             return np.zeros((2, len(freq)), dtype=complex)
 
+        in_band = ((freq >= self.frequency_lower_bound) & (freq <= self.frequency_upper_bound))
+        if not np.any(in_band):
+            return np.zeros((2, len(freq)), dtype=complex)
+
         # the grids are not necessarily equally spaced (e.g. the theta grid of
         # RNOG_vpol_4inch_center_n1.73), hence look up the bracketing nodes instead of
         # calculating their indices from the grid boundaries
-        i_freq = np.array(get_bracketing_indices(freq, self.frequencies, self._equidistant_freqs))
         i_theta = np.array(get_bracketing_indices(theta, self.theta_angles, self._equidistant_theta))
         i_phi = np.array(get_bracketing_indices(phi, self.phi_angles, self._equidistant_phi))
 
-        # out of band frequencies are interpolated across the whole band and zeroed below
-        out_of_band = (freq < self.frequency_lower_bound) | (freq > self.frequency_upper_bound)
-        i_freq[0, out_of_band] = 0
-        i_freq[1, out_of_band] = self.n_freqs - 1
+        # Collapse the two angular axes first, over the frequency nodes that the request
+        # spans: theta and phi have a single bracket while every requested frequency has its
+        # own, so this interpolates a few hundred grid points instead of 8 per frequency bin.
+        first = max(int(np.searchsorted(self.frequencies, freq[in_band].min(), "right")) - 1, 0)
+        last = min(int(np.searchsorted(self.frequencies, freq[in_band].max(), "left")) + 1, self.n_freqs)
 
         method = self._interpolation_method
-
-        # Collapse the two angular axes first, over the frequency nodes that are actually
-        # needed: theta and phi have a single bracket while every requested frequency has its
-        # own, so this interpolates a few hundred grid points instead of 8 per frequency bin.
-        first, last = int(i_freq.min()), int(i_freq.max()) + 1
         VEL = self.VEL[:, first:last][:, :, i_phi[:, None], i_theta[None, :]]
         VEL = interpolate_linear(
             phi, *self.phi_angles[i_phi], VEL[..., 0, :], VEL[..., 1, :], method)
@@ -1590,12 +1589,36 @@ class AntennaPattern(AntennaPatternBase):
             theta, *self.theta_angles[i_theta], VEL[..., 0], VEL[..., 1], method)
 
         # ... and only then interpolate along the frequency axis, shape (component, n_freq)
-        i_freq -= first
-        VEL = interpolate_linear(
-            freq, *self.frequencies[i_freq + first], VEL[:, i_freq[0]], VEL[:, i_freq[1]], method)
+        VEL = self._interpolate_frequency(freq, self.frequencies[first:last], VEL)
 
-        VEL[:, out_of_band] = 0
+        VEL[:, ~in_band] = 0
         return VEL[0], VEL[1]
+
+    def _interpolate_frequency(self, freq, nodes, VEL):
+        """
+        Interpolate the vector effective length at the frequency nodes onto ``freq``
+
+        Parameters
+        ----------
+        freq: array of floats
+            the requested frequencies
+        nodes: array of floats
+            the frequency nodes VEL is given at
+        VEL: array of complex floats
+            the vector effective length, shape (component, len(nodes))
+
+        Returns
+        -------
+        VEL: array of complex floats
+            the interpolated vector effective length, shape (component, len(freq))
+        """
+        if self._interpolation_method == 'complex':
+            # np.interp does the bracketing internally, in C and for the whole vector at once
+            return np.array([np.interp(freq, nodes, VEL[0]), np.interp(freq, nodes, VEL[1])])
+
+        i_freq = np.array(get_bracketing_indices(freq, nodes, is_equidistant(nodes)))
+        return interpolate_linear(
+            freq, *nodes[i_freq], VEL[:, i_freq[0]], VEL[:, i_freq[1]], self._interpolation_method)
 
 
 class AntennaPatternAnalytic(AntennaPatternBase):

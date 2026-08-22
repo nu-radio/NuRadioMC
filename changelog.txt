@@ -22,8 +22,9 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - Improve time_logger functionality - yielding significant reduction in simulation time (25-40%). Smaller improvements to logging.
 - The antenna response interpolation collapses the two angular axes before the frequency axis and only over the frequency
   nodes that are actually requested. Theta and phi have a single pair of bracketing nodes while every requested frequency
-  has its own, so this interpolates a few hundred grid points instead of 8 per frequency bin: ~1.9x faster for a 2048
-  sample trace, results are unchanged (bit identical).
+  has its own, so this interpolates a few hundred grid points instead of 8 per frequency bin. The frequency axis is then
+  interpolated with np.interp (for the default 'complex' interpolation), which brackets the whole vector at once in C.
+  Together ~2.4x faster for a 2048 sample trace, results agree to 1e-15.
 - The rotation of the vector effective length into the NuRadio on-sky system is skipped when the antenna is only rolled
   about the polar axis (i.e. for vertically oriented Vpols/Hpols and upward facing LPDAs), where it is the identity for
   every direction. This is ~8-15% of the antenna response lookup and applies to 126 of the 168 channels of RNO_season_2023.
