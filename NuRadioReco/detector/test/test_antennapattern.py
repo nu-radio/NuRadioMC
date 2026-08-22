@@ -22,23 +22,6 @@ from NuRadioReco.utilities import units
 TEST_MODEL = "RNOG_vpol_4inch_center_n1.73"
 
 
-def expect_known_issue(func, description):
-    """
-    Run a check which documents a known defect, i.e. which is expected to fail
-
-    Raises if the check passes, which is the signal that the defect was fixed and that
-    the check should be turned into a regular assertion.
-    """
-    try:
-        func()
-    except AssertionError:
-        print("  known issue (still present): {}".format(description))
-        return
-
-    raise AssertionError(
-        "'{}' does not reproduce anymore, please turn it into a regular test".format(description))
-
-
 # --------------------------------------------------------------------------------------
 # interpolation helpers
 # --------------------------------------------------------------------------------------
@@ -140,7 +123,21 @@ def test_antenna_rotation():
                        antenna._rotation_theta, antenna._rotation_phi]
 
     # deploying the antenna exactly as it was simulated must not rotate anything
-    assert np.allclose(antenna._get_antenna_rotation(*own_orientation), np.eye(3))
+    rotation, inverse, polar_roll = antenna._get_antenna_rotation(*own_orientation)
+    assert np.allclose(rotation, np.eye(3)) and np.allclose(inverse, np.eye(3))
+    assert polar_roll, "the identity is a (zero) roll about the polar axis"
+
+    # a roll about the polar axis is cancelled by the shift of the azimuth it causes
+    for roll in [30 * units.deg, 90 * units.deg, 200 * units.deg]:
+        rolled = list(own_orientation)
+        rolled[3] += roll
+        _, _, polar_roll = antenna._get_antenna_rotation(*rolled)
+        assert polar_roll, "a roll of {:.0f} deg about the polar axis is not detected".format(
+            roll / units.deg)
+
+    # tilting the antenna is not
+    tilted = [45 * units.deg, 0., 135 * units.deg, 0.]
+    assert not antenna._get_antenna_rotation(*tilted)[2]
 
     for zenith, azimuth in [(30 * units.deg, 40 * units.deg), (120 * units.deg, 200 * units.deg)]:
         theta, phi = antenna._get_theta_and_phi(zenith, azimuth, *own_orientation)
@@ -296,13 +293,14 @@ def test_out_of_range():
     vel = antenna._get_antenna_response_vectorized_raw(freqs, 200 * units.deg, 0.)
     assert np.all(np.array(vel) == 0)
 
-    def shape_matches_frequencies():
-        vel = antenna._get_antenna_response_vectorized_raw(freqs, 200 * units.deg, 0.)
-        assert np.shape(vel)[1] == len(freqs)
+    # zeros still have to be returned per frequency, just like the in-range path
+    assert np.shape(vel) == (2, len(freqs))
 
-    # the in-range path returns one value per frequency, the out-of-range path a single one
-    expect_known_issue(shape_matches_frequencies,
-                       "out-of-range directions return shape (2, 1) instead of (2, n_freqs)")
+    # this model covers the full sphere, so the public method cannot reach the branch above
+    # (a zenith of 200 deg maps to theta = 160 deg, which is tabulated)
+    vel = antenna.get_antenna_response_vectorized(
+        freqs, 200 * units.deg, 0., 0, 0, np.pi / 2, np.pi / 2)
+    assert np.shape(vel["theta"]) == (len(freqs),)
 
 
 def test_vel_is_continuous():

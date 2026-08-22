@@ -1505,9 +1505,11 @@ class AntennaPattern(AntennaPatternBase):
             logger.status("Performing consistency check on antenna response ...")
             self._check_grid_ordering(ff, thetas, phis)
 
+        # both components in one array so that a single gather serves both, VEL_theta and
+        # VEL_phi are views into it
         grid_shape = (self.n_freqs, self.n_phi, self.n_theta)
-        self.VEL_theta = H_theta.reshape(grid_shape)
-        self.VEL_phi = H_phi.reshape(grid_shape)
+        self.VEL = np.array([H_theta.reshape(grid_shape), H_phi.reshape(grid_shape)])
+        self.VEL_theta, self.VEL_phi = self.VEL
 
         logger.status('Loading antenna file {} took {:.1f} seconds'.format(antenna_model, time() - t0))
 
@@ -1575,19 +1577,22 @@ class AntennaPattern(AntennaPatternBase):
         i_freq[0, out_of_band] = 0
         i_freq[1, out_of_band] = self.n_freqs - 1
 
-        # the 8 grid points surrounding the request, shape (component, freq, phi, theta, n_freq)
-        cell = (i_freq[:, None, None, :], i_phi[None, :, None, None], i_theta[None, None, :, None])
-        VEL = np.array([self.VEL_theta[cell], self.VEL_phi[cell]])
-
-        # collapse the three grid axes one by one, each time the axis is at position 2 (phi,
-        # then theta) resp. 1 (frequency)
         method = self._interpolation_method
+
+        # Collapse the two angular axes first, over the frequency nodes that are actually
+        # needed: theta and phi have a single bracket while every requested frequency has its
+        # own, so this interpolates a few hundred grid points instead of 8 per frequency bin.
+        first, last = int(i_freq.min()), int(i_freq.max()) + 1
+        VEL = self.VEL[:, first:last][:, :, i_phi[:, None], i_theta[None, :]]
         VEL = interpolate_linear(
-            phi, *self.phi_angles[i_phi], VEL[:, :, 0], VEL[:, :, 1], method)
+            phi, *self.phi_angles[i_phi], VEL[..., 0, :], VEL[..., 1, :], method)
         VEL = interpolate_linear(
-            theta, *self.theta_angles[i_theta], VEL[:, :, 0], VEL[:, :, 1], method)
+            theta, *self.theta_angles[i_theta], VEL[..., 0], VEL[..., 1], method)
+
+        # ... and only then interpolate along the frequency axis, shape (component, n_freq)
+        i_freq -= first
         VEL = interpolate_linear(
-            freq, *self.frequencies[i_freq], VEL[:, 0], VEL[:, 1], method)
+            freq, *self.frequencies[i_freq + first], VEL[:, i_freq[0]], VEL[:, i_freq[1]], method)
 
         VEL[:, out_of_band] = 0
         return VEL[0], VEL[1]
