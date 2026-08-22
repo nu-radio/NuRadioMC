@@ -1264,7 +1264,13 @@ def get_orthonormal_basis(theta1, phi1, theta2, phi2, description):
         logger.error("orientation of antenna not properly defined in {}".format(description))
         raise AssertionError("orientation of antenna not properly defined in {}".format(description))
 
-    return np.array([e1, e2, e3])
+    # the two directions are only required to be almost perpendicular and the orientation
+    # stored in some antenna models is off by a few 0.01 deg. Without orthonormalising, the
+    # transformation between the two bases is not a rotation and rescales the VEL slightly.
+    e2 = e2 - np.dot(e2, e1) * e1
+    e2 /= np.linalg.norm(e2)
+
+    return np.array([e1, e2, np.cross(e1, e2)])
 
 
 class AntennaPatternBase:
@@ -1293,6 +1299,9 @@ class AntennaPatternBase:
         -------
         rotation, inverse_rotation: array of floats
             the 3x3 rotation matrix and its inverse
+        polar_roll: bool
+            True if the rotation is a pure roll about the polar axis, see
+            `AntennaPatternBase.get_antenna_response_vectorized`
         """
         orientation = (orientation_theta, orientation_phi, rotation_theta, rotation_phi)
         if orientation not in self._antenna_rotations:
@@ -1301,8 +1310,11 @@ class AntennaPatternBase:
                 self._rotation_theta, self._rotation_phi, "the antenna model")
             deployed = get_orthonormal_basis(*orientation, "the detector description")
 
-            rotation = np.matmul(np.linalg.inv(simulated), deployed)
-            self._antenna_rotations[orientation] = (rotation, np.linalg.inv(rotation))
+            # both bases are orthonormal, hence the inverse is the transpose
+            rotation = np.matmul(simulated.T, deployed)
+            polar_roll = (np.allclose(rotation[2], [0., 0., 1.])
+                          and np.allclose(rotation[:, 2], [0., 0., 1.]))
+            self._antenna_rotations[orientation] = (rotation, rotation.T, polar_roll)
 
         return self._antenna_rotations[orientation]
 
@@ -1326,7 +1338,7 @@ class AntennaPatternBase:
         theta, phi: float
             the same direction in the coordinate system of the antenna simulation
         """
-        rotation, _ = self._get_antenna_rotation(
+        rotation, _, _ = self._get_antenna_rotation(
             orientation_theta, orientation_phi, rotation_theta, rotation_phi)
 
         incoming_direction = hp.spherical_to_cartesian(zenith, azimuth)
@@ -1378,11 +1390,18 @@ class AntennaPatternBase:
 
         VEL_theta_raw, VEL_phi_raw = self._get_antenna_response_vectorized_raw(freq, theta, phi)
 
+        _, inverse_antenna_rotation, polar_roll = self._get_antenna_rotation(
+            orientation_theta, orientation_phi, rotation_theta, rotation_phi)
+
+        # A roll of the antenna about the polar axis only shifts the azimuth, and the on-sky
+        # unit vectors at the shifted azimuth are rolled by exactly the same angle. Both
+        # cancel for every direction, i.e. the two on-sky systems already coincide.
+        if polar_roll:
+            return {'theta': VEL_theta_raw, 'phi': VEL_phi_raw}
+
         # The eTheta and ePhi unit vectors of the antenna simulation and of NuRadio point in
         # different directions, so rotate the VEL from the one on-sky system into the other
         # by going through the (cartesian) ground coordinate system.
-        _, inverse_antenna_rotation = self._get_antenna_rotation(
-            orientation_theta, orientation_phi, rotation_theta, rotation_phi)
         rotation = (get_onsky_rotation(zenith, azimuth)
                     @ inverse_antenna_rotation
                     @ get_onsky_rotation(theta, phi).T)

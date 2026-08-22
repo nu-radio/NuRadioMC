@@ -20,6 +20,9 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - Likelihood-based reconstruction modules, including minimization and matched filter classes. Specialized reconstruction modules for electric fields and
   in-ice neutrino showers are implemeted. See https://arxiv.org/abs/2510.21925 and documentation for details.
 - Improve time_logger functionality - yielding significant reduction in simulation time (25-40%). Smaller improvements to logging.
+- The rotation of the vector effective length into the NuRadio on-sky system is skipped when the antenna is only rolled
+  about the polar axis (i.e. for vertically oriented Vpols/Hpols and upward facing LPDAs), where it is the identity for
+  every direction. This is ~8-15% of the antenna response lookup and applies to 126 of the 168 channels of RNO_season_2023.
 - Refactored the antenna pattern classes: the vector effective length is now stored as a (frequency, phi, theta) cube and
   interpolated with array operations, and the coordinate transformations are reduced to the rotations actually needed and
   buffered. The antenna response lookup is 2-6x faster depending on the number of frequency bins, results are unchanged.
@@ -27,6 +30,10 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 bugfixes:
 - Fixing bug in the simulation of non-trigger channels when an event is splitted into multiple events based on the signal arrival time.
   This is only relevant when simulating primaries and large detector arrays.
+- The basis defined by the antenna orientation is now orthonormalised. The two directions are only required to be almost
+  perpendicular, so the transformation between the simulated and the deployed antenna coordinate system was not a rotation
+  and rescaled the vector effective length slightly. The orientation stored in RNOG_vpol_4inch_center_n1.73 is 0.05 deg off
+  perpendicular, which changes its response by up to 8e-4 relative. All other antenna models are unaffected (< 1e-14).
 - `AntennaPatternProvider` no longer discards its buffer of loaded antenna models when it is instantiated a second time,
   which caused the (large) antenna model files to be read from disk again.
 - `AntennaPatternProvider.load_antenna_pattern` no longer ignores the keyword arguments (e.g. interpolation_method, max_VEL)
