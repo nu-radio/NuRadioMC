@@ -1450,9 +1450,9 @@ class AntennaPatternBase:
 
         This function does three things:
 
-        * `_get_theta_and_phi`: transform the requested signal direction into the coordinate system
+        * ``_get_theta_and_phi``: transform the requested signal direction into the coordinate system
           of the antenna simulation, taking the orientation and rotation of the antenna into account
-        * `_get_antenna_response_vectorized_raw`: interpolate the stored antenna pattern at that
+        * ``_get_antenna_response_vectorized_raw``: interpolate the stored antenna pattern at that
           requested direction (properly transformed) and frequencies (in the native simulated coordinate system)
         * rotate the interpolated vector effective length, so that its two components refer to the
           on-sky unit vectors of the NuRadio coordinate system
