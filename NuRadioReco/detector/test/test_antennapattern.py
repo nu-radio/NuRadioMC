@@ -249,8 +249,8 @@ def test_interpolation_at_nodes():
                     np.array([antenna.frequencies[i_freq]]),
                     antenna.theta_angles[i_theta], antenna.phi_angles[i_phi])
 
-                assert np.allclose(vel[0], antenna.VEL_theta[i_freq, i_phi, i_theta], atol=1e-15)
-                assert np.allclose(vel[1], antenna.VEL_phi[i_freq, i_phi, i_theta], atol=1e-15)
+                assert np.allclose(vel[0], antenna._vel[0, i_freq, i_phi, i_theta], atol=1e-15)
+                assert np.allclose(vel[1], antenna._vel[1, i_freq, i_phi, i_theta], atol=1e-15)
 
 
 def test_magphase_agrees_at_nodes():

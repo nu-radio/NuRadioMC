@@ -32,6 +32,8 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - Refactored the antenna pattern classes: the vector effective length is now stored as a (frequency, phi, theta) cube and
   interpolated with array operations, and the coordinate transformations are reduced to the rotations actually needed and
   buffered. The antenna response lookup is 2-6x faster depending on the number of frequency bins, results are unchanged.
+  The `AntennaPattern.VEL`, `AntennaPattern.VEL_theta` and `AntennaPattern.VEL_phi` attributes are deprecated, the cube is
+  stored in `AntennaPattern._vel`.
 
 bugfixes:
 - Fixing bug in the simulation of non-trigger channels when an event is splitted into multiple events based on the signal arrival time.

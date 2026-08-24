@@ -1,4 +1,5 @@
 from NuRadioReco.utilities import units, io_utilities
+from NuRadioReco.utilities.logging import deprecated
 from radiotools import helper as hp
 
 from scipy import constants
@@ -737,8 +738,8 @@ def preprocess_AERA(path):
     def P2R(magnitude, phase):
         return magnitude * np.exp(1j * phase)
 
-    VEL_thetas = P2R(theta_amps, theta_phases)
-    VEL_phis = P2R(phi_amps, phi_phases)
+    vel_thetas = P2R(theta_amps, theta_phases)
+    vel_phis = P2R(phi_amps, phi_phases)
 
     # (angle) -> (freq * angle)
     thetas = np.tile(thetas, n_freqs)
@@ -749,8 +750,8 @@ def preprocess_AERA(path):
 
     # sort with increasing frequency, increasing phi, and increasing theta
     index = np.lexsort((thetas, phis, ff))
-    VEL_thetas = VEL_thetas.flatten()[index]
-    VEL_phis = VEL_phis.flatten()[index]
+    vel_thetas = vel_thetas.flatten()[index]
+    vel_phis = vel_phis.flatten()[index]
 
     # (angle) -> (freq * angle)
     theta = np.tile(thetas, n_freqs)[index]
@@ -758,8 +759,8 @@ def preprocess_AERA(path):
 
     # to avoid issues when deviding throw H (H=0 is ignored)
     # |H| < 0.1 should not happen between 30 - 80 MHz
-    H_phi = np.where(np.abs(VEL_phis) > 0.01, VEL_phis, 0)
-    H_theta = np.where(np.abs(VEL_thetas) > 0.01, VEL_thetas, 0)
+    H_phi = np.where(np.abs(vel_phis) > 0.01, vel_phis, 0)
+    H_theta = np.where(np.abs(vel_thetas) > 0.01, vel_thetas, 0)
 
     # values for a upwards pointing LPDA with the arm aligned to the magnetic field
     orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg
@@ -1085,21 +1086,21 @@ def preprocess_LOFAR_txt(directory, ant='LBA', orientation=None):
         for ar in [theta_real, theta_imag, phi_real, phi_imag]:
             ar *= -1
 
-    VEL_thetas = theta_real + 1j * theta_imag
-    VEL_phis = phi_real + 1j * phi_imag
+    vel_thetas = theta_real + 1j * theta_imag
+    vel_phis = phi_real + 1j * phi_imag
 
     # sort with increasing frequency, increasing phi, and increasing theta
     index = np.lexsort((thetas, phis, frequencies))
-    VEL_thetas = VEL_thetas.flatten()[index]
-    VEL_phis = VEL_phis.flatten()[index]
+    vel_thetas = vel_thetas.flatten()[index]
+    vel_phis = vel_phis.flatten()[index]
 
     # (angle) -> (freq * angle)
     theta = thetas[index]
     phi = phis[index]
 
     # TODO: is the correct calculation of VEL? Felix wrote that for AERA, |H| < 0.1 should not happen...
-    H_phi = VEL_phis
-    H_theta = VEL_thetas
+    H_phi = vel_phis
+    H_theta = vel_thetas
 
     # values for an upright LBA antenna aligned along E-W
     orientation_theta, orientation_phi, rotation_theta, rotation_phi = \
@@ -1385,7 +1386,7 @@ class AntennaPatternBase:
 
         Returns
         -------
-        VEL: dictonary of complex arrays
+        vel: dictonary of complex arrays
             theta and phi component of the vector effective length, both components
             are complex floats or arrays of complex floats
             of the same length as the frequency input
@@ -1398,7 +1399,7 @@ class AntennaPatternBase:
         theta, phi = self._get_theta_and_phi(
             zenith, azimuth, orientation_theta, orientation_phi, rotation_theta, rotation_phi)
 
-        VEL_theta_raw, VEL_phi_raw = self._get_antenna_response_vectorized_raw(freq, theta, phi)
+        vel_theta_raw, vel_phi_raw = self._get_antenna_response_vectorized_raw(freq, theta, phi)
 
         _, inverse_antenna_rotation, polar_roll = self._get_antenna_rotation(
             orientation_theta, orientation_phi, rotation_theta, rotation_phi)
@@ -1407,7 +1408,7 @@ class AntennaPatternBase:
         # unit vectors at the shifted azimuth are rolled by exactly the same angle. Both
         # cancel for every direction, i.e. the two on-sky systems already coincide.
         if polar_roll:
-            return {'theta': VEL_theta_raw, 'phi': VEL_phi_raw}
+            return {'theta': vel_theta_raw, 'phi': vel_phi_raw}
 
         # The eTheta and ePhi unit vectors of the antenna simulation and of NuRadio point in
         # different directions, so rotate the VEL from the one on-sky system into the other
@@ -1418,9 +1419,9 @@ class AntennaPatternBase:
 
         # the eR component of the VEL is zero and the one of the result is not needed,
         # hence only the eTheta/ePhi block of the rotation contributes
-        VEL = np.matmul(rotation[1:, 1:], np.array([VEL_theta_raw, VEL_phi_raw]))
+        vel = np.matmul(rotation[1:, 1:], np.array([vel_theta_raw, vel_phi_raw]))
 
-        return {'theta': VEL[0], 'phi': VEL[1]}
+        return {'theta': vel[0], 'phi': vel[1]}
 
 
 class AntennaPattern(AntennaPatternBase):
@@ -1515,13 +1516,29 @@ class AntennaPattern(AntennaPatternBase):
             logger.status("Performing consistency check on antenna response ...")
             self._check_grid_ordering(ff, thetas, phis)
 
-        # both components in one array so that a single gather serves both, VEL_theta and
-        # VEL_phi are views into it
+        # both components in one array so that a single gather serves both
         grid_shape = (self.n_freqs, self.n_phi, self.n_theta)
-        self.VEL = np.array([H_theta.reshape(grid_shape), H_phi.reshape(grid_shape)])
-        self.VEL_theta, self.VEL_phi = self.VEL
+        self._vel = np.array([H_theta.reshape(grid_shape), H_phi.reshape(grid_shape)])
 
         logger.status('Loading antenna file {} took {:.1f} seconds'.format(antenna_model, time() - t0))
+
+    @property
+    @deprecated("`AntennaPattern.VEL` is deprecated. You should not use it. "
+        "If you know what you are doing you can use it with `_vel` instead.", stacklevel=2)
+    def VEL(self):
+        return self._vel
+
+    @property
+    @deprecated("`AntennaPattern.VEL_theta` is deprecated. You should not use it. "
+        "If you know what you are doing you can use it with `_vel[0]` instead.", stacklevel=2)
+    def VEL_theta(self):
+        return self._vel[0]
+
+    @property
+    @deprecated("`AntennaPattern.VEL_phi` is deprecated. You should not use it. "
+        "If you know what you are doing you can use it with `_vel[1]` instead.", stacklevel=2)
+    def VEL_phi(self):
+        return self._vel[1]
 
     def _check_grid_ordering(self, ff, thetas, phis):
         """
@@ -1556,7 +1573,7 @@ class AntennaPattern(AntennaPatternBase):
 
         Returns
         -------
-        VEL_theta, VEL_phi: arrays of complex floats
+        vel_theta, vel_phi: arrays of complex floats
             the two components of the vector effective length
         """
         freq = np.atleast_1d(freq)
@@ -1592,30 +1609,30 @@ class AntennaPattern(AntennaPatternBase):
         last = min(int(np.searchsorted(self.frequencies, freq[in_band].max(), "left")) + 1, self.n_freqs)
 
         method = self._interpolation_method
-        VEL = self.VEL[:, first:last][:, :, i_phi[:, None], i_theta[None, :]]
+        vel = self._vel[:, first:last][:, :, i_phi[:, None], i_theta[None, :]]
 
         if method == 'complex':
             # the bilinear interpolation written as a single weighted sum of the four
             # corners, which is ~2x faster than interpolating one axis after the other
             w_phi = get_interpolation_weight(phi, *self.phi_angles[i_phi])
             w_theta = get_interpolation_weight(theta, *self.theta_angles[i_theta])
-            VEL = (VEL[..., 0, 0] * ((1 - w_phi) * (1 - w_theta))
-                   + VEL[..., 0, 1] * ((1 - w_phi) * w_theta)
-                   + VEL[..., 1, 0] * (w_phi * (1 - w_theta))
-                   + VEL[..., 1, 1] * (w_phi * w_theta))
+            vel = (vel[..., 0, 0] * ((1 - w_phi) * (1 - w_theta))
+                   + vel[..., 0, 1] * ((1 - w_phi) * w_theta)
+                   + vel[..., 1, 0] * (w_phi * (1 - w_theta))
+                   + vel[..., 1, 1] * (w_phi * w_theta))
         else:
-            VEL = interpolate_linear(
-                phi, *self.phi_angles[i_phi], VEL[..., 0, :], VEL[..., 1, :], method)
-            VEL = interpolate_linear(
-                theta, *self.theta_angles[i_theta], VEL[..., 0], VEL[..., 1], method)
+            vel = interpolate_linear(
+                phi, *self.phi_angles[i_phi], vel[..., 0, :], vel[..., 1, :], method)
+            vel = interpolate_linear(
+                theta, *self.theta_angles[i_theta], vel[..., 0], vel[..., 1], method)
 
         # ... and only then interpolate along the frequency axis, shape (component, n_freq)
-        VEL = self._interpolate_frequency(freq, self.frequencies[first:last], VEL)
+        vel = self._interpolate_frequency(freq, self.frequencies[first:last], vel)
 
-        VEL[:, ~in_band] = 0
-        return VEL[0], VEL[1]
+        vel[:, ~in_band] = 0
+        return vel[0], vel[1]
 
-    def _interpolate_frequency(self, freq, nodes, VEL):
+    def _interpolate_frequency(self, freq, nodes, vel):
         """
         Interpolate the vector effective length at the frequency nodes onto ``freq``
 
@@ -1624,22 +1641,22 @@ class AntennaPattern(AntennaPatternBase):
         freq: array of floats
             the requested frequencies
         nodes: array of floats
-            the frequency nodes VEL is given at
-        VEL: array of complex floats
+            the frequency nodes vel is given at
+        vel: array of complex floats
             the vector effective length, shape (component, len(nodes))
 
         Returns
         -------
-        VEL: array of complex floats
+        vel: array of complex floats
             the interpolated vector effective length, shape (component, len(freq))
         """
         if self._interpolation_method == 'complex':
             # np.interp does the bracketing internally, in C and for the whole vector at once
-            return np.array([np.interp(freq, nodes, VEL[0]), np.interp(freq, nodes, VEL[1])])
+            return np.array([np.interp(freq, nodes, vel[0]), np.interp(freq, nodes, vel[1])])
 
         i_freq = np.array(get_bracketing_indices(freq, nodes, is_equidistant(nodes)))
         return interpolate_linear(
-            freq, *nodes[i_freq], VEL[:, i_freq[0]], VEL[:, i_freq[1]], self._interpolation_method)
+            freq, *nodes[i_freq], vel[:, i_freq[0]], vel[:, i_freq[1]], self._interpolation_method)
 
 
 class AntennaPatternAnalytic(AntennaPatternBase):
@@ -1754,18 +1771,18 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
         Returns
         -------
-        VEL: array of floats
+        vel: array of floats
             the vector effective length
         """
         in_band = freq > 0
-        VEL = np.zeros_like(freq)
-        VEL[in_band] = np.sqrt(gain[in_band]) / freq[in_band]
+        vel = np.zeros_like(freq)
+        vel[in_band] = np.sqrt(gain[in_band]) / freq[in_band]
 
         i_cutoff = np.argmax(freq > self._cutoff_freq)
-        VEL[:i_cutoff] *= hann(2 * i_cutoff)[:i_cutoff]
+        vel[:i_cutoff] *= hann(2 * i_cutoff)[:i_cutoff]
 
-        VEL[in_band] *= self._max_VEL / np.max(VEL[in_band])
-        return VEL
+        vel[in_band] *= self._max_VEL / np.max(vel[in_band])
+        return vel
 
     def _get_antenna_response_vectorized_raw(self, freq, theta, phi, group_delay=True):
         """
@@ -1782,16 +1799,16 @@ class AntennaPatternAnalytic(AntennaPatternBase):
 
         Returns
         -------
-        VEL_theta, VEL_phi: arrays of floats or complex floats
+        vel_theta, vel_phi: arrays of floats or complex floats
             the two components of the vector effective length
         """
         in_band = freq > 0
 
         if self._model == 'analytic_LPDA':
             # Flat gain as function of frequency
-            VEL = self._gain_to_vel(freq, np.ones_like(freq))
-            VEL_theta = VEL * np.cos(theta) * np.sin(phi) * np.cos(theta / 2)
-            VEL_phi = VEL * np.cos(theta / 2) * np.cos(phi)
+            vel = self._gain_to_vel(freq, np.ones_like(freq))
+            vel_theta = vel * np.cos(theta) * np.sin(phi) * np.cos(theta / 2)
+            vel_phi = vel * np.cos(theta / 2) * np.cos(phi)
 
             if theta <= 45 * units.deg:
                 phase_type = "frontlobe_lpda"
@@ -1803,26 +1820,26 @@ class AntennaPatternAnalytic(AntennaPatternBase):
         elif self._model == 'analytic_VPol':
             gain = np.ones_like(freq)
             gain[in_band] /= np.sqrt(freq[in_band])  # frequency dependent gain fall-off
-            VEL_theta = self._gain_to_vel(freq, gain) * np.sin(theta)
-            VEL_phi = np.zeros_like(freq)
+            vel_theta = self._gain_to_vel(freq, gain) * np.sin(theta)
+            vel_phi = np.zeros_like(freq)
             phase_type = "VPol_third_order"
 
         elif self._model == 'analytic_HPol':
             # cos^2 frequency dependency (peaking at cutoff_freq) and sin^2(theta) directivity
-            VEL_phi = np.zeros_like(freq)
-            VEL_phi[in_band] = np.sin(freq[in_band] / self._cutoff_freq * np.pi / 2) ** 2
-            VEL_phi[freq > 2 * self._cutoff_freq] = 0
-            VEL_phi[in_band] *= self._max_VEL / np.max(VEL_phi[in_band])
-            VEL_phi *= np.sin(theta) ** 2
-            VEL_theta = np.zeros_like(freq)
+            vel_phi = np.zeros_like(freq)
+            vel_phi[in_band] = np.sin(freq[in_band] / self._cutoff_freq * np.pi / 2) ** 2
+            vel_phi[freq > 2 * self._cutoff_freq] = 0
+            vel_phi[in_band] *= self._max_VEL / np.max(vel_phi[in_band])
+            vel_phi *= np.sin(theta) ** 2
+            vel_theta = np.zeros_like(freq)
             phase_type = "HPol_third_order"
 
         if group_delay:
             phase = np.exp(1j * self.parametric_phase(freq, phase_type))
-            VEL_theta = VEL_theta * phase
-            VEL_phi = VEL_phi * phase
+            vel_theta = vel_theta * phase
+            vel_phi = vel_phi * phase
 
-        return VEL_theta, VEL_phi
+        return vel_theta, vel_phi
 
 
 class AntennaPatternProvider(object):
@@ -1872,6 +1889,11 @@ class AntennaPatternProvider(object):
         **kwargs: dict
             key word arguments that are passed to the init function of the `AntennaPattern` class (see
             documentation of this class for further information)
+
+        Returns
+        -------
+        antenna_pattern : AntennaPattern or AntennaPatternAnalytic
+            Return the loaded antenna pattern object.
         """
         if name in self._antenna_model_replacements:
             replacement = self._antenna_model_replacements[name]
