@@ -744,6 +744,62 @@
 
 
 
+<div class="viewcode-block" id="is_equidistant">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.is_equidistant">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_equidistant</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Check whether the grid nodes are equally spaced (within ``rtol`` of the spacing)</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="n">spacing</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ptp</span><span class="p">(</span><span class="n">spacing</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">rtol</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">spacing</span><span class="p">)))</span></div>
+
+
+
+<div class="viewcode-block" id="get_bracketing_indices">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.get_bracketing_indices">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_bracketing_indices</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">equidistant</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Find the indices of the two grid nodes bracketing the requested position(s)</span>
+
+<span class="sd">    The nodes are only required to be sorted, not equally spaced. Positions outside</span>
+<span class="sd">    the node range are clamped to the outermost interval (i.e. they are extrapolated);</span>
+<span class="sd">    callers are expected to handle out-of-range values themselves if that is not wanted.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x: float or array of floats</span>
+<span class="sd">        the requested position(s)</span>
+<span class="sd">    nodes: array of floats</span>
+<span class="sd">        the (sorted) grid nodes</span>
+<span class="sd">    equidistant: bool (default: False)</span>
+<span class="sd">        if True the indices are calculated from the grid boundaries instead of looked up.</span>
+<span class="sd">        This is much faster for large ``x`` but only correct for equally spaced nodes</span>
+<span class="sd">        (cf. `is_equidistant`).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    i_lower, i_upper: array of ints</span>
+<span class="sd">        indices of the nodes below and above ``x``. They are identical if the grid</span>
+<span class="sd">        has only a single node.</span>
+<span class="sd">    """</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">zero</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">zero</span><span class="p">,</span> <span class="n">zero</span>
+
+    <span class="k">if</span> <span class="n">equidistant</span><span class="p">:</span>
+        <span class="n">i_upper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">nodes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">i_upper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s1">'left'</span><span class="p">)</span>
+
+    <span class="n">i_upper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">i_upper</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">i_upper</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i_upper</span></div>
+
+
+
 <div class="viewcode-block" id="get_group_delay">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.detector.antennapattern.html#NuRadioReco.detector.antennapattern.get_group_delay">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_group_delay</span><span class="p">(</span><span class="n">vector_effective_length</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
@@ -2116,6 +2172,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">n_theta</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta_angles</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_phi</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi_angles</span><span class="p">)</span>
 
+        <span class="c1"># allows the faster index calculation in `get_bracketing_indices`</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_equidistant_freqs</span> <span class="o">=</span> <span class="n">is_equidistant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_equidistant_theta</span> <span class="o">=</span> <span class="n">is_equidistant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta_angles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_equidistant_phi</span> <span class="o">=</span> <span class="n">is_equidistant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi_angles</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">VEL_phi</span> <span class="o">=</span> <span class="n">H_phi</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">VEL_theta</span> <span class="o">=</span> <span class="n">H_theta</span>
 
@@ -2171,37 +2232,21 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"</span><span class="si">{0}</span><span class="s2">,</span><span class="si">{1}</span><span class="s2">,</span><span class="si">{2}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequency_lower_bound</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequency_upper_bound</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta_upper_bound</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta_lower_bound</span><span class="p">:</span>
-            <span class="n">iTheta_lower</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">iTheta_upper</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">iTheta_lower</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">theta</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta_lower_bound</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta_upper_bound</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta_lower_bound</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">n_theta</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
-            <span class="n">iTheta_upper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">theta</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta_lower_bound</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta_upper_bound</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta_lower_bound</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">n_theta</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="c1"># the angular and frequency grids are not necessarily equally spaced (e.g. the</span>
+        <span class="c1"># theta grid of RNOG_vpol_4inch_center_n1.73), hence look up the bracketing</span>
+        <span class="c1"># nodes instead of calculating their indices from the grid boundaries</span>
+        <span class="n">iTheta_lower</span><span class="p">,</span> <span class="n">iTheta_upper</span> <span class="o">=</span> <span class="n">get_bracketing_indices</span><span class="p">(</span>
+            <span class="n">theta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta_angles</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equidistant_theta</span><span class="p">)</span>
         <span class="n">theta_lower</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta_angles</span><span class="p">[</span><span class="n">iTheta_lower</span><span class="p">]</span>
         <span class="n">theta_upper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta_angles</span><span class="p">[</span><span class="n">iTheta_upper</span><span class="p">]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_upper_bound</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_lower_bound</span><span class="p">:</span>
-            <span class="n">iPhi_lower</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">iPhi_upper</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">iPhi_lower</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">phi</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_lower_bound</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi_upper_bound</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_lower_bound</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_phi</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
-                <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
-            <span class="n">iPhi_upper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">phi</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_lower_bound</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phi_upper_bound</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_lower_bound</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_phi</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
-                <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="n">iPhi_lower</span><span class="p">,</span> <span class="n">iPhi_upper</span> <span class="o">=</span> <span class="n">get_bracketing_indices</span><span class="p">(</span>
+            <span class="n">phi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_angles</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equidistant_phi</span><span class="p">)</span>
         <span class="n">phi_lower</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_angles</span><span class="p">[</span><span class="n">iPhi_lower</span><span class="p">]</span>
         <span class="n">phi_upper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi_angles</span><span class="p">[</span><span class="n">iPhi_upper</span><span class="p">]</span>
 
-        <span class="n">iFrequency_lower</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span>
-            <span class="p">(</span><span class="n">freq</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequency_lower_bound</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequency_upper_bound</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequency_lower_bound</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">n_freqs</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
-        <span class="n">iFrequency_upper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span>
-            <span class="p">(</span><span class="n">freq</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequency_lower_bound</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frequency_upper_bound</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequency_lower_bound</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">n_freqs</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">iFrequency_lower</span><span class="p">,</span> <span class="n">iFrequency_upper</span> <span class="o">=</span> <span class="n">get_bracketing_indices</span><span class="p">(</span>
+            <span class="n">freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequencies</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equidistant_freqs</span><span class="p">)</span>
         <span class="c1"># handling frequency out of bound cases properly</span>
         <span class="n">out_of_bound_freqs_low</span> <span class="o">=</span> <span class="n">freq</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequency_lower_bound</span>
         <span class="n">out_of_bound_freqs_high</span> <span class="o">=</span> <span class="n">freq</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">frequency_upper_bound</span>

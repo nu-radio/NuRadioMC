@@ -694,6 +694,42 @@
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.is_equidistant">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">is_equidistant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rtol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#is_equidistant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.is_equidistant" title="Link to this definition"></a></dt>
+<dd><p>Check whether the grid nodes are equally spaced (within <code class="docutils literal notranslate"><span class="pre">rtol</span></code> of the spacing)</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.get_bracketing_indices">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">get_bracketing_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equidistant</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#get_bracketing_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.get_bracketing_indices" title="Link to this definition"></a></dt>
+<dd><p>Find the indices of the two grid nodes bracketing the requested position(s)</p>
+<p>The nodes are only required to be sorted, not equally spaced. Positions outside
+the node range are clamped to the outermost interval (i.e. they are extrapolated);
+callers are expected to handle out-of-range values themselves if that is not wanted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x: float or array of floats</strong></dt><dd><p>the requested position(s)</p>
+</dd>
+<dt><strong>nodes: array of floats</strong></dt><dd><p>the (sorted) grid nodes</p>
+</dd>
+<dt><strong>equidistant: bool (default: False)</strong></dt><dd><p>if True the indices are calculated from the grid boundaries instead of looked up.
+This is much faster for large <code class="docutils literal notranslate"><span class="pre">x</span></code> but only correct for equally spaced nodes
+(cf. <a class="reference internal" href="#NuRadioReco.detector.antennapattern.is_equidistant" title="NuRadioReco.detector.antennapattern.is_equidistant"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_equidistant</span></code></a>).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>i_lower, i_upper: array of ints</dt><dd><p>indices of the nodes below and above <code class="docutils literal notranslate"><span class="pre">x</span></code>. They are identical if the grid
+has only a single node.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.get_group_delay">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">get_group_delay</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector_effective_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#get_group_delay"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.get_group_delay" title="Link to this definition"></a></dt>
 <dd><p>helper function to calculate the group delay from the vector effecitve length</p>
