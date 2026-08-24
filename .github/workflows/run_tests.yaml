@@ -230,6 +230,11 @@ jobs:
       run: |
         python NuRadioReco/detector/test/test_response.py
 
+    - name: "detector.antennapattern"
+      if: always()
+      run: |
+        python NuRadioReco/detector/test/test_antennapattern.py
+
     - name: "Test unfolding with voltageToEfieldConverter"
       if: always()
       run: |
