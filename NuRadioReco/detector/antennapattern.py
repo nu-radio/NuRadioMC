@@ -1953,8 +1953,8 @@ class AntennaPatternProvider(object):
         """
         logger.setLevel(log_level)
 
-        # the class is a singleton, only set up the buffer on the very first instantiation
-        # (otherwise every `AntennaPatternProvider()` would discard the loaded patterns)
+        # this is a singleton, i.e. __init__ runs on every instantiation. Only set up the
+        # buffer once, otherwise the already loaded patterns would be thrown away
         if hasattr(self, "_open_antenna_patterns"):
             return
 
