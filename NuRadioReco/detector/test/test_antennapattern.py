@@ -291,7 +291,6 @@ def test_out_of_range():
         freqs, 200 * units.deg, 0., 0, 0, np.pi / 2, np.pi / 2)
     assert np.shape(vel["theta"]) == (len(freqs),)
 
-
 def test_vel_is_continuous():
     """The interpolated VEL must not jump between two adjacent zenith angles"""
     antenna = AntennaPatternProvider().load_antenna_pattern(TEST_MODEL)
@@ -315,7 +314,6 @@ def test_vel_is_continuous():
                     "{:.0f} MHz), typical step is {:.2e}".format(
                         component, steps.max(), zeniths[np.argmax(steps)] / units.deg,
                         azimuth / units.deg, freq / units.MHz, np.median(steps))
-
 
 # --------------------------------------------------------------------------------------
 # reference values, these need the RNOG_vpol_v3_5inch_center_n1.74 and

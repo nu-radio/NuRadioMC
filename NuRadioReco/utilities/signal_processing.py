@@ -57,11 +57,14 @@ def half_hann_window(length, half_percent=None, hann_window_length=None):
         The length of the half the Hann window. If `half_percent` is set, this value will be overwritten by it.
     """
     if half_percent is not None:
-        hann_window_length = int(length * half_percent)
+        hann_window_length = max(int(length * half_percent), 1)
     elif hann_window_length is None:
         raise ValueError("Either half_percent or half_window_length should be set!")
-    hann_window = hann(2 * hann_window_length)
 
+    if hann_window_length <= 1:
+        logger.warning("The half hann window you are using is basically only a box filter - this is not intended.")
+
+    hann_window = hann(2 * hann_window_length)
     half_hann_widow = np.ones(length, dtype=np.double)
     half_hann_widow[:hann_window_length] = hann_window[:hann_window_length]
     half_hann_widow[-hann_window_length:] = hann_window[hann_window_length:]
@@ -675,7 +678,10 @@ def get_channel_voltage_from_efield(
 
 
 
-def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * units.microsecond, min_diff=0.005, max_t_diff=5 * units.ns, min_island_length=1 * units.ns, show_debug=False, freqs=None):
+def window_response_in_time_domain(
+        resp, sampling_rate=5 * units.GHz, t0=2 * units.microsecond,
+        min_diff=0.005, max_t_diff=5 * units.ns, min_island_length=1 * units.ns,
+        show_debug=False, freqs=None):
     """ Windows a response in the time domain (i.e., sets the response to 0 outside a window).
 
     This function takes the reponse in the time domain, identifies the relevant region of the response,
@@ -777,11 +783,16 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
     selected_islands = islands[np.logical_and(distance_mask, size_mask)]
 
     if not np.any(selected_islands):
-        raise ValueError("No islands found that satisfy the conditions")
+        logger.warning("No islands found that satisfy the conditions. Returning original response.")
+        if input_response:
+            return resp
+        else:
+            return spec
 
     # Connect selected islands
     sample_padding = 3  # padding because we apply a window
-    selected_range = [selected_islands[0, 0] - sample_padding, selected_islands[-1, 1] + sample_padding]
+    selected_range = [max(selected_islands[0, 0] - sample_padding, 0),
+                      min(selected_islands[-1, 1] + sample_padding, len(time_response))]
 
     try:
         window = half_hann_window(selected_range[1] - selected_range[0], 0.01)

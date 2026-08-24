@@ -793,8 +793,8 @@ class readRNOGData:
 
                 channel.set_trace(wf, sampling_rate * units.GHz)
 
-            time_offset = get_time_offset(event_info.triggerType) + readout_delays[channel_id]
-            channel.set_trace_start_time(-time_offset)  # relative to event/trigger time
+            time_offset = readout_delays[channel_id] - get_time_offset(event_info.triggerType)
+            channel.set_trace_start_time(time_offset)  # relative to event/trigger time
 
             station.add_channel(channel)
 
