@@ -1248,9 +1248,12 @@ def get_onsky_rotation(zenith, azimuth):
         [-sp, cp, 0.]])
 
 
-def get_orthonormal_basis(theta1, phi1, theta2, phi2, description):
+def get_antenna_basis(theta1, phi1, theta2, phi2, description):
     """
     Basis spanned by two (almost) perpendicular directions and their cross product
+
+    The two directions are only required to be almost perpendicular, so the basis is
+    not necessarily orthonormal.
 
     Parameters
     ----------
@@ -1275,24 +1278,59 @@ def get_orthonormal_basis(theta1, phi1, theta2, phi2, description):
         logger.error("orientation of antenna not properly defined in {}".format(description))
         raise AssertionError("orientation of antenna not properly defined in {}".format(description))
 
-    # the two directions are only required to be almost perpendicular and the orientation
-    # stored in some antenna models is off by a few 0.01 deg. Without orthonormalising, the
-    # transformation between the two bases is not a rotation and rescales the VEL slightly.
-    e2 = e2 - np.dot(e2, e1) * e1
-    e2 /= np.linalg.norm(e2)
+    return np.array([e1, e2, e3])
 
-    return np.array([e1, e2, np.cross(e1, e2)])
+
+def make_perpendicular(theta1, phi1, theta2, phi2, description, tolerance=0.1 * units.deg):
+    """
+    Rotate the second direction into the plane perpendicular to the first
+
+    Some antenna models store a rounded angle (89.9544 deg instead of 90 deg), which makes the
+    basis spanned by the two directions non-orthogonal. The transformation between two such bases
+    is not a rotation and rescales the vector effective length slightly. A deviation larger than
+    `tolerance` is a genuine geometry and is left untouched.
+
+    Parameters
+    ----------
+    theta1, phi1: float
+        zenith and azimuth angle of the first direction
+    theta2, phi2: float
+        zenith and azimuth angle of the second direction, the one that is corrected
+    description: string
+        what is being corrected, used for the log message
+    tolerance: float (default: 0.1 deg)
+        largest deviation from perpendicular that is corrected
+
+    Returns
+    -------
+    theta2, phi2: float
+        the corrected second direction
+    """
+    e1 = hp.spherical_to_cartesian(theta1, phi1)
+    e2 = hp.spherical_to_cartesian(theta2, phi2)
+
+    deviation = np.arcsin(np.dot(e1, e2))  # zero if the two directions are perpendicular
+    if not 1e-9 < np.abs(deviation) <= tolerance:  # already perpendicular, or genuinely not
+        return theta2, phi2
+
+    e2 = e2 - np.dot(e2, e1) * e1
+    theta2, phi2 = hp.cartesian_to_spherical(*(e2 / np.linalg.norm(e2)))
+
+    logger.warning("the orientation stored in {} is {:.4f} deg off perpendicular, correcting it".format(
+        description, deviation / units.deg))
+
+    return theta2, phi2
 
 
 class AntennaPatternBase:
     """
-    base class of utility class that handles access and buffering to antenna pattern
+    Base class of utility class that handles access and buffering to antenna pattern
     """
 
     def _get_antenna_rotation(self, orientation_theta, orientation_phi, rotation_theta, rotation_phi):
         """
         Rotation from the coordinate system of the antenna simulation into the one of
-        the antenna as deployed in the field, and its inverse
+        the antenna as deployed in the field, and its inverse.
 
         The result only depends on the requested orientation, of which a detector has very
         few, so it is buffered.
@@ -1300,32 +1338,33 @@ class AntennaPatternBase:
         Parameters
         ----------
         orientation_theta, orientation_phi: float
-            orientation (boresight) of the antenna in the field, see
+            Orientation (boresight) of the antenna in the field, see
             `AntennaPatternBase.get_antenna_response_vectorized`
         rotation_theta, rotation_phi: float
-            rotation of the antenna in the field, see
+            Rotation of the antenna in the field, see
             `AntennaPatternBase.get_antenna_response_vectorized`
 
         Returns
         -------
         rotation, inverse_rotation: array of floats
-            the 3x3 rotation matrix and its inverse
+            The 3x3 matrix which transforms the signal arrival direction into the
+            coordinate system of the antenna simulation, and its inverse.
         polar_roll: bool
-            True if the rotation is a pure roll about the polar axis, see
+            True if the rotation is a pure roll around the polar axis (z-axis), see
             `AntennaPatternBase.get_antenna_response_vectorized`
         """
         orientation = (orientation_theta, orientation_phi, rotation_theta, rotation_phi)
         if orientation not in self._antenna_rotations:
-            simulated = get_orthonormal_basis(
+            simulated = get_antenna_basis(
                 self._orientation_theta, self._orientation_phi,
                 self._rotation_theta, self._rotation_phi, "the antenna model")
-            deployed = get_orthonormal_basis(*orientation, "the detector description")
+            deployed = get_antenna_basis(*orientation, "the detector description")
 
-            # both bases are orthonormal, hence the inverse is the transpose
-            rotation = np.matmul(simulated.T, deployed)
+            # neither basis is required to be orthonormal, so invert instead of transpose
+            rotation = np.matmul(np.linalg.inv(simulated), deployed)
             polar_roll = (np.allclose(rotation[2], [0., 0., 1.])
                           and np.allclose(rotation[:, 2], [0., 0., 1.]))
-            self._antenna_rotations[orientation] = (rotation, rotation.T, polar_roll)
+            self._antenna_rotations[orientation] = (rotation, np.linalg.inv(rotation), polar_roll)
 
         return self._antenna_rotations[orientation]
 
@@ -1363,9 +1402,18 @@ class AntennaPatternBase:
     def get_antenna_response_vectorized(self, freq, zenith, azimuth, orientation_theta, orientation_phi, rotation_theta,
                                         rotation_phi):
         """
-        get the antenna response for a specific frequency, zenith and azimuth angle
+        Get the antenna response for a specific frequency, zenith and azimuth angle.
 
-        All angles are specified in the NuRadio coordinate system. All units are in NuRadio default units
+        All angles are specified in the NuRadio coordinate system. All units are in NuRadio default units.
+
+        This function does three things:
+
+        * `_get_theta_and_phi`: transform the requested signal direction into the coordinate system
+          of the antenna simulation, taking the orientation and rotation of the antenna into account
+        * `_get_antenna_response_vectorized_raw`: interpolate the stored antenna pattern at that
+          requested direction (properly transformed) and frequencies (in the native simulated coordinate system)
+        * rotate the interpolated vector effective length, so that its two components refer to the
+          on-sky unit vectors of the NuRadio coordinate system
 
         Parameters
         ----------
@@ -1411,8 +1459,8 @@ class AntennaPatternBase:
             return {'theta': vel_theta_raw, 'phi': vel_phi_raw}
 
         # The eTheta and ePhi unit vectors of the antenna simulation and of NuRadio point in
-        # different directions, so rotate the VEL from the one on-sky system into the other
-        # by going through the (cartesian) ground coordinate system.
+        # different directions, so rotate the VEL from the one on-sky system of the simulated
+        # antenna pattern into the NuRadio system by going through the (cartesian) ground coordinate system.
         rotation = (get_onsky_rotation(zenith, azimuth)
                     @ inverse_antenna_rotation
                     @ get_onsky_rotation(theta, phi).T)
@@ -1490,6 +1538,10 @@ class AntennaPattern(AntennaPatternBase):
             self._notfound = True
             logger.error("antenna response for {} not found".format(antenna_model))
             raise FileNotFoundError("antenna response for {} not found".format(antenna_model))
+
+        self._rotation_theta, self._rotation_phi = make_perpendicular(
+            self._orientation_theta, self._orientation_phi,
+            self._rotation_theta, self._rotation_phi, antenna_model)
 
         self.frequencies = np.unique(ff)
         self.theta_angles = np.unique(thetas)

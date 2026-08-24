@@ -36,12 +36,12 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   stored in `AntennaPattern._vel`.
 
 bugfixes:
+- The orientation stored in an antenna model is corrected when it is not exactly perpendicular, i.e. when the two
+  directions are less than 0.1 deg off (RNOG_vpol_4inch_center_n1.73 and RNOG_vpol_v1_n1.73 store 89.9544 deg instead
+  of 90 deg, all other models are exact). Otherwise the transformation between the simulated and the deployed antenna
+  coordinate system is not a rotation and rescales the vector effective length, for the two models above by up to 8e-4.
 - Fixing bug in the simulation of non-trigger channels when an event is splitted into multiple events based on the signal arrival time.
   This is only relevant when simulating primaries and large detector arrays.
-- The basis defined by the antenna orientation is now orthonormalised. The two directions are only required to be almost
-  perpendicular, so the transformation between the simulated and the deployed antenna coordinate system was not a rotation
-  and rescaled the vector effective length slightly. The orientation stored in RNOG_vpol_4inch_center_n1.73 is 0.05 deg off
-  perpendicular, which changes its response by up to 8e-4 relative. All other antenna models are unaffected (< 1e-14).
 - `AntennaPatternProvider` no longer discards its buffer of loaded antenna models when it is instantiated a second time,
   which caused the (large) antenna model files to be read from disk again.
 - `AntennaPatternProvider.load_antenna_pattern` no longer ignores the keyword arguments (e.g. interpolation_method, max_VEL)
