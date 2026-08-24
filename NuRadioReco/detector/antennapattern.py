@@ -1740,7 +1740,7 @@ class AntennaPatternAnalytic(AntennaPatternBase):
         logger.error("phase type {} not implemented".format(phase_type))
         raise NotImplementedError("phase type {} not implemented".format(phase_type))
 
-    def _gain_to_vel(self, freq, gain, low_frequency_cutoff=True):
+    def _gain_to_vel(self, freq, gain):
         """
         Convert a gain into a vector effective length, apply the low frequency cutoff
         and normalize to the maximum VEL of the model
@@ -1751,8 +1751,6 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             frequencies at which to evaluate the response
         gain: array of floats
             the gain at those frequencies
-        low_frequency_cutoff: bool
-            if True, suppress the response below ``cutoff_freq`` with a half Hann window
 
         Returns
         -------
@@ -1763,9 +1761,8 @@ class AntennaPatternAnalytic(AntennaPatternBase):
         VEL = np.zeros_like(freq)
         VEL[in_band] = np.sqrt(gain[in_band]) / freq[in_band]
 
-        if low_frequency_cutoff:
-            i_cutoff = np.argmax(freq > self._cutoff_freq)
-            VEL[:i_cutoff] *= hann(2 * i_cutoff)[:i_cutoff]
+        i_cutoff = np.argmax(freq > self._cutoff_freq)
+        VEL[:i_cutoff] *= hann(2 * i_cutoff)[:i_cutoff]
 
         VEL[in_band] *= self._max_VEL / np.max(VEL[in_band])
         return VEL
