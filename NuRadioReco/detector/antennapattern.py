@@ -76,6 +76,48 @@ def get_interpolation_weight(x, x0, x1):
     return (x - x0) / (x1 - x0)
 
 
+def interpolate_bilinear(x, nodes_x, y, nodes_y, corners, interpolation_method='complex'):
+    """
+    Interpolate within a 2-D grid cell from the values at its four corners
+
+    ``corners[..., i, j]`` is the value at ``(nodes_x[i], nodes_y[j])``.
+
+    The 'complex' interpolation is linear in the values, so the cell collapses into a single
+    weighted sum of the four corners, which is ~3x faster than interpolating one axis after
+    the other. The 'magphase' interpolation is not linear in the values and has to go axis
+    by axis.
+
+    Parameters
+    ----------
+    x, y: float
+        the requested position within the cell
+    nodes_x, nodes_y: array of floats
+        the two bracketing nodes of either axis
+    corners: array of complex floats
+        the values at the four corners, shape ``(..., 2, 2)``
+    interpolation_method: string
+        see `interpolate_linear`
+
+    Returns
+    -------
+    values: array of complex floats
+        the interpolated values, shape ``(...)``
+    """
+    if interpolation_method == 'complex':
+        w_x = get_interpolation_weight(x, *nodes_x)
+        w_y = get_interpolation_weight(y, *nodes_y)
+        return (corners[..., 0, 0] * ((1 - w_x) * (1 - w_y))
+                + corners[..., 0, 1] * ((1 - w_x) * w_y)
+                + corners[..., 1, 0] * (w_x * (1 - w_y))
+                + corners[..., 1, 1] * (w_x * w_y))
+
+    values = interpolate_linear(
+        x, *nodes_x, corners[..., 0, :], corners[..., 1, :], interpolation_method)
+
+    return interpolate_linear(
+        y, *nodes_y, values[..., 0], values[..., 1], interpolation_method)
+
+
 def is_equidistant(nodes, rtol=1e-4):
     """
     Check whether the grid nodes are equally spaced (within ``rtol`` of the spacing)
@@ -1660,23 +1702,18 @@ class AntennaPattern(AntennaPatternBase):
         first = max(int(np.searchsorted(self.frequencies, freq[in_band].min(), "right")) - 1, 0)
         last = min(int(np.searchsorted(self.frequencies, freq[in_band].max(), "left")) + 1, self.n_freqs)
 
-        method = self._interpolation_method
+        # Select only the relevant part of the loaded vector effective length:
+        # All frequencies within the requested frequency range (to be used in
+        # _interpolate_frequency). And the two bracketing nodes for the two angles.
+        # self._vel.shape: (n_pol, self.n_freqs, self.n_phi, self.n_theta)
+        # ---> vel.shape: (n_pol, last - first, 2, 2)
         vel = self._vel[:, first:last][:, :, i_phi[:, None], i_theta[None, :]]
 
-        if method == 'complex':
-            # the bilinear interpolation written as a single weighted sum of the four
-            # corners, which is ~2x faster than interpolating one axis after the other
-            w_phi = get_interpolation_weight(phi, *self.phi_angles[i_phi])
-            w_theta = get_interpolation_weight(theta, *self.theta_angles[i_theta])
-            vel = (vel[..., 0, 0] * ((1 - w_phi) * (1 - w_theta))
-                   + vel[..., 0, 1] * ((1 - w_phi) * w_theta)
-                   + vel[..., 1, 0] * (w_phi * (1 - w_theta))
-                   + vel[..., 1, 1] * (w_phi * w_theta))
-        else:
-            vel = interpolate_linear(
-                phi, *self.phi_angles[i_phi], vel[..., 0, :], vel[..., 1, :], method)
-            vel = interpolate_linear(
-                theta, *self.theta_angles[i_theta], vel[..., 0], vel[..., 1], method)
+        # Only interpolate between the 2 angle nodes each
+        # vel.shape: (n_pol, last - first, 2, 2) ---> (n_pol, last - first)
+        vel = interpolate_bilinear(
+            phi, self.phi_angles[i_phi], theta, self.theta_angles[i_theta],
+            vel, self._interpolation_method)
 
         # ... and only then interpolate along the frequency axis, shape (component, n_freq)
         vel = self._interpolate_frequency(freq, self.frequencies[first:last], vel)
