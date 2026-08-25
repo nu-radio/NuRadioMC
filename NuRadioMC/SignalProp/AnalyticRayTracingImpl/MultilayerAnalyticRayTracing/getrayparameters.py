@@ -1,20 +1,15 @@
 
 import numpy as np
 from scipy import integrate
-from operator import itemgetter
-#from numba import njit
-#from numba.typed import List
-from functools import lru_cache
-from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
+
+from NuRadioMC.SignalProp.propagation import solution_types_revert
 from NuRadioMC.utilities import attenuation
 
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba import njit
 
-from NuRadioReco.utilities import units, geometryUtilities, constants
-#from NuRadioMC.utilities import attenuation as attenuation_util, medium as medium_util
-from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
+from NuRadioReco.utilities import units,  constants
 
-from math import sqrt, log, sin
+from math import sqrt, log
 
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_turning_point, get_layer_index, build_y_field, get_n_1D, determine_solution_type
 

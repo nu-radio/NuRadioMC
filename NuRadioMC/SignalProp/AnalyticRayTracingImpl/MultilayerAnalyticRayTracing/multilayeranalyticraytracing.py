@@ -84,19 +84,12 @@ Developed for use in NuRadioMC ray tracing.
 """
 
 import numpy as np
-from scipy import optimize
-from operator import itemgetter
-#from numba import njit
-#from numba.typed import List
-from functools import lru_cache
-from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
-from NuRadioMC.utilities import attenuation
 
-from NuRadioReco.utilities import units, geometryUtilities, constants
-#from NuRadioMC.utilities import attenuation as attenuation_util, medium as medium_util
+from NuRadioMC.SignalProp.propagation import solution_types_revert
+from NuRadioReco.utilities import units, constants
+
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 
-from math import sqrt, log, sin
 
 import logging
 logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")

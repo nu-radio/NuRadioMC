@@ -21,7 +21,6 @@ Example
 python compare_raytracing_modules.py
 """
 
-from pathlib import Path
 from datetime import datetime
 import logging
 

@@ -1,21 +1,9 @@
 import numpy as np
 from scipy import optimize
 from operator import itemgetter
-#from numba import njit
-#from numba.typed import List
-from functools import lru_cache
-from NuRadioMC.SignalProp.propagation import solution_types, solution_types_revert
-from NuRadioMC.utilities import attenuation
-
-from NuRadioReco.utilities import units, geometryUtilities, constants
-#from NuRadioMC.utilities import attenuation as attenuation_util, medium as medium_util
-from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
-
-from math import sqrt, log, sin
-
 
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_delta_y, get_n_1D, get_C0_from_theta, get_skim_angle, determine_solution_type
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba import njit
+
 
 
 def get_C0_from_log_scalar(logC0, n_ice):
@@ -530,8 +518,9 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
     n_z = get_n_1D(z1,layers)
 
+
     logC0straight = np.log(abs(C0straight - 1./n_deep))
-    logC0skim_nz = np.log(abs(1/n_z - 1./n_deep))
+    logC0skim_nz = np.log(max(abs(1/n_z - 1./n_deep),1e-14))
     logC0skim = np.log(abs(C0skim- 1./n_deep))
     logC0_60 = np.log(abs(C0_sixty - 1./n_deep))
 
