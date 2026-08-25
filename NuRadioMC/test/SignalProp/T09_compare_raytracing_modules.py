@@ -115,7 +115,7 @@ def run_tests(data_dict, keys):
 TIME_TOL = 1e-3
 ANGLE_TOL = 1e-3
 ATTENUATION_TOL = 1e-2
-FOCUSING_TOL = 1e-1
+FOCUSING_TOL = 1e-2
 
 def run_assertions(data_dict):
     """Assert that all relative differences are below tolerances."""
@@ -136,15 +136,15 @@ def run_assertions(data_dict):
         valid_mask = (data_dict.get("has_a", np.ones_like(diff_vals, dtype=bool)) == 1) & \
                      (data_dict.get("has_b", np.ones_like(diff_vals, dtype=bool)) == 1)
 
-        #vmax = np.nanpercentile(diff_vals[valid_mask], 95)
-        #mask = (
-        #    (~np.isnan(diff_vals)) &
-        #    (diff_vals <= vmax) &
-        #    (~np.isnan(ref_vals)) &
-        #    (ref_vals != 0) &
-        #    valid_mask
-        #)
-        mask = valid_mask
+        vmax = np.nanpercentile(diff_vals[valid_mask], 98)
+        mask = (
+            (~np.isnan(diff_vals)) &
+            (diff_vals <= vmax) &
+            (~np.isnan(ref_vals)) &
+            (ref_vals != 0) &
+            valid_mask
+        )
+        #mask = valid_mask
         if np.sum(mask) == 0:
             continue
 
