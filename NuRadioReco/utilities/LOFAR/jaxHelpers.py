@@ -9,15 +9,24 @@ import os
 import pickle
 from functools import partial
 from pathlib import Path
-
-import jax
-import jax.numpy as jnp
-import jax.numpy.linalg as jla
-import jax.scipy.special
-import nifty.re as jft
 import numpy as np
-from jax import lax, vmap
-from jax.typing import ArrayLike
+
+try:
+    import jax
+    import jax.numpy as jnp
+    import jax.numpy.linalg as jla
+    import jax.scipy.special
+    import nifty.re as jft
+    from jax import lax, vmap
+    from jax.typing import ArrayLike
+except ImportError:
+    jax = None
+    jnp = None
+    jla = None
+    jft = None
+    lax = None
+    vmap = None
+    ArrayLike = None
 
 from NuRadioReco.modules.LOFAR.utilities import atmosphere as atm
 

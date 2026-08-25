@@ -8,7 +8,7 @@ from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import units
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
-from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
+from NuRadioReco.modules.utilities.LOFAR.beamforming_utilities import mini_beamformer
 
 
 def find_snr_of_timeseries(timeseries, sampling_rate=None, window_start=0, window_end=-1, noise_start=0, noise_end=-1,

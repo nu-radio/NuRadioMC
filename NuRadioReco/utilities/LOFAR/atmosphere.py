@@ -11,8 +11,14 @@ Provides:
 from typing import Optional
 
 import numpy as np
-import jax.numpy as jnp
-from jax import lax
+try:
+    import jax
+    import jax.numpy as jnp
+    from jax import lax
+except ImportError:
+    jax = None
+    jnp = None
+    lax = None
 
 # Physical constants
 _R_EARTH = 6.371e6   # radius of Earth [m]
