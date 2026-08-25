@@ -86,6 +86,56 @@ def interpolate_linear_vectorized(x, x0, x1, y0, y1, interpolation_method='compl
     return result
 
 
+def is_equidistant(nodes, rtol=1e-4):
+    """
+    Check whether the grid nodes are equally spaced (within ``rtol`` of the spacing)
+    """
+    if len(nodes) < 3:
+        return True
+
+    spacing = np.diff(nodes)
+    return bool(np.ptp(spacing) < rtol * np.abs(np.mean(spacing)))
+
+
+def get_bracketing_indices(x, nodes, equidistant=False):
+    """
+    Find the indices of the two grid nodes bracketing the requested position(s)
+
+    The nodes are only required to be sorted, not equally spaced. Positions outside
+    the node range are clamped to the outermost interval (i.e. they are extrapolated);
+    callers are expected to handle out-of-range values themselves if that is not wanted.
+
+    Parameters
+    ----------
+    x: float or array of floats
+        the requested position(s)
+    nodes: array of floats
+        the (sorted) grid nodes
+    equidistant: bool (default: False)
+        if True the indices are calculated from the grid boundaries instead of looked up.
+        This is much faster for large ``x`` but only correct for equally spaced nodes
+        (cf. `is_equidistant`).
+
+    Returns
+    -------
+    i_lower, i_upper: array of ints
+        indices of the nodes below and above ``x``. They are identical if the grid
+        has only a single node.
+    """
+    n = len(nodes)
+    if n == 1:
+        zero = np.zeros_like(x, dtype=int)
+        return zero, zero
+
+    if equidistant:
+        i_upper = np.ceil((x - nodes[0]) / (nodes[-1] - nodes[0]) * (n - 1))
+    else:
+        i_upper = np.searchsorted(nodes, x, side='left')
+
+    i_upper = np.array(np.clip(i_upper, 1, n - 1), dtype=int)
+    return i_upper - 1, i_upper
+
+
 def get_group_delay(vector_effective_length, df):
     """
     helper function to calculate the group delay from the vector effecitve length
@@ -1390,6 +1440,11 @@ class AntennaPattern(AntennaPatternBase):
         self.n_theta = len(self.theta_angles)
         self.n_phi = len(self.phi_angles)
 
+        # allows the faster index calculation in `get_bracketing_indices`
+        self._equidistant_freqs = is_equidistant(self.frequencies)
+        self._equidistant_theta = is_equidistant(self.theta_angles)
+        self._equidistant_phi = is_equidistant(self.phi_angles)
+
         self.VEL_phi = H_phi
         self.VEL_theta = H_theta
 
@@ -1445,37 +1500,21 @@ class AntennaPattern(AntennaPatternBase):
             logger.debug("{0},{1},{2}".format(freq, self.frequency_lower_bound, self.frequency_upper_bound))
             return np.zeros(shape=(2,1), dtype=complex)
 
-        if self.theta_upper_bound == self.theta_lower_bound:
-            iTheta_lower = 0
-            iTheta_upper = 0
-        else:
-            iTheta_lower = np.array(np.floor(
-                (theta - self.theta_lower_bound) / (self.theta_upper_bound - self.theta_lower_bound) * (
-                    self.n_theta - 1)), dtype=int)
-            iTheta_upper = np.array(np.ceil(
-                (theta - self.theta_lower_bound) / (self.theta_upper_bound - self.theta_lower_bound) * (
-                    self.n_theta - 1)), dtype=int)
+        # the angular and frequency grids are not necessarily equally spaced (e.g. the
+        # theta grid of RNOG_vpol_4inch_center_n1.73), hence look up the bracketing
+        # nodes instead of calculating their indices from the grid boundaries
+        iTheta_lower, iTheta_upper = get_bracketing_indices(
+            theta, self.theta_angles, self._equidistant_theta)
         theta_lower = self.theta_angles[iTheta_lower]
         theta_upper = self.theta_angles[iTheta_upper]
-        if self.phi_upper_bound == self.phi_lower_bound:
-            iPhi_lower = 0
-            iPhi_upper = 0
-        else:
-            iPhi_lower = np.array(np.floor(
-                (phi - self.phi_lower_bound) / (self.phi_upper_bound - self.phi_lower_bound) * (self.n_phi - 1)),
-                dtype=int)
-            iPhi_upper = np.array(np.ceil(
-                (phi - self.phi_lower_bound) / (self.phi_upper_bound - self.phi_lower_bound) * (self.n_phi - 1)),
-                dtype=int)
+
+        iPhi_lower, iPhi_upper = get_bracketing_indices(
+            phi, self.phi_angles, self._equidistant_phi)
         phi_lower = self.phi_angles[iPhi_lower]
         phi_upper = self.phi_angles[iPhi_upper]
 
-        iFrequency_lower = np.array(np.floor(
-            (freq - self.frequency_lower_bound) / (self.frequency_upper_bound - self.frequency_lower_bound) * (
-                self.n_freqs - 1)), dtype=int)
-        iFrequency_upper = np.array(np.ceil(
-            (freq - self.frequency_lower_bound) / (self.frequency_upper_bound - self.frequency_lower_bound) * (
-                self.n_freqs - 1)), dtype=int)
+        iFrequency_lower, iFrequency_upper = get_bracketing_indices(
+            freq, self.frequencies, self._equidistant_freqs)
         # handling frequency out of bound cases properly
         out_of_bound_freqs_low = freq < self.frequency_lower_bound
         out_of_bound_freqs_high = freq > self.frequency_upper_bound
