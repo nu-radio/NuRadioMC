@@ -6,9 +6,6 @@ from NuRadioMC.SignalProp.propagation import solution_types_revert
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba import njit
 
 
-from math import sqrt, log, sin
-
-
 NumbaList = list # fallback for get_path_segments function
 
 #@njit(cache=True)
@@ -131,7 +128,7 @@ def get_layer_index(z, z_min, z_max):
 
 
 @njit(cache = True)
-def analytic_F(z, C0, n_ice, delta_n, z0):
+def analytic_F(z, c0, n_ice, delta_n, z0):
     """
     Evaluate the analytic ray integral F(z) for an exponential index profile.
 
@@ -145,7 +142,7 @@ def analytic_F(z, C0, n_ice, delta_n, z0):
     z : float
         Depth coordinate.
 
-    C0 : float
+    c0 : float
         Ray parameter (inverse horizontal slowness).
 
     n_ice : float
@@ -166,22 +163,22 @@ def analytic_F(z, C0, n_ice, delta_n, z0):
     -----
     The horizontal coordinate of the ray trajectory is given by
 
-        y(z) = F(z) + C1
+        y(z) = F(z) + c1
 
-    where C1 is a layer-dependent offset constant.
+    where c1 is a layer-dependent offset constant.
     The offsets are defined from the boundary conditions (e.g. x_start) and can be calculated with
     the calculate_offsets function.
     """
     z = float(z)
-    C0 = float(C0)
+    c0 = float(c0)
     n_ice = float(n_ice)
     delta_n = float(delta_n)
     z0 = float(z0)
     b = 2.0 * n_ice
     n = n_ice - delta_n*np.exp(z / z0)
-    c = max(abs(n_ice*n_ice - 1.0/(C0*C0)),1e-14)
+    c = max(abs(n_ice*n_ice - 1.0/(c0*c0)),1e-14)
 
-    # F only valid for positive c
+    # f only valid for positive c
     if c < 0 :
         return np.nan
 
@@ -191,26 +188,26 @@ def analytic_F(z, C0, n_ice, delta_n, z0):
 
     logargument = gamma / (2.0*np.sqrt(c)*np.sqrt(root) - b*gamma + 2.0*c)
 
-    val = z0 * (n_ice*n_ice*C0*C0 - 1.0)**-0.5 * np.log(abs(logargument))
+    val = z0 * (n_ice*n_ice*c0*c0 - 1.0)**-0.5 * np.log(abs(logargument))
 
     return float(np.real(val))
 
 @njit(cache = True)
-def compute_offsets(C0, y_start, z_start, layers, get_intersection_point = False):
+def compute_offsets(c0, y_start, z_start, layers, get_intersection_point = False):
     """
     Compute horizontal offset constants for all layers.
 
     The ray trajectory is expressed as
 
-        y(z) = F(z) + C1
+        y(z) = F(z) + c1
 
-    where the constant ``C1`` differs between layers. This function
+    where the constant ``c1`` differs between layers. This function
     determines the offsets required to ensure continuity of the
     trajectory across layer boundaries.
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter.
 
     y_start, z_start : float
@@ -221,7 +218,7 @@ def compute_offsets(C0, y_start, z_start, layers, get_intersection_point = False
 
     Returns
     -------
-    C1 : ndarray
+    c1 : ndarray
         Offset constants for each layer.
 
     idx_start : int
@@ -234,8 +231,8 @@ def compute_offsets(C0, y_start, z_start, layers, get_intersection_point = False
     """
     z_min, z_max, n_ice, delta_n, z0 = layers
     n_layers = len(z_min)
-    C1 = np.zeros(n_layers)
-    C0 = float(C0)
+    c1 = np.zeros(n_layers)
+    c0 = float(c0)
     y_start = float(y_start)
     z_start = float(z_start)
     idx_start = -1
@@ -246,8 +243,8 @@ def compute_offsets(C0, y_start, z_start, layers, get_intersection_point = False
             idx_start = i
             break
 
-    F_start = analytic_F(z_start, C0, n_ice[idx_start], delta_n[idx_start], z0[idx_start])
-    C1[idx_start] = float(y_start - F_start)
+    f_start = analytic_F(z_start, c0, n_ice[idx_start], delta_n[idx_start], z0[idx_start])
+    c1[idx_start] = float(y_start - f_start)
 
     if get_intersection_point is True:
         ybs = np.zeros(n_layers-1)
@@ -256,29 +253,29 @@ def compute_offsets(C0, y_start, z_start, layers, get_intersection_point = False
     for i in range(idx_start - 1, -1, -1):
 
         zb = float(z_min[i])
-        F_deep = analytic_F(zb, C0, n_ice[i+1], delta_n[i+1], z0[i+1])
-        yb = float(F_deep + C1[i+1])
+        f_deep = analytic_F(zb, c0, n_ice[i+1], delta_n[i+1], z0[i+1])
+        yb = float(f_deep + c1[i+1])
 
         if get_intersection_point is True:
             ybs[i]=yb
             zbs[i]=zb
 
-        F_shallow = analytic_F(zb, C0, n_ice[i], delta_n[i], z0[i])
-        C1[i] = float(yb - F_shallow)
+        f_shallow = analytic_F(zb, c0, n_ice[i], delta_n[i], z0[i])
+        c1[i] = float(yb - f_shallow)
 
     if get_intersection_point is True:
-        return C1, idx_start, ybs, zbs
+        return c1, idx_start, ybs, zbs
     else:
-        return C1, idx_start, np.zeros(n_layers -1), np.zeros(n_layers -1)
+        return c1, idx_start, np.zeros(n_layers -1), np.zeros(n_layers -1)
 
 @njit(cache = True)
-def build_y_field(C0, z_array, layers, C1):
+def build_y_field(c0, z_array, layers, c1):
     """
     Evaluate the horizontal ray trajectory y(z).
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter.
 
     z_array : ndarray
@@ -287,7 +284,7 @@ def build_y_field(C0, z_array, layers, C1):
     layers : tuple of ndarray
         Layer parameter arrays.
 
-    C1 : ndarray
+    c1 : ndarray
         Offset constants for each layer.
 
     Returns
@@ -302,29 +299,29 @@ def build_y_field(C0, z_array, layers, C1):
     n = len(z_array)
     y = np.zeros(n)
     layer_idx = np.zeros(n, dtype=np.int64)
-    C0 = float(C0)
+    c0 = float(c0)
 
     for j in range(n):
 
         z = float(z_array[j])
         idx = get_layer_index(z, z_min, z_max)
         layer_idx[j] = idx
-        F = analytic_F(z, C0, n_ice[idx], delta_n[idx], z0[idx])
-        y[j] = float(F + C1[idx])
+        f = analytic_F(z, c0, n_ice[idx], delta_n[idx], z0[idx])
+        y[j] = float(f + c1[idx])
 
     return y, layer_idx
 
 @njit(cache = True)
-def evaluate_y(C0, C1, z, layers):
+def evaluate_y(c0, c1, z, layers):
     """
     Evaluate the horizontal ray coordinate at a given depth.
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter.
 
-    C1 : ndarray
+    c1 : ndarray
         Offset constants for each layer.
 
     z : float
@@ -342,35 +339,35 @@ def evaluate_y(C0, C1, z, layers):
     -----
     The ray trajectory within a layer is described by
 
-        y(z) = F(z) + C1
+        y(z) = F(z) + c1
 
-    where F(z) is the analytic ray integral and C1 is a
+    where F(z) is the analytic ray integral and c1 is a
     layer-dependent offset chosen to ensure continuity
     across layer boundaries.
     """
     z = float(z)
-    C0 = float(C0)
+    c0 = float(c0)
     z_min, z_max, n_ice, delta_n, z0 = layers
     idx = get_layer_index(z, z_min, z_max)
-    F = analytic_F(z, C0, n_ice[idx], delta_n[idx], z0[idx])
+    f = analytic_F(z, c0, n_ice[idx], delta_n[idx], z0[idx])
 
-    return float(F + C1[idx])
+    return float(f + c1[idx])
 
 
 @njit(cache=True)
-def find_z_turn(C0, layers):
+def find_z_turn(c0, layers):
     """
     Determine the depth of the ray turning point.
 
     A turning point occurs where the refractive index satisfies
 
-        n(z) = 1 / C0
+        n(z) = 1 / c0
 
     which corresponds to horizontal propagation of the ray.
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter.
 
     layers : tuple of ndarray
@@ -390,7 +387,7 @@ def find_z_turn(C0, layers):
     eps = 1e-12
 
     z_min, z_max, n_ice, delta_n, z0 = layers
-    target_n = 1.0 / float(C0)
+    target_n = 1.0 / float(c0)
 
     best_z = np.inf
     found = False
@@ -416,14 +413,14 @@ def find_z_turn(C0, layers):
 
 
 @njit(cache = True)
-def get_turning_point(C0, y_start, z_start, layers, C1=None,
+def get_turning_point(c0, y_start, z_start, layers, c1=None,
                       downgoing=False, with_air=False):
     """
-    Compute the coordinates of the turning point (y, z) of a ray with C0 starting from x1=(y_start,z_start).
+    Compute the coordinates of the turning point (y, z) of a ray with c0 starting from x1=(y_start,z_start).
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter.
 
     y_start, z_start : float
@@ -432,7 +429,7 @@ def get_turning_point(C0, y_start, z_start, layers, C1=None,
     layers : tuple of ndarray
         Layer parameter arrays.
 
-    C1 : ndarray, optional
+    c1 : ndarray, optional
         Precomputed layer offsets.
 
     downgoing : bool, optional
@@ -457,12 +454,12 @@ def get_turning_point(C0, y_start, z_start, layers, C1=None,
     turning point is clamped to the surface depth.
     """
 
-    if C1 is None:
+    if c1 is None:
         # Compute offsets once
-        C1, _, _, _ = compute_offsets(C0, y_start, z_start, layers)
+        c1, _, _, _ = compute_offsets(c0, y_start, z_start, layers)
 
     # Find depth of turning point
-    z_turn = find_z_turn(C0, layers)
+    z_turn = find_z_turn(c0, layers)
 
     numerical_safety_offset = 1e-12
     z_surface = 0.0 - numerical_safety_offset
@@ -471,23 +468,23 @@ def get_turning_point(C0, y_start, z_start, layers, C1=None,
             z_turn = z_surface
 
     # Evaluate horizontal coordinate at turning point
-    y_turn = evaluate_y(C0, C1, z_turn, layers)
+    y_turn = evaluate_y(c0, c1, z_turn, layers)
 
     return y_turn, z_turn
 
 @njit(cache = True)
-def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
+def get_delta_y(c0, y1, z1, y2, z2, layers, c0range,
                 downgoing, with_air):
     """
     Compute horizontal mismatch between a ray and a target point.
 
-    This function evaluates how far a ray with parameter ``C0`` deviates
+    This function evaluates how far a ray with parameter ``c0`` deviates
     from the desired receiver position. It serves as the objective
     function for root-finding during ray solution searches.
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter.
 
     y1, z1 : float
@@ -499,7 +496,7 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
     layers : tuple of ndarray
         Layer parameter arrays.
 
-    C0range : tuple
+    c0range : tuple
         Allowed range of ray parameters.
 
     downgoing : bool
@@ -519,23 +516,23 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
     receiver the ray endpoint lies on and is therefore used by
     root-finding algorithms.
     """
-    C0 = float(C0)
+    c0 = float(c0)
     y1 = float(y1)
     z1 = float(z1)
     y2 = float(y2)
     z2 = float(z2)
     z_min, z_max, n_ice, delta_n, z0 = layers
 
-    if C0range[0] == -1.0 and C0range[1] == -1.0:
-        C0range = (1. / n_ice[-1], np.inf)
+    if c0range[0] == -1.0 and c0range[1] == -1.0:
+        c0range = (1. / n_ice[-1], np.inf)
 
-    if C0 < C0range[0] or C0 > C0range[1]:
+    if c0 < c0range[0] or c0 > c0range[1]:
         return -np.inf
 
 
-    C1, _ , _, _= compute_offsets(C0, y1, z1, layers)
+    c1, _ , _, _= compute_offsets(c0, y1, z1, layers)
 
-    y_turn, z_turn = get_turning_point(C0,y1,z1,layers,C1,downgoing,with_air)
+    y_turn, z_turn = get_turning_point(c0,y1,z1,layers,c1,downgoing,with_air)
 
 
     if (y_turn is not None) and (z_turn is not None):
@@ -547,16 +544,16 @@ def get_delta_y(C0, y1, z1, y2, z2, layers, C0range,
             return -diff
 
         elif y_turn >= y2:
-            y_fit = evaluate_y(C0, C1, z2, layers)
+            y_fit = evaluate_y(c0, c1, z2, layers)
             return y2 - y_fit
 
         else:
-            y_raw = evaluate_y(C0, C1, z2, layers)
+            y_raw = evaluate_y(c0, c1, z2, layers)
             y_fit = 2.0*y_turn - y_raw
             return -(y2 - y_fit)
 
     elif (y_turn is None) and (z_turn is None):
-        y_fit = evaluate_y(C0, C1, z2, layers)
+        y_fit = evaluate_y(c0, c1, z2, layers)
         return y2 - y_fit
 
 @njit(cache = True)
@@ -589,7 +586,7 @@ def get_n_1D(z, layers):
     return n_ice[idx] - delta_n[idx] * np.exp(z / z0[idx])
 
 @njit(cache = True)
-def get_C0_from_theta(z_start, theta, layers):
+def get_c0_from_theta(z_start, theta, layers):
     """
     Convert a launch angle to the corresponding ray parameter.
 
@@ -607,7 +604,7 @@ def get_C0_from_theta(z_start, theta, layers):
     Returns
     -------
     float
-        Ray parameter C0.
+        Ray parameter c0.
     """
     # Convert launch angle to ray parameter
     n_start = get_n_1D(z_start, layers)
@@ -640,7 +637,7 @@ def get_skim_angle(y1, z1, zskim, layers):
 
     Returns
     -------
-    C0crit : float
+    c0crit : float
         Ray parameter corresponding to the critical launch angle.
 
     thcrit : float
@@ -657,12 +654,12 @@ def get_skim_angle(y1, z1, zskim, layers):
     sinthcrit = min(nsurf / nlaunch, 0.99999999)
     if sinthcrit <= 1.0:
         thcrit = np.arcsin(sinthcrit)
-        C0crit = get_C0_from_theta(z1, thcrit, layers)
+        c0crit = get_c0_from_theta(z1, thcrit, layers)
     else:
         thcrit = 1e-12  # nearly zero angle
-        C0crit = -1.0
+        c0crit = -1.0
 
-    return C0crit, thcrit
+    return c0crit, thcrit
 
 
 # To keep it numba compatible we not pass the soltuon_types_revert objects directly (or so... works like this):
@@ -671,7 +668,7 @@ REFLECTED = solution_types_revert['reflected']
 REFRACTED = solution_types_revert['refracted']
 
 @njit(cache=True)
-def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing=False, with_air=False):
+def determine_solution_type(y1, z1, y2, z2, c0, layers, downgoing=False, with_air=False):
     """
     Determine the physical type of a ray tracing solution.
 
@@ -688,7 +685,7 @@ def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing=False, with_ai
     y2, z2 : float
         Horizontal and depth coordinates of the receiver.
 
-    C0 : float
+    c0 : float
         Ray parameter controlling the curvature of the trajectory.
 
     layers : tuple of ndarray
@@ -748,7 +745,7 @@ def determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing=False, with_ai
     """
 
     y_turn, z_turn = get_turning_point(
-        C0,
+        c0,
         y1, z1,
         layers,None,downgoing,with_air
     )

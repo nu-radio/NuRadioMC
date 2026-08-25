@@ -56,15 +56,15 @@ def get_inice_quantities(pos, theta_air, layers):
     n_air = get_n_1D(0.0001, layers)
 
     p = n_air * np.sin(theta_air)
-    C0 = 1.0 / p
+    c0 = 1.0 / p
 
     x1 = (pos[1],pos[2])
     x2 = (0, 0)
-    travel_time = get_travel_time_analytic(C0, x1, x2, layers)
+    travel_time = get_travel_time_analytic(c0, x1, x2, layers)
 
-    C1, _, _, _ = compute_offsets(C0, pos[1], pos[2], layers)
+    c1, _, _, _ = compute_offsets(c0, pos[1], pos[2], layers)
 
-    horizontal_offset =  evaluate_y(C0, C1, 0, layers) - evaluate_y(C0, C1, pos[2], layers)
+    horizontal_offset =  evaluate_y(c0, c1, 0, layers) - evaluate_y(c0, c1, pos[2], layers)
 
     return horizontal_offset, travel_time
 

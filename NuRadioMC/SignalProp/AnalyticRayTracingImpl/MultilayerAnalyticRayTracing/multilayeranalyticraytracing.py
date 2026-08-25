@@ -47,8 +47,8 @@ Coordinates are given as (y, z) with units of meters:
 
 z = 0 corresponds to the ice surface.
 
-The ray parameter ``C0`` determines the curvature of the trajectory.
-It can be seen as C0 = 1/(n(z)*sin(theta)) where n(z) is the refractive index and theta is the angle relative to the horizontal at the current depth z.
+The ray parameter ``c0`` determines the curvature of the trajectory.
+It can be seen as c0 = 1/(n(z)*sin(theta)) where n(z) is the refractive index and theta is the angle relative to the horizontal at the current depth z.
 
 Layer definitions
 -----------------
@@ -96,7 +96,7 @@ logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
 
 NumbaList = list # fallback for get_path_segments function
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import get_layer_index, get_n_1D, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn, get_turning_point, get_C0_from_theta, get_delta_y, get_skim_angle, determine_solution_type
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import get_layer_index, get_n_1D, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn, get_turning_point, get_c0_from_theta, get_delta_y, get_skim_angle, determine_solution_type
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.solver import find_solutions, find_solutions_bulk, reduce_solutions
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.getrayparameters import get_path, get_path_segments, get_path_length_analytic, get_travel_time_analytic, get_launch_angle, get_receiving_angle, get_reflection_angle, get_attenuation_along_path, get_focusing_factor, get_launch_vector, get_receiving_vector, ds_dz_layer, get_path_length_numerical, get_travel_time_numerical
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.planewave import get_inice_quantities, get_time_difference_plane_wave_analytic
@@ -222,7 +222,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             if numba_available:
 
                 global get_layer_index, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn
-                global get_turning_point, get_delta_y, get_n_1D, get_C0_from_theta, get_skim_angle
+                global get_turning_point, get_delta_y, get_n_1D, get_c0_from_theta, get_skim_angle
                 global determine_solution_type, get_path_segments, get_path_length_analytic, get_launch_angle
                 global get_receiving_angle, get_reflection_angle, get_travel_time_analytic, ds_dz_layer, get_focusing_factor
                 global get_inice_quantities, get_time_difference_plane_wave_analytic
@@ -237,7 +237,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
                     get_turning_point = ensure_jitted(get_turning_point)
                     get_delta_y = ensure_jitted(get_delta_y)
                     get_n_1D = ensure_jitted(get_n_1D)
-                    get_C0_from_theta = ensure_jitted(get_C0_from_theta)
+                    get_c0_from_theta = ensure_jitted(get_c0_from_theta)
                     get_skim_angle = ensure_jitted(get_skim_angle)
                     determine_solution_type = ensure_jitted(determine_solution_type)
                     get_path_segments = ensure_jitted(get_path_segments)
@@ -263,7 +263,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         return self.medium.get_layers_array
 
     #@log_timing()
-    def determine_solution_type(self, x1, x2, C0):
+    def determine_solution_type(self, x1, x2, c0):
 
         y1, z1 = x1
         y2, z2 = x2
@@ -278,13 +278,13 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             downgoing = True
 
 
-        solution_type = determine_solution_type(y1, z1, y2, z2, C0, self._layers_arr, downgoing, with_air)
+        solution_type = determine_solution_type(y1, z1, y2, z2, c0, self._layers_arr, downgoing, with_air)
 
         self._logger.info(
-            "solution_type | x1=%s x2=%s C0=%s type=%s",
+            "solution_type | x1=%s x2=%s c0=%s type=%s",
             x1,
             x2,
-            C0,
+            c0,
             solution_type
             )
 
@@ -329,11 +329,11 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         return n_z
 
     #@log_timing()
-    def get_travel_time_analytic(self, x1, x2, C0, *_, **__):
+    def get_travel_time_analytic(self, x1, x2, c0, *_, **__):
 
-        travel_time = get_travel_time_analytic(C0, x1, x2, self._layers_arr)
+        travel_time = get_travel_time_analytic(c0, x1, x2, self._layers_arr)
 
-        solution_type = self.determine_solution_type(x1, x2, C0)
+        solution_type = self.determine_solution_type(x1, x2, c0)
 
         # Only sanity-check DIRECT solutions
         if solution_type == solution_types_revert['direct']:
@@ -348,35 +348,35 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             #    return None
 
         self._logger.info(
-            "get_travel_time_analytic | x1=%s x2=%s C0=%s travel_time=%s",
+            "get_travel_time_analytic | x1=%s x2=%s c0=%s travel_time=%s",
             x1,
             x2,
-            C0,
+            c0,
             travel_time
             )
 
         return travel_time
     
-    def get_travel_time(self,x1, x2, C0, *_, **__):
+    def get_travel_time(self,x1, x2, c0, *_, **__):
 
-        travel_time = get_travel_time_numerical(C0, x1, x2, self._layers_arr)
+        travel_time = get_travel_time_numerical(c0, x1, x2, self._layers_arr)
 
         self._logger.info(
-            "get_ptravel_time_numerical | x1=%s x2=%s C0=%s travel_time=%s",
+            "get_ptravel_time_numerical | x1=%s x2=%s c0=%s travel_time=%s",
             x1,
             x2,
-            C0,
+            c0,
             travel_time
             )
 
         return travel_time
 
     #@log_timing()
-    def get_path_length_analytic(self, x1, x2, C0, *_, **__):
+    def get_path_length_analytic(self, x1, x2, c0, *_, **__):
 
-        path_length = get_path_length_analytic(C0, x1, x2, self._layers_arr)
+        path_length = get_path_length_analytic(c0, x1, x2, self._layers_arr)
 
-        solution_type = self.determine_solution_type(x1, x2, C0)
+        solution_type = self.determine_solution_type(x1, x2, c0)
 
         # Only sanity-check DIRECT solutions
         if solution_type == solution_types_revert['direct']:
@@ -390,101 +390,101 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             #    return None
 
         self._logger.info(
-            "get_path_length_analytic | x1=%s x2=%s C0=%s path_length=%s",
+            "get_path_length_analytic | x1=%s x2=%s c0=%s path_length=%s",
             x1,
             x2,
-            C0,
+            c0,
             path_length
             )
 
         return path_length
     
-    def get_path_length(self,x1, x2, C0, *_, **__):
+    def get_path_length(self,x1, x2, c0, *_, **__):
 
-        path_length = get_path_length_numerical(C0, x1, x2, self._layers_arr)
+        path_length = get_path_length_numerical(c0, x1, x2, self._layers_arr)
 
         self._logger.info(
-            "get_path_length_numerical | x1=%s x2=%s C0=%s path_length=%s",
+            "get_path_length_numerical | x1=%s x2=%s c0=%s path_length=%s",
             x1,
             x2,
-            C0,
+            c0,
             path_length
             )
 
         return path_length
 
-    def get_launch_vector(self, x1, x2, C0):
-        return get_launch_vector(C0, x1, x2, self._layers_arr)
+    def get_launch_vector(self, x1, x2, c0):
+        return get_launch_vector(c0, x1, x2, self._layers_arr)
 
-    def get_receive_vector(self, x1, x2, C0):
-        return get_receiving_vector(C0, x1, x2, self._layers_arr)
+    def get_receive_vector(self, x1, x2, c0):
+        return get_receiving_vector(c0, x1, x2, self._layers_arr)
 
     #@log_timing()
-    def get_launch_angle(self, x1, C0, *_, **__):
+    def get_launch_angle(self, x1, c0, *_, **__):
 
-        launch_angle = get_launch_angle(C0, x1, x1, self._layers_arr)
+        launch_angle = get_launch_angle(c0, x1, x1, self._layers_arr)
 
         self._logger.info(
-            "get_launch_angle | x1=%s C0=%s launch_angle=%s",
+            "get_launch_angle | x1=%s c0=%s launch_angle=%s",
             x1,
-            C0,
+            c0,
             launch_angle
             )
 
         return launch_angle
 
     #@log_timing()
-    def get_receive_angle(self, x1, x2, C0, *_, **__):
+    def get_receive_angle(self, x1, x2, c0, *_, **__):
 
-        receive_angle = get_receiving_angle(C0, x1, x2, self._layers_arr)
+        receive_angle = get_receiving_angle(c0, x1, x2, self._layers_arr)
 
         self._logger.info(
-            "get_receive_angle | x1=%s x2=%s C0=%s receive_angle=%s",
+            "get_receive_angle | x1=%s x2=%s c0=%s receive_angle=%s",
             x1,
             x2,
-            C0,
+            c0,
             receive_angle
             )
 
         return receive_angle
 
     #@log_timing()
-    def get_reflection_angle(self, x1, x2, C0, *_, **__):
+    def get_reflection_angle(self, x1, x2, c0, *_, **__):
 
-        reflection_angle = get_reflection_angle(C0, x1, x2, self._layers_arr)
+        reflection_angle = get_reflection_angle(c0, x1, x2, self._layers_arr)
 
         self._logger.info(
-            "get_reflection_angle | x1=%s x2=%s C0=%s reflection_angle=%s",
+            "get_reflection_angle | x1=%s x2=%s c0=%s reflection_angle=%s",
             x1,
             x2,
-            C0,
+            c0,
             reflection_angle
             )
 
         return reflection_angle
 
 
-    def get_path_reflections(self, x1, x2, C0, npoints=1000,*_, **__):
-        return get_path(C0, x1, x2, self._layers_arr, npoints)
+    def get_path_reflections(self, x1, x2, c0, npoints=1000,*_, **__):
+        return get_path(c0, x1, x2, self._layers_arr, npoints)
 
-    def get_path_segments(self, x1, x2, C0, *_, **__):
-        return get_path_segments(C0, x1, x2, self._layers_arr)
+    def get_path_segments(self, x1, x2, c0, *_, **__):
+        return get_path_segments(c0, x1, x2, self._layers_arr)
 
-    def get_turning_point(self, x1, C0):
+    def get_turning_point(self, x1, c0):
         with_air = False
         if x1[1] > 0.0 : with_air = True
-        return get_turning_point(x1[0], x1[1], C0, self._layers_arr, with_air=with_air)
+        return get_turning_point(x1[0], x1[1], c0, self._layers_arr, with_air=with_air)
 
     #@log_timing()
-    def get_focusing_analytic(self, x1, x2, C0, *_, **__):
+    def get_focusing_analytic(self, x1, x2, c0, *_, **__):
 
-        focusing_factor = get_focusing_factor(C0, x1, x2, self._layers_arr)
+        focusing_factor = get_focusing_factor(c0, x1, x2, self._layers_arr)
 
         self._logger.info(
-            "get_focusing_analytic | x1=%s x2=%s C0=%s focusing_factor=%s",
+            "get_focusing_analytic | x1=%s x2=%s c0=%s focusing_factor=%s",
             x1,
             x2,
-            C0,
+            c0,
             focusing_factor
             )
 
@@ -539,19 +539,19 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         return freqs
 
     #@log_timing()
-    def get_attenuation_along_path(self, x1, x2, C0, frequency, max_detector_frequency=None, *_, **__):
+    def get_attenuation_along_path(self, x1, x2, c0, frequency, max_detector_frequency=None, *_, **__):
 
         attenuation_model =  self.attenuation_model
         dz = self.dz
         freqs = self.__get_frequencies_for_attenuation(frequency, max_detector_frequency)
 
-        attenuation_factor = get_attenuation_along_path(C0, x1, x2, self._layers_arr, frequency, freqs, attenuation_model, dz)
+        attenuation_factor = get_attenuation_along_path(c0, x1, x2, self._layers_arr, frequency, freqs, attenuation_model, dz)
 
         self._logger.info(
-            "get_attenuation_along_path | x1=%s x2=%s C0=%s attenuation_factor=%s",
+            "get_attenuation_along_path | x1=%s x2=%s c0=%s attenuation_factor=%s",
             x1,
             x2,
-            C0,
+            c0,
             attenuation_factor
             )
 

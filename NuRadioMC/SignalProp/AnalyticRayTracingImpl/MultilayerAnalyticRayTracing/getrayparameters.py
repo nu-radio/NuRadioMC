@@ -20,13 +20,13 @@ DIRECT = solution_types_revert['direct']
 REFLECTED = solution_types_revert['reflected']
 REFRACTED = solution_types_revert['refracted']
 
-def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, get_segments = False):
+def get_path(c0, x1, x2, layers, n_points=2000, return_turning_point = False, get_segments = False):
     """
     Compute the analytic ray trajectory between two points.
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter.
 
     x1 : tuple
@@ -81,19 +81,19 @@ def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, ge
         z1, z2 = z2, z1
 
     if get_segments is True:
-        C1, _, yb, zb = compute_offsets(C0, y1, z1, layers, get_intersection_point=True)
+        c1, _, yb, zb = compute_offsets(c0, y1, z1, layers, get_intersection_point=True)
     else:
-        C1, _, _, _ = compute_offsets(C0, y1, z1, layers)
+        c1, _, _, _ = compute_offsets(c0, y1, z1, layers)
 
-    y_turn, z_turn = get_turning_point(C0,y1,z1,layers,C1,downgoing,with_air)
+    y_turn, z_turn = get_turning_point(c0,y1,z1,layers,c1,downgoing,with_air)
 
     if z_turn <= z1 or with_air or y_turn > y2 or y_turn is None or z_turn is None:
         z_forward = np.linspace(z1, z2, n_points)
-        y_forward, _ = build_y_field(C0, z_forward, layers, C1)
+        y_forward, _ = build_y_field(c0, z_forward, layers, c1)
         y_path, z_path = y_forward, z_forward
     else:
         z_forward = np.linspace(z1, z_turn, n_points)
-        y_forward, _ = build_y_field(C0, z_forward, layers, C1)
+        y_forward, _ = build_y_field(c0, z_forward, layers, c1)
 
         y_mirror = 2*y_turn - y_forward
         z_up = z_forward[::-1]
@@ -129,7 +129,7 @@ def get_path(C0, x1, x2, layers, n_points=2000, return_turning_point = False, ge
 
 
 @njit(cache=True)
-def get_path_segments(C0, x1, x2, layers):
+def get_path_segments(c0, x1, x2, layers):
     """
     Construct piecewise ray path segments in a multilayer medium.
 
@@ -143,9 +143,9 @@ def get_path_segments(C0, x1, x2, layers):
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter (inverse horizontal slowness), defined as
-        C0 = 1 / beta.
+        c0 = 1 / beta.
 
     x1 : tuple of float
         Start point (y, z) in Cartesian coordinates.
@@ -173,7 +173,7 @@ def get_path_segments(C0, x1, x2, layers):
     -------
     segments : numba.typed.List of tuples
         List of path segments. Each segment is defined as:
-        (z_start, z_end, C0, layer_idx, direction)
+        (z_start, z_end, c0, layer_idx, direction)
 
         z_start : float
             Starting depth of the segment.
@@ -181,7 +181,7 @@ def get_path_segments(C0, x1, x2, layers):
         z_end : float
             Ending depth of the segment.
 
-        C0 : float
+        c0 : float
             Ray parameter (passed through for convenience).
 
         layer_idx : int
@@ -208,12 +208,12 @@ def get_path_segments(C0, x1, x2, layers):
         z1, z2 = z2, z1
         downgoing = True
 
-    solution_type = determine_solution_type(y1,z1,y2,z2, C0, layers,downgoing,with_air)
+    solution_type = determine_solution_type(y1,z1,y2,z2, c0, layers,downgoing,with_air)
 
     # Compute offsets and get layer intersections while we are at it
-    C1, idx_start, yb, zb = compute_offsets(C0, y1, z1, layers, get_intersection_point=True)
+    c1, idx_start, yb, zb = compute_offsets(c0, y1, z1, layers, get_intersection_point=True)
     # Compute turning point
-    y_turn, z_turn = get_turning_point(C0, y1, z1, layers, C1, downgoing, False)
+    y_turn, z_turn = get_turning_point(c0, y1, z1, layers, c1, downgoing, False)
 
     if solution_type != 1: # Refracted/reflected rays: go up to the turning point and down again to x2
 
@@ -266,7 +266,7 @@ def get_path_segments(C0, x1, x2, layers):
         z_end = points_up[i+1]
         z_mid = 0.5 * (z_start + z_end)
         idx = get_layer_index(z_mid, z_min, z_max)
-        segments.append((z_start, z_end, C0, idx, 1)) # Set upgoing flag to 1
+        segments.append((z_start, z_end, c0, idx, 1)) # Set upgoing flag to 1
 
     if solution_type != DIRECT:
 
@@ -276,12 +276,12 @@ def get_path_segments(C0, x1, x2, layers):
             z_end = points_down[i+1]
             z_mid = 0.5 * (z_start + z_end)
             idx = get_layer_index(z_mid, z_min, z_max)
-            segments.append((z_start, z_end, C0, idx, 0)) # Set upgoing flag to 0
+            segments.append((z_start, z_end, c0, idx, 0)) # Set upgoing flag to 0
 
     return segments
 
 @njit(cache=True)
-def get_path_length_analytic(C0, x1, x2, layers):
+def get_path_length_analytic(c0, x1, x2, layers):
     """
     Compute total analytic ray path length in a multilayer medium.
 
@@ -294,11 +294,11 @@ def get_path_length_analytic(C0, x1, x2, layers):
     The path length within each segment is evaluated using a closed-form
     solution derived from the ray equation.
     The math was taken from Appendix C.5 of https://doi.org/10.1140/epjc/s10052-020-7612-8
-    but without the detour over the angle to get beta but using beta = 1/C0 which should be equivalent (according to my understanding -> know where to search if stuff)
+    but without the detour over the angle to get beta but using beta = 1/c0 which should be equivalent (according to my understanding -> know where to search if stuff)
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter (inverse horizontal slowness).
 
     x1 : tuple of float
@@ -321,17 +321,17 @@ def get_path_length_analytic(C0, x1, x2, layers):
     z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers
     total_s = 0.0
 
-    segments = get_path_segments(C0,x1,x2,layers)
+    segments = get_path_segments(c0,x1,x2,layers)
 
     for seg in segments:
-        z1, z2, C0, idx, upgoing = seg
+        z1, z2, c0, idx, upgoing = seg
 
         n_ice = n_ice_arr[idx]
         delta_n = delta_n_arr[idx]
         z0 = z0_arr[idx]
 
 
-        beta = 1.0 / C0
+        beta = 1.0 / c0
         alpha = max(n_ice**2 - beta**2, 1e-15)
 
 
@@ -364,16 +364,16 @@ def get_path_length_analytic(C0, x1, x2, layers):
     return total_s
 
 @njit(cache=True)
-def get_launch_angle(C0, x1, x2, layers):
+def get_launch_angle(c0, x1, x2, layers):
     """
     Compute the ray launch angle at the starting point.
 
     The launch angle is determined from the local refractive index and the ray
-    parameter C0 using Snell's law in a continuously varying medium.
+    parameter c0 using Snell's law in a continuously varying medium.
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter (inverse horizontal slowness).
 
     x1 : tuple of float
@@ -403,28 +403,28 @@ def get_launch_angle(C0, x1, x2, layers):
         z1, z2 = z2, z1
         downgoing = True
 
-    solution_type = determine_solution_type(y1,z1,y2,z2, C0, layers,downgoing,with_air)
+    solution_type = determine_solution_type(y1,z1,y2,z2, c0, layers,downgoing,with_air)
     n = get_n_1D(x1[1],layers)
 
     if solution_type == DIRECT and downgoing:
-        angle = np.pi - np.arcsin(1/(n*C0))
+        angle = np.pi - np.arcsin(1/(n*c0))
     else:
-        angle = np.arcsin(1/(n*C0))
+        angle = np.arcsin(1/(n*c0))
 
     return angle
 
 @njit(cache=True)
-def get_receiving_angle(C0, x1, x2, layers):
+def get_receiving_angle(c0, x1, x2, layers):
     """
     Compute the ray receiving angle at the endpoint.
 
     The receiving angle is determined from the local refractive index at the
-    endpoint and the ray parameter C0, accounting for ray geometry and solution
+    endpoint and the ray parameter c0, accounting for ray geometry and solution
     type (direct or refracted).
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter (inverse horizontal slowness).
 
     x1 : tuple of float
@@ -457,17 +457,17 @@ def get_receiving_angle(C0, x1, x2, layers):
         z1, z2 = z2, z1
         downgoing = True
 
-    solution_type = determine_solution_type(y1,z1,y2,z2, C0, layers,downgoing,with_air)
+    solution_type = determine_solution_type(y1,z1,y2,z2, c0, layers,downgoing,with_air)
     n = get_n_1D(x2[1],layers)
 
     if solution_type == DIRECT and not downgoing:
-        angle = np.pi - np.arcsin(1/(n*C0))
+        angle = np.pi - np.arcsin(1/(n*c0))
     else:
-        angle = np.arcsin(1/(n*C0))
+        angle = np.arcsin(1/(n*c0))
     return angle
 
 @njit(cache=True)
-def get_launch_vector(C0, x1, x2, layers):
+def get_launch_vector(c0, x1, x2, layers):
     """
     Compute the launch direction vector of the ray.
 
@@ -478,7 +478,7 @@ def get_launch_vector(C0, x1, x2, layers):
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter (inverse horizontal slowness).
 
     x1 : tuple of float
@@ -496,7 +496,7 @@ def get_launch_vector(C0, x1, x2, layers):
         Launch direction vector (vy, vz). The vector is normalized and
         points along the ray at the emission point.
     """
-    angle = get_launch_angle(C0, x1, x2, layers)
+    angle = get_launch_angle(c0, x1, x2, layers)
 
     vy = np.cos(angle)
     vz = np.sin(angle)
@@ -504,7 +504,7 @@ def get_launch_vector(C0, x1, x2, layers):
     return np.array((vy, vz))
 
 @njit(cache=True)
-def get_receiving_vector(C0, x1, x2, layers):
+def get_receiving_vector(c0, x1, x2, layers):
     """
     Compute the receiving direction vector of the ray.
 
@@ -515,7 +515,7 @@ def get_receiving_vector(C0, x1, x2, layers):
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter (inverse horizontal slowness).
 
     x1 : tuple of float
@@ -533,7 +533,7 @@ def get_receiving_vector(C0, x1, x2, layers):
         Receiving direction vector (vy, vz). The vector is normalized
         and points toward the receiver at the arrival point.
     """
-    angle = get_receiving_angle(C0, x1, x2, layers)
+    angle = get_receiving_angle(c0, x1, x2, layers)
 
     vy = np.cos(angle)
     vz = -np.sin(angle)
@@ -541,7 +541,7 @@ def get_receiving_vector(C0, x1, x2, layers):
     return np.array((vy, vz))
 
 @njit(cache=True)
-def get_reflection_angle(C0, x1, x2, layers):
+def get_reflection_angle(c0, x1, x2, layers):
     """
     Compute the surface reflection angle of a ray solution.
 
@@ -553,7 +553,7 @@ def get_reflection_angle(C0, x1, x2, layers):
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter (inverse horizontal slowness).
 
     x1 : tuple of float
@@ -591,7 +591,7 @@ def get_reflection_angle(C0, x1, x2, layers):
         downgoing = True
 
     solution_type = determine_solution_type(
-        y1, z1, y2, z2, C0, layers, downgoing, with_air
+        y1, z1, y2, z2, c0, layers, downgoing, with_air
     )
 
     if solution_type != REFLECTED:
@@ -600,12 +600,12 @@ def get_reflection_angle(C0, x1, x2, layers):
     # evaluate just below surface
     x_surface = (y1, -1e-12)
 
-    incidence_angle = get_launch_angle(C0, x_surface, x2, layers)
+    incidence_angle = get_launch_angle(c0, x_surface, x2, layers)
 
     return 2.0 * incidence_angle
 
 @njit(cache=True)
-def get_travel_time_analytic(C0, x1, x2, layers):
+def get_travel_time_analytic(c0, x1, x2, layers):
     """
     Compute total analytic ray path length in a multilayer medium.
 
@@ -618,11 +618,11 @@ def get_travel_time_analytic(C0, x1, x2, layers):
     The path length within each segment is evaluated using a closed-form
     solution derived from the ray equation.
     The math is taken from Appendix C.5 of https://doi.org/10.1140/epjc/s10052-020-7612-8
-    but without the detour over the angle to get beta but using beta = 1/C0 which should be equivalent (according to my understanding)
+    but without the detour over the angle to get beta but using beta = 1/c0 which should be equivalent (according to my understanding)
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter (inverse horizontal slowness).
 
     x1 : tuple of float
@@ -644,17 +644,17 @@ def get_travel_time_analytic(C0, x1, x2, layers):
     z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers
     total_t = 0.0
 
-    segments = get_path_segments(C0,x1,x2,layers)
+    segments = get_path_segments(c0,x1,x2,layers)
 
     for seg in segments:
-        z1, z2, C0, idx, upgoing = seg
+        z1, z2, c0, idx, upgoing = seg
 
         n_ice = n_ice_arr[idx]
         delta_n = delta_n_arr[idx]
         z0 = z0_arr[idx]
 
 
-        beta = 1.0 / C0
+        beta = 1.0 / c0
         alpha = max(n_ice**2 - beta**2, 1e-15)
 
 
@@ -762,7 +762,7 @@ def get_frequencies_for_attenuation(
     return f_det
 
 @njit(cache=True, fastmath=True)
-def ds_dz_layer(z, C0, idx, layers):
+def ds_dz_layer(z, c0, idx, layers):
     """
     Compute differential path length factor ds/dz for a layered refractive index.
 
@@ -780,8 +780,8 @@ def ds_dz_layer(z, C0, idx, layers):
     ----------
     z : ndarray
         Depth coordinates at which to evaluate the differential path length.
-    C0 : float
-        Ray tracing constant. The parameter ``beta`` is defined as ``1 / C0``.
+    c0 : float
+        Ray tracing constant. The parameter ``beta`` is defined as ``1 / c0``.
     idx : int
         Layer index selecting parameters from ``layers``.
     layers : tuple of ndarray
@@ -805,7 +805,7 @@ def ds_dz_layer(z, C0, idx, layers):
     delta_n = delta_n_arr[idx]
     z0 = z0_arr[idx]
 
-    beta = 1.0 / C0
+    beta = 1.0 / c0
 
     n = n_ice - delta_n * np.exp(z / z0)
 
@@ -818,7 +818,7 @@ def ds_dz_layer(z, C0, idx, layers):
 
 
 def get_attenuation_along_path(
-        C0,
+        c0,
         x1,
         x2,
         layers,
@@ -844,7 +844,7 @@ def get_attenuation_along_path(
         Starting position of the ray.
     x2 : array_like
         End position of the ray.
-    C0 : float
+    c0 : float
         Ray tracing constant defining the trajectory.
     layers : tuple
         Layered medium definition passed to the ray tracing and refractive
@@ -883,7 +883,7 @@ def get_attenuation_along_path(
     """
 
     # We can again use our segment function to get monotonous segments contained into one layer
-    segments = get_path_segments(C0, x1, x2, layers)
+    segments = get_path_segments(c0, x1, x2, layers)
 
     turning_z = None
     z_receiver = x2[1]
@@ -922,7 +922,7 @@ def get_attenuation_along_path(
 
     for seg in segments:
 
-        z1, z2, C0, idx, direction = seg
+        z1, z2, c0, idx, direction = seg
 
         # Skip air segments (above z=0.0) since we assume the attenuation to be neglegible there
         if z1 >= 0 and z2 >= 0:
@@ -981,7 +981,7 @@ def get_attenuation_along_path(
         z_mid = z_edges[:-1] + 0.5 * np.diff(z_edges)
 
         # Get ds_dz factor used in the integral
-        ds_dz = ds_dz_layer(z_mid, C0, idx, layers)
+        ds_dz = ds_dz_layer(z_mid, c0, idx, layers)
 
         # Compute sparse frequencies
         attenuation_sparse = np.empty_like(freqs)
@@ -1016,7 +1016,7 @@ def get_attenuation_along_path(
     return attenuation_factor
 
 def get_attenuation_along_path_new(
-        C0,
+        c0,
         x1,
         x2,
         layers,
@@ -1024,7 +1024,6 @@ def get_attenuation_along_path_new(
         freqs=None,
         attenuation_model="GL3",
         dz=10 * units.m,
-        refine=True,
         n_frequencies_integration=32,
         max_detector_freq=None
         ):
@@ -1042,7 +1041,7 @@ def get_attenuation_along_path_new(
         Starting position of the ray.
     x2 : array_like
         End position of the ray.
-    C0 : float
+    c0 : float
         Ray tracing constant defining the trajectory.
     layers : tuple
         Layered medium definition passed to the ray tracing and refractive
@@ -1082,7 +1081,7 @@ def get_attenuation_along_path_new(
     integration_window_size = 20 * units.m  # e.g., 20 meters
 
     # We can again use our segment function to get monotonous segments contained into one layer
-    segments = get_path_segments(C0, x1, x2, layers)
+    segments = get_path_segments(c0, x1, x2, layers)
 
     y1, z1 = float(x1[0]), float(x1[1])
     y2, z2 = float(x2[0]), float(x2[1])
@@ -1097,8 +1096,8 @@ def get_attenuation_along_path_new(
         downgoing = True
 
 
-    C1, _ , _, _= compute_offsets(C0, y1, z1, layers)
-    y_turn, z_turn = get_turning_point(C0,y1,z1,layers,C1,downgoing,with_air)
+    c1, _ , _, _= compute_offsets(c0, y1, z1, layers)
+    y_turn, z_turn = get_turning_point(c0,y1,z1,layers,c1,downgoing,with_air)
 
     turning_z = z_turn
     z_receiver = x2[1]
@@ -1128,7 +1127,7 @@ def get_attenuation_along_path_new(
     mask = frequency > 0
 
     for seg in segments:
-        z1, z2, C0, idx, direction = seg
+        z1, z2, c0, idx, direction = seg
 
         # Skip air segments
         if z1 >= 0 and z2 >= 0:
@@ -1149,7 +1148,7 @@ def get_attenuation_along_path_new(
         if is_near_turning:
             def integrand(z, f):
                 L = attenuation.get_attenuation_length(z, f, attenuation_model)
-                ds_dz_val = ds_dz_layer(z, C0, idx, layers)
+                ds_dz_val = ds_dz_layer(z, c0, idx, layers)
                 return ds_dz_val / L
 
             attenuation_sparse = []
@@ -1179,7 +1178,7 @@ def get_attenuation_along_path_new(
             z_edges = np.array(z_edges)
             dz_actual = np.abs(np.diff(z_edges))
             z_mid = z_edges[:-1] + 0.5 * np.diff(z_edges)
-            ds_dz_vals = ds_dz_layer(z_mid, C0, idx, layers)
+            ds_dz_vals = ds_dz_layer(z_mid, c0, idx, layers)
 
             attenuation_sparse = np.zeros_like(freqs)
             for i, f in enumerate(freqs):
@@ -1201,7 +1200,7 @@ def get_attenuation_along_path_new(
     return attenuation_factor
 
 @njit(cache=True)
-def get_focusing_factor(C0, x1, x2, layers):
+def get_focusing_factor(c0, x1, x2, layers):
     """
     Analytic solution to calculate the focusing factor
 
@@ -1210,7 +1209,7 @@ def get_focusing_factor(C0, x1, x2, layers):
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter (inverse horizontal slowness).
 
     x1 : tuple of float
@@ -1231,7 +1230,7 @@ def get_focusing_factor(C0, x1, x2, layers):
     """
 
     z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers
-    beta = 1.0 / C0
+    beta = 1.0 / c0
 
     y1, z1 = float(x1[0]), float(x1[1])
     y2, z2 = float(x2[0]), float(x2[1])
@@ -1245,12 +1244,12 @@ def get_focusing_factor(C0, x1, x2, layers):
         z1, z2 = z2, z1
         downgoing = True
 
-    solution_type = determine_solution_type(y1, z1, y2, z2, C0, layers, downgoing, with_air)
+    solution_type = determine_solution_type(y1, z1, y2, z2, c0, layers, downgoing, with_air)
 
     if solution_type == REFRACTED:
         return np.nan
 
-    segments = get_path_segments(C0, x1, x2, layers)
+    segments = get_path_segments(c0, x1, x2, layers)
 
 
 
@@ -1258,7 +1257,7 @@ def get_focusing_factor(C0, x1, x2, layers):
     w_theta = 0.0
 
     for seg in segments:
-        z1, z2, C0, idx, direction = seg
+        z1, z2, c0, idx, direction = seg
 
         # Skip air segments (above z=0.0) since we assume the attenuation to be neglegible there
         if z1 >= 0 and z2 >= 0:
@@ -1303,25 +1302,25 @@ def get_focusing_factor(C0, x1, x2, layers):
 
 
     if x1[1] > 0:
-        launch_angle = get_launch_angle(C0, x1, (0,-0.0001), layers)
+        launch_angle = get_launch_angle(c0, x1, (0,-0.0001), layers)
         n1 = get_n_1D(-0.0001, layers)
     else:
-        launch_angle = get_launch_angle(C0, x1, x2, layers)
+        launch_angle = get_launch_angle(c0, x1, x2, layers)
         n1 = get_n_1D(x1[1], layers)
 
     if x2[1] > 0:
-        receive_angle = get_receiving_angle(C0, (0,-0.0001), x2, layers)
+        receive_angle = get_receiving_angle(c0, (0,-0.0001), x2, layers)
         n2 = get_n_1D(-0.0001, layers)
     else:
-        receive_angle = get_receiving_angle(C0, x1, x2, layers)
+        receive_angle = get_receiving_angle(c0, x1, x2, layers)
         n2 = get_n_1D(x2[1], layers)
 
     if x1[1] > 0:
-        s = get_path_length_analytic(C0, (0, -0.0001), x2, layers)
+        s = get_path_length_analytic(c0, (0, -0.0001), x2, layers)
     elif x2[1] > 0:
-        s = get_path_length_analytic(C0, x1, (0, -0.0001), layers)
+        s = get_path_length_analytic(c0, x1, (0, -0.0001), layers)
     else:
-        s = get_path_length_analytic(C0, x1, x2, layers)
+        s = get_path_length_analytic(c0, x1, x2, layers)
 
     f_inv_sq = (
         n1 * n2
@@ -1332,13 +1331,13 @@ def get_focusing_factor(C0, x1, x2, layers):
     return np.sqrt(1 / f_inv_sq)
 
 
-def get_path_length_numerical(C0, x1, x2, layers):
+def get_path_length_numerical(c0, x1, x2, layers):
     """
     Numerically compute the ray path length in a multi-layer medium.
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter (inverse horizontal slowness).
     x1 : tuple of float
         Start point (y, z).
@@ -1355,10 +1354,10 @@ def get_path_length_numerical(C0, x1, x2, layers):
     z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers
     total_s = 0.0
 
-    segments = get_path_segments(C0, x1, x2, layers)
+    segments = get_path_segments(c0, x1, x2, layers)
 
     for seg in segments:
-        z1, z2, C0, idx, upgoing = seg
+        z1, z2, c0, idx, upgoing = seg
         n_ice = n_ice_arr[idx]
         delta_n = delta_n_arr[idx]
         z0 = z0_arr[idx]
@@ -1368,10 +1367,10 @@ def get_path_length_numerical(C0, x1, x2, layers):
             return n_ice - delta_n * np.exp(z / z0)
 
         # Integrand: ds/dz = sec(theta) = sqrt(1 + (dz/dy)^2)
-        def ds(d, C0):
+        def ds(d, c0):
             z = d  # Depth variable
             n_z = n(z)
-            gamma = n_z**2 - (1.0 / C0)**2  # beta = 1/C0
+            gamma = n_z**2 - (1.0 / c0)**2  # beta = 1/c0
             if gamma <= 0:
                 return 1e10  # Avoid division by zero (ray turns around)
             cos_theta = np.sqrt(gamma) / n_z
@@ -1379,21 +1378,21 @@ def get_path_length_numerical(C0, x1, x2, layers):
 
         # Handle directionality (upgoing vs downgoing)
         if upgoing:
-            s_seg, _ = integrate.quad(ds, z1, z2, args=(C0,), epsabs=1e-4, epsrel=1.49e-08)
+            s_seg, _ = integrate.quad(ds, z1, z2, args=(c0,), epsabs=1e-4, epsrel=1.49e-08)
         else:
-            s_seg, _ = integrate.quad(ds, z2, z1, args=(C0,), epsabs=1e-4, epsrel=1.49e-08)
+            s_seg, _ = integrate.quad(ds, z2, z1, args=(c0,), epsabs=1e-4, epsrel=1.49e-08)
 
         total_s += s_seg
 
     return total_s
 
-def get_travel_time_numerical(C0, x1, x2, layers):
+def get_travel_time_numerical(c0, x1, x2, layers):
     """
     Numerically compute the ray travel time in a multi-layer medium.
 
     Parameters
     ----------
-    C0 : float
+    c0 : float
         Ray parameter.
     x1 : tuple of float
         Start point (y, z).
@@ -1411,10 +1410,10 @@ def get_travel_time_numerical(C0, x1, x2, layers):
     z_min, z_max, n_ice_arr, delta_n_arr, z0_arr = layers
     total_t = 0.0
 
-    segments = get_path_segments(C0, x1, x2, layers)
+    segments = get_path_segments(c0, x1, x2, layers)
 
     for seg in segments:
-        z1, z2, C0, idx, upgoing = seg
+        z1, z2, c0, idx, upgoing = seg
         n_ice = n_ice_arr[idx]
         delta_n = delta_n_arr[idx]
         z0 = z0_arr[idx]
@@ -1423,19 +1422,19 @@ def get_travel_time_numerical(C0, x1, x2, layers):
             return n_ice - delta_n * np.exp(z / z0)
 
         # Integrand: dt/dz = n(z)/cos(theta)
-        def dt(d, C0):
+        def dt(d, c0):
             z = d
             n_z = n(z)
-            gamma = n_z**2 - (1.0 / C0)**2
+            gamma = n_z**2 - (1.0 / c0)**2
             if gamma <= 0:
                 return 1e10  # Avoid singularities
             cos_theta = np.sqrt(gamma) / n_z
             return n_z / (constants.c * cos_theta)
 
         if upgoing:
-            t_seg, _ = integrate.quad(dt, z1, z2, args=(C0,), epsabs=1e-10, epsrel=1.49e-08)
+            t_seg, _ = integrate.quad(dt, z1, z2, args=(c0,), epsabs=1e-10, epsrel=1.49e-08)
         else:
-            t_seg, _ = integrate.quad(dt, z2, z1, args=(C0,), epsabs=1e-10, epsrel=1.49e-08)
+            t_seg, _ = integrate.quad(dt, z2, z1, args=(c0,), epsabs=1e-10, epsrel=1.49e-08)
 
         total_t += t_seg 
 

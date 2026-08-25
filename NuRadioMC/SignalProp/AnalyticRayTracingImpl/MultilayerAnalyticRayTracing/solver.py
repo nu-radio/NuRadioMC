@@ -2,17 +2,17 @@ import numpy as np
 from scipy import optimize
 from operator import itemgetter
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_delta_y, get_n_1D, get_C0_from_theta, get_skim_angle, determine_solution_type
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_delta_y, get_n_1D, get_c0_from_theta, get_skim_angle, determine_solution_type
 
 
 
-def get_C0_from_log_scalar(logC0, n_ice):
+def get_c0_from_log_scalar(logc0, n_ice):
     """
     Convert the logarithmic optimization parameter to a ray parameter.
 
     Parameters
     ----------
-    logC0 : float
+    logc0 : float
         Optimization parameter used during root finding.
 
     n_ice : float
@@ -21,34 +21,34 @@ def get_C0_from_log_scalar(logC0, n_ice):
     Returns
     -------
     float
-        Ray parameter C0.
+        Ray parameter c0.
 
     Notes
     -----
     The transformation
 
-        C0 = exp(logC0) + 1 / n_ice
+        c0 = exp(logc0) + 1 / n_ice
 
-    ensures that C0 remains larger than the minimum allowed value
+    ensures that c0 remains larger than the minimum allowed value
     during optimization.
     """
-    return float(np.exp(logC0) + 1. / n_ice)
+    return float(np.exp(logc0) + 1. / n_ice)
 
-def get_C0_from_log(logC0, n_ice):
+def get_c0_from_log(logc0, n_ice):
 
-    if isinstance(logC0, np.ndarray):
-        logC0 = logC0[0]
+    if isinstance(logc0, np.ndarray):
+        logc0 = logc0[0]
 
-    return float(get_C0_from_log_scalar(logC0, n_ice))
+    return float(get_c0_from_log_scalar(logc0, n_ice))
 
-def obj_delta_y_sqr(logC0, y1, z1, y2, z2, layers, n_deep,
+def obj_delta_y_sqr(logc0, y1, z1, y2, z2, layers, n_deep,
                     downgoing, with_air):
     """
     Objective function used for root-finding during ray solution search.
 
     Parameters
     ----------
-    logC0 : float
+    logc0 : float
         Logarithmic optimization parameter.
 
     y1, z1 : float
@@ -75,15 +75,15 @@ def obj_delta_y_sqr(logC0, y1, z1, y2, z2, layers, n_deep,
         Squared horizontal mismatch between ray endpoint
         and target position.
     """
-    C0 = get_C0_from_log(logC0, n_deep)
-    dy = get_delta_y(C0, y1, z1, y2, z2, layers, (-1., -1.),downgoing,with_air)
+    c0 = get_c0_from_log(logc0, n_deep)
+    dy = get_delta_y(c0, y1, z1, y2, z2, layers, (-1., -1.),downgoing,with_air)
 
     if not np.isfinite(dy):
         return 1e30
 
     return dy*dy
 
-def obj_delta_y(logC0, y1, z1, y2, z2, layers, n_deep,
+def obj_delta_y(logc0, y1, z1, y2, z2, layers, n_deep,
                 downgoing, with_air):
     """
     Objective function returning the horizontal mismatch of a ray.
@@ -93,7 +93,7 @@ def obj_delta_y(logC0, y1, z1, y2, z2, layers, n_deep,
 
     Parameters
     ----------
-    logC0 : float
+    logc0 : float
         Logarithmic optimization parameter.
 
     y1, z1 : float
@@ -120,8 +120,8 @@ def obj_delta_y(logC0, y1, z1, y2, z2, layers, n_deep,
         Horizontal difference between predicted ray position
         and the target point.
     """
-    C0 = get_C0_from_log(logC0, n_deep)
-    dy = get_delta_y(C0, y1, z1, y2, z2, layers, (-1., -1.),downgoing,with_air)
+    c0 = get_c0_from_log(logc0, n_deep)
+    dy = get_delta_y(c0, y1, z1, y2, z2, layers, (-1., -1.),downgoing,with_air)
 
     if not np.isfinite(dy):
             return 1e30
@@ -133,7 +133,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
     """
     Find all valid ray tracing solutions between two points. Stable solutions over layer boundary with non-smooth n(z).
 
-    The function searches for ray parameters C0 that connect the start
+    The function searches for ray parameters c0 that connect the start
     and end positions using numerical root finding.
 
     This function is still used, after optimizing the solution finding for better solving in the situations where emitter and receiver are on the same depth (z1=z2) always resulted in less stable solving for air-to-ice rays.
@@ -161,7 +161,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
         ``type`` : int
             Solution type identifier.
 
-        ``C0`` : float
+        ``c0`` : float
             Ray parameter.
 
         ``D`` : float
@@ -196,7 +196,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
 
     results = []
-    C0s = []
+    c0s = []
     z_min, z_max, n_ice, delta_n, z0 = layers
 
     y1, z1 = float(x1[0]), float(x1[1])
@@ -232,34 +232,34 @@ def find_solutions(x1, x2, layers,tol=1e-12):
         theta_skim = np.arctan2(z1,y1)
 
 
-    C0skim = get_C0_from_theta(
+    c0skim = get_c0_from_theta(
         z1,
         np.abs(theta_skim),
         layers
     )
 
-    C0straight = get_C0_from_theta(
+    c0straight = get_c0_from_theta(
         z1,
         np.abs(theta_straight),
         layers
     )
 
     n_z = get_n_1D(z1,layers)
-    logC0straight = np.log(max(C0straight - 1./n_deep, 1e-12))
-    logC0skim_nz = np.log(max(1/n_z - 1./n_deep, 1e-12))
-    logC0skim = np.log(max(C0skim- 1./n_deep, 1e-12))
+    logc0straight = np.log(max(c0straight - 1./n_deep, 1e-12))
+    logc0skim_nz = np.log(max(1/n_z - 1./n_deep, 1e-12))
+    logc0skim = np.log(max(c0skim- 1./n_deep, 1e-12))
 
-    result = optimize.root(obj_delta_y_sqr, x0=logC0straight, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
+    result = optimize.root(obj_delta_y_sqr, x0=logc0straight, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
     if(result.fun < 1e-7):
-        if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
-            C_0 = get_C0_from_log(result.x[0],n_deep)
-            C_1, _, _, _ = compute_offsets(C_0,y1, z1, layers)
-            C0s.append(C_0)
-            solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
+        if(np.round(result.x[0], 3) not in np.round(c0s, 3)):
+            c_0 = get_c0_from_log(result.x[0],n_deep)
+            c_1, _, _, _ = compute_offsets(c_0,y1, z1, layers)
+            c0s.append(c_0)
+            solution_type = determine_solution_type(y1,z1,y2,z2, c_0, layers,downgoing,with_air)
 
             results.append({'type': solution_type,
-                            'C0': C_0,
-                            'C1': C_1,
+                            'C0': c_0,
+                            'C1': c_1,
                             'reflection': 0,
                             'reflection_case': 0,
                             'D' : result.x[0],
@@ -267,17 +267,17 @@ def find_solutions(x1, x2, layers,tol=1e-12):
                             'flag' : 1})
     else:
 
-        result = optimize.root(obj_delta_y_sqr, x0=logC0skim, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
+        result = optimize.root(obj_delta_y_sqr, x0=logc0skim, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
         if(result.fun < 1e-7):
-            if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
-                C_0 = get_C0_from_log(result.x[0],n_deep)
-                C_1, _, _, _ = compute_offsets(C_0,y1, z1, layers)
-                C0s.append(C_0)
-                solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
+            if(np.round(result.x[0], 3) not in np.round(c0s, 3)):
+                c_0 = get_c0_from_log(result.x[0],n_deep)
+                c_1, _, _, _ = compute_offsets(c_0,y1, z1, layers)
+                c0s.append(c_0)
+                solution_type = determine_solution_type(y1,z1,y2,z2, c_0, layers,downgoing,with_air)
 
                 results.append({'type': solution_type,
-                                'C0': C_0,
-                                'C1': C_1,
+                                'C0': c_0,
+                                'C1': c_1,
                                 'reflection': 0,
                                 'reflection_case': 0,
                                 'D' : result.x[0],
@@ -285,19 +285,19 @@ def find_solutions(x1, x2, layers,tol=1e-12):
                                 'flag' : 1})
 
 
-    # check if another solution with higher logC0 exists
+    # check if another solution with higher logc0 exists
     if result.x[0] is None:
-        result_x = logC0skim_nz
+        result_x = logc0skim_nz
     else:
         result_x = result.x[0]
 
-    logC0_start = result_x + 0.00001
+    logc0_start = result_x + 0.00001
 
     if with_air:
-        C0cross_min = 1.0
-        logC0_start = np.log(max(C0cross_min - 1./n_deep, 1e-12))
+        c0cross_min = 1.0
+        logc0_start = np.log(max(c0cross_min - 1./n_deep, 1e-12))
 
-    logC0_stop = 100.0
+    logc0_stop = 100.0
 
     delta_test = obj_delta_y(
         -10.,
@@ -307,14 +307,14 @@ def find_solutions(x1, x2, layers,tol=1e-12):
         )
 
     delta_start = obj_delta_y(
-        logC0_start,
+        logc0_start,
         y1, z1, y2, z2,
         layers,
         n_deep,downgoing,with_air
         )
 
     delta_stop = obj_delta_y(
-        logC0_stop,
+        logc0_stop,
         y1, z1, y2, z2,
         layers,
         n_deep,downgoing,with_air
@@ -323,17 +323,17 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
 
-        result2 = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
+        result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
 
-        if(np.round(result2, 3) not in np.round(C0s, 3)):
-            C_0 = get_C0_from_log(result2,n_deep)
-            C_1, _, _, _ = compute_offsets(C_0,y1, z1, layers)
-            C0s.append(C_0)
-            solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
+        if(np.round(result2, 3) not in np.round(c0s, 3)):
+            c_0 = get_c0_from_log(result2,n_deep)
+            c_1, _, _, _ = compute_offsets(c_0,y1, z1, layers)
+            c0s.append(c_0)
+            solution_type = determine_solution_type(y1,z1,y2,z2, c_0, layers,downgoing,with_air)
 
             results.append({'type': solution_type,
-                            'C0': C_0,
-                            'C1': C_1,
+                            'C0': c_0,
+                            'C1': c_1,
                             'reflection': 0,
                             'reflection_case': 0,
                             'D' : result2,
@@ -342,45 +342,45 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
 
     theta_min =  1e-5
-    C0theta_min = get_C0_from_theta(
+    c0theta_min = get_c0_from_theta(
         z1,
         theta_min,
         layers
         )
-    if C0theta_min <= 1/n_deep:
-        C0theta_min = 1/n_deep + 1e-12  # small buffer to avoid log(0)
+    if c0theta_min <= 1/n_deep:
+        c0theta_min = 1/n_deep + 1e-12  # small buffer to avoid log(0)
 
-    logC0_start = max(np.log(C0theta_min - 1. / n_deep),-100)
+    logc0_start = max(np.log(c0theta_min - 1. / n_deep),-100)
 
-    logC0_stop = result_x - 0.00001
+    logc0_stop = result_x - 0.00001
     delta_start = obj_delta_y(
-        logC0_start,
+        logc0_start,
         y1, z1, y2, z2,
         layers,
         n_deep,downgoing,with_air
         )
 
     delta_stop = obj_delta_y(
-            logC0_stop,
+            logc0_stop,
             y1, z1, y2, z2,
             layers,
             n_deep,downgoing,with_air
             )
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
-        result3 = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
+        result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
 
 
-        if(np.round(result3, 3) not in np.round(C0s, 3)):
-            C_0 = get_C0_from_log(result3, n_deep)
-            C_1, _, _, _ = compute_offsets(C_0,y1, z1, layers)
-            C0s.append(C_0)
-            solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
+        if(np.round(result3, 3) not in np.round(c0s, 3)):
+            c_0 = get_c0_from_log(result3, n_deep)
+            c_1, _, _, _ = compute_offsets(c_0,y1, z1, layers)
+            c0s.append(c_0)
+            solution_type = determine_solution_type(y1,z1,y2,z2, c_0, layers,downgoing,with_air)
 
 
             results.append({'type': solution_type,
-                            'C0': C_0,
-                            'C1': C_1,
+                            'C0': c_0,
+                            'C1': c_1,
                             'reflection': 0,
                             'reflection_case': 0,
                             'D' : result3,
@@ -393,7 +393,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
     """
     Find all valid ray tracing solutions between two points. Optimized for points below ice with z1 close to z2.
 
-    The function searches for ray parameters C0 that connect the start
+    The function searches for ray parameters c0 that connect the start
     and end positions using numerical root finding.
 
     Parameters
@@ -418,7 +418,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
         ``type`` : int
             Solution type identifier.
 
-        ``C0`` : float
+        ``c0`` : float
             Ray parameter.
 
         ``D`` : float
@@ -453,7 +453,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
 
     results = []
-    C0s = []
+    c0s = []
     z_min, z_max, n_ice, delta_n, z0 = layers
 
     y1, z1 = float(x1[0]), float(x1[1])
@@ -497,19 +497,19 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
         theta_skim = abs(np.arctan2(z1,y1))
 
 
-    C0skim = get_C0_from_theta(
+    c0skim = get_c0_from_theta(
         z1,
         np.abs(theta_skim),
         layers
     )
 
-    C0straight = get_C0_from_theta(
+    c0straight = get_c0_from_theta(
         z1,
         np.abs(theta_straight),
         layers
     )
 
-    C0_sixty = get_C0_from_theta(
+    c0_sixty = get_c0_from_theta(
         z1,
         np.pi/3,
         layers
@@ -519,16 +519,16 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
     n_z = get_n_1D(z1,layers)
 
 
-    logC0straight = np.log(abs(C0straight - 1./n_deep))
-    logC0skim_nz = np.log(max(abs(1/n_z - 1./n_deep),1e-14))
-    logC0skim = np.log(abs(C0skim- 1./n_deep))
-    logC0_60 = np.log(abs(C0_sixty - 1./n_deep))
+    logc0straight = np.log(abs(c0straight - 1./n_deep))
+    logc0skim_nz = np.log(max(abs(1/n_z - 1./n_deep),1e-14))
+    logc0skim = np.log(abs(c0skim- 1./n_deep))
+    logc0_60 = np.log(abs(c0_sixty - 1./n_deep))
 
     initial_guesses = [
-        logC0straight,
-        logC0skim,
-        logC0skim_nz,
-        logC0_60
+        logc0straight,
+        logc0skim,
+        logc0skim_nz,
+        logc0_60
 
     ]
 
@@ -543,17 +543,17 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
         try:
             result = optimize.root(obj_delta_y_sqr, x0=x0, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
 
-            C_0 = get_C0_from_log(result.x[0],n_deep)
+            c_0 = get_c0_from_log(result.x[0],n_deep)
             if(result.fun < 1e-7):
-                if(np.round(C_0, 3) not in np.round(C0s, 3)):
+                if(np.round(c_0, 3) not in np.round(c0s, 3)):
 
-                    C_1, _, _, _ = compute_offsets(C_0,y1, z1, layers)
-                    C0s.append(C_0)
-                    solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
+                    c_1, _, _, _ = compute_offsets(c_0,y1, z1, layers)
+                    c0s.append(c_0)
+                    solution_type = determine_solution_type(y1,z1,y2,z2, c_0, layers,downgoing,with_air)
 
                     results.append({'type': solution_type,
-                                    'C0': C_0,
-                                    'C1': C_1,
+                                    'C0': c_0,
+                                    'C1': c_1,
                                     'reflection': 0,
                                     'reflection_case': 0,
                                     'D' : result.x[0],
@@ -563,29 +563,29 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
         except Exception:
             continue
 
-    # check if another solution with higher logC0 exists
+    # check if another solution with higher logc0 exists
     if result.x[0] is None:
-        result_x = logC0skim_nz
+        result_x = logc0skim_nz
     else:
         result_x = result.x[0]
 
-    logC0_start = result_x + 0.00001
+    logc0_start = result_x + 0.00001
 
     if with_air:
-        C0cross_min = 1.0
-        logC0_start = np.log(max(C0cross_min - 1./n_deep, 1e-12))
+        c0cross_min = 1.0
+        logc0_start = np.log(max(c0cross_min - 1./n_deep, 1e-12))
 
-    logC0_stop = 100.0
+    logc0_stop = 100.0
 
     delta_start = obj_delta_y(
-        logC0_start,
+        logc0_start,
         y1, z1, y2, z2,
         layers,
         n_deep,downgoing,with_air
         )
 
     delta_stop = obj_delta_y(
-        logC0_stop,
+        logc0_stop,
         y1, z1, y2, z2,
         layers,
         n_deep,downgoing,with_air
@@ -593,17 +593,17 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
 
-        result2 = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
+        result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
 
-        if(np.round(result2, 3) not in np.round(C0s, 3)):
-            C_0 = get_C0_from_log(result2,n_deep)
-            C_1, _, _, _ = compute_offsets(C_0,y1, z1, layers)
-            C0s.append(C_0)
-            solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
+        if(np.round(result2, 3) not in np.round(c0s, 3)):
+            c_0 = get_c0_from_log(result2,n_deep)
+            c_1, _, _, _ = compute_offsets(c_0,y1, z1, layers)
+            c0s.append(c_0)
+            solution_type = determine_solution_type(y1,z1,y2,z2, c_0, layers,downgoing,with_air)
 
             results.append({'type': solution_type,
-                            'C0': C_0,
-                            'C1': C_1,
+                            'C0': c_0,
+                            'C1': c_1,
                             'reflection': 0,
                             'reflection_case': 0,
                             'D' : result2,
@@ -612,45 +612,45 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
 
     theta_min =  1e-5
-    C0theta_min = get_C0_from_theta(
+    c0theta_min = get_c0_from_theta(
         z1,
         theta_min,
         layers
         )
-    if C0theta_min <= 1/n_deep:
-        C0theta_min = 1/n_deep + 1e-12  # small buffer to avoid log(0)
+    if c0theta_min <= 1/n_deep:
+        c0theta_min = 1/n_deep + 1e-12  # small buffer to avoid log(0)
 
-    logC0_start = max(np.log(C0theta_min - 1. / n_deep),-100)
+    logc0_start = max(np.log(c0theta_min - 1. / n_deep),-100)
 
-    logC0_stop = result_x - 0.00001
+    logc0_stop = result_x - 0.00001
     delta_start = obj_delta_y(
-        logC0_start,
+        logc0_start,
         y1, z1, y2, z2,
         layers,
         n_deep,downgoing,with_air
         )
 
     delta_stop = obj_delta_y(
-            logC0_stop,
+            logc0_stop,
             y1, z1, y2, z2,
             layers,
             n_deep,downgoing,with_air
             )
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
-        result3 = optimize.brentq(obj_delta_y, logC0_start, logC0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
+        result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
 
 
-        if(np.round(result3, 3) not in np.round(C0s, 3)):
-            C_0 = get_C0_from_log(result3, n_deep)
-            C_1, _, _, _ = compute_offsets(C_0,y1, z1, layers)
-            C0s.append(C_0)
-            solution_type = determine_solution_type(y1,z1,y2,z2, C_0, layers,downgoing,with_air)
+        if(np.round(result3, 3) not in np.round(c0s, 3)):
+            c_0 = get_c0_from_log(result3, n_deep)
+            c_1, _, _, _ = compute_offsets(c_0,y1, z1, layers)
+            c0s.append(c_0)
+            solution_type = determine_solution_type(y1,z1,y2,z2, c_0, layers,downgoing,with_air)
 
 
             results.append({'type': solution_type,
-                            'C0': C_0,
-                            'C1': C_1,
+                            'C0': c_0,
+                            'C1': c_1,
                             'reflection': 0,
                             'reflection_case': 0,
                             'D' : result3,
@@ -665,11 +665,11 @@ def reduce_solutions(results, with_air=False, tol = 1e-3):
     equivalent solutions and limiting the total number of returned
     solutions.
 
-    Solutions are grouped according to their C0 parameter using
+    Solutions are grouped according to their c0 parameter using
     the specified tolerance. Within each group, the solution with the
     lowest flag value is retained. If more than two solutions remain
-    after this reduction, only the two solutions with the highest C0
-    values are kept. This suppresses unphysical low-C0 solutions
+    after this reduction, only the two solutions with the highest c0
+    values are kept. This suppresses unphysical low-c0 solutions
     that can appear due to numerical instabilities.
 
     Parameters
@@ -679,7 +679,7 @@ def reduce_solutions(results, with_air=False, tol = 1e-3):
         to contain at least the keys 'C0', 'flag', and 'type'.
 
     tol : float, optional
-        Tolerance used to group similar C0 values.
+        Tolerance used to group similar c0 values.
         Default is 1e-3.
 
     Returns
@@ -703,7 +703,7 @@ def reduce_solutions(results, with_air=False, tol = 1e-3):
         results = max(results, key=itemgetter('C0'))
         return [results]
 
-    if len(results) > 2: # keep results with higher C0 (sometimes numerical issues result in wrong solutions with low C0)
+    if len(results) > 2: # keep results with higher c0 (sometimes numerical issues result in wrong solutions with low c0)
         results = sorted(results, key=itemgetter('C0'))[-2:]
 
     results = sorted(results, key=itemgetter('type', 'C0'))

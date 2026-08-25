@@ -164,7 +164,7 @@ def compare_point_full(
 
         sorted_indices_a = sorted(
             range(n_a),
-            key=lambda i: results_a[i]["C0"]
+            key=lambda i: results_a[i]['C0']
         )
 
         for group_id, i in enumerate(sorted_indices_a):
@@ -192,7 +192,7 @@ def compare_point_full(
             # ==================================================
             sorted_indices_b = sorted(
                 range(n_b),
-                key=lambda i: results_b[i]["C0"]
+                key=lambda i: results_b[i]['C0']
             )
 
             for group_id, i in enumerate(sorted_indices_b):
