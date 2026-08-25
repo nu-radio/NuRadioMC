@@ -31,7 +31,7 @@ from NuRadioReco.modules import voltageToEfieldConverter  # noqa: E402
 from NuRadioReco.modules.LOFAR import pipelineVisualizer_LOFAR  # noqa: E402
 import NuRadioReco.modules.io.eventWriter  # noqa: E402
 from NuRadioReco.modules.LOFAR import iftReconstructor  # noqa: E402
-from NuRadioReco.modules.LOFAR.iftReconstructor import (  # noqa: E402
+from NuRadioReco.modules.LOFAR.reconstruction.iftReconstructor import (  # noqa: E402
     _DEFAULT_N_VI_ITERATIONS, _DEFAULT_N_SAMPLES,
     _EARLY_ABORT_XMAX_STD_GCM2, _EARLY_ABORT_XMAX_AFTER_ITERS, _EARLY_ABORT_MAX_FLUENCE,
 )

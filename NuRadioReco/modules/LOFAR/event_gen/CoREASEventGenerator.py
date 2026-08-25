@@ -35,7 +35,7 @@ from NuRadioReco.utilities.trace_utilities import get_electric_field_energy_flue
 from NuRadioReco.modules.LOFAR import planeWaveDirectionFitter_LOFAR  # noqa: E402
 from NuRadioReco.modules.LOFAR import stationPulseFinder  # noqa: E402
 from NuRadioReco.modules.LOFAR import LORASimulator
-from NuRadioReco.modules.utilities.LOFAR import (
+from NuRadioReco.utilities.LOFAR import (
     DEFAULT_STATIONS,
     COREAS_DIRECTORY,
     ANTENNA_RESPONSE_DIRECTORY,
@@ -120,7 +120,7 @@ class CoREASEventGenerator:
 
         Note: only the modules are initialised, and the begin functions are called in the run_pipeline function, since some modules require event information to be initialised.
         """
-        self.LORASimulator = NuRadioReco.modules.LOFAR.LORASimulator.LORASimulator()
+        self.LORASimulator = LORASimulator()
         
         # Initialize the modules
         self.efieldToVoltageConverter = (

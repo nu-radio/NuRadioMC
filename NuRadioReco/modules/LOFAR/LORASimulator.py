@@ -5,8 +5,8 @@ import logging
 import matplotlib.pyplot as plt
 import hashlib
 
-from NuRadioReco.utilites import units
-from NuRadioReco.utilites.showerParameter import showerParameter as shp
+from NuRadioReco.utilities import units
+from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.utilities.LOFAR import LORA_CORE_PRECISION, LORA_ANGLE_PRECISION
 
 logger = logging.getLogger("NuRadioReco.LOFAR.LORASimulator")
@@ -65,9 +65,9 @@ class LORASimulator:
                 stem_hash = int(hashlib.md5(event.get_id().encode()).hexdigest(), 16) % (
                     2**32
                 )
-                np.random.seed(stem_hash)
-                rand_x = true_core[0] + np.random.normal(0, LORA_CORE_PRECISION)
-                rand_y = true_core[1] + np.random.normal(0, LORA_CORE_PRECISION)
+                rng = np.random.default_rng(seed=stem_hash)
+                rand_x = true_core[0] + rng.normal(0, LORA_CORE_PRECISION)
+                rand_y = true_core[1] + rng.normal(0, LORA_CORE_PRECISION)
                 logger.info(
                     f"Generated reproducible core guess (seed={stem_hash}): x={rand_x:.2f}, y={rand_y:.2f}"
                 )
@@ -83,8 +83,8 @@ class LORASimulator:
         # This guessed direction -- NOT the truth -- is what the voltage->E-field
         # unfolding below uses, exactly as in real data, so the recovered fluences
         # carry the same direction-induced error the data pipeline has.
-        azimuth_guess = true_azimuth + np.random.normal(0.0, LORA_ANGLE_PRECISION)
-        zenith_guess = true_zenith + np.random.normal(0.0, LORA_ANGLE_PRECISION)
+        azimuth_guess = true_azimuth + rng.normal(0.0, LORA_ANGLE_PRECISION)
+        zenith_guess = true_zenith + rng.normal(0.0, LORA_ANGLE_PRECISION)
         logger.info(
             f"Generated direction guess: zenith={np.degrees(zenith_guess):.2f} deg, azimuth={np.degrees(azimuth_guess):.2f} deg"
         )

@@ -15,7 +15,7 @@ import radiotools.helper as hp
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.modules.utilities.LOFAR.beamforming_utilities import geometric_delay_far_field, lightspeed
+from NuRadioReco.utilities.LOFAR.beamforming_utilities import geometric_delay_far_field, lightspeed
 
 
 def average_direction(event, detector, mode='normal'):

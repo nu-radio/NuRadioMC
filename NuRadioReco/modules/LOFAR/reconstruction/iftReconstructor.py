@@ -11,7 +11,7 @@ import radiotools.helper as hp
 
 from NuRadioReco.framework.parameters import showerParameters, stationParameters, electricFieldParameters
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.modules.utilities.LOFAR import iftDataHelpers
+from NuRadioReco.utilities.LOFAR import iftDataHelpers
 from NuRadioReco.utilities import units
 
 # Module-level constants used by the IFT reconstructor.
