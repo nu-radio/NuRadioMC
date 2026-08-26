@@ -33,7 +33,7 @@ tracing solver used in NuRadioMC . In order to enable compilation with
 ``numba.njit(nopython=True)``, the layer definitions are internally
 converted from dictionary-based objects to arrays.
 For more insight into the physics behind this approach and remarks on the solving strategy it is recommended
-to have a look at the companion note to this module ``MultilayerAnalyticRayTracting.md`` (will be added in the future) and the appendix C of
+to have a look at the companion note to this module ``AnalyticRayTracingImpl/Notes-on-Ray-Tracing.pdf`` and the appendix C of
 "NuRadioMC: Simulating the Radio Emission of Neutrinos from Interaction to Detector“ (2020). https://doi.org/10.1140/epjc/s10052-020-7612-8.
 This appendix describes the implementation of the previously used single layer analytic raytracer.
 
