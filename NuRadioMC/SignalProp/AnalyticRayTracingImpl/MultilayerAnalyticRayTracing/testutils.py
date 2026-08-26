@@ -52,6 +52,8 @@ import time
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("raytracing_utils")
 
+import time
+import functools
 
 # ============================================================
 # OUTPUT DIRECTORY
