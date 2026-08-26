@@ -8,7 +8,7 @@ from NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba import njit
 
 NumbaList = list # fallback for get_path_segments function
 
-#@njit(cache=True)
+
 def layers_to_arrays(layers):
     """
     Convert layer definitions from dictionaries to NumPy arrays.

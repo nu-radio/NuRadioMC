@@ -59,6 +59,45 @@ logger = logging.getLogger("raytracing_utils")
 
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
+def log_timing(level=logging.DEBUG):
+
+    def decorator(func):
+
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+
+            start = time.perf_counter()
+
+            try:
+                result = func(self, *args, **kwargs)
+
+            except Exception:
+
+                elapsed_ms = (time.perf_counter() - start) * 1000
+
+                self._logger.exception(
+                    "%s failed after %.3f ms",
+                    func.__name__,
+                    elapsed_ms
+                )
+
+                raise
+
+            elapsed_ms = (time.perf_counter() - start) * 1000
+
+            self._logger.info(
+                level,
+                "%s completed in %.3f ms",
+                func.__name__,
+                elapsed_ms
+            )
+
+            return result
+
+        return wrapper
+
+    return decorator
+
 def timed_call(fn):
     t0 = time.perf_counter()
     result = fn()

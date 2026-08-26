@@ -474,7 +474,6 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
     n_deep = n_ice[-1]
 
-    #theta_straight = np.arctan2(max((z2-z1),1e-14)/max((y2-y1),1e-14))
     theta_straight = abs(np.arctan2((z2-z1),(y2-y1)))
 
     if with_air and downgoing:
@@ -482,9 +481,6 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
     if theta_straight < np.pi/4:
         theta_straight = np.pi/4
-
-    #if abs(z1-z2) < 2:
-    #    theta_straight = np.pi/2
 
 
     _, theta_skim = get_skim_angle(

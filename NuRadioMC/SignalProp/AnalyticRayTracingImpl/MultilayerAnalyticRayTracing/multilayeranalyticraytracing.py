@@ -48,7 +48,7 @@ Coordinates are given as (y, z) with units of meters:
 z = 0 corresponds to the ice surface.
 
 The ray parameter ``c0`` determines the curvature of the trajectory.
-It can be seen as c0 = 1/(n(z)*sin(theta)) where n(z) is the refractive index and theta is the angle relative to the horizontal at the current depth z.
+It can be seen as c0 = 1/(n(z)*sin(theta)) where n(z) is the refractive index and theta is the elevation angle relative to the horizontal at the current depth z.
 
 Layer definitions
 -----------------
@@ -102,51 +102,8 @@ from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.ge
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.planewave import get_inice_quantities, get_time_difference_plane_wave_analytic
 
 
-import time
-import functools
+
 import logging
-
-
-def log_timing(level=logging.DEBUG):
-
-    def decorator(func):
-
-        @functools.wraps(func)
-        def wrapper(self, *args, **kwargs):
-
-            start = time.perf_counter()
-
-            try:
-                result = func(self, *args, **kwargs)
-
-            except Exception:
-
-                elapsed_ms = (time.perf_counter() - start) * 1000
-
-                self._logger.exception(
-                    "%s failed after %.3f ms",
-                    func.__name__,
-                    elapsed_ms
-                )
-
-                raise
-
-            elapsed_ms = (time.perf_counter() - start) * 1000
-
-            self._logger.info(
-                level,
-                "%s completed in %.3f ms",
-                func.__name__,
-                elapsed_ms
-            )
-
-            return result
-
-        return wrapper
-
-    return decorator
-
-
 
 
 class multi_layer_ray_tracing_2D(ray_tracing_base):
@@ -262,7 +219,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
     def _layers_arr(self):
         return self.medium.get_layers_array
 
-    #@log_timing()
+
     def determine_solution_type(self, x1, x2, c0):
 
         y1, z1 = x1
@@ -328,7 +285,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         n_z = get_n_1D(x1[1],self._layers_arr)
         return n_z
 
-    #@log_timing()
+
     def get_travel_time_analytic(self, x1, x2, c0, *_, **__):
 
         travel_time = get_travel_time_analytic(c0, x1, x2, self._layers_arr)
@@ -341,11 +298,6 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
             direct_len = np.sqrt((x2[0]-x1[0])**2 + (x2[1]-x1[1])**2) * units.m
             n_z1 = self.get_n_2D(x1)
             direct_time_lightspeed = direct_len * n_z1 / constants.c
-
-            #if travel_time > direct_time_lightspeed * 1.5: # Break for obviously unphysical solutions (from wrong solutions, makes plotting easier)
-            #    return None
-            #if travel_time < direct_time_lightspeed * 0.9:
-            #    return None
 
         self._logger.info(
             "get_travel_time_analytic | x1=%s x2=%s c0=%s travel_time=%s",
@@ -371,7 +323,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
 
         return travel_time
 
-    #@log_timing()
+
     def get_path_length_analytic(self, x1, x2, c0, *_, **__):
 
         path_length = get_path_length_analytic(c0, x1, x2, self._layers_arr)
@@ -382,12 +334,6 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         if solution_type == solution_types_revert['direct']:
 
             direct_len = np.sqrt((x2[0]-x1[0])**2 + (x2[1]-x1[1])**2) * units.m
-
-            #if path_length > direct_len * 1.5: # Break for obviously unphysical solutions (from wrong solutions, makes plotting easier)
-            #    return None
-
-            #if path_length < direct_len * 0.9:
-            #    return None
 
         self._logger.info(
             "get_path_length_analytic | x1=%s x2=%s c0=%s path_length=%s",
@@ -433,7 +379,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
 
         return launch_angle
 
-    #@log_timing()
+
     def get_receive_angle(self, x1, x2, c0, *_, **__):
 
         receive_angle = get_receiving_angle(c0, x1, x2, self._layers_arr)
@@ -448,7 +394,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
 
         return receive_angle
 
-    #@log_timing()
+
     def get_reflection_angle(self, x1, x2, c0, *_, **__):
 
         reflection_angle = get_reflection_angle(c0, x1, x2, self._layers_arr)
@@ -475,7 +421,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         if x1[1] > 0.0 : with_air = True
         return get_turning_point(x1[0], x1[1], c0, self._layers_arr, with_air=with_air)
 
-    #@log_timing()
+
     def get_focusing_analytic(self, x1, x2, c0, *_, **__):
 
         focusing_factor = get_focusing_factor(c0, x1, x2, self._layers_arr)
@@ -538,7 +484,7 @@ class multi_layer_ray_tracing_2D(ray_tracing_base):
         self._logger.debug("Frequency vector for attenuation calculation: {}".format(freqs))
         return freqs
 
-    #@log_timing()
+
     def get_attenuation_along_path(self, x1, x2, c0, frequency, max_detector_frequency=None, *_, **__):
 
         attenuation_model =  self.attenuation_model
