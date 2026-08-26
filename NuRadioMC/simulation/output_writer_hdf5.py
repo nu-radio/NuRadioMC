@@ -287,9 +287,22 @@ class outputWriterHDF5:
                                 if efield.get_shower_id() == shower.get_id():
                                     iS = efield.get_ray_tracing_solution_id()
                                     for key, value in efield[efp.raytracing_solution].items():
+
+                                        value = np.asarray(value)  # Ensure value is a NumPy array (handles scalars too)
+
                                         if key not in channel_rt_data:
-                                            channel_rt_data[key] = np.zeros((nCh, self._nS)) * np.nan
-                                        channel_rt_data[key][iCh, iS] = value
+                                            # First time seeing this key: initialize storage based on value's shape
+                                            if value.ndim == 0:  # Scalar (ndim=0 for numpy scalars)
+                                                channel_rt_data[key] = np.zeros((nCh, self._nS)) * np.nan
+                                            else:
+                                                # For arrays, add an extra dimension to store the entire array per (iCh, iS)
+                                                channel_rt_data[key] = np.zeros((nCh, self._nS, *value.shape)) * np.nan
+
+                                        # Assign the value
+                                        if channel_rt_data[key].ndim == 2:  # Scalar storage
+                                            channel_rt_data[key][iCh, iS] = value
+                                        else:  # Array storage
+                                            channel_rt_data[key][iCh, iS, ...] = value
 
                                     channel_rt_data['launch_vectors'][iCh, iS] = efield[efp.launch_vector]
                                     receive_vector = hp.spherical_to_cartesian(efield[efp.zenith], efield[efp.azimuth])
