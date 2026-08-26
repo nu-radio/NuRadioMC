@@ -125,6 +125,9 @@ class triggerSimulator:
         max_signal = 0
         if has_triggered:
             for channel in station.iter_trigger_channels():
+                if triggered_channels is not None and channel.get_id() not in triggered_channels:
+                    self.logger.debug("skipping channel {}".format(channel.get_id()))
+                    continue
                 max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
             station.set_parameter(stnp.channels_max_amplitude, max_signal)
 
