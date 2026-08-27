@@ -7,6 +7,7 @@ import h5py
 import logging
 import argparse
 import numpy as np
+from collections import defaultdict
 
 from matplotlib import pyplot as plt
 from matplotlib import cm as cm
@@ -16,13 +17,12 @@ from astropy import time
 import datetime
 
 import NuRadioReco.framework.event
-import NuRadioReco.modules.channelGalacticNoiseAdder
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.efieldToVoltageConverter
-import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.modules.eventTypeIdentifier
+import NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder
 
 from NuRadioReco.utilities import units, trace_utilities
 from NuRadioReco.detector import detector
@@ -36,11 +36,15 @@ from NuRadioReco.utilities.trace_utilities import get_electric_field_energy_flue
 from NuRadioReco.modules.LOFAR import planeWaveDirectionFitter_LOFAR  # noqa: E402
 from NuRadioReco.modules.LOFAR import stationPulseFinder  # noqa: E402
 from NuRadioReco.modules.LOFAR import LORASimulator
+from NuRadioReco.modules.measured_noise.LOFAR import LOFARnoiseLibraryConverter
 from NuRadioReco.utilities.LOFAR import (
     DEFAULT_STATIONS,
     CR_SNR,
     PASS_BAND,
     START_TIME,
+    NOISE_LIBRARY_DIRECTORY,
+    NOISE_LIBRARY_NUR_FILEPATH,
+    ALWAYS_REMOVED_CHANNEL_IDS
 )  # noqa: E402
 
 import matplotlib.cm as cm
@@ -105,8 +109,7 @@ class CoREASEventGenerator:
 
         - readCoREASDetector
         - efieldToVoltageConverter
-        - channelGalacticNoiseAdder
-        - channelGenericNoiseAdder
+        - channelMeasuredNoiseAdder
         - triggerSimulator
         - channelBandPassFilter
         - eventTypeIdentifier
@@ -132,14 +135,6 @@ class CoREASEventGenerator:
             NuRadioReco.modules.channelResampler.channelResampler()
         )
 
-        self.channelGalacticNoiseAdder = (
-            NuRadioReco.modules.channelGalacticNoiseAdder.channelGalacticNoiseAdder()
-        )
-
-        self.channelGenericNoiseAdder = (
-            NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
-        )
-
         self.triggerSimulator = (
             NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
         )
@@ -155,6 +150,11 @@ class CoREASEventGenerator:
         )
 
         self.coreas_reader = readCoREASDetector.readCoREASDetector()
+
+        self.LOFARnoiseLibraryConverter = LOFARnoiseLibraryConverter()
+        self.channelMeasuredNoiseAdder = (
+            NuRadioReco.modules.measured_noise.channelMeasuredNoiseAdder.channelMeasuredNoiseAdder()
+        )
 
 
 
@@ -192,6 +192,9 @@ class CoREASEventGenerator:
         event_debug_dir = os.path.join(self.debug_dir, sim_event_label) if save_debug_plots else None
         nur_file = os.path.join(self.output_directory, f"{sim_event_label}.nur") if write_event else None
 
+        # # generate the temporary noise library .nur file
+        noise_library_nur_filepath, noise_library_channel_mapping = self._run_noise_library_converter(sim_event)
+
         # call all begin functions here
         self.LORASimulator.begin()
         # TODO: are these pre_pulse_time and post_pulse_time values reasonable? They are currently set to 0 ns and 400 ns, respectively, which may not be optimal for all cases.
@@ -199,13 +202,18 @@ class CoREASEventGenerator:
             debug=False, pre_pulse_time=0 * units.ns, post_pulse_time=400 * units.ns
         )
         self.channelResampler.begin()
-        self.channelGalacticNoiseAdder.begin(skymodel=sky_model)
-        self.channelGenericNoiseAdder.begin()
+        self.channelMeasuredNoiseAdder.begin(
+            filenames = [noise_library_nur_filepath],
+            restrict_station_id = False, # no 1-1 mapping of station IDs
+            station_id = None,  # just use the first station ID 
+            channel_mapping = noise_library_channel_mapping,  # maps all channel IDs (in all stations) to a single noise channel ID
+            debug=True
+        )
         self.channelBandPassFilter.begin()
         self.channelResampler.begin()
         self.triggerSimulator.begin()
         self.eventTypeIdentifier.begin()
-        self.pulse_finder.begin(cr_snr=CR_SNR, good_channels=6)
+        self.pulse_finder.begin(cr_snr=CR_SNR, good_channels=6, window=10, noise_window=150) # window size and noise window reduced since sampling size is smaller for simulated traces. The numbers here are arbitrary at the moment.
         self.direction_fitter.begin(
             debug=save_debug_plots,
             debug_plot_dir=event_debug_dir,
@@ -225,9 +233,11 @@ class CoREASEventGenerator:
             for station in evt.get_stations():
 
                 # set the station time to the start time defined in macros.py
+                # TODO: should this not be random / based on a given observation time? 
+                # it should be read based on LORA triggered event time.
                 station.set_station_time(START_TIME)
-                # if save_debug_plots:
-                #     self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="01_reader")
+                if save_debug_plots:
+                    self._save_efield_trace_snapshot(evt, station.get_sim_station(), output_dir=event_debug_dir, stage="01_reader")
 
                 # Convert electric field to voltage
                 self.efieldToVoltageConverter.run(evt, station, self.detector)
@@ -244,32 +254,19 @@ class CoREASEventGenerator:
                 if save_debug_plots:
                     self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="04_bandpass")
 
-                #TODO: replace this with module based on measured noise in LOFAR.
-                # Add galactic noise
-                self.channelGalacticNoiseAdder.run(evt, station, self.detector)
+                # # Add measured noise from LOFAR
+                self.channelMeasuredNoiseAdder.run(evt, station, self.detector)
                 if save_debug_plots:
-                    self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="05_galactic_noise")
-
-                # Add generic noise
-                Vrms, min_freq, max_freq = self._calculate_noise_rms(station, noise_temperature, filter_settings)
-                self.channelGenericNoiseAdder.run(evt, station, self.detector, type='rayleigh', amplitude=Vrms, min_freq=min_freq, max_freq=max_freq)
-                if save_debug_plots:
-                    self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="06_gaussian_noise")
+                    self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="05_measured_noise")
 
                 # Identify event type
                 self.eventTypeIdentifier.run(evt, station, mode='forced', forced_event_type='cosmic_ray')
 
-            # TODO: understand how to treat the trigger in LOFAR. For now, we will skip this step and assume that the event is triggered if any station has a signal above the threshold.
-            #     # Simulate trigger
-            #     self.triggerSimulator.run(evt, station, self.detector, num_coincidences=1, threshold=CR_SNR * Vrms)
+                # now flag channels that we should always remove
+                # since in the data its always broken
+                self._add_flagged_channel_ids(evt, station)
 
-            # # now that all stations have been processed, we can check if the event is triggered
-            # for station in evt.get_stations():
-            #     if station.get_trigger("default_simple_threshold").has_triggered():
-            #         LOGGER.info(f"Event {evt.get_id()} triggered at station {station.get_id()}")
-
-            
-
+            # TODO: understand how to treat the trigger in LOFAR. For now, we will skip this step and assume that the event is triggered based on the pulse finding criteria.
             LOGGER.info(f"Finished processing event {evt.get_id()} from CoREAS file {coreas_hdf5_file}")
             LOGGER.info("Running pulse finding")
             # Find pulses in the stations
@@ -278,19 +275,17 @@ class CoREASEventGenerator:
             LOGGER.info("Running plane-wave direction fitting")
             # Fit direction of arrival
             self.direction_fitter.run(evt, self.detector)
-
-            # if save_debug_plots:
-            #     self._save_debug_plots(evt)
             
             # now we end all functions
             self.LORASimulator.end()
             self.efieldToVoltageConverter.end()
             self.channelResampler.end()
-            self.channelGenericNoiseAdder.end()
             self.channelBandPassFilter.end()
             self.triggerSimulator.end()
             self.pulse_finder.end()
             self.direction_fitter.end()
+            self.LOFARnoiseLibraryConverter.end()
+            self.channelMeasuredNoiseAdder.end()
 
             if write_event:
                 writer = NuRadioReco.modules.io.eventWriter.eventWriter()
@@ -337,12 +332,54 @@ class CoREASEventGenerator:
         # adding the LORA simulator here for now. This generates a hybrid shower based on 
         # true shower parameters with cores & angles randomly sampled from normal distribution with 
         # LORA uncertainties.
+        # TODO: simply return a hybrid shower here and instead make a hybrid shower adder in modules/io, removing code from readCoREASDetector (for more modularity)
         lora_shower = self.LORASimulator.run(corsika_event, self.detector)
         self.coreas_reader._readCoREASDetector__hybrid_shower_name = lora_shower.get_name()  # force the reader to use the hybrid shower generated by LORA simulator
 
         self.coreas_reader._readCoREASDetector__corsika_evt = corsika_event
 
         return corsika_event
+
+    def _run_noise_library_converter(self, event):
+        """
+        Run the noise library converter, separately and only once.
+
+        This generates the conversion from the .npy file to the .nur file, as well as the channel mapping, which maps all detector channels to a single noise channel. This is done since we assume the noise characteristics is the same for all antennas.
+        """
+        self.LOFARnoiseLibraryConverter.begin(
+            library_filename = NOISE_LIBRARY_DIRECTORY,
+            nur_filename = NOISE_LIBRARY_NUR_FILEPATH
+        )
+
+        channel_mapping = self.LOFARnoiseLibraryConverter.run(event, self.detector) 
+
+        return self.LOFARnoiseLibraryConverter.get_nur_filepath(), channel_mapping
+
+    def _add_flagged_channel_ids(self, evt, station):
+        """
+        Add flagged channel IDs that we omit for reconstruction, since its known from data that that channel is always faulty.
+
+        The channel to remove is given in the macros.
+
+        This replicates what already exists in readLOFARData.
+
+        Parameters
+        ----------
+        evt : NuRadioReco event object
+            dummy argument
+        station : NuRadioReco.framework.Station
+            station object
+        """
+        flagged_nrr_channel_ids: dict = defaultdict(list)
+        for channel_id in ALWAYS_REMOVED_CHANNEL_IDS:
+            if station.has_channel(channel_id):
+                LOGGER.status(f"Removing known-bad channel {channel_id} "
+                                   f"from station {station.get_id()}")
+                station.remove_channel(station.get_channel(channel_id))
+                flagged_nrr_channel_ids[channel_id].append("reader_known_bad_channel")
+
+            # store set of flagged nrr channel ids as station parameter
+            station.set_parameter(stp.flagged_channels, flagged_nrr_channel_ids)
 
     def _calculate_noise_rms(self, station, Tnoise, filter_settings):
         """
@@ -387,16 +424,15 @@ class CoREASEventGenerator:
             trace = channel.get_trace()
             if len(trace) == 0:
                 continue
-            stride = max(1, len(trace) // 4096)
-            samples = np.arange(0, len(trace), stride)
+            times = channel.get_times()
             scale = np.nanmax(np.abs(trace)) or 1.0
-            ax.plot(samples, trace[::stride] / scale + i_ch, lw=0.7, alpha=0.8)
+            ax.plot(times / units.ns, trace / scale + i_ch, lw=0.7, alpha=0.8)
             ytick_positions.append(i_ch)
             ytick_labels.append(str(channel.get_id()))
 
         ax.set_yticks(ytick_positions)
         ax.set_yticklabels(ytick_labels)
-        ax.set_xlabel("Sample")
+        ax.set_xlabel("Time / ns")
         ax.set_ylabel("Channel ID")
         ax.set_title(
             f"{stage}: CS{station.get_id():03d} first {len(channels)} channels"
@@ -411,8 +447,43 @@ class CoREASEventGenerator:
         )
         plt.close(fig)
 
-    def _save_efield_trace_snapshot(self, event, station, output_dir, stage):
+    def _save_efield_trace_snapshot(self, event, sim_station, output_dir, stage):
         """
-        Save a snapshot of the electric field traces of the first 8 channels of each station in the event.
+        Save a snapshot of the electric field traces of the first 8 channels of each sim_station in the event.
         """
-        pass
+        max_channels = 8
+        os.makedirs(output_dir, exist_ok=True)
+        efields = [e for e in sim_station.get_electric_fields()][:max_channels]
+
+        fig, ax = plt.subplots(figsize=(10, 5), constrained_layout=True)
+        ytick_positions = []
+        ytick_labels = []
+        pol_colors = ['r', 'b', 'g']
+        for i_ch, efield in enumerate(efields):
+            trace = efield.get_trace()
+            efield_id = efield.get_unique_identifier()[0][0]
+            if len(trace) == 0:
+                continue
+            times = efield.get_times()
+            scale = np.nanmax(np.abs(trace)) or 1.0
+            for i in range(3): # iterate over polarisation
+                ax.plot(times / units.ns, trace[i, :] / scale + i_ch, lw=0.7, alpha=0.8, color=pol_colors[i])
+            ytick_positions.append(i_ch)
+            ytick_labels.append(str(efield_id))
+
+        ax.set_yticks(ytick_positions)
+        ax.set_yticklabels(ytick_labels)
+        ax.set_xlabel("Time / ns")
+        ax.set_ylabel("Channel ID")
+        ax.set_title(
+            f"{stage}: CS{sim_station.get_id():03d} first {len(efields)} channels"
+        )
+        fig.savefig(
+            os.path.join(
+                output_dir,
+                f"{stage}_efield_traces_CS{sim_station.get_id():03d}_{event.get_id()}.png",
+            ),
+            dpi=150,
+            bbox_inches="tight",
+        )
+        plt.close(fig)

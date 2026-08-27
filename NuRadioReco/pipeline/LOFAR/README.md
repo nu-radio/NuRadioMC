@@ -66,12 +66,12 @@ When including something, please make sure to document everything! This helps ne
 - [x] polarization plots
 - [ ] fluence plots
 - [x] timing plots
-- [ ] electric field trace snapshots in CoREASEventGenerator
+- [x] electric field trace snapshots in CoREASEventGenerator
 
 ### Additional TODOs
 - [x] move beamforming_utilities -> utilities
 - [x] include LORA simulator for random direction & core as inputs (basic for now, based on average core / direction guess). Now the LORA simulator sets objects as a HybridShower
-- [ ] include LOFAR measured noise adder
+- [x] include LOFAR measured noise adder (takes .npy file, converts to .nur assuming same noise for all channels & stations)
 - [ ] include / generalise to SKA -> have made the modules as independent as I can, so it should just be inheriting
 - [ ] remove deprecated files
 - [ ] include/improve with fixed interpolator version

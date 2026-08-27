@@ -80,6 +80,10 @@ class LORASimulator:
             attempted_cores_list.append((rand_x, rand_y))
 
         core_guess = np.array([rand_x * units.m, rand_y * units.m, 7.6 * units.m])  # z is fixed to 7.6 m, which is the average height of the LORA detectors
+        # add warning if any of the x or y core positions are larger than 100 m, since the core reconstruction uncertainty diminishes beyond this
+        # TODO: in future, characterise this behaviour and inject this into this module instead
+        if np.logical_or(np.abs(rand_x - true_core[0]) > 100 * units.m, np.abs(rand_y - true_core[1]) > 100 * units.m):
+            logger.warning(f"Core ({rand_x / units.m:.1f}, {rand_y / units/m:.1f}) m is greater than 100m. Data events with this core will not perform well. Proceed with caution.")
         logger.info(
             f"Generated core guess: x={core_guess[0]:.2f}, y={core_guess[1]:.2f}"
         )

@@ -132,7 +132,7 @@ class iftReconstructor:
         otherwise abort outright: if both the standard and the broad direction
         search return no timing data at all, every channel is searched blind for
         its largest excursion instead (see
-        :func:`~NuRadioReco.modules.LOFAR.utilities.iftDataHelpers.extract_max_signal_timing_data`).
+        :func:`~NuRadioReco.utilities.LOFAR.iftDataHelpers.extract_max_signal_timing_data`).
         It never changes the result of an event where the normal search found
         something. Events reconstructed this way are flagged with
         ``used_max_signal_fallback`` in the exported ``.npz``.
@@ -249,7 +249,7 @@ class iftReconstructor:
         """Concatenate per-station extraction results into flat observable lists.
 
         ``station_results`` maps a station id onto the 8-tuple returned by
-        :func:`~NuRadioReco.modules.LOFAR.utilities.iftDataHelpers.extract_fluence_and_timing_data`.
+        :func:`~NuRadioReco.utilities.LOFAR.iftDataHelpers.extract_fluence_and_timing_data`.
         Stations without any antenna are skipped. Returns
         ``(posx, posy, fluences, times, is_signal, snrs, noise_fluences, station_ids)``.
         """
@@ -283,7 +283,7 @@ class iftReconstructor:
 
     def _distance_to_shower_maximum(self, xmax_gcm2, zenith_rad, gdas_file=None):
         """Return geometric distance to shower maximum in meters."""
-        from NuRadioReco.modules.LOFAR.utilities.atmosphere import Atmosphere
+        from NuRadioReco.utilities.LOFAR.atmosphere import Atmosphere
         import jax.numpy as jnp
         if gdas_file is not None:
             atm = Atmosphere(gdas_file=gdas_file, observation_level=7.6)
@@ -1023,7 +1023,7 @@ class iftReconstructor:
         atm_path = None
         if atm_dir:
             try:
-                from NuRadioReco.modules.LOFAR.utilities.gdas_tool import find_or_generate_atmosphere
+                from NuRadioReco.utilities.LOFAR.gdas_tool import find_or_generate_atmosphere
                 atm_path = find_or_generate_atmosphere(
                     event.get_id(), atm_dir, gdas_cache_dir=s.get("gdas_cache_dir")
                 )
@@ -1302,7 +1302,7 @@ class iftReconstructor:
                     "timing_std": np.std(_tmcf, axis=0),
                 }
 
-            from NuRadioReco.modules.LOFAR.utilities import iftOutput
+            from NuRadioReco.utilities.LOFAR import iftOutput
             all_data_plot = {
                 'pos_x': posx, 'pos_y': posy,
                 'fluences': fl, 'times': tm,

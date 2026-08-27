@@ -160,7 +160,7 @@ class stationPulseFinder:
         values_per_pol = []
 
         # the first few samples are tapered with half-Hann, which would blow up the SNR
-        noise_window_start = 10000
+        noise_window_start = self.__noise_window_size
         noise_window_end = noise_window_start + self.__noise_window_size
 
         for i, channel_ids in enumerate(channel_ids_per_pol):
@@ -317,6 +317,7 @@ class stationPulseFinder:
                     )
                     station.set_parameter(stationParameters.triggered, False)
                     continue
+
 
                 # Find the antenna positions by only looking at the channels from a given polarisation
                 position_array = [

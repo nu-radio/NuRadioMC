@@ -180,7 +180,7 @@ def generate_reco_plot(samples, samples_ecr, all_data, output_dir, event_id,
     noise_level : float or None
         Noise std used for fluence residuals; defaults to noise_mean.
     """
-    from NuRadioReco.modules.LOFAR.utilities.iftModel import footprintModel
+    from NuRadioReco.utilities.LOFAR.iftModel import footprintModel
 
     plt.rcParams.update(PLOT_STYLE)
 
