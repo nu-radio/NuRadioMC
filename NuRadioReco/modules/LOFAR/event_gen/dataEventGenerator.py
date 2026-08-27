@@ -239,9 +239,6 @@ class dataEventGenerator:
                 writer.run(event)
                 writer.end()
 
-            
-            self._write_params_nur(event, self.output_directory)
-
             processed_event = event
             break
         

@@ -113,10 +113,10 @@ def run_pipeline(args):
     # note that the event is not written to a .nur file yet, since we want to run the IFT reconstructor on it first. The processed event is returned by the dataEventGenerator module.
     LOGGER.info("Running dataEventGenerator module for event %d", args.event_id)
     data_event_generator = dataEventGenerator(detector, output_directory = args.output_dir)
-    processed_event = dataEventGenerator.process_event(args.event_id, save_debug_plots = args.debug_plots, write_event = False)
+    processed_event = data_event_generator.process_event(event_id=args.event_id, save_debug_plots = args.debug_plots, write_event = False)
 
     # for now fixed, in the future we should be able to replace this
-    reconstructor = iftReconstructor.iftReconstructor()
+    reconstructor = iftReconstructor()
 
 
     LOGGER.info("Running voltage-to-electric-field conversion")
@@ -164,8 +164,10 @@ def run_pipeline(args):
 def build_arg_parser():
     parser = argparse.ArgumentParser(description=__doc__)
 
-    parser.add_argument("event_id", type=int)
+    parser.add_argument("event_id", type=int, help='event ID used to identify the LOFAR event to process')
 
+    parser.add_argument("--detector", type=str,
+                        help="Path to the detector description JSON file", default="LOFAR/LOFAR.json")
     parser.add_argument("--ift-iterations", type=int, default=None,
                         help=f"Number of VI iterations (default: {_DEFAULT_N_VI_ITERATIONS})")
     parser.add_argument("--ift-samples", type=int, default=None,

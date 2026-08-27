@@ -17,9 +17,9 @@ except ImportError:
     vmap = None
     RegularGridInterpolator = None
 
-from NuRadioReco.modules.LOFAR.utilities import jaxHelpers as helper
+from NuRadioReco.utilities.LOFAR import jaxHelpers as helper
 import numpy.typing as npt
-from NuRadioReco.modules.LOFAR.utilities import atmosphere as atm
+from NuRadioReco.utilities.LOFAR import atmosphere as atm
 import os
 
 # --- Constants ---

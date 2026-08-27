@@ -413,13 +413,13 @@ class iftReconstructor:
             import jax.numpy as jnp
             from jax import random, vmap
             import nifty.re as jft
-            from NuRadioReco.modules.LOFAR.utilities.iftModel import (
+            from NuRadioReco.utilities.LOFAR.iftModel import (
                 footprintModel, SYST_MULT_MIN, SYST_MULT_MAX,
             )
-            import NuRadioReco.modules.LOFAR.utilities.jaxHelpers  # noqa: F401
+            import NuRadioReco.utilities.LOFAR.jaxHelpers  # noqa: F401
         except ImportError as exc:
             raise ImportError(
-                "LOFAR full IFT reconstruction requires optional packages 'jax' and 'nifty8'. "
+                "LOFAR full IFT reconstruction requires optional packages 'jax' and 'nifty'. "
                 "Install them or run with run_nifty=False for the fast smoke reconstruction."
             ) from exc
 

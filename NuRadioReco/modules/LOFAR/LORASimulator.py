@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import hashlib
 
 from NuRadioReco.utilities import units
+from NuRadioReco.framework.hybrid_shower import HybridShower
+from NuRadioReco.framework.parameters import stationParameters as stp
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.utilities.LOFAR import LORA_CORE_PRECISION, LORA_ANGLE_PRECISION
 
@@ -20,8 +22,9 @@ class LORASimulator:
 
     """
 
-    def __init__(self):
+    def __init__(self, log_level = logging.INFO):
         self.__debug = False
+        logger.setLevel(log_level)
 
     def begin(self, debug=False):
         self.__debug = debug
@@ -49,6 +52,8 @@ class LORASimulator:
         true_zenith = coreas_shower.get_parameter(shp.zenith)
         true_azimuth = coreas_shower.get_parameter(shp.azimuth)
         true_core = coreas_shower.get_parameter(shp.core)
+        true_primary_energy = coreas_shower.get_parameter(shp.energy)
+        mag_field = coreas_shower.get_parameter(shp.magnetic_field_vector)
 
         max_retries = 2
         retries = 0
@@ -62,7 +67,7 @@ class LORASimulator:
             rand_x, rand_y = None, None
 
             if rand_x is None or rand_y is None:
-                stem_hash = int(hashlib.md5(event.get_id().encode()).hexdigest(), 16) % (
+                stem_hash = int(hashlib.md5(event.get_id()).hexdigest(), 16) % (
                     2**32
                 )
                 rng = np.random.default_rng(seed=stem_hash)
@@ -74,7 +79,7 @@ class LORASimulator:
 
             attempted_cores_list.append((rand_x, rand_y))
 
-        core_guess = np.array([rand_x * units.m, rand_y * units.m, 0.0])
+        core_guess = np.array([rand_x * units.m, rand_y * units.m, 7.6 * units.m])  # z is fixed to 7.6 m, which is the average height of the LORA detectors
         logger.info(
             f"Generated core guess: x={core_guess[0]:.2f}, y={core_guess[1]:.2f}"
         )
@@ -89,16 +94,18 @@ class LORASimulator:
             f"Generated direction guess: zenith={np.degrees(zenith_guess):.2f} deg, azimuth={np.degrees(azimuth_guess):.2f} deg"
         )
 
-        # now add the guessed core and direction to each STATION (not sim_station, because that is the truth) in the event, so that the unfolding uses this guessed direction and core.
-        for station in event.get_stations():
-            station.set_parameter(shp.zenith, zenith_guess)
-            station.set_parameter(shp.azimuth, azimuth_guess)
-            station.set_parameter(shp.core, core_guess)
-        logger.info(
-            f"Added guessed core and direction to {len(event.get_stations())} stations in the event."
-        )
+        # generate a hybrid shower containing this information. This will be the particle shower
+        lora_shower = HybridShower("LORA")
+        lora_shower.set_parameter(shp.zenith, zenith_guess)
+        lora_shower.set_parameter(shp.azimuth, azimuth_guess)
+        lora_shower.set_parameter(shp.core, core_guess)
+        lora_shower.set_parameter(shp.energy, true_primary_energy)
+        lora_shower.set_parameter(shp.magnetic_field_vector, mag_field)
 
-        return core_guess
+        # add the lora shower to the event
+        event.get_hybrid_information().add_hybrid_shower(lora_shower)
+
+        return lora_shower
     
     def end(self):
         """

@@ -17,7 +17,7 @@ BLOCK_NUMBER_FILE = "/vol/astro5/lofar/astro3/vhecr/lora_triggered/LORA/LORAtime
 GDAS_ATMOSPHERE_DIRECTORY = "/vol/astro7/lofar/sim/pipeline/atmosphere_files"
 
 # paths for simulated events
-COREAS_DIRECTORY = "something"  # TODO: set this to the correct path for CoREAS data in Radboud
+COREAS_PARENT_HDF5_DIRECTORY = "/vol/astro7/lofar/sim/hdf5_files"  
 ANTENNA_RESPONSE_DIRECTORY = "something"  # TODO: set this to the correct path for antenna response data in Radboud
 
 # some hard coded values in the base code, can be directly modified here

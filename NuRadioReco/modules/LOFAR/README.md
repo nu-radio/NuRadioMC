@@ -17,6 +17,8 @@ When including something, please make sure to document everything! This helps ne
 
 - [ ] fix the beamforming code (borrow functionality from Subhadip's version?)
 - [ ] include coreas fluence reconstruction module
+- [ ] include smiet fluence reconstruction module
+- [ ] 
 
 
 ## Some questions

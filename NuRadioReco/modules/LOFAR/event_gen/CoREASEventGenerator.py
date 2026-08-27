@@ -29,6 +29,7 @@ from NuRadioReco.detector import detector
 from NuRadioReco.modules.io.coreas import coreas, coreasInterpolator, readCoREASDetector
 from NuRadioReco.utilities.dataservers import download_from_dataserver
 from NuRadioReco.framework.parameters import showerParameters as shp
+from NuRadioReco.framework.parameters import stationParameters as stp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.utilities.trace_utilities import get_electric_field_energy_fluence
 
@@ -37,8 +38,6 @@ from NuRadioReco.modules.LOFAR import stationPulseFinder  # noqa: E402
 from NuRadioReco.modules.LOFAR import LORASimulator
 from NuRadioReco.utilities.LOFAR import (
     DEFAULT_STATIONS,
-    COREAS_DIRECTORY,
-    ANTENNA_RESPONSE_DIRECTORY,
     CR_SNR,
     PASS_BAND,
     START_TIME,
@@ -62,13 +61,9 @@ class CoREASEventGenerator:
     def __init__(
         self,
         detector=None,
-        coreas_directory=COREAS_DIRECTORY,
-        antenna_response_directory=ANTENNA_RESPONSE_DIRECTORY,
         output_directory = None,
         log_level=logging.INFO,
     ):
-        self.coreas_directory = coreas_directory
-        self.antenna_response_directory = antenna_response_directory
 
         self.selected_station_channel_ids = {}
         
@@ -81,6 +76,7 @@ class CoREASEventGenerator:
             if self.output_directory
             else None
         )
+        LOGGER.setLevel(log_level)
 
     def _initialise_detector(self, detector):
         """
@@ -97,11 +93,10 @@ class CoREASEventGenerator:
             self.detector = detector
 
         self.detector.update(START_TIME)
-        preprocess_LOFAR_txt(self.antenna_response_directory, orientation="Y")
-        preprocess_LOFAR_txt(self.antenna_response_directory, orientation="X")
         
         for station_name in DEFAULT_STATIONS:
-            staid = self.detector.get_station_id(station_name) # maybe?
+            # NOTE: this assumes that the station names are in the format "CS###", where ### is the station ID. If the station names are different, this will need to be modified accordingly.
+            staid = int(station_name.replace("CS", ""))
             self.selected_station_channel_ids[staid] = self.detector.get_channel_ids(staid)
 
     def _initialise_modules(self):
@@ -120,7 +115,7 @@ class CoREASEventGenerator:
 
         Note: only the modules are initialised, and the begin functions are called in the run_pipeline function, since some modules require event information to be initialised.
         """
-        self.LORASimulator = LORASimulator()
+        self.LORASimulator = LORASimulator.LORASimulator()
         
         # Initialize the modules
         self.efieldToVoltageConverter = (
@@ -166,7 +161,7 @@ class CoREASEventGenerator:
     def process_event(
         self,
         coreas_hdf5_file : str,
-        sky_model : str = "LFmap",
+        sky_model : str = "gsm2016",
         noise_temperature : float = 300.0,
         save_debug_plots=False, 
         write_event = False
@@ -191,21 +186,20 @@ class CoREASEventGenerator:
         sim_event = self._initialise_reader(coreas_hdf5_file)
 
         # define debugging output directory if requested
-        # TODO: find a good naming scheme based on the coreas filename, e.g. by using the shower id and the coreas file name
-        # for now using the run number, but in principle should be connected to the event ID of the actual measured event
-        sim_event_id = sim_event.get_id()
+        # For now we just take the event ID from the CoREAS file name, but this should be changed to a more robust method in the future.
+        sim_event_label = f"{sim_event.get_id():06d}"
 
-        event_debug_dir = os.path.join(self.debug_dir, sim_event_id) if save_debug_plots else None
-        nur_file = f"{sim_event_id}.nur" if write_event else None
+        event_debug_dir = os.path.join(self.debug_dir, sim_event_label) if save_debug_plots else None
+        nur_file = os.path.join(self.output_directory, f"{sim_event_label}.nur") if write_event else None
 
         # call all begin functions here
         self.LORASimulator.begin()
         # TODO: are these pre_pulse_time and post_pulse_time values reasonable? They are currently set to 0 ns and 400 ns, respectively, which may not be optimal for all cases.
         self.efieldToVoltageConverter.begin(
-            debug=False, pre_pulse_time=0 * units.ns, post_pulse_time = 400 * units.ns
+            debug=False, pre_pulse_time=0 * units.ns, post_pulse_time=400 * units.ns
         )
         self.channelResampler.begin()
-        self.channelGalacticNoiseAdder.begin(sky_model=sky_model)
+        self.channelGalacticNoiseAdder.begin(skymodel=sky_model)
         self.channelGenericNoiseAdder.begin()
         self.channelBandPassFilter.begin()
         self.channelResampler.begin()
@@ -217,21 +211,23 @@ class CoREASEventGenerator:
             debug_plot_dir=event_debug_dir,
         )
 
-        #TODO: LORA core simulator here
-        # this should generate a core, zenith, and azimuth angle based on the LORA trigger information, and then pass it to the CoREAS reader to generate the electric field traces for the selected stations.
-        core_xyz = self.LORASimulator.run(sim_event, self.detector)
-        core_xy = core_xyz[:2]  # only use the x and y coordinates for the core position
+        filter_settings = {
+            "filter_type": "butter",
+            "order": 10,
+            "passband": [PASS_BAND[0] * units.MHz, PASS_BAND[1] * units.MHz],
+        }
 
         processed_event = None
         LOGGER.info(f"Processing event {sim_event.get_id()} from CoREAS file {coreas_hdf5_file}")
-        for evt in self.coreas_reader.run(self.detector, [core_xy], selected_station_channel_ids=self.selected_station_channel_ids):
+        for evt in self.coreas_reader.run(self.detector, None, selected_station_channel_ids=self.selected_station_channel_ids):
             
             LOGGER.info(f"Converting electric field to voltage for event {evt.get_id()} at time {START_TIME}")
             for station in evt.get_stations():
+
                 # set the station time to the start time defined in macros.py
                 station.set_station_time(START_TIME)
-                if save_debug_plots:
-                    self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="01_reader")
+                # if save_debug_plots:
+                #     self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="01_reader")
 
                 # Convert electric field to voltage
                 self.efieldToVoltageConverter.run(evt, station, self.detector)
@@ -244,21 +240,24 @@ class CoREASEventGenerator:
                     self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="03_resample")
 
                 # Apply bandpass filter
-                self.channelBandPassFilter.run(evt, station, self.detector, passband=[PASS_BAND[0] * units.MHz, PASS_BAND[1] * units.MHz], filter_type="butter", order=10)
+                self.channelBandPassFilter.run(evt, station, self.detector, **filter_settings)
                 if save_debug_plots:
                     self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="04_bandpass")
 
                 #TODO: replace this with module based on measured noise in LOFAR.
                 # Add galactic noise
-                self.channelGalacticNoiseAdder.run(evt, station, self.detector, sky_model=sky_model)
+                self.channelGalacticNoiseAdder.run(evt, station, self.detector)
                 if save_debug_plots:
                     self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="05_galactic_noise")
 
                 # Add generic noise
-                Vrms, min_freq, max_freq = self._calculate_noise_rms(station, noise_temperature)
+                Vrms, min_freq, max_freq = self._calculate_noise_rms(station, noise_temperature, filter_settings)
                 self.channelGenericNoiseAdder.run(evt, station, self.detector, type='rayleigh', amplitude=Vrms, min_freq=min_freq, max_freq=max_freq)
                 if save_debug_plots:
                     self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="06_gaussian_noise")
+
+                # Identify event type
+                self.eventTypeIdentifier.run(evt, station, mode='forced', forced_event_type='cosmic_ray')
 
             # TODO: understand how to treat the trigger in LOFAR. For now, we will skip this step and assume that the event is triggered if any station has a signal above the threshold.
             #     # Simulate trigger
@@ -269,8 +268,7 @@ class CoREASEventGenerator:
             #     if station.get_trigger("default_simple_threshold").has_triggered():
             #         LOGGER.info(f"Event {evt.get_id()} triggered at station {station.get_id()}")
 
-            # Identify event type
-            self.eventTypeIdentifier.run(evt, station, mode='forced', event_type='cosmic_ray')
+            
 
             LOGGER.info(f"Finished processing event {evt.get_id()} from CoREAS file {coreas_hdf5_file}")
             LOGGER.info("Running pulse finding")
@@ -288,11 +286,9 @@ class CoREASEventGenerator:
             self.LORASimulator.end()
             self.efieldToVoltageConverter.end()
             self.channelResampler.end()
-            self.channelGalacticNoiseAdder.end()
             self.channelGenericNoiseAdder.end()
             self.channelBandPassFilter.end()
             self.triggerSimulator.end()
-            self.eventTypeIdentifier.end()
             self.pulse_finder.end()
             self.direction_fitter.end()
 
@@ -315,33 +311,40 @@ class CoREASEventGenerator:
         """
         Initialise the CoREAS reader module with the given HDF5 file.
 
-        This can be replaced with the usual begin function of readCoREASDetector when using a good / correct HDF5 file with the correct CoreCoordinateVertical. For now, we will force the vertical core coordinate to be at the observation level of the first shower in the event.
+        Currently this is just repeating the begin function of readCoREASDetector, but with a forced vertical core coordinate. This can be replaced with the usual begin function of readCoREASDetector when using a good / correct HDF5 file with the correct CoreCoordinateVertical. 
 
         Parameters
         ----------
         coreas_hdf5_file : str
             Path to the CoREAS HDF5 file.
         """
-        evt = coreas.read_CORSIKA7(coreas_hdf5_file, site='lofar')
+        corsika_event = coreas.read_CORSIKA7(coreas_hdf5_file, site='lofar')
 
         # here we force vertical core coordinate
-        evt.get_first_sim_shower().set_parameter(
+        corsika_event.get_first_sim_shower().set_parameter(
             shp.core,
             np.array(
-                [0, 0, evt.get_first_sim_shower().get_parameter(shp.observation_level)]
+                [0, 0, corsika_event.get_first_sim_shower().get_parameter(shp.observation_level)]
             ),
         )
 
-        interpolator = coreasInterpolator.coreasInterpolator(evt)
+        interpolator = coreasInterpolator.coreasInterpolator(corsika_event)
         interpolator.initialize_efield_interpolator(
             interp_lowfreq=PASS_BAND[0] * units.MHz, interp_highfreq=PASS_BAND[1] * units.MHz
         )
         self.coreas_reader.coreas_interpolator = interpolator  # skip begin() function because HDF5 does not have good CoreCoordinateVertical
-        self.coreas_reader._readCoREASDetector__corsika_evt = evt
 
-        return evt
+        # adding the LORA simulator here for now. This generates a hybrid shower based on 
+        # true shower parameters with cores & angles randomly sampled from normal distribution with 
+        # LORA uncertainties.
+        lora_shower = self.LORASimulator.run(corsika_event, self.detector)
+        self.coreas_reader._readCoREASDetector__hybrid_shower_name = lora_shower.get_name()  # force the reader to use the hybrid shower generated by LORA simulator
 
-    def _calculate_noise_rms(self, station, Tnoise):
+        self.coreas_reader._readCoREASDetector__corsika_evt = corsika_event
+
+        return corsika_event
+
+    def _calculate_noise_rms(self, station, Tnoise, filter_settings):
         """
         Calculate the RMS noise voltage for a given station and noise temperature.
 
@@ -361,9 +364,9 @@ class CoREASEventGenerator:
         max_freq = 0.5 * self.detector.get_sampling_frequency(station.get_id(), station.get_channel_ids()[0])
         ff = np.linspace(0, max_freq, 10000)
         filt = self.channelBandPassFilter.get_filter(
-            ff, station.get_id(), None, self.detector, **self.filter_settings
+            ff, station.get_id(), None, self.detector, **filter_settings
         )
-        bandwidth = np.trapz(np.abs(filt) ** 2, ff)
+        bandwidth = np.trapz(np.abs(filt) ** 2, ff) # TODO: replace with np.trapezoid for np 2.0
         Vrms = (Tnoise * 50 * constants.k * bandwidth / units.Hz) ** 0.5
         LOGGER.info(f"Calculated Vrms: {Vrms:.2e} V for station {station.get_id()} with noise temperature {Tnoise} K")
         return Vrms, min_freq, max_freq
@@ -407,3 +410,9 @@ class CoREASEventGenerator:
             bbox_inches="tight",
         )
         plt.close(fig)
+
+    def _save_efield_trace_snapshot(self, event, station, output_dir, stage):
+        """
+        Save a snapshot of the electric field traces of the first 8 channels of each station in the event.
+        """
+        pass
