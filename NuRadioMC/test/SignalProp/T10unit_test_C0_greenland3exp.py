@@ -1,22 +1,32 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+from __future__ import division, print_function
 import numpy as np
+from numpy import testing
 import time
 from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import io_utilities, units
 import logging
 import json
-from numpy import testing
-logger = logging.getLogger('NuRadioMC.test_raytracing')
+
+logger = logging.getLogger("NuRadioMC.T10unit_test_C0_greenland3exp")
 logger.setLevel(logging.INFO)
 
-ice = medium.mooresbay_simple()
+ice = medium.greenland_3exp_layered()
+
+"""
+this unit test compares the numerical and analytic calculation of path length and travel time for the Summit Station site using the 3 layer exponential model.
+the numerical integration should be better than the analytic formula. For both calculations, the python version is used.
+"""
+
 
 np.random.seed(10)  # set seed to have reproducible results
 n_events = int(1e3)
 rmin = 50. * units.m
 rmax = 3. * units.km
 zmin = 0. * units.m
-zmax = -0.5 * units.km
+zmax = -3. * units.km
 rr = np.random.triangular(rmin, rmax, rmax, n_events)
 phiphi = np.random.uniform(0, 2 * np.pi, n_events)
 xx = rr * np.cos(phiphi)
@@ -43,12 +53,11 @@ for iX, x in enumerate(points):
 
 # with open("reference_C0_MooresBay.pkl", "wb") as fout:
 #     pickle.dump(results_C0s_cpp, fout)
-# results_C0s_cpp_ref = io_utilities.read_pickle("reference_C0_MooresBay.pkl", encoding='latin1')
+#results_C0s_cpp_ref = io_utilities.read_pickle("reference_C0_greenland3exp.pkl", encoding='latin1')
 
-with open("reference_C0_MooresBay.json", "r") as fin:
+with open("reference_C0_greenland3exp.json", "r") as fin:
     results_C0s_cpp_ref = np.array(json.load(fin))  # Convert list back to NumPy array
     
-
 testing.assert_allclose(results_C0s_cpp, results_C0s_cpp_ref, rtol=1.e-6)
 
-print('T06unit_test_C0_mooresbay passed without issues')
+print('T10unit_test_C0_greenland3exp passed without issues')

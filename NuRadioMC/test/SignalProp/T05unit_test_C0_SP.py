@@ -5,12 +5,12 @@ from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import io_utilities
 import logging
-import pickle
+import json
 from numpy import testing
 logger = logging.getLogger('NuRadioMC.test_raytracing')
 logger.setLevel(logging.INFO)
 
-ice = medium.southpole_simple()
+ice = medium.southpole_simple_layered()
 
 np.random.seed(10)  # set seed to have reproducible results
 n_events = int(1e3)
@@ -44,7 +44,11 @@ for iX, x in enumerate(points):
 
 # with open("reference_C0.pkl", "wb") as fout:
 #     pickle.dump(results_C0s_cpp, fout)
-results_C0s_cpp_ref = io_utilities.read_pickle("reference_C0.pkl", encoding='latin1')
+#results_C0s_cpp_ref = io_utilities.read_pickle("reference_C0.pkl", encoding='latin1')
+
+with open("reference_C0_SP.json", "r") as fin:
+    results_C0s_cpp_ref = np.array(json.load(fin))  # Convert list back to NumPy array
+    
 # rtol is loosened from the numpy default (1e-7) because the C++ raytracer relies on GSL root
 # finding, whose last-bit behavior differs slightly across platforms/GSL versions (observed
 # relative differences up to ~1.4e-7 between macOS and the reference values).

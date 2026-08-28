@@ -5,6 +5,8 @@ python3 T02test_analytic_D_T.py
 python3 T04MooresBay.py
 python3 T05unit_test_C0_SP.py
 python3 T06unit_test_C0_mooresbay.py
+python3 T10unit_test_C0_greenland3exp.py
+python3 T09_compare_raytracing_modules.py
 
 cd ../../examples/SignalProp
 python3 example_3d.py
