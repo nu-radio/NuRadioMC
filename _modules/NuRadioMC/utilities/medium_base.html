@@ -651,10 +651,12 @@
              
   <h1>Source code for NuRadioMC.utilities.medium_base</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions</span><span class="w"> </span><span class="kn">import</span> <span class="n">layers_to_arrays</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpolate</span><span class="p">,</span> <span class="n">integrate</span><span class="p">,</span> <span class="n">linalg</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">radiopropa</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">RP</span>
@@ -1574,6 +1576,456 @@
             <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">position</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">position</span><span class="o">.</span><span class="n">z</span><span class="p">])</span> <span class="o">/</span> <span class="n">nu2rp_meter</span>
             <span class="n">gradient</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ice_model_nuradio</span><span class="o">.</span><span class="n">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="o">/</span> <span class="n">nu2rp_meter</span>
             <span class="k">return</span> <span class="n">RP</span><span class="o">.</span><span class="n">Vector3d</span><span class="p">(</span><span class="o">*</span><span class="n">gradient</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="IceModelExpLayers">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelExpLayers">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IceModelExpLayers</span><span class="p">(</span><span class="n">IceModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Medium model consisting of multiple exponential layers.</span>
+
+<span class="sd">    This class represents a stratified medium where each layer has a</span>
+<span class="sd">    refractive index profile described by an exponential function like this:</span>
+
+<span class="sd">    n(z) = n_ice - delta_n * exp(z / z_0)</span>
+
+<span class="sd">    It is designed for use with the multilayer analytic ray tracer.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    layers : list of dict</span>
+<span class="sd">        List of layer definitions. Each layer must be a dictionary</span>
+<span class="sd">        containing the following keys:</span>
+
+<span class="sd">        - ``"z_min"`` : float</span>
+<span class="sd">            Lower boundary of the layer (depth).</span>
+<span class="sd">        - ``"z_max"`` : float</span>
+<span class="sd">            Upper boundary of the layer (depth).</span>
+<span class="sd">        - ``"n_ice"`` : float</span>
+<span class="sd">            Asymptotic refractive index of the layer.</span>
+<span class="sd">        - ``"delta_n"`` : float</span>
+<span class="sd">            Factor defining the steepness of the refractive index change.</span>
+<span class="sd">        - ``"z_0"`` : float</span>
+<span class="sd">            Exponential scale depth, defining the vertival location of the change.</span>
+<span class="sd">        - ``"region_name"`` : str</span>
+<span class="sd">            Name/identifier of the layer.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Layers are automatically sorted by decreasing ``z_min`` and validated</span>
+<span class="sd">    to ensure continuous boundaries between adjacent layers.</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layers</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Initialize the multilayer ice model.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        layers : list of dict</span>
+<span class="sd">            Layer definitions (see class docstring).</span>
+<span class="sd">        """</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_layers</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span>
+        
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">z_shift</span><span class="o">=</span><span class="mi">0</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> <span class="n">z_air_boundary</span><span class="o">=</span><span class="mi">0</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Setting refractive index layer definitions</span>
+
+<span class="sd">        Layers get sorted and validated and a numba compatible array is provided</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        layers : list of dict</span>
+<span class="sd">            Layer definitions (see class docstring).</span>
+<span class="sd">        """</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_air_boundary</span> <span class="o">=</span> <span class="n">z_air_boundary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_shift</span> <span class="o">=</span> <span class="n">z_shift</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">L</span><span class="p">:</span> <span class="n">L</span><span class="p">[</span><span class="s2">"z_min"</span><span class="p">],</span><span class="n">reverse</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_validate_layers</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_layers_arr</span> <span class="o">=</span> <span class="n">layers_to_arrays</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Validate layer continuity.</span>
+
+<span class="sd">        Ensures that adjacent layers have matching boundaries, i.e.,</span>
+<span class="sd">        the lower boundary of one layer coincides with the upper</span>
+<span class="sd">        boundary of the next layer.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If any two adjacent layers do not form a continuous boundary (which would cause undefined z regions) or the definition is inconsistent.</span>
+<span class="sd">        """</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s2">"z_min"</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="s2">"z_max"</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Layers </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> don't overlap, boundaries are not continuous! Check definition!"</span><span class="p">)</span>
+
+        <span class="n">z_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">layer</span><span class="p">[</span><span class="s2">"z_min"</span><span class="p">]</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">z_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">layer</span><span class="p">[</span><span class="s2">"z_max"</span><span class="p">]</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">n_ice</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">layer</span><span class="p">[</span><span class="s2">"n_ice"</span><span class="p">]</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">delta_n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">layer</span><span class="p">[</span><span class="s2">"delta_n"</span><span class="p">]</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">z0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">layer</span><span class="p">[</span><span class="s2">"z_0"</span><span class="p">]</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">z_min</span><span class="p">)</span>
+
+        <span class="c1"># --- Length consistency check ---</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">z_max</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">n_ice</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">delta_n</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">z0</span><span class="p">)</span> <span class="o">==</span> <span class="n">n</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"All layer parameter arrays must have the same length. Did you forget to specify something?"</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IceModelExpLayers.get_index_of_refraction">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_index_of_refraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Compute the refractive index at a given position.</span>
+
+<span class="sd">        According to n(z) = n_ice - delta_n * exp(z / z_0), using the layer parameters corresponding to a given z.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        position : array-like</span>
+<span class="sd">            Position(s) at which to evaluate the refractive index.</span>
+<span class="sd">            Can be either:</span>
+
+<span class="sd">            - 1D array-like of shape (3,)</span>
+<span class="sd">            - 2D array-like of shape (N, 3)</span>
+
+<span class="sd">            The third component (``z``) is used for evaluation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float or ndarray</span>
+<span class="sd">            Refractive index at the given position(s). Returns a scalar</span>
+<span class="sd">            for a single position or an array for multiple positions.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If a position lies outside all defined layers.</span>
+<span class="sd">        """</span>
+
+        <span class="n">z_min</span><span class="p">,</span> <span class="n">z_max</span><span class="p">,</span> <span class="n">n_ice</span><span class="p">,</span> <span class="n">delta_n</span><span class="p">,</span> <span class="n">z0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layers_arr</span>
+        <span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-14</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">n_of_z</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">z_min</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">z_min</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">eps</span> <span class="o">&lt;=</span> <span class="n">z</span> <span class="o">&lt;</span> <span class="n">z_max</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">eps</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">n_ice</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">delta_n</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">z</span> <span class="o">/</span> <span class="n">z0</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Position z=</span><span class="si">{</span><span class="n">z</span><span class="si">}</span><span class="s2"> is not covered by any layer!"</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="n">position</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="n">n_of_z</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1">#return np.array([n_of_z(z) for z in position[:,2]])</span>
+            <span class="n">zvals</span> <span class="o">=</span> <span class="n">position</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">zvals</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">zvals</span><span class="p">)):</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_of_z</span><span class="p">(</span><span class="n">zvals</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+            <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="IceModelExpLayers.get_layer_name">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_layer_name">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_layer_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Return the name of the layer at a given depth.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        z : float</span>
+<span class="sd">            Depth coordinate.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Name of the layer containing the given depth.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the depth is not covered by any layer.</span>
+<span class="sd">        """</span>
+        <span class="k">for</span> <span class="n">L</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">L</span><span class="p">[</span><span class="s2">"z_min"</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">z</span> <span class="o">&lt;</span> <span class="n">L</span><span class="p">[</span><span class="s2">"z_max"</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="n">L</span><span class="p">[</span><span class="s2">"region_name"</span><span class="p">]</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Position z=</span><span class="si">{</span><span class="n">z</span><span class="si">}</span><span class="s2"> is not covered by any layer!"</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="IceModelExpLayers.get_average_index_of_refraction">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_average_index_of_refraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_average_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position1</span><span class="p">,</span> <span class="n">position2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Returns average refractive index between two points.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        position1, position2 : ndarray</span>
+<span class="sd">            Shape (3,) or (N,3)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float or ndarray</span>
+<span class="sd">        """</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">layer_average</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">z1</span><span class="p">,</span> <span class="n">z2</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">"""</span>
+<span class="sd">            Average refractive index inside a single layer.</span>
+<span class="sd">            """</span>
+
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">z1</span><span class="p">,</span> <span class="n">z2</span><span class="p">):</span>
+                <span class="k">return</span> <span class="p">(</span>
+                    <span class="n">L</span><span class="p">[</span><span class="s2">"n_ice"</span><span class="p">]</span>
+                    <span class="o">-</span> <span class="n">L</span><span class="p">[</span><span class="s2">"delta_n"</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">z1</span> <span class="o">/</span> <span class="n">L</span><span class="p">[</span><span class="s2">"z_0"</span><span class="p">])</span>
+                <span class="p">)</span>
+
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="n">L</span><span class="p">[</span><span class="s2">"n_ice"</span><span class="p">]</span>
+                <span class="o">-</span> <span class="n">L</span><span class="p">[</span><span class="s2">"delta_n"</span><span class="p">]</span>
+                <span class="o">*</span> <span class="n">L</span><span class="p">[</span><span class="s2">"z_0"</span><span class="p">]</span>
+                <span class="o">/</span> <span class="p">(</span><span class="n">z2</span> <span class="o">-</span> <span class="n">z1</span><span class="p">)</span>
+                <span class="o">*</span> <span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">z2</span> <span class="o">/</span> <span class="n">L</span><span class="p">[</span><span class="s2">"z_0"</span><span class="p">])</span>
+                    <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">z1</span> <span class="o">/</span> <span class="n">L</span><span class="p">[</span><span class="s2">"z_0"</span><span class="p">])</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">average_between</span><span class="p">(</span><span class="n">z1</span><span class="p">,</span> <span class="n">z2</span><span class="p">):</span>
+
+            <span class="n">zmin</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">z1</span><span class="p">,</span> <span class="n">z2</span><span class="p">)</span>
+            <span class="n">zmax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">z1</span><span class="p">,</span> <span class="n">z2</span><span class="p">)</span>
+
+            <span class="c1"># total integral of n(z) dz</span>
+            <span class="n">integral</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+            <span class="k">for</span> <span class="n">L</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+
+                <span class="c1"># overlap of path interval with layer</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">zmin</span><span class="p">,</span> <span class="n">L</span><span class="p">[</span><span class="s2">"z_min"</span><span class="p">])</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">zmax</span><span class="p">,</span> <span class="n">L</span><span class="p">[</span><span class="s2">"z_max"</span><span class="p">])</span>
+
+                <span class="k">if</span> <span class="n">b</span> <span class="o">&lt;=</span> <span class="n">a</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="n">n_avg_layer</span> <span class="o">=</span> <span class="n">layer_average</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+                <span class="n">integral</span> <span class="o">+=</span> <span class="n">n_avg_layer</span> <span class="o">*</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">integral</span> <span class="o">/</span> <span class="p">(</span><span class="n">zmax</span> <span class="o">-</span> <span class="n">zmin</span><span class="p">)</span>
+
+        <span class="c1"># scalar case</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">position1</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="n">position1</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="ow">and</span>
+            <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">position2</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="n">position2</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">):</span>
+
+            <span class="k">return</span> <span class="n">average_between</span><span class="p">(</span><span class="n">position1</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">position2</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+        <span class="c1"># vectorized case</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+                <span class="n">average_between</span><span class="p">(</span><span class="n">z1</span><span class="p">,</span> <span class="n">z2</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">z1</span><span class="p">,</span> <span class="n">z2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">position1</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">position2</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
+            <span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="IceModelExpLayers.get_gradient_of_index_of_refraction">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_gradient_of_index_of_refraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_gradient_of_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Returns gradient of refractive index at position(s).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        position : ndarray</span>
+<span class="sd">            Shape (3,) or (N,3)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ndarray</span>
+<span class="sd">            Shape (3,) or (N,3)</span>
+<span class="sd">        """</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">grad_z</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">L</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">L</span><span class="p">[</span><span class="s2">"z_min"</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">z</span> <span class="o">&lt;</span> <span class="n">L</span><span class="p">[</span><span class="s2">"z_max"</span><span class="p">]:</span>
+                    <span class="k">return</span> <span class="p">(</span>
+                        <span class="o">-</span><span class="n">L</span><span class="p">[</span><span class="s2">"delta_n"</span><span class="p">]</span> <span class="o">/</span> <span class="n">L</span><span class="p">[</span><span class="s2">"z_0"</span><span class="p">]</span>
+                        <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">z</span> <span class="o">/</span> <span class="n">L</span><span class="p">[</span><span class="s2">"z_0"</span><span class="p">])</span>
+                    <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Position z=</span><span class="si">{</span><span class="n">z</span><span class="si">}</span><span class="s2"> is not covered by any layer!"</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="n">position</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">g</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">grad_z</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">g</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">grad_z</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">position</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]])</span>
+
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">gz</span><span class="p">),</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">gz</span><span class="p">),</span>
+                    <span class="n">gz</span>
+                <span class="p">),</span>
+                <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+            <span class="p">)</span></div>
+
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_layers_array</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Get layer parameters as NumPy arrays.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple of ndarray</span>
+<span class="sd">            See the internal method _layers_to_arrays for details.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layers_arr</span>
+
+    <span class="c1"># for backwards compatibility with stuff IceModelSimple:</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">n_ice</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">"n_ice"</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delta_n</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">"delta_n"</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">z_0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">"z_0"</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">z_air_boundary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z_air_boundary</span>
+
+    <span class="nd">@z_air_boundary</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">z_air_boundary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z_air_boundary</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="IceModelContinuousExpLayers">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IceModelContinuousExpLayers</span><span class="p">(</span><span class="n">IceModelExpLayers</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Implements a continuous and continuously-differentiable piecewise-exponential ice model.</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_parametrized_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nN</span><span class="p">,</span> <span class="n">delta_nN</span><span class="p">,</span> <span class="n">ls</span><span class="p">,</span> <span class="n">zs</span><span class="p">,</span>
+                             <span class="n">z_bot</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3000.0</span><span class="p">,</span> <span class="n">z_surface</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Parametrizes a three-layer ice model with continuous n(z) and n'(z) in terms of</span>
+<span class="sd">            nN        ... Asymptotic refractive index of the bottommost layer</span>
+<span class="sd">            delta_nN  ... Refractive index step in the bottommost layer</span>
+<span class="sd">            ls        ... Length scale of the layers, starting at the bottommost layer</span>
+<span class="sd">            zs        ... Depth of transition between layers, starting at the bottom</span>
+<span class="sd">        """</span>
+
+        <span class="c1"># Need to have one more layer than layer transition</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">ls</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">zs</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_get_ni_delta_ni</span><span class="p">(</span><span class="n">zz</span><span class="p">,</span> <span class="n">li</span><span class="p">,</span> <span class="n">nii</span><span class="p">,</span> <span class="n">delta_nii</span><span class="p">,</span> <span class="n">lii</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">"""</span>
+<span class="sd">            Calculate parameters (ni, delta_ni) for layer `i` from parameters for</span>
+<span class="sd">            layer `ii`, such that the two layers are connected at `zz` in a continuous and</span>
+<span class="sd">            continuously-differentiable way.</span>
+<span class="sd">            """</span>
+            <span class="n">delta_ni</span> <span class="o">=</span> <span class="n">delta_nii</span> <span class="o">*</span> <span class="n">li</span> <span class="o">/</span> <span class="n">lii</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">zz</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">lii</span> <span class="o">-</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">li</span><span class="p">))</span>
+            <span class="n">ni</span> <span class="o">=</span> <span class="n">nii</span> <span class="o">-</span> <span class="n">delta_nii</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">zz</span> <span class="o">/</span> <span class="n">lii</span><span class="p">)</span> <span class="o">+</span> <span class="n">delta_ni</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">zz</span> <span class="o">/</span> <span class="n">li</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">ni</span><span class="p">,</span> <span class="n">delta_ni</span>
+
+        <span class="n">z_trans</span> <span class="o">=</span> <span class="p">[</span><span class="n">z_bot</span><span class="p">]</span> <span class="o">+</span> <span class="n">zs</span> <span class="o">+</span> <span class="p">[</span><span class="n">z_surface</span><span class="p">]</span>
+
+        <span class="c1"># Generate the layers starting from the bottom</span>
+        <span class="n">layers_gen</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">cur_n</span> <span class="o">=</span> <span class="n">nN</span>
+        <span class="n">cur_delta_n</span> <span class="o">=</span> <span class="n">delta_nN</span>
+        <span class="k">for</span> <span class="n">cur_l</span><span class="p">,</span> <span class="n">next_l</span><span class="p">,</span> <span class="n">cur_zmin</span><span class="p">,</span> <span class="n">cur_zmax</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ls</span><span class="p">,</span> <span class="n">ls</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                                     <span class="n">z_trans</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">z_trans</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="n">layers_gen</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span>
+                        <span class="s2">"z_min"</span><span class="p">:</span> <span class="n">cur_zmin</span><span class="p">,</span>
+                        <span class="s2">"z_max"</span><span class="p">:</span> <span class="n">cur_zmax</span><span class="p">,</span>
+                        <span class="s2">"n_ice"</span><span class="p">:</span> <span class="n">cur_n</span><span class="p">,</span>
+                        <span class="s2">"delta_n"</span><span class="p">:</span> <span class="n">cur_delta_n</span><span class="p">,</span>
+                        <span class="s2">"z_0"</span><span class="p">:</span> <span class="n">cur_l</span><span class="p">,</span>
+                        <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"ice"</span><span class="p">,</span>
+                        <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"ice"</span>
+                    <span class="p">}</span>
+                <span class="p">)</span>
+            <span class="n">cur_n</span><span class="p">,</span> <span class="n">cur_delta_n</span> <span class="o">=</span> <span class="n">_get_ni_delta_ni</span><span class="p">(</span><span class="n">cur_zmax</span><span class="p">,</span> <span class="n">next_l</span><span class="p">,</span> <span class="n">cur_n</span><span class="p">,</span> <span class="n">cur_delta_n</span><span class="p">,</span> <span class="n">cur_l</span><span class="p">)</span>
+
+        <span class="c1"># Add the air layer, which is constant and not parametrized</span>
+        <span class="n">layers_gen</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="c1"># The air is constant and not parametrized</span>
+                <span class="p">{</span>
+                    <span class="s2">"z_min"</span><span class="p">:</span> <span class="n">z_surface</span><span class="p">,</span>
+                    <span class="s2">"z_max"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                    <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.00027</span><span class="p">,</span>
+                    <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">2.7e-4</span><span class="p">,</span>
+                    <span class="s2">"z_0"</span><span class="p">:</span> <span class="o">-</span><span class="mf">8000.0</span><span class="p">,</span>
+                    <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"air"</span><span class="p">,</span>
+                    <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Air"</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">layers_gen</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nN</span><span class="p">,</span> <span class="n">delta_nN</span><span class="p">,</span> <span class="n">ls</span><span class="p">,</span> <span class="n">zs</span><span class="p">):</span>
+        <span class="n">layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parametrized_layers</span><span class="p">(</span><span class="n">nN</span><span class="p">,</span> <span class="n">delta_nN</span><span class="p">,</span> <span class="n">ls</span><span class="p">,</span> <span class="n">zs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_params</span><span class="p">(</span><span class="n">nN</span><span class="p">,</span> <span class="n">delta_nN</span><span class="p">,</span> <span class="n">ls</span><span class="p">,</span> <span class="n">zs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IceModelContinuousExpLayers.get_average_index_of_refraction">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_average_index_of_refraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_average_index_of_refraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position1</span><span class="p">,</span> <span class="n">position2</span><span class="p">):</span>
+        <span class="n">z1</span><span class="p">,</span> <span class="n">z2</span> <span class="o">=</span> <span class="n">position1</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">position2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_ior</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">z</span><span class="p">])</span>
+        <span class="n">int_ior</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span><span class="n">get_ior</span><span class="p">,</span> <span class="n">z1</span><span class="p">,</span> <span class="n">z2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">int_ior</span> <span class="o">/</span> <span class="p">(</span><span class="n">z2</span> <span class="o">-</span> <span class="n">z1</span><span class="p">))</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nN</span><span class="p">,</span> <span class="n">delta_nN</span><span class="p">,</span> <span class="n">ls</span><span class="p">,</span> <span class="n">zs</span><span class="p">):</span>
+        <span class="c1"># keep values of continuous-ice parameterization around</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nN</span> <span class="o">=</span> <span class="n">nN</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delta_nN</span> <span class="o">=</span> <span class="n">delta_nN</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ls</span> <span class="o">=</span> <span class="n">ls</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zs</span> <span class="o">=</span> <span class="n">zs</span>
+
+        <span class="n">layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parametrized_layers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nN</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_nN</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ls</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">zs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_layers</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IceModelContinuousExpLayers.get_description">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_description">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_description</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">"type"</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                    <span class="s2">"args"</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">"nN"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">nN</span><span class="p">,</span>
+                        <span class="s2">"delta_nN"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">delta_nN</span><span class="p">,</span>
+                        <span class="s2">"ls"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ls</span><span class="p">,</span>
+                        <span class="s2">"zs"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">zs</span>
+                        <span class="p">}</span>
+                    <span class="p">}</span>
+        <span class="k">return</span> <span class="n">desc</span></div>
 </div>
 
 </pre></div>

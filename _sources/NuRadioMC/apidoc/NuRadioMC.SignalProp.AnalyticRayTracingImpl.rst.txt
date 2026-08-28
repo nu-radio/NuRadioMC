@@ -12,4 +12,5 @@ Submodules
 .. toctree::
    :maxdepth: 1
 
+   NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba
    NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer

@@ -650,14 +650,28 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioMC.SignalProp.analyticraytracing</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">geometryUtilities</span>
+<span></span><span class="sd">"""</span>
+<span class="sd">Wrapper for different implementations of a 2D analytic ray tracer to get ray tracing solutions in 3D for two arbitrary points x1 and x2.</span>
+<span class="sd">The 2D ray tracer is chosen depending on the provided ice model and can either be the single layer analytic raytracer (when IceModelSimple is given)</span>
+<span class="sd">or the new multilayer version of it (when a medium of type IceModelExpLayers is used).</span>
+<span class="sd">Implementations for the single layer 2D ray tracer include a</span>
+<span class="sd">CPP version, a python version with numba and a python version without numba, the multilayer version is currently limited to either python with numba and python without numba.</span>
+<span class="sd">The CPP version is the default if available, otherwise the python version with numba is used if available,</span>
+<span class="sd">otherwise the python version without numba is used.</span>
+
+<span class="sd">Implementations are in NuRadioMC/SignalProp/AnalyticRayTracing/</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">geometryUtilities</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">medium</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities.medium_base</span><span class="w"> </span><span class="kn">import</span> <span class="n">IceModelSimple</span><span class="p">,</span> <span class="n">IceModelExpLayers</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">electricFieldParameters</span> <span class="k">as</span> <span class="n">efp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">base_trace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp.propagation_base_class</span><span class="w"> </span><span class="kn">import</span> <span class="n">ray_tracing_base</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ray_tracing_2D</span><span class="p">,</span> <span class="n">SPEED_OF_LIGHT</span><span class="p">,</span> <span class="n">N_AIR</span><span class="p">,</span> <span class="n">_get_zenith</span><span class="p">,</span> <span class="n">_n</span>
 <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.multilayeranalyticraytracing</span><span class="w"> </span><span class="kn">import</span> <span class="n">multi_layer_ray_tracing_2D</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities.birefringence</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_effective_index_birefringence</span><span class="p">,</span> <span class="n">get_polarization_birefringence</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -740,10 +754,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioMC.ray_tracing'</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
 
-        <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities.medium_base</span><span class="w"> </span><span class="kn">import</span> <span class="n">IceModelSimple</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">medium</span><span class="p">,</span> <span class="n">IceModelSimple</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"The analytic raytracer can only handle ice model of the type 'IceModelSimple'"</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"The analytic raytracer can only handle ice model of the type 'IceModelSimple'"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">medium</span><span class="p">,</span> <span class="p">(</span><span class="n">IceModelSimple</span><span class="p">,</span> <span class="n">IceModelExpLayers</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">"The analytic raytracer can only handle ice models of the type 'IceModelSimple' "</span>
+                <span class="s2">"(single layer) or 'IceModelExpLayers' (multilayer) (see NuRadioMC.utilities.medium)!"</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">"The analytic raytracer can only handle ice models of the type 'IceModelSimple' "</span>
+                <span class="s2">"(single layer) or 'IceModelExpLayers' (multilayer)"</span><span class="p">)</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">medium</span><span class="o">=</span><span class="n">medium</span><span class="p">,</span>
@@ -756,19 +773,30 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">set_config</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
 
-        <span class="c1"># `ray_tracing_2D` already resolves use_cpp/compile_numba (from None defaults and</span>
-        <span class="c1"># availability) and logs the outcome; we just mirror the result here rather than</span>
-        <span class="c1"># resolving (and logging) it a second time.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span> <span class="o">=</span> <span class="n">ray_tracing_2D</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attenuation_model</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">log_level</span><span class="p">,</span>
-            <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_frequencies_integration</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">ray_tracing_2D_kwards</span><span class="p">,</span> <span class="n">use_cpp</span><span class="o">=</span><span class="n">use_cpp</span><span class="p">,</span> <span class="n">compile_numba</span><span class="o">=</span><span class="n">compile_numba</span><span class="p">)</span>
+        <span class="c1"># `ray_tracing_2D`/`multi_layer_ray_tracing_2D` already resolve use_cpp/compile_numba</span>
+        <span class="c1"># (from None defaults and availability) and log the outcome; we just mirror the result</span>
+        <span class="c1"># here rather than resolving (and logging) it a second time.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">medium</span><span class="p">,</span> <span class="n">IceModelSimple</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">"IceModelSimple was provided: using the single layer analytic ray tracer as the 2D raytracing module."</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span> <span class="o">=</span> <span class="n">ray_tracing_2D</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attenuation_model</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">log_level</span><span class="p">,</span>
+                <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_frequencies_integration</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">ray_tracing_2D_kwards</span><span class="p">,</span> <span class="n">use_cpp</span><span class="o">=</span><span class="n">use_cpp</span><span class="p">,</span> <span class="n">compile_numba</span><span class="o">=</span><span class="n">compile_numba</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span><span class="s2">"IceModelExpLayers was provided: using the multilayer analytic ray tracer as the 2D raytracing module."</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span> <span class="o">=</span> <span class="n">multi_layer_ray_tracing_2D</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attenuation_model</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">log_level</span><span class="p">,</span>
+                <span class="n">n_frequencies_integration</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_frequencies_integration</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">ray_tracing_2D_kwards</span><span class="p">,</span> <span class="n">use_cpp</span><span class="o">=</span><span class="n">use_cpp</span><span class="p">,</span> <span class="n">compile_numba</span><span class="o">=</span><span class="n">compile_numba</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">use_cpp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">use_cpp</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">compile_numba</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">compile_numba</span>
 
         <span class="c1"># As long as we use horizontal-translational invariant raytracing/ice models (2d)</span>
         <span class="c1"># this should be fine. _n(0) is also used in _get_delta_y for air-ice raytracing</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span> <span class="o">=</span> <span class="n">_n</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">n_ice</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">delta_n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">z_0</span><span class="p">)</span>
+        <span class="c1">#self.n_at_surface = _n(0, self._medium.n_ice, self._medium.delta_n, self._medium.z_0)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">get_index_of_refraction</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]))</span>
 
         <span class="c1"># Some consitency checks...</span>
 
@@ -777,10 +805,14 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span> <span class="o">&lt;</span> <span class="mf">1.1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Calculated index of refraction for ice at the ice-air boundary is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_at_surface</span><span class="si">}</span><span class="s2"> which is to small."</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">z_air_boundary</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># `z_air_boundary`/`z_shift` describe the single, flat ice-air interface `IceModelSimple`</span>
+        <span class="c1"># assumes; `IceModelExpLayers` has no such single interface (its `z_air_boundary`/`z_shift`</span>
+        <span class="c1"># properties are only kept for backwards compatibility and don't carry the same meaning)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="p">,</span> <span class="s2">"z_air_boundary"</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">z_air_boundary</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The configured ice model has `z_air_boundary != 0`. This is not supported by this raytracer!"</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">z_shift</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="p">,</span> <span class="s2">"z_shift"</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_medium</span><span class="o">.</span><span class="n">z_shift</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The configured ice model has `z_shift != 0`. This is not supported by this raytracer!"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_swap</span> <span class="o">=</span> <span class="kc">None</span>
@@ -815,7 +847,7 @@
 
 <div class="viewcode-block" id="ray_tracing.set_start_and_end_point">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">set_start_and_end_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_start_and_end_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">autoswap</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Set the start and end points of the raytracing</span>
 
@@ -840,11 +872,43 @@
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_swap</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_swap</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'swap = True'</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">autoswap</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_swap</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'swap = True'</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">dX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dPhi</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">dX</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dX</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">c</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dPhi</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dPhi</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(((</span><span class="n">c</span><span class="p">,</span> <span class="o">-</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+        <span class="n">X1r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span>
+        <span class="n">X2r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_R</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"X1 = </span><span class="si">{}</span><span class="s2">, X2 = </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">'dphi = </span><span class="si">{:.1f}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dPhi</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"X2 - X1 = </span><span class="si">{}</span><span class="s2">, X1r = </span><span class="si">{}</span><span class="s2">, X2r = </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_X2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">,</span> <span class="n">X1r</span><span class="p">,</span> <span class="n">X2r</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">X1r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">X1r</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">X2r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">X2r</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">"2D points </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ray_tracing.set_start_and_end_point_no_swap">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_start_and_end_point_no_swap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Set the start and end points of the raytracing without automatically swapping x1 and x2 if z2 &gt; z1.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x1: 3dim np.array</span>
+<span class="sd">            start point of the ray</span>
+<span class="sd">        x2: 3dim np.array</span>
+<span class="sd">            stop point of the ray</span>
+<span class="sd">        """</span>
+
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">set_start_and_end_point</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
 
         <span class="n">dX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dPhi</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">dX</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dX</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -912,9 +976,9 @@
 
         <span class="c1"># check if not too many solutions were found (the same solution can potentially found twice because of numerical imprecision)</span>
         <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_raytracing_solutions</span><span class="p">()):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span><span class="si">}</span><span class="s2"> were found but only </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_raytracing_solutions</span><span class="p">()</span><span class="si">}</span><span class="s2"> are allowed! Returning zero solutions"</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="p">[]</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[x1 </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="si">}</span><span class="s2">, x2 </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span><span class="si">}</span><span class="s2"> were found but only </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_raytracing_solutions</span><span class="p">()</span><span class="si">}</span><span class="s2"> are allowed!"</span><span class="p">)</span></div>
 
+            <span class="c1">#self._results = []</span>
 
 <div class="viewcode-block" id="ray_tracing.get_solution_type">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type">[docs]</a>
@@ -941,7 +1005,7 @@
 
         <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_solutions</span><span class="p">()</span>
         <span class="k">if</span><span class="p">(</span><span class="n">iS</span> <span class="o">&gt;=</span> <span class="n">n</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"solution number </span><span class="si">{:d}</span><span class="s2"> requested but only </span><span class="si">{:d}</span><span class="s2"> solutions exist"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">iS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[x1 </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="si">}</span><span class="s2">, x2 </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="si">}</span><span class="s2">] solution number </span><span class="si">{</span><span class="n">iS</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> requested but only </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> solutions exist"</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">IndexError</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">]</span>
         <span class="n">xx</span><span class="p">,</span> <span class="n">zz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_path_reflections</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_x1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x2</span><span class="p">,</span> <span class="n">result</span><span class="p">[</span><span class="s1">'C0'</span><span class="p">],</span> <span class="n">n_points</span><span class="o">=</span><span class="n">n_points</span><span class="p">,</span>
@@ -953,6 +1017,7 @@
         <span class="n">MM</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_R</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">dP</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">MM</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X1</span>
         <span class="k">return</span> <span class="n">path</span></div>
+
 
 <div class="viewcode-block" id="ray_tracing.get_pulse_propagation_birefringence">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence">[docs]</a>
@@ -1781,6 +1846,18 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'propagation'</span><span class="p">][</span><span class="s1">'birefringence'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_config</span> <span class="o">=</span> <span class="n">config</span></div>
+
+
+<div class="viewcode-block" id="ray_tracing.get_time_difference_plane_wave">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_time_difference_plane_wave">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_time_difference_plane_wave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_zenith</span><span class="p">,</span> <span class="n">src_azimuth</span><span class="p">,</span> <span class="n">azimuth_convention</span> <span class="o">=</span> <span class="s1">'nuradio'</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">src_zenith</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Source zenith angle: </span><span class="si">{</span><span class="n">src_zenith</span><span class="si">:</span><span class="s2">3f</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">src_zenith</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">2f</span><span class="si">}</span><span class="s2"> deg) is above pi/2 (90 deg)! The plane wave time difference calculation only works for signals traversing from air to ice, aka coming from above, aka having theta between 0 and 90 degrees. Make sure to catch this!"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_time_difference_plane_wave_analytic</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">,</span> <span class="n">src_zenith</span><span class="p">,</span> <span class="n">src_azimuth</span><span class="p">,</span> <span class="n">azimuth_convention</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dt</span></div>
 </div>
 
 </pre></div>

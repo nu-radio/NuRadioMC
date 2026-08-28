@@ -815,7 +815,6 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 
-
 <div class="viewcode-block" id="mooresbay_simple">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.mooresbay_simple">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">mooresbay_simple</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelSimple</span><span class="p">):</span>
@@ -869,6 +868,21 @@
             <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.51</span><span class="p">,</span>
             <span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="greenland_simple_nils">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_simple_nils">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">greenland_simple_nils</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelSimple</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># from C. Deaconu, fit to data from Hawley '08, Alley '88</span>
+        <span class="c1"># rho(z) = 917 - 602 * exp (-z/37.25), using n = 1 + 0.78 rho(z)/rho_0</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">3000</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+            <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.781</span><span class="p">,</span>
+            <span class="n">z_0</span> <span class="o">=</span> <span class="mf">45.20</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span>
+            <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.485</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+                
 
 <div class="viewcode-block" id="greenland_firn">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_firn">[docs]</a>
@@ -1109,6 +1123,474 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">'The ice model you are trying to use is not implemented. Please choose another ice model or implement a new one.'</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">globals</span><span class="p">()[</span><span class="n">name</span><span class="p">]()</span></div>
+
+
+<div class="viewcode-block" id="greenland_simple_layered_test">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_simple_layered_test">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">greenland_simple_layered_test</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelExpLayers</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Single layer refractive index model.</span>
+<span class="sd">    </span>
+<span class="sd">    greenland_simple model adapted to match the expected medium definition needed for the multi layer analytic raytracer. Used as a comparison to the single layer analytic raytracer.</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">3000</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span>
+        <span class="n">z_0</span> <span class="o">=</span> <span class="mf">37.25</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.51</span>
+
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+            <span class="s2">"z_min"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">"z_max"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+            <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.00001</span><span class="p">,</span>
+            <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span>
+            <span class="s2">"z_0"</span><span class="p">:</span> <span class="o">-</span><span class="mi">8000</span><span class="p">,</span>
+            <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"air"</span><span class="p">,</span>
+            <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Air"</span>
+        <span class="p">},</span>
+            <span class="p">{</span>
+            <span class="s2">"z_min"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3000.0</span><span class="p">,</span>
+            <span class="s2">"z_max"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.781</span><span class="p">,</span>
+            <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">0.51</span><span class="p">,</span>
+            <span class="s2">"z_0"</span><span class="p">:</span> <span class="mf">37.25</span><span class="p">,</span>
+            <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"single"</span><span class="p">,</span>
+            <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"SingleModel"</span>
+        <span class="p">}]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">layers</span><span class="o">=</span><span class="n">layers</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="greenland_simple_layered">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_simple_layered">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">greenland_simple_layered</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelExpLayers</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Single layer refractive index model.</span>
+<span class="sd">    </span>
+<span class="sd">    greenland_simple model adapted to match the expected medium definition needed for the multi layer analytic raytracer. Used as a comparison to the single layer analytic raytracer.</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">3000</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span>
+        <span class="n">z_0</span> <span class="o">=</span> <span class="mf">37.25</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.51</span>
+
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+            <span class="s2">"z_min"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">"z_max"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+            <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.00001</span><span class="p">,</span>
+            <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span>
+            <span class="s2">"z_0"</span><span class="p">:</span> <span class="o">-</span><span class="mi">8000</span><span class="p">,</span>
+            <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"air"</span><span class="p">,</span>
+            <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Air"</span>
+        <span class="p">},</span>
+            <span class="p">{</span>
+            <span class="s2">"z_min"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3000.0</span><span class="p">,</span>
+            <span class="s2">"z_max"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.78</span><span class="p">,</span>
+            <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">0.51</span><span class="p">,</span>
+            <span class="s2">"z_0"</span><span class="p">:</span> <span class="mf">37.25</span><span class="p">,</span>
+            <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"single"</span><span class="p">,</span>
+            <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"SingleModel"</span>
+        <span class="p">}]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">layers</span><span class="o">=</span><span class="n">layers</span>
+        <span class="p">)</span></div>
+
+
+        
+
+
+<div class="viewcode-block" id="greenland_simple_nils_layered">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_simple_nils_layered">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">greenland_simple_nils_layered</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelExpLayers</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    New fit parameters for the single layer refractive index model. </span>
+<span class="sd">    </span>
+<span class="sd">    greenland_simple model adapted to match the expected medium definition needed for the multi layer analytic raytracer. Used as a comparison to the single layer analytic raytracer.</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">3000</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span>
+        <span class="n">z_0</span> <span class="o">=</span> <span class="mf">37.25</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.51</span>
+
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+            <span class="s2">"z_min"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">"z_max"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+            <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.00001</span><span class="p">,</span>
+            <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span>
+            <span class="s2">"z_0"</span><span class="p">:</span> <span class="o">-</span><span class="mi">8000</span><span class="p">,</span>
+            <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"air"</span><span class="p">,</span>
+            <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Air"</span>
+        <span class="p">},</span>
+            <span class="p">{</span>
+            <span class="s2">"z_min"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3000.0</span><span class="p">,</span>
+            <span class="s2">"z_max"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.781</span><span class="p">,</span>
+            <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">0.485</span><span class="p">,</span>
+            <span class="s2">"z_0"</span><span class="p">:</span> <span class="mf">45.20</span><span class="p">,</span>
+            <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"single"</span><span class="p">,</span>
+            <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"SingleModel"</span>
+        <span class="p">}]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">layers</span><span class="o">=</span><span class="n">layers</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="greenland_firn_layered">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_firn_layered">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">greenland_firn_layered</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelExpLayers</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Two layer refractive index model.</span>
+<span class="sd">     </span>
+<span class="sd">    values taken from greenland_firn and adapted to match the expected medium definition needed for the multi layer analytic raytracer. Combination of firn layer (settling and freezing of snow in shallow ice) and bubbly ice.</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="o">-</span><span class="mf">14.9</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.78</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">0.502</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="mf">30.8</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"firn"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Firn"</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3000.0</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="o">-</span><span class="mf">14.9</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.78</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">0.446</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="mf">40.9</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"ice"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Ice"</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">layers</span><span class="o">=</span><span class="n">layers</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="greenland_3exp_layered">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_3exp_layered">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">greenland_3exp_layered</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelContinuousExpLayers</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    (3+1) layer refractive index model. Three layer model in ice plus one air layer.</span>
+<span class="sd">     </span>
+<span class="sd">    Values for below the ice obtained from a fit to ice core density data. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">nN</span> <span class="o">=</span> <span class="mf">1.77468</span><span class="p">,</span>
+            <span class="n">delta_nN</span> <span class="o">=</span> <span class="mf">1.41573</span><span class="p">,</span>
+            <span class="n">ls</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span> <span class="o">/</span> <span class="mf">0.0387882</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mf">0.0129175</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mf">0.114553</span><span class="p">],</span>
+            <span class="n">zs</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">80.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">14.9</span><span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="greenland_3exp_nils_layered">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_3exp_nils_layered">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">greenland_3exp_nils_layered</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelExpLayers</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    New fit parameters for the (3+1) layer refractive index model. Three layer model in ice plus one air layer.</span>
+<span class="sd">     </span>
+<span class="sd">    Values for below the ice taken from https://github.com/philippwindischhofer/Reconal/blob/7204049c755a0678178821073fa73a476c49c491/defs.py#L72-L82. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.</span>
+<span class="sd">    """</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.00027</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">2.7e-4</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="o">-</span><span class="mf">8000.0</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"air"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Air"</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="o">-</span><span class="mf">14.9</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.544</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">0.272</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="mf">15.88</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"snow"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Snow"</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="o">-</span><span class="mf">80.5</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="o">-</span><span class="mf">14.9</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.855</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">0.530255538</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="mf">62.281809455</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"firn"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Firn"</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3000.0</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="o">-</span><span class="mf">80.5</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.778</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">1.06592622966</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="mf">29.343776516</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"bubbly_ice"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Ice"</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">layers</span><span class="o">=</span><span class="n">layers</span>
+        <span class="p">)</span></div>
+
+
+        
+<div class="viewcode-block" id="southpole_simple_layered">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.southpole_simple_layered">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">southpole_simple_layered</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelExpLayers</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># from https://doi.org/10.1088/1475-7516/2018/07/055</span>
+        <span class="c1"># RICE2014/SP model</span>
+
+        <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2820</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span>
+        <span class="n">z_0</span> <span class="o">=</span> <span class="mf">71.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.426</span>
+
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.000001</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">2.7e-6</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="o">-</span><span class="mf">8000.0</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"air"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Air"</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="n">z_bottom</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="n">n_ice</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="n">delta_n</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="n">z_0</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"ice"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Ice"</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">layers</span><span class="o">=</span><span class="n">layers</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="southpole_2015_layered">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.southpole_2015_layered">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">southpole_2015_layered</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelExpLayers</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># SPICE2015/SP model</span>
+        <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2820</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span>
+        <span class="n">z_0</span> <span class="o">=</span> <span class="mf">77.</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.423</span>
+
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.000001</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">2.7e-6</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="o">-</span><span class="mf">8000.0</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"air"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Air"</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="n">z_bottom</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="n">n_ice</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="n">delta_n</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="n">z_0</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"ice"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Ice"</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">layers</span><span class="o">=</span><span class="n">layers</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ARAsim_southpole_layered">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARAsim_southpole_layered">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ARAsim_southpole_layered</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelExpLayers</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># SPICE 2015 / South Pole</span>
+        <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2820</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span>
+        <span class="n">z_0</span> <span class="o">=</span> <span class="mf">75.75757575757576</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.43</span>
+
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.00027</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">2.7e-4</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="o">-</span><span class="mf">8000.0</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"air"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Air"</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="n">z_bottom</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="n">n_ice</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="n">delta_n</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="n">z_0</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"ice"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Ice"</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">layers</span><span class="o">=</span><span class="n">layers</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ARA_2022_layered">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.ARA_2022_layered">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ARA_2022_layered</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelExpLayers</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># ARA South Pole model</span>
+        <span class="c1"># https://journals.aps.org/prd/pdf/10.1103/PhysRevD.105.122006</span>
+
+        <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2820</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span>
+        <span class="n">z_0</span> <span class="o">=</span> <span class="mf">49.5049505</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.454</span>
+
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.00027</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">2.7e-4</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="o">-</span><span class="mf">8000.0</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"air"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Air"</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="n">z_bottom</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="n">n_ice</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="n">delta_n</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="n">z_0</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"ice"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Ice"</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">layers</span><span class="o">=</span><span class="n">layers</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="mooresbay_simple_layered">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.mooresbay_simple_layered">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">mooresbay_simple_layered</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelExpLayers</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># MB1 model</span>
+        <span class="c1"># https://doi.org/10.1088/1475-7516/2018/07/055</span>
+
+        <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">576</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span>
+        <span class="n">z_0</span> <span class="o">=</span> <span class="mf">34.5</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.46</span>
+
+
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.00027</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">2.7e-4</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="o">-</span><span class="mf">8000.0</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"air"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Air"</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="n">z_bottom</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="n">n_ice</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="n">delta_n</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="n">z_0</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"ice"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Ice"</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">layers</span><span class="o">=</span><span class="n">layers</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="mooresbay_simple_2_layered">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.mooresbay_simple_2_layered">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">mooresbay_simple_2_layered</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelExpLayers</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># MB2 model</span>
+        <span class="c1"># https://doi.org/10.1088/1475-7516/2018/07/055</span>
+
+        <span class="n">z_bottom</span> <span class="o">=</span> <span class="o">-</span><span class="mi">576</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">n_ice</span> <span class="o">=</span> <span class="mf">1.78</span>
+        <span class="n">z_0</span> <span class="o">=</span> <span class="mf">37.0</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">meter</span>
+        <span class="n">delta_n</span> <span class="o">=</span> <span class="mf">0.481</span>
+
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.00027</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">2.7e-4</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="o">-</span><span class="mf">8000.0</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"air"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Air"</span>
+            <span class="p">},</span>
+            <span class="p">{</span>
+                <span class="s2">"z_min"</span><span class="p">:</span> <span class="n">z_bottom</span><span class="p">,</span>
+                <span class="s2">"z_max"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="n">n_ice</span><span class="p">,</span>
+                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="n">delta_n</span><span class="p">,</span>
+                <span class="s2">"z_0"</span><span class="p">:</span> <span class="n">z_0</span><span class="p">,</span>
+                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"ice"</span><span class="p">,</span>
+                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Ice"</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">layers</span><span class="o">=</span><span class="n">layers</span>
+        <span class="p">)</span></div>
+
+
 
 </pre></div>
 

@@ -1675,6 +1675,625 @@ wrapper which is much slower.</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelExpLayers">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">IceModelExpLayers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelExpLayers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModel" title="NuRadioMC.utilities.medium_base.IceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModel</span></code></a></p>
+<p>Medium model consisting of multiple exponential layers.</p>
+<p>This class represents a stratified medium where each layer has a
+refractive index profile described by an exponential function like this:</p>
+<p>n(z) = n_ice - delta_n * exp(z / z_0)</p>
+<p>It is designed for use with the multilayer analytic ray tracer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>layers</strong><span class="classifier">list of dict</span></dt><dd><p>List of layer definitions. Each layer must be a dictionary
+containing the following keys:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;z_min&quot;</span></code><span class="classifier">float</span></dt><dd><p>Lower boundary of the layer (depth).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;z_max&quot;</span></code><span class="classifier">float</span></dt><dd><p>Upper boundary of the layer (depth).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;n_ice&quot;</span></code><span class="classifier">float</span></dt><dd><p>Asymptotic refractive index of the layer.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;delta_n&quot;</span></code><span class="classifier">float</span></dt><dd><p>Factor defining the steepness of the refractive index change.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;z_0&quot;</span></code><span class="classifier">float</span></dt><dd><p>Exponential scale depth, defining the vertival location of the change.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;region_name&quot;</span></code><span class="classifier">str</span></dt><dd><p>Name/identifier of the layer.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>delta_n</strong></dt><dd></dd>
+<dt><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_layers_array" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_layers_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layers_array</span></code></a></dt><dd><p>Get layer parameters as NumPy arrays.</p>
+</dd>
+<dt><strong>n_ice</strong></dt><dd></dd>
+<dt><strong>z_0</strong></dt><dd></dd>
+<dt><strong>z_air_boundary</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.add_reflective_bottom" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
+<td><p>function which adds a reflective bottom to your ice model</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_average_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
+<td><p>Returns average refractive index between two points.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>Returns gradient of refractive index at position(s).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes that define the medium in radiopropa.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>Compute the refractive index at a given position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_layer_name" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_layer_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer_name</span></code></a>(z)</p></td>
+<td><p>Return the name of the layer at a given depth.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Layers are automatically sorted by decreasing <code class="docutils literal notranslate"><span class="pre">z_min</span></code> and validated
+to ensure continuous boundaries between adjacent layers.</p>
+<p>Initialize the multilayer ice model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>layers</strong><span class="classifier">list of dict</span></dt><dd><p>Layer definitions (see class docstring).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>delta_n</strong></dt><dd></dd>
+<dt><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_layers_array" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_layers_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layers_array</span></code></a></dt><dd><p>Get layer parameters as NumPy arrays.</p>
+</dd>
+<dt><strong>n_ice</strong></dt><dd></dd>
+<dt><strong>z_0</strong></dt><dd></dd>
+<dt><strong>z_air_boundary</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.add_reflective_bottom" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
+<td><p>function which adds a reflective bottom to your ice model</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_average_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
+<td><p>Returns average refractive index between two points.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>Returns gradient of refractive index at position(s).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes that define the medium in radiopropa.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>Compute the refractive index at a given position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_layer_name" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_layer_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer_name</span></code></a>(z)</p></td>
+<td><p>Return the name of the layer at a given depth.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium_base.IceModelExpLayers.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelExpLayers.get_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_index_of_refraction" title="Link to this definition"></a></dt>
+<dd><p>Compute the refractive index at a given position.</p>
+<p>According to n(z) = n_ice - delta_n * exp(z / z_0), using the layer parameters corresponding to a given z.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>position</strong><span class="classifier">array-like</span></dt><dd><p>Position(s) at which to evaluate the refractive index.
+Can be either:</p>
+<ul class="simple">
+<li><p>1D array-like of shape (3,)</p></li>
+<li><p>2D array-like of shape (N, 3)</p></li>
+</ul>
+<p>The third component (<code class="docutils literal notranslate"><span class="pre">z</span></code>) is used for evaluation.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float or ndarray</dt><dd><p>Refractive index at the given position(s). Returns a scalar
+for a single position or an array for multiple positions.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>If a position lies outside all defined layers.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_layer_name">
+<span class="sig-name descname"><span class="pre">get_layer_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelExpLayers.get_layer_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_layer_name" title="Link to this definition"></a></dt>
+<dd><p>Return the name of the layer at a given depth.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z</strong><span class="classifier">float</span></dt><dd><p>Depth coordinate.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>str</dt><dd><p>Name of the layer containing the given depth.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>If the depth is not covered by any layer.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_average_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelExpLayers.get_average_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_average_index_of_refraction" title="Link to this definition"></a></dt>
+<dd><p>Returns average refractive index between two points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position1, position2</strong><span class="classifier">ndarray</span></dt><dd><p>Shape (3,) or (N,3)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float or ndarray</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_gradient_of_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelExpLayers.get_gradient_of_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_gradient_of_index_of_refraction" title="Link to this definition"></a></dt>
+<dd><p>Returns gradient of refractive index at position(s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position</strong><span class="classifier">ndarray</span></dt><dd><p>Shape (3,) or (N,3)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray</dt><dd><p>Shape (3,) or (N,3)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_layers_array">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_layers_array</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_layers_array" title="Link to this definition"></a></dt>
+<dd><p>Get layer parameters as NumPy arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>tuple of ndarray</dt><dd><p>See the internal method _layers_to_arrays for details.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelExpLayers.n_ice">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_ice</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.n_ice" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelExpLayers.delta_n">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">delta_n</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.delta_n" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelExpLayers.z_0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">z_0</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.z_0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelExpLayers.z_air_boundary">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">z_air_boundary</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.z_air_boundary" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelExpLayers.add_reflective_bottom">
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.add_reflective_bottom" title="Link to this definition"></a></dt>
+<dd><p>function which adds a reflective bottom to your ice model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>refl_z: float, NuRadio length units</strong></dt><dd><p>z coordinate of the bottom reflective layer</p>
+</dd>
+<dt><strong>refl_coef: float between 0 and 1</strong></dt><dd><p>fraction of the electric field that gets reflected</p>
+</dd>
+<dt><strong>refl_phase_shift: float, NuRadio angukar units</strong></dt><dd><p>phase shoft that the reflected electric field receives</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelExpLayers.get_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.get_ice_model_radiopropa" title="Link to this definition"></a></dt>
+<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes
+that define the medium in radiopropa. If no specific model is set by the user it returns
+the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
+<p>This seperation allows having the posibility to set a more specific/adjusted radiopropa
+ice model in case they need it, without losing the access to the default model.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ice: RadioPropaIceWrapper</dt><dd><p>Object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelExpLayers.set_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers.set_ice_model_radiopropa" title="Link to this definition"></a></dt>
+<dd><p>If radiopropa is installed, this function can be used
+to set a specific RadioPropaIceWrapper object as the
+ice model used for RadioPropa.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ice_model_radioprop: RadioPropaIceWrapper</strong></dt><dd><p>Object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium_base.</span></span><span class="sig-name descname"><span class="pre">IceModelContinuousExpLayers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nN</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_nN</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ls</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelContinuousExpLayers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelExpLayers" title="NuRadioMC.utilities.medium_base.IceModelExpLayers"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelExpLayers</span></code></a></p>
+<p>Implements a continuous and continuously-differentiable piecewise-exponential ice model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>delta_n</strong></dt><dd></dd>
+<dt><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_layers_array" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_layers_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layers_array</span></code></a></dt><dd><p>Get layer parameters as NumPy arrays.</p>
+</dd>
+<dt><strong>n_ice</strong></dt><dd></dd>
+<dt><strong>z_0</strong></dt><dd></dd>
+<dt><strong>z_air_boundary</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.add_reflective_bottom" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
+<td><p>function which adds a reflective bottom to your ice model</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_average_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
+<td><p>Returns average refractive index between two points.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>Returns gradient of refractive index at position(s).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes that define the medium in radiopropa.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>Compute the refractive index at a given position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_layer_name" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_layer_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer_name</span></code></a>(z)</p></td>
+<td><p>Return the name of the layer at a given depth.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_description</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Initialize the multilayer ice model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>layers</strong><span class="classifier">list of dict</span></dt><dd><p>Layer definitions (see class docstring).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>delta_n</strong></dt><dd></dd>
+<dt><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_layers_array" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_layers_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layers_array</span></code></a></dt><dd><p>Get layer parameters as NumPy arrays.</p>
+</dd>
+<dt><strong>n_ice</strong></dt><dd></dd>
+<dt><strong>z_0</strong></dt><dd></dd>
+<dt><strong>z_air_boundary</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.add_reflective_bottom" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
+<td><p>function which adds a reflective bottom to your ice model</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_average_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
+<td><p>Returns average refractive index between two points.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>Returns gradient of refractive index at position(s).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
+<td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes that define the medium in radiopropa.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_index_of_refraction" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
+<td><p>Compute the refractive index at a given position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_layer_name" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_layer_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer_name</span></code></a>(z)</p></td>
+<td><p>Return the name of the layer at a given depth.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_description</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_average_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelContinuousExpLayers.get_average_index_of_refraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_average_index_of_refraction" title="Link to this definition"></a></dt>
+<dd><p>Returns average refractive index between two points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position1, position2</strong><span class="classifier">ndarray</span></dt><dd><p>Shape (3,) or (N,3)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float or ndarray</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.add_reflective_bottom">
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.add_reflective_bottom" title="Link to this definition"></a></dt>
+<dd><p>function which adds a reflective bottom to your ice model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>refl_z: float, NuRadio length units</strong></dt><dd><p>z coordinate of the bottom reflective layer</p>
+</dd>
+<dt><strong>refl_coef: float between 0 and 1</strong></dt><dd><p>fraction of the electric field that gets reflected</p>
+</dd>
+<dt><strong>refl_phase_shift: float, NuRadio angukar units</strong></dt><dd><p>phase shoft that the reflected electric field receives</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.delta_n">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">delta_n</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.delta_n" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_description">
+<span class="sig-name descname"><span class="pre">get_description</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium_base.html#IceModelContinuousExpLayers.get_description"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_gradient_of_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_gradient_of_index_of_refraction" title="Link to this definition"></a></dt>
+<dd><p>Returns gradient of refractive index at position(s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>position</strong><span class="classifier">ndarray</span></dt><dd><p>Shape (3,) or (N,3)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>ndarray</dt><dd><p>Shape (3,) or (N,3)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_ice_model_radiopropa" title="Link to this definition"></a></dt>
+<dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes
+that define the medium in radiopropa. If no specific model is set by the user it returns
+the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
+<p>This seperation allows having the posibility to set a more specific/adjusted radiopropa
+ice model in case they need it, without losing the access to the default model.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ice: RadioPropaIceWrapper</dt><dd><p>Object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_index_of_refraction" title="Link to this definition"></a></dt>
+<dd><p>Compute the refractive index at a given position.</p>
+<p>According to n(z) = n_ice - delta_n * exp(z / z_0), using the layer parameters corresponding to a given z.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>position</strong><span class="classifier">array-like</span></dt><dd><p>Position(s) at which to evaluate the refractive index.
+Can be either:</p>
+<ul class="simple">
+<li><p>1D array-like of shape (3,)</p></li>
+<li><p>2D array-like of shape (N, 3)</p></li>
+</ul>
+<p>The third component (<code class="docutils literal notranslate"><span class="pre">z</span></code>) is used for evaluation.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float or ndarray</dt><dd><p>Refractive index at the given position(s). Returns a scalar
+for a single position or an array for multiple positions.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>If a position lies outside all defined layers.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_layer_name">
+<span class="sig-name descname"><span class="pre">get_layer_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_layer_name" title="Link to this definition"></a></dt>
+<dd><p>Return the name of the layer at a given depth.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z</strong><span class="classifier">float</span></dt><dd><p>Depth coordinate.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>str</dt><dd><p>Name of the layer containing the given depth.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>If the depth is not covered by any layer.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_layers_array">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_layers_array</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.get_layers_array" title="Link to this definition"></a></dt>
+<dd><p>Get layer parameters as NumPy arrays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>tuple of ndarray</dt><dd><p>See the internal method _layers_to_arrays for details.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.n_ice">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_ice</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.n_ice" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.set_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.set_ice_model_radiopropa" title="Link to this definition"></a></dt>
+<dd><p>If radiopropa is installed, this function can be used
+to set a specific RadioPropaIceWrapper object as the
+ice model used for RadioPropa.</p>
+<p>DO NOT OVERRIDE THIS FUNCTION</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ice_model_radioprop: RadioPropaIceWrapper</strong></dt><dd><p>Object holding the radiopropa scalarfield and modules</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.z_0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">z_0</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.z_0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.z_air_boundary">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">z_air_boundary</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers.z_air_boundary" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </section>
 
 
