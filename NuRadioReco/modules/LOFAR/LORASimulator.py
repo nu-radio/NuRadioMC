@@ -24,10 +24,24 @@ class LORASimulator:
 
     def __init__(self, log_level = logging.INFO):
         self.__debug = False
+        self.__random_seed = None
         logger.setLevel(log_level)
 
-    def begin(self, debug=False):
+    def begin(self, debug=False, random_seed=None):
+        """
+        Initialize the LORA particle detector simulator.
+
+        Parameters:
+        -----------
+        debug : bool, default=False
+            debug flag
+        random_seed : int, default=None
+            the random seed to set the core uncertainty.
+
+            The default is None, which will use the numpy default value. 
+        """
         self.__debug = debug
+        self.__random_seed = random_seed
 
     @register_run()
     def run(self, event, det):
@@ -67,14 +81,11 @@ class LORASimulator:
             rand_x, rand_y = None, None
 
             if rand_x is None or rand_y is None:
-                stem_hash = int(hashlib.md5(event.get_id()).hexdigest(), 16) % (
-                    2**32
-                )
-                rng = np.random.default_rng(seed=stem_hash)
+                rng = np.random.default_rng(seed=self.__random_seed)
                 rand_x = true_core[0] + rng.normal(0, LORA_CORE_PRECISION)
                 rand_y = true_core[1] + rng.normal(0, LORA_CORE_PRECISION)
                 logger.info(
-                    f"Generated reproducible core guess (seed={stem_hash}): x={rand_x:.2f}, y={rand_y:.2f}"
+                    f"Generated reproducible core guess (seed={self.__random_seed}): x={rand_x:.2f}, y={rand_y:.2f}"
                 )
 
             attempted_cores_list.append((rand_x, rand_y))
@@ -83,7 +94,7 @@ class LORASimulator:
         # add warning if any of the x or y core positions are larger than 100 m, since the core reconstruction uncertainty diminishes beyond this
         # TODO: in future, characterise this behaviour and inject this into this module instead
         if np.logical_or(np.abs(rand_x - true_core[0]) > 100 * units.m, np.abs(rand_y - true_core[1]) > 100 * units.m):
-            logger.warning(f"Core ({rand_x / units.m:.1f}, {rand_y / units/m:.1f}) m is greater than 100m. Data events with this core will not perform well. Proceed with caution.")
+            logger.warning(f"Core ({rand_x / units.m:.1f}, {rand_y / units.m:.1f}) m is greater than 100m. Data events with this core will not perform well. Proceed with caution.")
         logger.info(
             f"Generated core guess: x={core_guess[0]:.2f}, y={core_guess[1]:.2f}"
         )

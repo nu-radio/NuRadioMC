@@ -161,22 +161,30 @@ class CoREASEventGenerator:
     def process_event(
         self,
         coreas_hdf5_file : str,
-        sky_model : str = "gsm2016",
-        noise_temperature : float = 300.0,
         save_debug_plots=False, 
         write_event = False
     ):
         """
         Run the simulation pipeline for a given CoREAS HDF5 file.
 
+        This does the following:
+        1. Generates the CoREAS event object
+        2. Converts the inherent noise library to .nur file for the measured noise adder
+        3. Simulates a LORA event using the uncertainties of LORA.
+        4. Generates the CoREAS event object to NRR
+        5. Apply efield to Voltage conversion
+        6. Downsamples the traces to the LOFAR sampling rate
+        7. Bandpasses the channel traces to the pass band
+        8. Adds measured noise
+        9. Adds event type identifier
+        10. Remove any known flagged channels
+        11. Performs pulse finding
+        12. Performs plane wave fit
+
         Parameters
         ----------
         coreas_hdf5_file : str
             Path to the CoREAS HDF5 file.
-        sky_model : str, optional
-            Sky model to use for galactic noise addition. Default is "LFmap".
-        noise_temperature : float, optional
-            Noise temperature in Kelvin for generic noise addition. Default is 300.0 K.
         save_debug_plots : bool, optional
             Whether to save debug plots at various stages of the pipeline. Default is False.
         write_event : bool, optional
@@ -197,9 +205,12 @@ class CoREASEventGenerator:
 
         # call all begin functions here
         self.LORASimulator.begin()
-        # TODO: are these pre_pulse_time and post_pulse_time values reasonable? They are currently set to 0 ns and 400 ns, respectively, which may not be optimal for all cases.
+        # pre_pulse and post_pulse_times sets the padding added before and after the pulse.
+        # we should ideally add to match the trace length of the data, but we also do not need that much.
+        # but we should have enough to sufficiently pad the traces.
+        # currently set to 500 ns, which corresponds to +- 100 samples after resampling with LOFAR
         self.efieldToVoltageConverter.begin(
-            debug=False, pre_pulse_time=0 * units.ns, post_pulse_time=400 * units.ns
+            debug=False, pre_pulse_time=1000 * units.ns, post_pulse_time=1000 * units.ns
         )
         self.channelResampler.begin()
         self.channelMeasuredNoiseAdder.begin(
@@ -207,13 +218,21 @@ class CoREASEventGenerator:
             restrict_station_id = False, # no 1-1 mapping of station IDs
             station_id = None,  # just use the first station ID 
             channel_mapping = noise_library_channel_mapping,  # maps all channel IDs (in all stations) to a single noise channel ID
-            debug=True
+            allow_noise_resampling=True, # allow the noise trace to be resampled to match simulated trace
+            baseline_substraction=False, # disable since we want to add the generated noise library directly
+            debug=True,
         )
         self.channelBandPassFilter.begin()
         self.channelResampler.begin()
         self.triggerSimulator.begin()
         self.eventTypeIdentifier.begin()
-        self.pulse_finder.begin(cr_snr=CR_SNR, good_channels=6, window=10, noise_window=150) # window size and noise window reduced since sampling size is smaller for simulated traces. The numbers here are arbitrary at the moment.
+        # window size and noise window reduced since number of samples is smaller for simulated traces. The numbers here are arbitrary at the moment.
+        self.pulse_finder.begin(
+            cr_snr=CR_SNR, 
+            good_channels=6, 
+            window=50, 
+            noise_window=100
+        ) 
         self.direction_fitter.begin(
             debug=save_debug_plots,
             debug_plot_dir=event_debug_dir,
@@ -249,7 +268,7 @@ class CoREASEventGenerator:
                 if save_debug_plots:
                     self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="03_resample")
 
-                # Apply bandpass filter
+                # Apply bandpass filter (in principle not needed since bandpass already applied in interpolator)
                 self.channelBandPassFilter.run(evt, station, self.detector, **filter_settings)
                 if save_debug_plots:
                     self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="04_bandpass")

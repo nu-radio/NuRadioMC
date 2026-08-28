@@ -76,7 +76,7 @@ def _convert_voltage_to_efield(event, detector):
             if len(use_channels) < 2:
                 continue
             try:
-                converter.run(event, station, detector, use_channels=use_channels)
+                converter.run(event, station, detector, use_channels=use_channels, use_MC_direction=False)
             except Exception as exc:
                 LOGGER.warning(
                     "Skipping e-field conversion for station %s group %s: %s",
@@ -153,7 +153,7 @@ def run_pipeline(args):
         raise FileNotFoundError(f"CoREAS HDF5 file not found or is not a file: {coreas_hdf5_file_path}")
 
     processed_event = coreas_event_generator.process_event(
-        coreas_hdf5_file=coreas_hdf5_file_path, save_debug_plots=args.debug_plots, write_event=False, sky_model='gsm2016'
+        coreas_hdf5_file=coreas_hdf5_file_path, save_debug_plots=args.debug_plots, write_event=False
     )
 
     # for now fixed, in the future we should be able to replace this
