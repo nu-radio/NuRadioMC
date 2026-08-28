@@ -9,19 +9,28 @@ import os
 import pickle
 from functools import partial
 from pathlib import Path
-
-import jax
-import jax.numpy as jnp
-import jax.numpy.linalg as jla
-import jax.scipy.special
-import nifty.re as jft
 import numpy as np
-from jax import lax, vmap
-from jax.typing import ArrayLike
 
-from NuRadioReco.modules.LOFAR.utilities import atmosphere as atm
+try:
+    import jax
+    import jax.numpy as jnp
+    import jax.numpy.linalg as jla
+    import jax.scipy.special
+    import nifty.re as jft
+    from jax import lax, vmap
+    from jax.typing import ArrayLike
+except ImportError:
+    jax = None
+    jnp = None
+    jla = None
+    jft = None
+    lax = None
+    vmap = None
+    ArrayLike = None
 
-_PACKAGE_IFT_DATA_DIR = Path(__file__).resolve().parents[3] / "utilities" / "data" / "LOFAR" / "ift"
+from NuRadioReco.utilities.LOFAR import atmosphere as atm
+
+_PACKAGE_IFT_DATA_DIR = Path(__file__).resolve().parents[3] / "NuRadioReco" / "utilities" / "data" / "LOFAR" / "ift"
 
 
 def get_ift_data_path(filename, required=True, data_directory=None):
@@ -32,9 +41,9 @@ def get_ift_data_path(filename, required=True, data_directory=None):
     search_dirs.append(_PACKAGE_IFT_DATA_DIR)
 
     for directory in search_dirs:
-        candidate = directory / filename
-        if candidate.exists():
-            return str(candidate)
+        candidate = os.path.join(directory, filename)
+        if os.path.exists(candidate):
+            return candidate
 
     if required:
         raise FileNotFoundError(
@@ -491,7 +500,6 @@ def _pad_knots(t, k):
 
 
 jax_spline_data = {}
-
 with open(get_ift_data_path("geo_rcut_b_splines.pickle"), "rb") as fin:
     u = pickle._Unpickler(fin)
     u.encoding = 'latin1'

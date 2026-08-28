@@ -20,7 +20,10 @@ import matplotlib.pyplot as plt  # noqa: E402
 import matplotlib.gridspec as gridspec  # noqa: E402
 import matplotlib.colors as mcolors  # noqa: E402
 
-import jax.numpy as jnp  # noqa: E402
+try:
+    import jax.numpy as jnp  # noqa: E402
+except ImportError:
+    jnp = None
 
 from NuRadioReco.utilities import units  # noqa: E402
 
@@ -177,7 +180,7 @@ def generate_reco_plot(samples, samples_ecr, all_data, output_dir, event_id,
     noise_level : float or None
         Noise std used for fluence residuals; defaults to noise_mean.
     """
-    from NuRadioReco.modules.LOFAR.utilities.iftModel import footprintModel
+    from NuRadioReco.utilities.LOFAR.iftModel import footprintModel
 
     plt.rcParams.update(PLOT_STYLE)
 

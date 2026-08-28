@@ -4,14 +4,22 @@ NIFTy forward model (footprintModel) for the LOFAR IFT cosmic-ray reconstruction
 .. moduleauthor:: Karen Terveer <karen.terveer@fau.de>
 """
 import numpy as np
-import jax
-import jax.numpy as jnp
-import nifty.re as jft
-from NuRadioReco.modules.LOFAR.utilities import jaxHelpers as helper
-from jax.scipy.interpolate import RegularGridInterpolator
-from jax import vmap
+try:
+    import jax
+    import jax.numpy as jnp
+    import nifty.re as jft
+    from jax import vmap
+    from jax.scipy.interpolate import RegularGridInterpolator
+except ImportError:
+    jax = None
+    jnp = None
+    jft = None
+    vmap = None
+    RegularGridInterpolator = None
+
+from NuRadioReco.utilities.LOFAR import jaxHelpers as helper
 import numpy.typing as npt
-from NuRadioReco.modules.LOFAR.utilities import atmosphere as atm
+from NuRadioReco.utilities.LOFAR import atmosphere as atm
 import os
 
 # --- Constants ---

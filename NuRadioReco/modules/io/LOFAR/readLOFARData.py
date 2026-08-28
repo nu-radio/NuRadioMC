@@ -29,6 +29,7 @@ from NuRadioReco.framework.parameters import stationParameters, showerParameters
 
 import NuRadioReco.modules.io.LOFAR._rawTBBio as rawTBBio
 import NuRadioReco.modules.io.LOFAR._rawTBBio_metadata as rawTBBio_metadata
+from NuRadioReco.utilities.LOFAR import ALWAYS_REMOVED_CHANNEL_IDS
 
 
 logger = logging.getLogger('NuRadioReco.LOFAR.readLOFARData')
@@ -187,10 +188,6 @@ def parse_block_number_file(block_number_file):
 
 
 _BLOCK_ROW_TOLERANCE_S = 2
-
-# NRR channel IDs that are always dropped at read-in, regardless of the flagging
-# done by the reader. 3002019 is a permanently broken dipole of CS003.
-_ALWAYS_REMOVED_CHANNEL_IDS = (3002019,)
 
 
 def _find_block_row_nearest(rows, event_id, tolerance=_BLOCK_ROW_TOLERANCE_S):
@@ -1034,7 +1031,7 @@ class readLOFARData:
                 station.remove_channel(channel)
                 flagged_nrr_channel_ids[channel.get_id()].append("reader_removed_group_id")
 
-            for channel_id in _ALWAYS_REMOVED_CHANNEL_IDS:
+            for channel_id in ALWAYS_REMOVED_CHANNEL_IDS:
                 if station.has_channel(channel_id):
                     self.logger.status(f"Removing known-bad channel {channel_id} "
                                        f"from station {station_name}")

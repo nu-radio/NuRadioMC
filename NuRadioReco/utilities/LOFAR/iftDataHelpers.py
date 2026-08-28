@@ -14,9 +14,14 @@ from scipy.ndimage import gaussian_filter1d
 from scipy.signal import hilbert, correlate
 from scipy.spatial.distance import cdist
 from scipy.stats import norm as _scipy_norm
-import jax
-import jax.numpy as jnp
-import jax.tree_util as jtu
+try:
+    import jax
+    import jax.numpy as jnp
+    import jax.tree_util as jtu
+except ImportError:
+    jax = None
+    jnp = None
+    jtu = None
 
 from NuRadioReco.utilities import units
 

@@ -171,16 +171,25 @@ class efieldToVoltageConverter():
         logger.debug(
             "smallest trace start time {:.1f}, largest trace time {:.1f} -> n_samples = {:d} {:.0f}ns)".format(
                 times_min, times_max, trace_length_samples, trace_length / units.ns))
-
+        
         # loop over all channels
         for channel_id in channel_ids:
+
+            # return the group ID if the channel from the detector has one.
+            # if it is the same, then that means the detector doesnt have one and we can set
+            # the channel group ID to None.
+            # in this case, when initialising the channel object, this variable will not be used
+            channel_group_id = det.get_channel_group_id(station.get_id(), channel_id)
+            if channel_id == channel_group_id:
+                channel_group_id = None
+            
 
             # one channel might contain multiple channels to store the signals from multiple ray paths,
             # so we loop over all simulated channels with the same id,
             # convolve each trace with the antenna response for the given angles
             # and everything up in the time domain
             logger.debug('channel id {}'.format(channel_id))
-            channel = NuRadioReco.framework.channel.Channel(channel_id)
+            channel = NuRadioReco.framework.channel.Channel(channel_id, channel_group_id)
 
             if self.__debug:
                 from matplotlib import pyplot as plt
