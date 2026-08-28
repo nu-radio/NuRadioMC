@@ -8,6 +8,7 @@ from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import io_utilities, units
 import logging
+import json
 
 logger = logging.getLogger("NuRadioMC.T10unit_test_C0_greenland3exp")
 logger.setLevel(logging.INFO)
@@ -52,7 +53,11 @@ for iX, x in enumerate(points):
 
 # with open("reference_C0_MooresBay.pkl", "wb") as fout:
 #     pickle.dump(results_C0s_cpp, fout)
-results_C0s_cpp_ref = io_utilities.read_pickle("reference_C0_greenland3exp.pkl", encoding='latin1')
+#results_C0s_cpp_ref = io_utilities.read_pickle("reference_C0_greenland3exp.pkl", encoding='latin1')
+
+with open("reference_C0_greenland3exp.json", "r") as fin:
+    results_C0s_cpp_ref = np.array(json.load(fin))  # Convert list back to NumPy array
+    
 testing.assert_allclose(results_C0s_cpp, results_C0s_cpp_ref, rtol=1.e-6)
 
 print('T10unit_test_C0_greenland3exp passed without issues')

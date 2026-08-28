@@ -1,5 +1,6 @@
 import numpy as np
-import pickle
+#import pickle
+import json
 import time
 from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
@@ -42,5 +43,6 @@ for iX, x in enumerate(points):
     if(r.has_solution()):
         for iS in range(r.get_number_of_solutions()):
             results_C0s_cpp[iX, iS] = r.get_results()[iS]['C0']
-with open("reference_C0.pkl", "wb") as fout:
-    pickle.dump(results_C0s_cpp, fout, protocol=4)
+
+with open("reference_C0_SP.json", "w") as fout:
+    json.dump(results_C0s_cpp.tolist(), fout) 

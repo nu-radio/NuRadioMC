@@ -1,5 +1,6 @@
 import numpy as np
-import pickle
+#import pickle
+import json
 import time
 from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
@@ -48,5 +49,6 @@ for iX, x in enumerate(points):
         raise
 
 print(results_C0s_cpp)
-with open("reference_C0_greenland3exp.pkl", "wb") as fout:
-    pickle.dump(results_C0s_cpp, fout, protocol=4)
+print(results_C0s_cpp)
+with open("reference_C0_greenland3exp.json", "w") as fout:
+    json.dump(results_C0s_cpp.tolist(), fout)  # Convert NumPy array to list
