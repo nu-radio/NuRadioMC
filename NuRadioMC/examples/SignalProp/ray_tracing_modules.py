@@ -19,7 +19,8 @@ plot_line_styles = ["-", "--", ":", "-."]
 ### This example shows the ray tracing results for the different 
 ### ray tracing modules available in NuRadioMC
 ref_index_model = 'greenland_simple'
-ice = medium.get_ice_model(ref_index_model)
+ice_simple = medium.get_ice_model(ref_index_model)
+ice_layers = medium.greenland_3exp_layered()
 
 # Let us work on the y = 0 plane
 initial_point = np.array( [70, 0, -300] ) * units.m
@@ -33,6 +34,11 @@ for i_module, ray_tracing_module in enumerate(ray_tracing_modules):
     # This function creates a ray tracing instance refracted index, attenuation model, 
     # number of frequencies # used for integrating the attenuation and interpolate afterwards, 
     # and the number of allowed reflections.
+    if ray_tracing_module == 'multilayer': 
+        ice = ice_layers
+    else: 
+        ice = ice_simple
+
     rays = prop(ice, attenuation_model,
                 n_frequencies_integration=25,
                 n_reflections=0)

@@ -1,11 +1,25 @@
+"""
+Wrapper for different implementations of a 2D analytic ray tracer to get ray tracing solutions in 3D for two arbitrary points x1 and x2.
+The 2D ray tracer is chosen depending on the provided ice model and can either be the single layer analytic raytracer (when IceModelSimple is given)
+or the new multilayer version of it (when a medium of type IceModelExpLayers is used).
+Implementations for the single layer 2D ray tracer include a
+CPP version, a python version with numba and a python version without numba, the multilayer version is currently limited to either python with numba and python without numba.
+The CPP version is the default if available, otherwise the python version with numba is used if available,
+otherwise the python version without numba is used.
+
+Implementations are in NuRadioMC/SignalProp/AnalyticRayTracing/
+"""
+
 from NuRadioReco.utilities import units, geometryUtilities
 from NuRadioMC.utilities import medium
+from NuRadioMC.utilities.medium_base import IceModelSimple, IceModelExpLayers
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import base_trace
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer import (
     ray_tracing_2D, SPEED_OF_LIGHT, N_AIR, _get_zenith, _n
 )
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.multilayeranalyticraytracing import multi_layer_ray_tracing_2D
 from NuRadioMC.utilities.birefringence import get_effective_index_birefringence, get_polarization_birefringence
 
 import numpy as np
@@ -86,10 +100,13 @@ class ray_tracing(ray_tracing_base):
         self.__logger = logging.getLogger('NuRadioMC.ray_tracing')
         self.__logger.setLevel(log_level)
 
-        from NuRadioMC.utilities.medium_base import IceModelSimple
-        if not isinstance(medium, IceModelSimple):
-            self.__logger.error("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
-            raise TypeError("The analytic raytracer can only handle ice model of the type 'IceModelSimple'")
+        if not isinstance(medium, (IceModelSimple, IceModelExpLayers)):
+            self.__logger.error(
+                "The analytic raytracer can only handle ice models of the type 'IceModelSimple' "
+                "(single layer) or 'IceModelExpLayers' (multilayer) (see NuRadioMC.utilities.medium)!")
+            raise TypeError(
+                "The analytic raytracer can only handle ice models of the type 'IceModelSimple' "
+                "(single layer) or 'IceModelExpLayers' (multilayer)")
 
         super().__init__(
             medium=medium,
@@ -102,19 +119,30 @@ class ray_tracing(ray_tracing_base):
 
         self.set_config(config=config)
 
-        # `ray_tracing_2D` already resolves use_cpp/compile_numba (from None defaults and
-        # availability) and logs the outcome; we just mirror the result here rather than
-        # resolving (and logging) it a second time.
-        self._r2d = ray_tracing_2D(
-            self._medium, self._attenuation_model, log_level=log_level,
-            n_frequencies_integration=self._n_frequencies_integration,
-            **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
+        # `ray_tracing_2D`/`multi_layer_ray_tracing_2D` already resolve use_cpp/compile_numba
+        # (from None defaults and availability) and log the outcome; we just mirror the result
+        # here rather than resolving (and logging) it a second time.
+        if isinstance(medium, IceModelSimple):
+            self.__logger.status("IceModelSimple was provided: using the single layer analytic ray tracer as the 2D raytracing module.")
+            self._r2d = ray_tracing_2D(
+                self._medium, self._attenuation_model, log_level=log_level,
+                n_frequencies_integration=self._n_frequencies_integration,
+                **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
+
+        else:
+            self.__logger.status("IceModelExpLayers was provided: using the multilayer analytic ray tracer as the 2D raytracing module.")
+            self._r2d = multi_layer_ray_tracing_2D(
+                self._medium, self._attenuation_model, log_level=log_level,
+                n_frequencies_integration=self._n_frequencies_integration,
+                **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
+
         self.use_cpp = self._r2d.use_cpp
         self.compile_numba = self._r2d.compile_numba
 
         # As long as we use horizontal-translational invariant raytracing/ice models (2d)
         # this should be fine. _n(0) is also used in _get_delta_y for air-ice raytracing
-        self.n_at_surface = _n(0, self._medium.n_ice, self._medium.delta_n, self._medium.z_0)
+        #self.n_at_surface = _n(0, self._medium.n_ice, self._medium.delta_n, self._medium.z_0)
+        self.n_at_surface = self._medium.get_index_of_refraction(np.array([0,0,0]))
 
         # Some consitency checks...
 
@@ -123,10 +151,14 @@ class ray_tracing(ray_tracing_base):
         if self.n_at_surface < 1.1:
             raise ValueError(f"Calculated index of refraction for ice at the ice-air boundary is {self.n_at_surface} which is to small.")
 
-        if self._medium.z_air_boundary != 0:
+        # `z_air_boundary`/`z_shift` describe the single, flat ice-air interface `IceModelSimple`
+        # assumes; `IceModelExpLayers` has no such single interface (its `z_air_boundary`/`z_shift`
+        # properties are only kept for backwards compatibility and don't carry the same meaning)
+
+        if hasattr(self._medium, "z_air_boundary") and self._medium.z_air_boundary != 0:
             raise ValueError(f"The configured ice model has `z_air_boundary != 0`. This is not supported by this raytracer!")
 
-        if self._medium.z_shift != 0:
+        if hasattr(self._medium, "z_shift") and self._medium.z_shift != 0:
             raise ValueError(f"The configured ice model has `z_shift != 0`. This is not supported by this raytracer!")
 
         self._swap = None
@@ -156,7 +188,7 @@ class ray_tracing(ray_tracing_base):
         self._cache_attenuation = {}
         self._cache_focusing = {}
 
-    def set_start_and_end_point(self, x1, x2):
+    def set_start_and_end_point(self, x1, x2, autoswap=True):
         """
         Set the start and end points of the raytracing
 
@@ -181,11 +213,40 @@ class ray_tracing(ray_tracing_base):
             return False
 
         self._swap = False
-        if(self._X2[2] < self._X1[2]):
-            self._swap = True
-            self.__logger.debug('swap = True')
-            self._X2 = np.array(x1, dtype=float)
-            self._X1 = np.array(x2, dtype=float)
+        if autoswap is True:
+            if(self._X2[2] < self._X1[2]):
+                self._swap = True
+                self.__logger.debug('swap = True')
+                self._X2 = np.array(x1, dtype=float)
+                self._X1 = np.array(x2, dtype=float)
+
+        dX = self._X2 - self._X1
+        self._dPhi = -np.arctan2(dX[1], dX[0])
+        c, s = np.cos(self._dPhi), np.sin(self._dPhi)
+        self._R = np.array(((c, -s, 0), (s, c, 0), (0, 0, 1)))
+        X1r = self._X1
+        X2r = np.dot(self._R, self._X2 - self._X1) + self._X1
+        self.__logger.debug("X1 = {}, X2 = {}".format(self._X1, self._X2))
+        self.__logger.debug('dphi = {:.1f}'.format(self._dPhi / units.deg))
+        self.__logger.debug("X2 - X1 = {}, X1r = {}, X2r = {}".format(self._X2 - self._X1, X1r, X2r))
+        self._x1 = np.array([X1r[0], X1r[2]])
+        self._x2 = np.array([X2r[0], X2r[2]])
+        self.__logger.debug("2D points {} {}".format(self._x1, self._x2))
+
+    def set_start_and_end_point_no_swap(self, x1, x2):
+        """
+        Set the start and end points of the raytracing without automatically swapping x1 and x2 if z2 > z1.
+
+        Parameters
+        ----------
+        x1: 3dim np.array
+            start point of the ray
+        x2: 3dim np.array
+            stop point of the ray
+        """
+
+
+        super().set_start_and_end_point(x1, x2)
 
         dX = self._X2 - self._X1
         self._dPhi = -np.arctan2(dX[1], dX[0])
@@ -247,8 +308,8 @@ class ray_tracing(ray_tracing_base):
 
         # check if not too many solutions were found (the same solution can potentially found twice because of numerical imprecision)
         if(self.get_number_of_solutions() > self.get_number_of_raytracing_solutions()):
-            self.__logger.error(f"{self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed! Returning zero solutions")
-            self._results = []
+            self.__logger.warning(f"[x1 {self._x1}, x2 {self._x2}] {self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed!")
+            #self._results = []
 
     def get_solution_type(self, iS):
         """ Returns the type of the solution
@@ -270,7 +331,7 @@ class ray_tracing(ray_tracing_base):
 
         n = self.get_number_of_solutions()
         if(iS >= n):
-            self.__logger.error("solution number {:d} requested but only {:d} solutions exist".format(iS + 1, n))
+            self.__logger.error(f"[x1 {self._x1}, x2 {self._x2}] solution number {iS + 1} requested but only {n} solutions exist")
             raise IndexError
         result = self._results[iS]
         xx, zz = self._r2d.get_path_reflections(self._x1, self._x2, result['C0'], n_points=n_points,
@@ -282,6 +343,7 @@ class ray_tracing(ray_tracing_base):
         MM = np.matmul(self._R.T, dP.T)
         path = MM.T + self._X1
         return path
+
     def get_pulse_propagation_birefringence(self, pulse, samp_rate, i_solution, bire_model = 'southpole_A'):
 
         """
@@ -1065,3 +1127,12 @@ class ray_tracing(ray_tracing_base):
             self._config['propagation']['birefringence'] = False
         else:
             self._config = config
+
+    def get_time_difference_plane_wave(self, src_zenith, src_azimuth, azimuth_convention = 'nuradio'):
+
+        if src_zenith > np.pi/2:
+            self.__logger.warning(f"Source zenith angle: {src_zenith:3f} ({src_zenith/units.deg:2f} deg) is above pi/2 (90 deg)! The plane wave time difference calculation only works for signals traversing from air to ice, aka coming from above, aka having theta between 0 and 90 degrees. Make sure to catch this!")
+            return np.nan
+
+        dt = self._r2d.get_time_difference_plane_wave_analytic(self._X1, self._X2, src_zenith, src_azimuth, azimuth_convention)
+        return dt
