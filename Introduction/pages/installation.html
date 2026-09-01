@@ -58,15 +58,9 @@
 <li class="toctree-l3"><a class="reference internal" href="#requirements">Requirements</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#installation-using-pip">Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#development-version">Development version</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#manual-installation">Manual installation</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#pip-installable-dependencies">Pip-installable dependencies</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="#core-dependencies">Core Dependencies</a></li>
-<li class="toctree-l5"><a class="reference internal" href="#optional-dependencies">Optional Dependencies</a></li>
-</ul>
-</li>
-<li class="toctree-l4"><a class="reference internal" href="#not-pip-installable-packages">Not pip-installable packages</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="#optional-dependencies">Optional Dependencies</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#not-pip-installable-packages">Not pip-installable packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#other-optional-packages">Other optional packages</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="conventions.html">Some notes on conventions</a><ul>
@@ -659,19 +653,23 @@
 <h2>Requirements<a class="headerlink" href="#requirements" title="Link to this heading"></a></h2>
 <p>In order to use <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> / <code class="docutils literal notranslate"><span class="pre">NuRadioReco</span></code>, please ensure you are using a version of Python <code class="docutils literal notranslate"><span class="pre">&gt;=3.7</span></code>, and a UNIX operating system (linux or MacOS).
 If you are using Windows, consider installing the <a class="reference external" href="https://docs.microsoft.com/en-us/windows/wsl/install">Windows Subsystem for Linux</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><strong>We highly recommend installing NuRadioMC inside a</strong> <a class="reference external" href="https://docs.python.org/3/tutorial/venv.html">virtual environment</a>.
+You can either use <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">venv</span> <span class="pre">name_of_venv</span></code>
+or use a virtual environment manager like <a class="reference external" href="https://anaconda.org/anaconda/python">conda</a>.</p>
+</div>
 </section>
 <section id="installation-using-pip">
 <h2>Installation using <code class="docutils literal notranslate"><span class="pre">pip</span></code><a class="headerlink" href="#installation-using-pip" title="Link to this heading"></a></h2>
-<p>As of version <code class="docutils literal notranslate"><span class="pre">2.0.0</span></code>, <code class="docutils literal notranslate"><span class="pre">NuRadioReco</span></code> is now a subpackage of <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code>. Both <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> and <code class="docutils literal notranslate"><span class="pre">NuRadioReco</span></code> can therefore be installed
-using <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
-<blockquote>
-<div><div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>NuRadioMC
+<p><code class="docutils literal notranslate"><span class="pre">NuRadioReco</span></code> is a subpackage of <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code>, so both are installed at once using <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>NuRadioMC
 </pre></div>
 </div>
-</div></blockquote>
 <p>NuRadioMC/NuRadioReco will then be available from Python using <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">NuRadioMC</span></code> and <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">NuRadioReco</span></code>, respectively.
-The pip installation will install all core dependencies. Some <a class="reference internal" href="#optional-dependencies"><span class="std std-ref">optional dependencies</span></a>
-can be installed by appending <code class="docutils literal notranslate"><span class="pre">[option]</span></code>, i.e. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">NuRadioMC[option]</span></code>. One can also use <code class="docutils literal notranslate"><span class="pre">[all]</span></code> to install all (non-development) dependencies.</p>
+This installs all core dependencies. Some features require additional packages, which are grouped into
+<a class="reference internal" href="#optional-dependencies"><span class="std std-ref">options</span></a> and can be installed by appending <code class="docutils literal notranslate"><span class="pre">[option]</span></code>,
+i.e. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">NuRadioMC[option]</span></code>. One can also use <code class="docutils literal notranslate"><span class="pre">[all]</span></code> to install all (non-development) dependencies.</p>
 <div class="admonition important">
 <p class="admonition-title">Important</p>
 <p>Some optional dependencies cannot be installed using pip and
@@ -694,12 +692,6 @@ you can get it via <a class="reference external" href="https://github.com/nu-rad
 </pre></div>
 </div>
 <p>If you don’t already have it installed, you should <a class="reference external" href="https://git-scm.com/">install Git</a>.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p><strong>We highly recommend installing NuRadioMC inside a</strong> <a class="reference external" href="https://docs.python.org/3/tutorial/venv.html">virtual environment</a>.
-You can either use <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">-m</span> <span class="pre">venv</span> <span class="pre">name_of_venv</span></code>
-or use a virtual environment manager like <a class="reference external" href="https://anaconda.org/anaconda/python">conda</a>.</p>
-</div>
 <p>To install NuRadioMC and its dependencies, use the <a class="reference external" href="https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs">pip editable install</a>.
 Navigate to the <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> folder and run:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>NuRadioMC/
@@ -711,97 +703,77 @@ pre-commit<span class="w"> </span>install
 and tell <code class="docutils literal notranslate"><span class="pre">python</span></code> to look for <code class="docutils literal notranslate"><span class="pre">NuRadioMC</span></code> and <code class="docutils literal notranslate"><span class="pre">NuRadioReco</span></code> in this folder, so that you can edit and contribute to the codebase while using it.
 The last line, <code class="docutils literal notranslate"><span class="pre">pre-commit</span> <span class="pre">install</span></code> installs a git hook using <a class="reference external" href="https://pre-commit.com">pre-commit</a>. <strong>This is highly recommended for developers as it
 helps to keep the repository clean from accidentally added large files</strong>. More details are given <a class="reference internal" href="contributing.html#installing-nuradiomc-for-developers"><span class="std std-ref">here</span></a>.</p>
-</section>
-<section id="manual-installation">
-<h2>Manual installation<a class="headerlink" href="#manual-installation" title="Link to this heading"></a></h2>
-<section id="pip-installable-dependencies">
-<h3>Pip-installable dependencies<a class="headerlink" href="#pip-installable-dependencies" title="Link to this heading"></a></h3>
-<p>To install all (optional and non-optional) dependencies available in pip at once, use the command</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>numpy<span class="w"> </span>scipy<span class="w"> </span>matplotlib<span class="w"> </span>astropy<span class="w"> </span>tinydb<span class="w"> </span>tinydb-serialization<span class="w"> </span>aenum<span class="w"> </span>h5py<span class="w"> </span>mysql-connector-python<span class="w"> </span>pymongo<span class="w"> </span>dash<span class="w"> </span>plotly<span class="w"> </span>toml<span class="w"> </span>peakutils<span class="w"> </span>future<span class="w"> </span>radiotools<span class="w"> </span>filelock<span class="w"> </span>mattak<span class="w"> </span>git+https://github.com/telegraphic/pygdsm<span class="w"> </span>pylfmap<span class="w"> </span>MCEq<span class="w"> </span>crflux<span class="w"> </span>git+https://github.com/nu-radio/cr-pulse-interpolator
-</pre></div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Users of <code class="docutils literal notranslate"><span class="pre">zsh</span></code> (the default shell on MacOS) have to wrap the argument in quotes, i.e. <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">'.[dev]'</span></code>,
+as <code class="docutils literal notranslate"><span class="pre">zsh</span></code> otherwise interprets the square brackets itself.</p>
 </div>
-<p>Only for developers, we also recommend</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>Sphinx<span class="w"> </span>sphinx-rtd-theme<span class="w"> </span>numpydoc<span class="w"> </span>pre-commit
-</pre></div>
-</div>
-<p>which are used to locally compile the documentation, and to perform <a class="reference internal" href="contributing.html#installing-nuradiomc-for-developers"><span class="std std-ref">some safety checks</span></a> when contributing new code.</p>
-<p>Note that some optional dependencies are not pip-installable and need to be
-<a class="reference internal" href="#not-pip-installable-packages"><span class="std std-ref">installed manually</span></a></p>
-<section id="core-dependencies">
-<h4>Core Dependencies<a class="headerlink" href="#core-dependencies" title="Link to this heading"></a></h4>
-<ul>
-<li><p>toml:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>toml
-</pre></div>
-</div>
-</li>
-<li><p>radiotools:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>radiotools
-</pre></div>
-</div>
-</li>
-<li><p>numpy:</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>numpy
-</pre></div>
-</div>
-</li>
-<li><p>scipy:</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>scipy
-</pre></div>
-</div>
-</li>
-<li><p>matplotlib:</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>matplotlib
-</pre></div>
-</div>
-</li>
-<li><p>astropy:</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>astropy
-</pre></div>
-</div>
-</li>
-<li><p>tinydb:
-tinydb version 4.1.1 or newer is required.</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>tinydb<span class="w"> </span>tinydb-serialization
-</pre></div>
-</div>
-</li>
-<li><p>Advanced enum:</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>aenum
-</pre></div>
-</div>
-</li>
-<li><p>h5py to open HDF5 files:</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>h5py
-</pre></div>
-</div>
-</li>
-<li><p>filelock:</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>filelock
-</pre></div>
-</div>
-</li>
-<li><p>For <a class="reference external" href="https://www.mongodb.com">MongoDB</a> databases install:</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>pymongo
-</pre></div>
-</div>
-</li>
-<li><p>To use the <a class="reference internal" href="../../NuRadioReco/pages/event_display.html#event-display"><span class="std std-ref">Event Display</span></a> you need plotly and dash:</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>dash
-pip<span class="w"> </span>install<span class="w"> </span>plotly
-</pre></div>
-</div>
-</li>
-</ul>
 </section>
 <section id="optional-dependencies">
-<h4>Optional Dependencies<a class="headerlink" href="#optional-dependencies" title="Link to this heading"></a></h4>
-<p>These packages are recommended to be able to use all of NuRadioMC/NuRadioReco’s features.
-They can be installed by including adding <code class="docutils literal notranslate"><span class="pre">[option]</span></code> when installing NuRadioMC. Alternatively,
-use <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">nuradiomc[all]</span></code> to install all optional dependencies (or <code class="docutils literal notranslate"><span class="pre">[all,dev]</span></code> to also install development dependencies).</p>
+<h2>Optional Dependencies<a class="headerlink" href="#optional-dependencies" title="Link to this heading"></a></h2>
+<p>The core installation of NuRadioMC deliberately stays lightweight: several features rely on additional packages
+that are not installed by default. These are grouped into <em>options</em> (also called “extras”), which are appended in
+square brackets when installing NuRadioMC, e.g.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>NuRadioMC<span class="o">[</span>proposal<span class="o">]</span><span class="w">                 </span><span class="c1"># a single option</span>
+pip<span class="w"> </span>install<span class="w"> </span>NuRadioMC<span class="o">[</span>proposal,galacticnoise<span class="o">]</span><span class="w">   </span><span class="c1"># several options at once</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev,proposal<span class="o">]</span><span class="w">                  </span><span class="c1"># the same for a development install</span>
+</pre></div>
+</div>
+<p>The available options are:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 30.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Installs</p></th>
+<th class="head"><p>Needed for</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">[proposal]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">proposal</span></code></p></td>
+<td><p>Propagation of secondary leptons, <a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#module-NuRadioMC.EvtGen.NuRadioProposal" title="NuRadioMC.EvtGen.NuRadioProposal"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">[galacticnoise]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pygdsm</span></code>, <code class="docutils literal notranslate"><span class="pre">pylfmap</span></code>, <code class="docutils literal notranslate"><span class="pre">healpy</span></code></p></td>
+<td><p>Adding galactic noise, <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html#module-NuRadioReco.modules.channelGalacticNoiseAdder" title="NuRadioReco.modules.channelGalacticNoiseAdder"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.modules.channelGalacticNoiseAdder</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">[muon-flux]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MCEq</span></code>, <code class="docutils literal notranslate"><span class="pre">crflux</span></code></p></td>
+<td><p>Atmospheric muon flux calculations, <a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html#module-NuRadioMC.utilities.muon_flux" title="NuRadioMC.utilities.muon_flux"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioMC.utilities.muon_flux</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">[cr_interpolator]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cr-pulse-interpolator</span></code></p></td>
+<td><p>Interpolation of CoREAS star-shape simulations, <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#module-NuRadioReco.modules.io.coreas.coreasInterpolator" title="NuRadioReco.modules.io.coreas.coreasInterpolator"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.modules.io.coreas.coreasInterpolator</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">[minimizers]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">iminuit</span></code>, <code class="docutils literal notranslate"><span class="pre">scikit-optimize</span></code>, <code class="docutils literal notranslate"><span class="pre">noisyopt</span></code></p></td>
+<td><p>Additional minimizers in <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.utilities.minimization.html#module-NuRadioReco.utilities.minimization" title="NuRadioReco.utilities.minimization"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.utilities.minimization</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">[dev]</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pre-commit</span></code>, <code class="docutils literal notranslate"><span class="pre">Sphinx</span></code>, <code class="docutils literal notranslate"><span class="pre">sphinx-rtd-theme</span></code>, <code class="docutils literal notranslate"><span class="pre">numpydoc</span></code></p></td>
+<td><p>Contributing to NuRadioMC and building the documentation locally</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">[all]</span></code></p></td>
+<td><p>all of the above except <code class="docutils literal notranslate"><span class="pre">[dev]</span></code></p></td>
+<td><p>Convenience option to get all user-facing features</p></td>
+</tr>
+</tbody>
+</table>
+<p>Note that option names are normalised by <code class="docutils literal notranslate"><span class="pre">pip</span></code>, so <code class="docutils literal notranslate"><span class="pre">[cr_interpolator]</span></code> and <code class="docutils literal notranslate"><span class="pre">[cr-interpolator]</span></code> are equivalent.
+To get everything, including the development dependencies, use <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">NuRadioMC[all,dev]</span></code>.
+A few features additionally depend on packages that are not part of any option: they either
+<a class="reference internal" href="#not-pip-installable-packages"><span class="std std-ref">cannot be installed via pip</span></a> or are only needed
+for <a class="reference internal" href="#other-optional-packages"><span class="std std-ref">specific detectors or data formats</span></a>.</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">[proposal]</span></code></p>
-<p><code class="docutils literal notranslate"><span class="pre">proposal</span></code> is needed to use <a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#module-NuRadioMC.EvtGen.NuRadioProposal" title="NuRadioMC.EvtGen.NuRadioProposal"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal</span></code></a> module (simulating secondary particles):</p>
+<p><a class="reference external" href="https://github.com/tudo-astroparticlephysics/PROPOSAL">PROPOSAL</a> is a lepton propagation code. It is needed to use the
+<a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.EvtGen.NuRadioProposal.html#module-NuRadioMC.EvtGen.NuRadioProposal" title="NuRadioMC.EvtGen.NuRadioProposal"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioMC.EvtGen.NuRadioProposal</span></code></a> module, which simulates the secondary interactions of muons and taus, i.e. the
+showers that these leptons induce along their path through the ice. Without it, NuRadioMC only simulates the shower
+produced at the neutrino interaction vertex itself.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">proposal</span><span class="o">==</span><span class="m">7</span>.6.2
 </pre></div>
 </div>
@@ -812,22 +784,41 @@ use <code class="docutils literal notranslate"><span class="pre">pip</span> <spa
 </ul>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[galacticnoise]</span></code></p>
-<p>To use the channelGalacticNoiseAdder, you need the <a class="reference external" href="https://github.com/telegraphic/pygdsm">PyGDSM</a> package.
-Some additional galactic noise models used by LOFAR for calibration purposes are provided by <code class="docutils literal notranslate"><span class="pre">pylfmap</span></code>.</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/telegraphic/pygdsm<span class="w"> </span>pylfmap
+<p>The <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.channelGalacticNoiseAdder.html#module-NuRadioReco.modules.channelGalacticNoiseAdder" title="NuRadioReco.modules.channelGalacticNoiseAdder"><code class="xref py py-mod docutils literal notranslate"><span class="pre">channelGalacticNoiseAdder</span></code></a> and
+<a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.efieldGalacticNoiseAdder.html#module-NuRadioReco.modules.efieldGalacticNoiseAdder" title="NuRadioReco.modules.efieldGalacticNoiseAdder"><code class="xref py py-mod docutils literal notranslate"><span class="pre">efieldGalacticNoiseAdder</span></code></a> modules add the diffuse emission of
+the galaxy to simulated traces. This is the dominant noise source for detectors at frequencies below a few hundred
+MHz, e.g. for air-shower detection. The sky models are provided by <a class="reference external" href="https://github.com/telegraphic/pygdsm">PyGDSM</a>
+(GSM, GSM2016, LFSM, …); <code class="docutils literal notranslate"><span class="pre">pylfmap</span></code> provides the additional LFmap model used by LOFAR for calibration purposes,
+and <code class="docutils literal notranslate"><span class="pre">healpy</span></code> is used to handle the sky maps.</p>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>pygdsm<span class="w"> </span>pylfmap<span class="w"> </span>healpy
 </pre></div>
 </div>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[muon-flux]</span></code></p>
-<p>Needed for some muon flux calculations</p>
+<p><code class="docutils literal notranslate"><span class="pre">MCEq</span></code> solves the cascade equations for the atmosphere and <code class="docutils literal notranslate"><span class="pre">crflux</span></code> provides parametrisations of the
+cosmic-ray flux. Together they are used by <a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html#module-NuRadioMC.utilities.muon_flux" title="NuRadioMC.utilities.muon_flux"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioMC.utilities.muon_flux</span></code></a> to calculate the flux of
+atmospheric muons at the surface, which is the main background for in-ice radio detectors at PeV energies.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>MCEq<span class="w"> </span>crflux
 </pre></div>
 </div>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">[cr-interpolator]</span></code></p>
-<p>Installs the cosmic-ray interpolator from <a class="reference external" href="https://github.com/nu-radio/cr-pulse-interpolator">https://github.com/nu-radio/cr-pulse-interpolator</a>,
-used to interpolate cosmic-ray air-shower emission from CoREAS star-shaped patterns:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">[cr_interpolator]</span></code></p>
+<p>Installs the cosmic-ray pulse interpolator from <a class="reference external" href="https://github.com/nu-radio/cr-pulse-interpolator">https://github.com/nu-radio/cr-pulse-interpolator</a>. CoREAS air-shower
+simulations are usually produced on a star-shaped pattern of observer positions. The
+<a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.modules.io.coreas.coreasInterpolator.html#module-NuRadioReco.modules.io.coreas.coreasInterpolator" title="NuRadioReco.modules.io.coreas.coreasInterpolator"><code class="xref py py-mod docutils literal notranslate"><span class="pre">coreasInterpolator</span></code></a> uses this package to interpolate the
+simulated pulses to arbitrary positions in between, so that a single CoREAS simulation can be reused for many
+detector positions or shower cores.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>cr-pulse-interpolator
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[minimizers]</span></code></p>
+<p>The <a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.utilities.minimization.html#module-NuRadioReco.utilities.minimization" title="NuRadioReco.utilities.minimization"><code class="xref py py-mod docutils literal notranslate"><span class="pre">Minimizer</span></code></a> class provides a common interface to different
+minimization algorithms used in reconstruction. Beyond the <code class="docutils literal notranslate"><span class="pre">scipy</span></code> minimizers (which are always available), it can
+use <a class="reference external" href="https://scikit-hep.org/iminuit/">iminuit</a> (MIGRAD/MINOS, including proper uncertainty estimation),
+<a class="reference external" href="https://scikit-optimize.github.io/">scikit-optimize</a> (Bayesian/global optimization) and
+<a class="reference external" href="https://github.com/andim/noisyopt">noisyopt</a> (minimization of noisy objective functions).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>iminuit<span class="w"> </span>scikit-optimize<span class="w"> </span>noisyopt
 </pre></div>
 </div>
 </li>
@@ -845,32 +836,10 @@ feature, which tries to import all modules it documents. So if you are missing s
 </pre></div>
 </div>
 </li>
-<li><p>RNO-G-specific dependencies</p>
-<p><a class="reference external" href="https://github.com/RNO-G/mattak">mattak</a> is required to open RNO-G root files:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/RNO-G/mattak
-</pre></div>
-</div>
-<p>Optionally, to filter RNO-G data (during read in) the <a class="reference external" href="https://github.com/RNO-G/rnog-runtable">RNO-G run table database</a>
-can be used. Note that this requires membership of the RNO-G Github organisation (not public):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+ssh://git@github.com/RNO-G/rnog-runtable.git
-</pre></div>
-</div>
-</li>
-<li><p>Some debug plots need peakutils:</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>peakutils
-</pre></div>
-</div>
-</li>
-<li><p>For SQL databases install <a class="reference external" href="https://www.mysql.com/">MySQL</a> and mysql-connector-python:</p>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>mysql-connector-python
-</pre></div>
-</div>
-</li>
 </ul>
 </section>
-</section>
 <section id="not-pip-installable-packages">
-<h3>Not pip-installable packages<a class="headerlink" href="#not-pip-installable-packages" title="Link to this heading"></a></h3>
+<h2>Not pip-installable packages<a class="headerlink" href="#not-pip-installable-packages" title="Link to this heading"></a></h2>
 <ul>
 <li><p>To speed up the <a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#module-NuRadioMC.SignalProp.analyticraytracing" title="NuRadioMC.SignalProp.analyticraytracing"><code class="xref py py-mod docutils literal notranslate"><span class="pre">analytic</span> <span class="pre">ray</span> <span class="pre">tracing</span> <span class="pre">module</span></code></a>, <a class="reference external" href="https://www.gnu.org/software/gsl/">GSL</a> needs
 to be installed, and <code class="docutils literal notranslate"><span class="pre">$GSL_DIR</span></code> should point at the correct installation folder. On Linux, GSL can be installed using</p>
@@ -887,6 +856,28 @@ The radiopropa github, with installation instructions, can be found <a class="re
 <li><p>To read ARA files, <a class="reference external" href="http://www.hep.ucl.ac.uk/uhen/ara/araroot/branches/3.13/index.shtml">ARA ROOT</a> needs to be installed.</p></li>
 </ul>
 </section>
+<section id="other-optional-packages">
+<h2>Other optional packages<a class="headerlink" href="#other-optional-packages" title="Link to this heading"></a></h2>
+<p>These packages can be installed with pip, but are not part of any option because they are only needed for specific
+detectors or data formats.</p>
+<ul>
+<li><p><a class="reference external" href="https://github.com/RNO-G/mattak">mattak</a> is required to open RNO-G root files:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/RNO-G/mattak
+</pre></div>
+</div>
+<p>Optionally, to filter RNO-G data (during read in) the <a class="reference external" href="https://github.com/RNO-G/rnog-runtable">RNO-G run table database</a>
+can be used. Note that this requires membership of the RNO-G Github organisation (not public):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+ssh://git@github.com/RNO-G/rnog-runtable.git
+</pre></div>
+</div>
+</li>
+<li><p>To use a detector description stored in an SQL database (<a class="reference internal" href="../../NuRadioReco/apidoc/NuRadioReco.detector.detector_sql.html#module-NuRadioReco.detector.detector_sql" title="NuRadioReco.detector.detector_sql"><code class="xref py py-mod docutils literal notranslate"><span class="pre">NuRadioReco.detector.detector_sql</span></code></a>), install
+<a class="reference external" href="https://www.mysql.com/">MySQL</a> and mysql-connector-python:</p>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>mysql-connector-python
+</pre></div>
+</div>
+</li>
+</ul>
 </section>
 </section>
 
