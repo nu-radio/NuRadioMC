@@ -780,7 +780,7 @@
         <span class="c1"># set maximum signal aplitude</span>
         <span class="n">max_signal</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="n">has_triggered</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_trigger_channels</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">station</span><span class="o">.</span><span class="n">iter_trigger_channels</span><span class="p">(</span><span class="n">use_channels</span><span class="o">=</span><span class="n">triggered_channels</span><span class="p">):</span>
                 <span class="n">max_signal</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_signal</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_trace</span><span class="p">()[</span><span class="n">triggered_bins</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
             <span class="n">station</span><span class="o">.</span><span class="n">set_parameter</span><span class="p">(</span><span class="n">stnp</span><span class="o">.</span><span class="n">channels_max_amplitude</span><span class="p">,</span> <span class="n">max_signal</span><span class="p">)</span>
 
