@@ -260,7 +260,7 @@
 | NuRadioReco/utilities/analytic\_pulse.py                                                                 |       37 |       10 |     73% |27, 75, 87-95 |
 | NuRadioReco/utilities/constants.py                                                                       |       16 |        0 |    100% |           |
 | NuRadioReco/utilities/cr\_flux.py                                                                        |       84 |       84 |      0% |     1-241 |
-| NuRadioReco/utilities/dataservers.py                                                                     |       71 |       34 |     52% |14-30, 38, 46-47, 49-50, 53, 67-80, 83-84 |
+| NuRadioReco/utilities/dataservers.py                                                                     |       71 |       29 |     59% |14-30, 38, 46-47, 49-50, 53, 68-69, 73-78, 83-84 |
 | NuRadioReco/utilities/diodeSimulator.py                                                                  |       90 |       69 |     23% |29-32, 49, 53, 57, 82-111, 150-174, 177, 215-256 |
 | NuRadioReco/utilities/fft.py                                                                             |        9 |        0 |    100% |           |
 | NuRadioReco/utilities/framework\_utilities.py                                                            |       26 |       26 |      0% |      1-41 |
@@ -280,7 +280,7 @@
 | NuRadioReco/utilities/trace\_utilities.py                                                                |      266 |      184 |     31% |40-41, 48-49, 55-56, 63-64, 71-72, 79-80, 127, 130-135, 143-144, 148-184, 187, 224-279, 315-339, 395-417, 493-500, 631-653, 720-723, 747-757, 787-856 |
 | NuRadioReco/utilities/units.py                                                                           |      166 |        0 |    100% |           |
 | NuRadioReco/utilities/version.py                                                                         |       27 |        5 |     81% |16, 25-27, 47 |
-| **TOTAL**                                                                                                | **31873** | **20127** | **37%** |           |
+| **TOTAL**                                                                                                | **31873** | **20122** | **37%** |           |
 
 
 ## Setup coverage badge
