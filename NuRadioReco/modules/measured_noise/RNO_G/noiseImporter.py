@@ -54,7 +54,16 @@ class noiseImporter:
             Seed for the random number generator. (Default: None, no fixed seed).
 
         reader_kwargs: dict
-            Optional arguements passed to readRNOGDataMattak
+            Optional arguments passed to :class:`NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData`
+
+            By default, only forced triggers from runs marked as physics runs are selected,
+            i.e. the following settings are used:
+
+            ``"select_triggers": "FORCE",
+            "select_runs": True,
+            "max_trigger_rate": 2 * units.Hz,
+            "run_types": ["physics"]``
+
         """
 
         self.logger = logging.getLogger('NuRadioReco.RNOG.noiseImporter')
@@ -91,11 +100,12 @@ class noiseImporter:
         if scramble_noise_file_order:
             self.__random_gen.shuffle(self.__noise_folders)
 
-        self._noise_reader = readRNOGData()
+        self._noise_reader = readRNOGData(log_level=log_level)
 
         default_reader_kwargs = {
-            "selectors": [lambda einfo: einfo.triggerType == "FORCE"],
-            "log_level": log_level, "select_runs": True, "max_trigger_rate": 2 * units.Hz,
+            "select_triggers": "FORCE",
+            "select_runs": True,
+            "max_trigger_rate": 2 * units.Hz,
             "run_types": ["physics"]
         }
         default_reader_kwargs.update(reader_kwargs)
