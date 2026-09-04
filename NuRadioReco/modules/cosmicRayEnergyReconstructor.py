@@ -146,7 +146,7 @@ class cosmicRayEnergyReconstructor:
         energy_fluence = NuRadioReco.utilities.trace_utilities.get_electric_field_energy_fluence(efield_trace_vxB_vxvxB, electric_field.get_times())
         energy_fluence = np.abs(energy_fluence[0]) + np.abs(energy_fluence[1])
         xmax_distance = self.__atmosphere.get_distance_xmax_geometric(zenith, 750., elevation)  # parametrization is for Xmax of 750g/cm^2
-        if np.any(xmax_distance) < 0:
+        if np.any(xmax_distance < 0):
             self.logger.warning(
                 f"Estimated distance to Xmax is negative for zenith {zenith/units.deg:.0f} and elevation {elevation}. "
                 "This means Xmax may be below the detector elevation. The absolute value "
@@ -163,7 +163,11 @@ class cosmicRayEnergyReconstructor:
         else:
             scale_parameter = parametrization_for_site['scale'][1][0] * zenith ** 2 + parametrization_for_site['scale'][1][1] * zenith + parametrization_for_site['scale'][1][2]
             falloff_parameter = parametrization_for_site['falloff'][1][0] * zenith + parametrization_for_site['falloff'][1][1]
+
         rec_energy = 1.e18 * np.sqrt(energy_fluence) * (xmax_distance / units.km) / (scale_parameter * np.exp(falloff_parameter * np.abs(spectrum_slope) ** 0.8))
+        self.logger.status(
+            f'Energy: {rec_energy:.3g} eV, fluence {energy_fluence:.3g}, '
+            f'distance to xmax {xmax_distance/units.km} km, scale param {scale_parameter:.2f}, falloff {falloff_parameter:.2f}')
         station.set_parameter(stnp.cr_energy_em, rec_energy)
 
         return rec_energy
