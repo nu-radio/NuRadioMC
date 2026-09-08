@@ -64,6 +64,8 @@ class channelPreprocessor:
         "cw_peak_prominence": 4.0,
         "cw_freq_band": (0.1, 0.6),
         "cw_algorithm": "sliding",
+        "apply_notch": False,
+        "notch_bands": ((0.399 * units.GHz, 0.407 * units.GHz),),
         "apply_bandpass": False,
         "bandpass_band": (0.1 * units.GHz, 0.7 * units.GHz),
         "bandpass_filter_type": "butter",
@@ -153,6 +155,19 @@ class channelPreprocessor:
             self._cw_filter.run(event, station, det,
                                 algorithm=cfg["cw_algorithm"],
                                 peak_prominence=cfg["cw_peak_prominence"])
+
+        if cfg["apply_notch"]:
+            # Deterministic band rejection for known narrowband transmitters
+            # (e.g. the RS41 radiosonde telemetry at 402-404 MHz) that the
+            # adaptive CW peak removal does not reliably catch. Zeroing a few
+            # MHz of a ~600 MHz analysis band costs a broadband impulse ~1%
+            # and replaces the 5 h/day launch-window livetime veto.
+            for channel in station.iter_channels():
+                spec = channel.get_frequency_spectrum()
+                freqs = channel.get_frequencies()
+                for f_lo, f_hi in cfg["notch_bands"]:
+                    spec[(freqs >= f_lo) & (freqs <= f_hi)] = 0
+                channel.set_frequency_spectrum(spec, channel.get_sampling_rate())
 
         if cfg["apply_bandpass"]:
             self._bandpass.run(
