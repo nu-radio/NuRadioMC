@@ -160,8 +160,8 @@ class channelPreprocessor:
             # Deterministic band rejection for known narrowband transmitters
             # (e.g. the RS41 radiosonde telemetry at 402-404 MHz) that the
             # adaptive CW peak removal does not reliably catch. Zeroing a few
-            # MHz of a ~600 MHz analysis band costs a broadband impulse ~1%
-            # and replaces the 5 h/day launch-window livetime veto.
+            # MHz of the analysis band costs a broadband impulse about 1% and
+            # is intended to replace the launch-window livetime veto.
             for channel in station.iter_channels():
                 spec = channel.get_frequency_spectrum()
                 freqs = channel.get_frequencies()
