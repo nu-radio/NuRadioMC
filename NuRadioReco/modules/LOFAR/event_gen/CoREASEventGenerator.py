@@ -3,6 +3,7 @@ Simulated event generator for LOFAR.
 """
 
 import os
+import re
 import h5py
 import logging
 import argparse
@@ -33,6 +34,20 @@ from NuRadioReco.framework.parameters import stationParameters as stp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.utilities.trace_utilities import get_electric_field_energy_fluence
 
+
+def lofar_event_id_from_coreas_path(coreas_hdf5_file):
+    """Return the LOFAR event ID encoded in a CoREAS simulation path.
+
+    CoREAS showers are stored as ``.../hdf5_files/<lofar_event_id>/<run>/<mass>/SIM*.hdf5``,
+    where the directory name is the LOFAR event ID, i.e. seconds elapsed since
+    2010-01-01 00:00:00 UTC. Downstream code (the GDAS atmosphere lookup in
+    particular) keys off ``Event.get_id()``.
+
+    Returns None if the path does not carry the expected structure.
+    """
+    match = re.search(r"hdf5_files/(\d+)/", str(coreas_hdf5_file))
+    return int(match.group(1)) if match else None
+
 from NuRadioReco.modules.LOFAR import planeWaveDirectionFitter_LOFAR  # noqa: E402
 from NuRadioReco.modules.LOFAR import stationPulseFinder  # noqa: E402
 from NuRadioReco.modules.LOFAR import LORASimulator
@@ -44,8 +59,14 @@ from NuRadioReco.utilities.LOFAR import (
     START_TIME,
     NOISE_LIBRARY_DIRECTORY,
     NOISE_LIBRARY_NUR_FILEPATH,
-    ALWAYS_REMOVED_CHANNEL_IDS
+    ALWAYS_REMOVED_CHANNEL_IDS,
+    SIM_CORE_SPREAD,
 )  # noqa: E402
+
+# Antenna sets the generator can simulate. LOFAR1.0 reads out one LBA mode at a
+# time. LOFAR2.0 will hopefully (heh) read both at the same time.
+
+ANTENNA_MODES = {"lba_all": None, "lba_outer": "LBA_outer", "lba_inner": "LBA_inner"}
 
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
@@ -67,7 +88,42 @@ class CoREASEventGenerator:
         detector=None,
         output_directory = None,
         log_level=logging.INFO,
+        noise_library_file=None,
+        noise_library_nur_file=None,
+        antenna_mode="lba_all",
+        core_spread_m=SIM_CORE_SPREAD,
+        atmosphere_dir=None,
+        gdas_cache_dir=None,
     ):
+        """
+        Parameters
+        ----------
+        antenna_mode : {"lba_all", "lba_outer", "lba_inner"}, default="lba_all"
+            Which LBA set to simulate and read out. 
+        core_spread_m : float, default=SIM_CORE_SPREAD
+            Standard deviation of the Gaussian the physical shower core is drawn
+            from, per horizontal coordinate. The LORA core *guess* is this core
+            displaced by LORA_CORE_PRECISION
+        atmosphere_dir, gdas_cache_dir : str, optional
+            Where to find or generate the event's GDAS atmosphere
+        """
+
+        # Both default to the macros; override them to run off a filesystem that
+        # does not carry the Nijmegen paths. The .nur file is written, so it must
+        # point somewhere writable.
+        self.noise_library_file = noise_library_file or NOISE_LIBRARY_DIRECTORY
+        self.noise_library_nur_file = noise_library_nur_file or NOISE_LIBRARY_NUR_FILEPATH
+
+        self.antenna_mode = str(antenna_mode).lower()
+        if self.antenna_mode not in ANTENNA_MODES:
+            raise ValueError(
+                f"antenna_mode must be one of {sorted(ANTENNA_MODES)}, got {antenna_mode!r}")
+        self.core_spread_m = float(core_spread_m)
+        self.atmosphere_dir = atmosphere_dir
+        self.gdas_cache_dir = gdas_cache_dir
+
+        # Set per event in _initialise_reader; the reader places the shower here.
+        self.physical_core = None
 
         self.selected_station_channel_ids = {}
         
@@ -98,10 +154,43 @@ class CoREASEventGenerator:
 
         self.detector.update(START_TIME)
         
+        wanted_mode = ANTENNA_MODES[self.antenna_mode]
         for station_name in DEFAULT_STATIONS:
-            # NOTE: this assumes that the station names are in the format "CS###", where ### is the station ID. If the station names are different, this will need to be modified accordingly.
             staid = int(station_name.replace("CS", ""))
-            self.selected_station_channel_ids[staid] = self.detector.get_channel_ids(staid)
+            channel_ids = self.detector.get_channel_ids(staid)
+            if wanted_mode is not None:
+                channel_ids = self._select_antenna_mode(staid, channel_ids, wanted_mode)
+            self.selected_station_channel_ids[staid] = channel_ids
+        if wanted_mode is not None:
+            LOGGER.status(
+                "Simulating %s only: %d of %d channels over %d stations",
+                wanted_mode,
+                sum(len(v) for v in self.selected_station_channel_ids.values()),
+                sum(len(self.detector.get_channel_ids(sid))
+                    for sid in self.selected_station_channel_ids),
+                len(self.selected_station_channel_ids),
+            )
+
+    def _select_antenna_mode(self, station_id, channel_ids, wanted_mode):
+        """Keep only the channels of one LBA mode.
+
+        The mode lives in the detector description's ``ant_mode`` field.
+        """
+        selected = []
+        for channel_id in channel_ids:
+            mode = self.detector.get_channel(station_id, channel_id).get("ant_mode")
+            if mode is None:
+                raise KeyError(
+                    f"Channel {channel_id} of station {station_id} has no 'ant_mode' "
+                    f"in the detector description, so antenna_mode="
+                    f"'{self.antenna_mode}' cannot be honoured.")
+            if mode == wanted_mode:
+                selected.append(channel_id)
+        if not selected:
+            raise ValueError(
+                f"Station {station_id} has no {wanted_mode} channels in the detector "
+                f"description.")
+        return selected
 
     def _initialise_modules(self):
         """
@@ -217,7 +306,7 @@ class CoREASEventGenerator:
             filenames = [noise_library_nur_filepath],
             restrict_station_id = False, # no 1-1 mapping of station IDs
             station_id = None,  # just use the first station ID 
-            channel_mapping = noise_library_channel_mapping,  # maps all channel IDs (in all stations) to a single noise channel ID
+            channel_mapping = noise_library_channel_mapping,  # identity: every detector channel has its own noise window
             allow_noise_resampling=True, # allow the noise trace to be resampled to match simulated trace
             baseline_substraction=False, # disable since we want to add the generated noise library directly
             debug=True,
@@ -245,9 +334,24 @@ class CoREASEventGenerator:
         }
 
         processed_event = None
+        lofar_event_id = lofar_event_id_from_coreas_path(coreas_hdf5_file)
+        if lofar_event_id is None:
+            LOGGER.warning(
+                "Could not extract a LOFAR event ID from %s; the event keeps the "
+                "reader's index and the GDAS atmosphere lookup will not find this "
+                "shower's atmosphere file.", coreas_hdf5_file)
         LOGGER.info(f"Processing event {sim_event.get_id()} from CoREAS file {coreas_hdf5_file}")
-        for evt in self.coreas_reader.run(self.detector, None, selected_station_channel_ids=self.selected_station_channel_ids):
-            
+        for evt in self.coreas_reader.run(
+                self.detector,
+                [self.physical_core],
+                selected_station_channel_ids=self.selected_station_channel_ids):
+
+            # Stamp the LOFAR event ID from the CoREAS path. 
+            # the atmosphere lookup treats the event ID as
+            # seconds since 2010-01-01
+            if lofar_event_id is not None:
+                evt.set_id(lofar_event_id)
+
             LOGGER.info(f"Converting electric field to voltage for event {evt.get_id()} at time {START_TIME}")
             for station in evt.get_stations():
 
@@ -258,8 +362,10 @@ class CoREASEventGenerator:
                 if save_debug_plots:
                     self._save_efield_trace_snapshot(evt, station.get_sim_station(), output_dir=event_debug_dir, stage="01_reader")
 
-                # Convert electric field to voltage
-                self.efieldToVoltageConverter.run(evt, station, self.detector)
+                # Convert electric field to voltage.
+                self.efieldToVoltageConverter.run(
+                    evt, station, self.detector,
+                    channel_ids=self.selected_station_channel_ids.get(station.get_id()))
                 if save_debug_plots:
                     self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="02_efieldToVoltage")
 
@@ -325,7 +431,10 @@ class CoREASEventGenerator:
         """
         Initialise the CoREAS reader module with the given HDF5 file.
 
-        Currently this is just repeating the begin function of readCoREASDetector, but with a forced vertical core coordinate. This can be replaced with the usual begin function of readCoREASDetector when using a good / correct HDF5 file with the correct CoreCoordinateVertical. 
+        Currently this is just repeating the begin function of readCoREASDetector, 
+        but with a forced vertical core coordinate. This can be replaced with the usual 
+        begin function of readCoREASDetector when using a good / correct HDF5 file 
+        with the correct CoreCoordinateVertical. 
 
         Parameters
         ----------
@@ -348,11 +457,27 @@ class CoREASEventGenerator:
         )
         self.coreas_reader.coreas_interpolator = interpolator  # skip begin() function because HDF5 does not have good CoreCoordinateVertical
 
+        # Place the physical shower. The core is drawn from the wide pool the core
+        # prior describes. LORA's job below is to
+        # measure this core badly to give a realistic core guess
+        
+        rng = np.random.default_rng()
+        self.physical_core = np.array([
+            rng.normal(0.0, self.core_spread_m) * units.m,
+            rng.normal(0.0, self.core_spread_m) * units.m,
+        ])
+        LOGGER.status(
+            "Physical shower core drawn from N(0, %.1f m): (%.2f, %.2f) m",
+            self.core_spread_m, self.physical_core[0] / units.m,
+            self.physical_core[1] / units.m)
+
         # adding the LORA simulator here for now. This generates a hybrid shower based on 
         # true shower parameters with cores & angles randomly sampled from normal distribution with 
         # LORA uncertainties.
         # TODO: simply return a hybrid shower here and instead make a hybrid shower adder in modules/io, removing code from readCoREASDetector (for more modularity)
-        lora_shower = self.LORASimulator.run(corsika_event, self.detector)
+        self.LORASimulator.begin()
+        lora_shower = self.LORASimulator.run(
+            corsika_event, self.detector, true_core=self.physical_core)
         self.coreas_reader._readCoREASDetector__hybrid_shower_name = lora_shower.get_name()  # force the reader to use the hybrid shower generated by LORA simulator
 
         self.coreas_reader._readCoREASDetector__corsika_evt = corsika_event
@@ -363,11 +488,12 @@ class CoREASEventGenerator:
         """
         Run the noise library converter, separately and only once.
 
-        This generates the conversion from the .npy file to the .nur file, as well as the channel mapping, which maps all detector channels to a single noise channel. This is done since we assume the noise characteristics is the same for all antennas.
+        This generates the conversion from the .npy file to the .nur file, as well as the channel mapping. 
+        Each antenna gets an independently drawn window of the library.
         """
         self.LOFARnoiseLibraryConverter.begin(
-            library_filename = NOISE_LIBRARY_DIRECTORY,
-            nur_filename = NOISE_LIBRARY_NUR_FILEPATH
+            library_filename = self.noise_library_file,
+            nur_filename = self.noise_library_nur_file
         )
 
         channel_mapping = self.LOFARnoiseLibraryConverter.run(event, self.detector) 
@@ -397,8 +523,10 @@ class CoREASEventGenerator:
                 station.remove_channel(station.get_channel(channel_id))
                 flagged_nrr_channel_ids[channel_id].append("reader_known_bad_channel")
 
-            # store set of flagged nrr channel ids as station parameter
-            station.set_parameter(stp.flagged_channels, flagged_nrr_channel_ids)
+        # Store the flagged channels unconditionally: downstream modules
+        # (planeWaveDirectionFitter_LOFAR) read this parameter and do not guard
+        # against its absence. 
+        station.set_parameter(stp.flagged_channels, flagged_nrr_channel_ids)
 
     def _calculate_noise_rms(self, station, Tnoise, filter_settings):
         """

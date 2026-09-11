@@ -24,10 +24,9 @@ class LORASimulator:
 
     def __init__(self, log_level = logging.INFO):
         self.__debug = False
-        self.__random_seed = None
         logger.setLevel(log_level)
 
-    def begin(self, debug=False, random_seed=None):
+    def begin(self, debug=False):
         """
         Initialize the LORA particle detector simulator.
 
@@ -35,16 +34,11 @@ class LORASimulator:
         -----------
         debug : bool, default=False
             debug flag
-        random_seed : int, default=None
-            the random seed to set the core uncertainty.
-
-            The default is None, which will use the numpy default value. 
         """
         self.__debug = debug
-        self.__random_seed = random_seed
 
     @register_run()
-    def run(self, event, det):
+    def run(self, event, det, true_core=None):
         """
         
         Incorporates the LORA particle detectors to get a rough estimate of the shower core position and energy.
@@ -59,13 +53,21 @@ class LORASimulator:
             The station whose channels noise shall be added to
         det: Detector object
             The detector description
+        true_core: array of float, optional
+            The core the shower is actually placed at, which this module displaces by
+            the LORA resolution to produce the *guess*. Pass it whenever the physical
+            core is drawn outside this module: the shower stored on the CoREAS event
+            sits at the origin, so without it the guess is a 30 m draw around (0, 0)
+            and, if that same guess is then used to place the shower, the core
+            estimate has zero error by construction.
 
         """
         # extract the true shower parameters from the event
         coreas_shower = event.get_first_sim_shower()
         true_zenith = coreas_shower.get_parameter(shp.zenith)
         true_azimuth = coreas_shower.get_parameter(shp.azimuth)
-        true_core = coreas_shower.get_parameter(shp.core)
+        if true_core is None:
+            true_core = coreas_shower.get_parameter(shp.core)
         true_primary_energy = coreas_shower.get_parameter(shp.energy)
         mag_field = coreas_shower.get_parameter(shp.magnetic_field_vector)
 
@@ -75,17 +77,18 @@ class LORASimulator:
 
         attempted_cores_list = []
 
+        rng = np.random.default_rng()
+
         while not triggered and retries < max_retries:
             retries += 1
 
             rand_x, rand_y = None, None
 
             if rand_x is None or rand_y is None:
-                rng = np.random.default_rng(seed=self.__random_seed)
                 rand_x = true_core[0] + rng.normal(0, LORA_CORE_PRECISION)
                 rand_y = true_core[1] + rng.normal(0, LORA_CORE_PRECISION)
                 logger.info(
-                    f"Generated reproducible core guess (seed={self.__random_seed}): x={rand_x:.2f}, y={rand_y:.2f}"
+                    f"Generated core guess: x={rand_x:.2f}, y={rand_y:.2f}"
                 )
 
             attempted_cores_list.append((rand_x, rand_y))

@@ -33,10 +33,12 @@ import NuRadioReco.modules.io.eventWriter  # noqa: E402
 from NuRadioReco.modules.LOFAR import iftReconstructor  # noqa: E402
 from NuRadioReco.modules.LOFAR.reconstruction.iftReconstructor import (  # noqa: E402
     _DEFAULT_N_VI_ITERATIONS, _DEFAULT_N_SAMPLES,
-    _EARLY_ABORT_XMAX_STD_GCM2, _EARLY_ABORT_XMAX_AFTER_ITERS, _EARLY_ABORT_MAX_FLUENCE,
 )
 from NuRadioReco.utilities.LOFAR.iftDataHelpers import MAX_SIGNAL_SNR_THRESHOLD  # noqa: E402
-from NuRadioReco.utilities.LOFAR.macros import GDAS_ATMOSPHERE_DIRECTORY  # noqa: E402
+from NuRadioReco.utilities.LOFAR.macros import (  # noqa: E402
+    BLOCK_NUMBER_FILE, GDAS_ATMOSPHERE_DIRECTORY, JSON_DIRECTORY,
+    META_DATA_DIRECTORY, TBB_DIRECTORY,
+)
 from NuRadioReco.utilities import units  # noqa: E402
 
 LOGGER = logging.getLogger("NuRadioReco.pipeline.LOFAR.data_pipeline")
@@ -112,7 +114,14 @@ def run_pipeline(args):
     # process the event with the dataEventGenerator module
     # note that the event is not written to a .nur file yet, since we want to run the IFT reconstructor on it first. The processed event is returned by the dataEventGenerator module.
     LOGGER.info("Running dataEventGenerator module for event %d", args.event_id)
-    data_event_generator = dataEventGenerator(detector, output_directory = args.output_dir)
+    data_event_generator = dataEventGenerator(
+        detector,
+        tbb_directory=args.tbb_dir,
+        json_directory=args.json_dir,
+        meta_data_directory=args.metadata_dir,
+        block_number_file=args.block_number_file,
+        output_directory=args.output_dir,
+    )
     processed_event = data_event_generator.process_event(event_id=args.event_id, save_debug_plots = args.debug_plots, write_event = False)
 
     # for now fixed, in the future we should be able to replace this
@@ -130,16 +139,12 @@ def run_pipeline(args):
         enable_timing_correlated_field=args.enable_timing_correlated_field,
         export_posterior_samples=args.export_posterior_samples,
         output_directory=args.output_dir,
-        debug_plots=args.debug_plots,
-        debug_plot_dir=data_event_generator.debug_dir,
-        run_nifty=not args.no_nifty,
+        dry_run=args.dry_run,
         step_deg=1.0,
         atmosphere_dir=args.atmosphere_dir,
         gdas_cache_dir=args.gdas_cache_dir,
         max_signal_fallback=args.max_signal_fallback,
         max_signal_snr_threshold=args.max_signal_snr,
-        early_abort_xmax_std_gcm2=args.early_abort_xmax_std,
-        early_abort_max_fluence=args.early_abort_max_fluence,
     )
     if args.ift_iterations is not None:
         recon_kwargs["n_iterations"] = args.ift_iterations
@@ -188,22 +193,21 @@ def build_arg_parser():
                              "fallback (default: %(default)s, calibrated so that ~1.5%% "
                              "of pure-noise antennas pass).")
 
-    parser.add_argument("--early-abort-xmax-std", type=float,
-                        default=_EARLY_ABORT_XMAX_STD_GCM2,
-                        help="Abort the event if the Xmax posterior is still wider than "
-                             "this (g/cm2) after %d VI iterations (default: %%(default)s). "
-                             "0 disables the check." % _EARLY_ABORT_XMAX_AFTER_ITERS)
-    parser.add_argument("--early-abort-max-fluence", type=float,
-                        default=_EARLY_ABORT_MAX_FLUENCE,
-                        help="Abort the event if any input fluence exceeds this or is "
-                             "not finite (default: %(default)s). 0 disables the check.")
+    parser.add_argument("--tbb-dir", default=TBB_DIRECTORY,
+                        help="Directory holding the raw TBB HDF5 files (default: %(default)s)")
+    parser.add_argument("--json-dir", default=JSON_DIRECTORY,
+                        help="Directory holding the per-event JSON records (default: %(default)s)")
+    parser.add_argument("--metadata-dir", default=META_DATA_DIRECTORY,
+                        help="Directory holding the LOFAR static metadata (default: %(default)s)")
+    parser.add_argument("--block-number-file", default=BLOCK_NUMBER_FILE,
+                        help="LORAtime4 block-number file (default: %(default)s)")
 
     parser.add_argument("--output-dir", default=os.getcwd(),
                         help="Directory for output files and debug plots")
     parser.add_argument("--output-nur", default=None,
                         help="Write the processed event to this .nur file")
     parser.add_argument("--export-posterior-samples", action="store_true",
-                        help="Save all IFT posterior samples, trigger decisions, and summary to a .npz file")
+                        help="Save all IFT posterior samples and the summary to a .npz file")
 
     parser.add_argument("--atmosphere-dir",
                         default=GDAS_ATMOSPHERE_DIRECTORY,
@@ -215,11 +219,11 @@ def build_arg_parser():
                         help="Writable directory for downloaded GDAS binaries and newly generated "
                              "ATMOSPHERE_*.DAT files. Defaults to ~/.cache/lofar_gdas.")
 
-    parser.add_argument("--no-nifty", action="store_true",
-                        help="Skip the NIFTy/VI reconstruction (preprocessing and debug plots only)")
     parser.add_argument("--debug-plots", action="store_true")
     parser.add_argument("--log-level", default="INFO")
 
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Check IFT event selection without running the fit.")
     return parser
 
 

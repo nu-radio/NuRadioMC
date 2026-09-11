@@ -172,7 +172,13 @@ def parse_block_number_file(block_number_file):
                 logger.warning("Skipping malformed block-number row %s:%d", path, line_number)
                 continue
 
-            values = [float(part) for part in parts]
+            try:
+                values = [float(part) for part in parts]
+            except ValueError:
+                # The docstring promises malformed rows are skipped; without this a
+                # single non-numeric row takes down the whole read-in.
+                logger.warning("Skipping malformed block-number row %s:%d", path, line_number)
+                continue
             event_timestamp = int(values[0])
             event_id = event_timestamp - 1262304000
             rows[event_id] = {

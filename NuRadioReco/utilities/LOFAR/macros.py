@@ -25,13 +25,27 @@ NOISE_LIBRARY_NUR_FILEPATH = "/vol/astro7/lofar/sim/lofar_real_noise_library.nur
 # some hard coded values in the base code, can be directly modified here
 DATA_TRACE_LENGTH = 65536
 RFI_CLEANING_TRACE_LENGTH = 8192
+# Fraction of the trace at each end covered by the half-Hann taper of the
+# data path's band-pass (see dataEventGenerator). Power there is suppressed by
+# construction, so any noise estimate must skip it; iftDataHelpers reads this
+# constant 
+BANDPASS_HALF_HANN_PERCENT = 0.1
 CR_SNR = 6.5
 PASS_BAND = (30, 80)
 START_TIME = datetime.datetime(2012, 10, 1, 0, 0)
 # NRR channel IDs that are always dropped at read-in, regardless of the flagging
-# done by the reader. 3002019 is a permanently broken dipole of CS003.
-ALWAYS_REMOVED_CHANNEL_IDS = (3002019,)
+# done by the reader.
+
+ALWAYS_REMOVED_CHANNEL_IDS = ()
 
 # LORA parameters
 LORA_CORE_PRECISION = 30.0
 LORA_ANGLE_PRECISION = np.radians(0.7)
+
+# Simulation shower placement. The physical core is drawn from this Gaussian per
+# horizontal coordinate; LORA_CORE_PRECISION is then the *measurement* error added
+# on top of it to obtain the core guess. The width matches the core
+# prior the reconstruction actually uses, and approximately the core distribution
+# of LOFAR events
+
+SIM_CORE_SPREAD = 100.0

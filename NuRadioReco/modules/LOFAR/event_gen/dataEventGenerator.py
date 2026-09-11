@@ -24,6 +24,7 @@ from NuRadioReco.utilities.LOFAR import (
     BLOCK_NUMBER_FILE,
     DATA_TRACE_LENGTH,
     RFI_CLEANING_TRACE_LENGTH,
+    BANDPASS_HALF_HANN_PERCENT,
     CR_SNR,
     PASS_BAND,
 )  # noqa: E402
@@ -206,7 +207,7 @@ class dataEventGenerator:
                     self.detector,
                     passband=[PASS_BAND[0] * units.MHz, PASS_BAND[1] * units.MHz],
                     filter_type="hann_tapered",
-                    half_hann_percent=0.1,
+                    half_hann_percent=BANDPASS_HALF_HANN_PERCENT,
                 )
             if save_debug_plots:
                 self._save_trace_snapshot(event, event_debug_dir, "03_bandpass")

@@ -34,12 +34,13 @@ from NuRadioReco.modules.LOFAR import iftReconstructor  # noqa: E402
 from NuRadioReco.modules.LOFAR.reconstruction.iftReconstructor import (  # noqa: E402
     _DEFAULT_N_VI_ITERATIONS,
     _DEFAULT_N_SAMPLES,
-    _EARLY_ABORT_XMAX_STD_GCM2,
-    _EARLY_ABORT_XMAX_AFTER_ITERS,
-    _EARLY_ABORT_MAX_FLUENCE,
 )
 from NuRadioReco.utilities.LOFAR.iftDataHelpers import MAX_SIGNAL_SNR_THRESHOLD  # noqa: E402
-from NuRadioReco.utilities.LOFAR.macros import GDAS_ATMOSPHERE_DIRECTORY, COREAS_PARENT_HDF5_DIRECTORY  # noqa: E402
+from NuRadioReco.utilities.LOFAR.macros import (  # noqa: E402
+    GDAS_ATMOSPHERE_DIRECTORY,
+    COREAS_PARENT_HDF5_DIRECTORY,
+    SIM_CORE_SPREAD,
+)
 from NuRadioReco.utilities import units  # noqa: E402
 
 LOGGER = logging.getLogger("NuRadioReco.pipeline.LOFAR.simulation_pipeline")
@@ -143,11 +144,19 @@ def run_pipeline(args):
     LOGGER.info("Output directory for event %d, mass %s: %s", args.event_id, args.mass, event_output_dir)
 
     coreas_event_generator = CoREASEventGenerator(
-        detector, output_directory=event_output_dir
+        detector,
+        output_directory=event_output_dir,
+        noise_library_file=args.noise_library,
+        noise_library_nur_file=args.noise_library_nur,
+        antenna_mode=args.antenna_mode,
+        core_spread_m=args.core_spread,
+        atmosphere_dir=args.atmosphere_dir,
+        gdas_cache_dir=args.gdas_cache_dir,
     )
 
-    # now we construct the full path to the CoREAS HDF5 file, which is relative to the COREAS_PARENT_HDF5_DIRECTORY defined in the macros.
-    coreas_event_path = os.path.join(COREAS_PARENT_HDF5_DIRECTORY, str(args.event_id))
+    # now we construct the full path to the CoREAS HDF5 file, which is relative to --coreas-dir
+    # (defaulting to COREAS_PARENT_HDF5_DIRECTORY from the macros).
+    coreas_event_path = os.path.join(args.coreas_dir, str(args.event_id))
     coreas_hdf5_file_path = os.path.join(coreas_event_path, os.listdir(coreas_event_path)[0], args.mass, args.coreas_hdf5_file)
     if not os.path.isfile(coreas_hdf5_file_path):
         raise FileNotFoundError(f"CoREAS HDF5 file not found or is not a file: {coreas_hdf5_file_path}")
@@ -172,16 +181,12 @@ def run_pipeline(args):
         enable_timing_correlated_field=args.enable_timing_correlated_field,
         export_posterior_samples=args.export_posterior_samples,
         output_directory=args.output_dir,
-        debug_plots=args.debug_plots,
-        debug_plot_dir=coreas_event_generator.debug_dir,
-        run_nifty=not args.no_nifty,
+        dry_run=args.dry_run,
         step_deg=1.0,
         atmosphere_dir=args.atmosphere_dir,
         gdas_cache_dir=args.gdas_cache_dir,
         max_signal_fallback=args.max_signal_fallback,
         max_signal_snr_threshold=args.max_signal_snr,
-        early_abort_xmax_std_gcm2=args.early_abort_xmax_std,
-        early_abort_max_fluence=args.early_abort_max_fluence,
     )
     if args.ift_iterations is not None:
         recon_kwargs["n_iterations"] = args.ift_iterations
@@ -269,22 +274,6 @@ def build_arg_parser():
     )
 
     parser.add_argument(
-        "--early-abort-xmax-std",
-        type=float,
-        default=_EARLY_ABORT_XMAX_STD_GCM2,
-        help="Abort the event if the Xmax posterior is still wider than "
-        "this (g/cm2) after %d VI iterations (default: %%(default)s). "
-        "0 disables the check." % _EARLY_ABORT_XMAX_AFTER_ITERS,
-    )
-    parser.add_argument(
-        "--early-abort-max-fluence",
-        type=float,
-        default=_EARLY_ABORT_MAX_FLUENCE,
-        help="Abort the event if any input fluence exceeds this or is "
-        "not finite (default: %(default)s). 0 disables the check.",
-    )
-
-    parser.add_argument(
         "--output-dir",
         default=os.getcwd(),
         help="Directory for output files and debug plots",
@@ -295,9 +284,26 @@ def build_arg_parser():
     parser.add_argument(
         "--export-posterior-samples",
         action="store_true",
-        help="Save all IFT posterior samples, trigger decisions, and summary to a .npz file",
+        help="Save all IFT posterior samples and the summary to a .npz file",
     )
 
+    parser.add_argument(
+        "--coreas-dir",
+        default=COREAS_PARENT_HDF5_DIRECTORY,
+        help="Root directory holding the per-event CoREAS HDF5 trees, laid out as "
+        "<coreas-dir>/<event_id>/<run>/<mass>/<coreas_hdf5_file> (default: %(default)s).",
+    )
+    parser.add_argument(
+        "--noise-library",
+        default=None,
+        help="LOFAR measured-noise library .npy (default: the macros' path).",
+    )
+    parser.add_argument(
+        "--noise-library-nur",
+        default=None,
+        help="Where to write the .nur conversion of the noise library. Must be "
+        "writable (default: the macros' path).",
+    )
     parser.add_argument(
         "--atmosphere-dir",
         default=GDAS_ATMOSPHERE_DIRECTORY,
@@ -313,13 +319,26 @@ def build_arg_parser():
     )
 
     parser.add_argument(
-        "--no-nifty",
-        action="store_true",
-        help="Skip the NIFTy/VI reconstruction (preprocessing and debug plots only)",
+        "--antenna-mode",
+        choices=("lba_all", "lba_outer", "lba_inner"),
+        default="lba_all",
+        help="Which LBA set to simulate and reconstruct. LOFAR1.0 reads out one mode "
+        "at a time, LOFAR2.0 hopefully can read both simultaneously, "
+        "(default: %(default)s).",
+    )
+    parser.add_argument(
+        "--core-spread",
+        type=float,
+        default=SIM_CORE_SPREAD,
+        help="Standard deviation, per horizontal coordinate, of the Gaussian the "
+        "physical shower core is drawn from. The LORA core guess is this core "
+        "displaced by the LORA resolution (default: %(default)s m).",
     )
     parser.add_argument("--debug-plots", action="store_true")
     parser.add_argument("--log-level", default="INFO")
 
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Check IFT event selection without running the fit.")
     return parser
 
 
