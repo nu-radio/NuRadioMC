@@ -26,7 +26,7 @@ import numpy as np  # noqa: E402
 
 import NuRadioReco.detector.detector  # noqa: E402
 from NuRadioReco.framework.parameters import stationParameters, showerParameters  # noqa: E402
-from NuRadioReco.modules.LOFAR import CoREASEventGenerator  # noqa: E402
+from NuRadioReco.modules.LOFAR.event_gen.CoREASEventGenerator import CoREASEventGenerator  # noqa: E402
 from NuRadioReco.modules import voltageToEfieldConverter  # noqa: E402
 from NuRadioReco.modules.LOFAR import pipelineVisualizer_LOFAR  # noqa: E402
 import NuRadioReco.modules.io.eventWriter  # noqa: E402
@@ -36,7 +36,7 @@ from NuRadioReco.modules.LOFAR.reconstruction.iftReconstructor import (  # noqa:
     _DEFAULT_N_SAMPLES,
 )
 from NuRadioReco.utilities.LOFAR.iftDataHelpers import MAX_SIGNAL_SNR_THRESHOLD  # noqa: E402
-from NuRadioReco.utilities.LOFAR.macros import (  # noqa: E402
+from NuRadioReco.utilities.LOFAR.constants import (  # noqa: E402
     GDAS_ATMOSPHERE_DIRECTORY,
     COREAS_PARENT_HDF5_DIRECTORY,
     SIM_CORE_SPREAD,

@@ -61,6 +61,7 @@ from NuRadioReco.utilities.LOFAR import (
     NOISE_LIBRARY_NUR_FILEPATH,
     ALWAYS_REMOVED_CHANNEL_IDS,
     SIM_CORE_SPREAD,
+    BANDPASS_HALF_HANN_PERCENT
 )  # noqa: E402
 
 # Antenna sets the generator can simulate. LOFAR1.0 reads out one LBA mode at a
@@ -327,12 +328,6 @@ class CoREASEventGenerator:
             debug_plot_dir=event_debug_dir,
         )
 
-        filter_settings = {
-            "filter_type": "butter",
-            "order": 10,
-            "passband": [PASS_BAND[0] * units.MHz, PASS_BAND[1] * units.MHz],
-        }
-
         processed_event = None
         lofar_event_id = lofar_event_id_from_coreas_path(coreas_hdf5_file)
         if lofar_event_id is None:
@@ -358,7 +353,7 @@ class CoREASEventGenerator:
                 # set the station time to the start time defined in macros.py
                 # TODO: should this not be random / based on a given observation time? 
                 # it should be read based on LORA triggered event time.
-                station.set_station_time(START_TIME)
+                # station.set_station_time(START_TIME)
                 if save_debug_plots:
                     self._save_efield_trace_snapshot(evt, station.get_sim_station(), output_dir=event_debug_dir, stage="01_reader")
 
@@ -374,15 +369,30 @@ class CoREASEventGenerator:
                 if save_debug_plots:
                     self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="03_resample")
 
-                # Apply bandpass filter (in principle not needed since bandpass already applied in interpolator)
-                self.channelBandPassFilter.run(evt, station, self.detector, **filter_settings)
-                if save_debug_plots:
-                    self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="04_bandpass")
-
                 # # Add measured noise from LOFAR
                 self.channelMeasuredNoiseAdder.run(evt, station, self.detector)
                 if save_debug_plots:
-                    self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="05_measured_noise")
+                    self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="04_measured_noise")
+
+                # apply the bandpass filter to the traces. This is done twice, once with a gaussian taper and once with a hann taper. This is done to replicate the data pipeline.
+                self.channelBandPassFilter.run(
+                    evt,
+                    station,
+                    self.detector,
+                    passband=[PASS_BAND[0] * units.MHz, PASS_BAND[1] * units.MHz],
+                    filter_type="gaussian_tapered",
+                    roll_width=2.5 * units.MHz,
+                )
+                self.channelBandPassFilter.run(
+                    evt,
+                    station,
+                    self.detector,
+                    passband=[PASS_BAND[0] * units.MHz, PASS_BAND[1] * units.MHz],
+                    filter_type="hann_tapered",
+                    half_hann_percent=BANDPASS_HALF_HANN_PERCENT,
+                )
+                if save_debug_plots:
+                    self._save_trace_snapshot(evt, station, output_dir=event_debug_dir, stage="05_bandpass")
 
                 # Identify event type
                 self.eventTypeIdentifier.run(evt, station, mode='forced', forced_event_type='cosmic_ray')

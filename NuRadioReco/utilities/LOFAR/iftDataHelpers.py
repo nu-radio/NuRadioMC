@@ -21,7 +21,7 @@ except ImportError:
     jax = jnp = jtu = None
 
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities.LOFAR.macros import BANDPASS_HALF_HANN_PERCENT
+from NuRadioReco.utilities.LOFAR.constants import BANDPASS_HALF_HANN_PERCENT
 
 logger = logging.getLogger("NuRadioReco.LOFAR.iftDataHelpers")
 
