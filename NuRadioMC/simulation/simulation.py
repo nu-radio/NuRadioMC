@@ -1,3 +1,15 @@
+"""
+Core simulation module of NuRadioMC
+
+This module provides the `simulation` base class which
+is used to define an end-to-end simulation of the radio
+emission from particle cascades, including propagation,
+Askaryan emission, detector response, adding noise and
+trigger calculation. For more detail on how the simulation
+works, see :doc:`here </NuRadioMC/pages/Manuals/simulation_configuration>`.
+
+"""
+
 import os
 import collections
 import datetime
@@ -485,24 +497,27 @@ def apply_det_response_sim(
         event_time=None,
         detector_simulation_part1=None):
     """
-    Apply the detector response to the simulated electric field, i.e., calculate the voltage traces as
-    seen by the readout system, per shower, raytracing solution and channel.
+    Apply the detector response to the simulated electric fields.
+
+    Calculates the voltage traces as seen by the readout system,
+    per shower, raytracing solution and channel.
     This includes the effect of the antenna response, the
     analog signal chain. The result is a list of SimChannel objects which are added to the
     SimStation object.
 
     Parameters
     ----------
-    sim_station : sim_station object that contains the electric fields at the observer positions
-        A list of SimEfield objects, one for each shower and propagation solution
+    sim_station : sim_station
+        SimStation that contains the electric fields at the observer positions
+        one for each shower and propagation solution
     det : Detector object
         the detector description defining all channels.
     config : dict
         the NuRadioMC configuration dictionary (from the yaml file)
     detector_simulation_filter_amp: function (optional)
         a function that applies the filter and amplifier response to the electric field
-        the arguments to the function are (event, station, detector)
-        if not provided, the function `detector_simulation_part1` needs to be provided.
+        the arguments to the function are (``evt``, ``sim_station``, ``det``)
+        if not provided, the function ``detector_simulation_part1`` needs to be provided.
     evt : NuRadioReco event object (optional)
         all NuRadioReco modules that get executed will be registered to the event.
         If no event is provided, a dummy event is created so that the function runs, but
@@ -511,9 +526,23 @@ def apply_det_response_sim(
         the time of the event to be simulated
     detector_simulation_part1: function (optional)
         this function gives the user the full flexibility to implement all processing
-        arguments to the function are (event, station, detector)
+        arguments to the function are (``sim_station``, ``det``)
 
-    Returns nothing. The SimChannels are added to the SimStation object.
+    Notes
+    -----
+    This function does not return anything but adds the SimChannels to the ``sim_station`` in-place.
+
+    Requires either ``detector_simulation_filter_amp`` or ``detector_simulation_part1``
+    to be specified. If the former, the following module sequence is executed:
+
+    1. ``efieldToVoltageConverterPerEfield`` (applies antenna response)
+    2. ``channelAddCableDelay`` (applies cable delays)
+    3. ``detector_simulation_filter_amp`` (applies user-defined filter / amplifier response)
+
+    If ``detector_simulation_part1`` is defined, ``detector_simulation_filter_amp``
+    is ignored, and only ``detector_simulation_part1`` is executed. Note that in this case
+    also the antenna response and cable delays should be handled by ``detector_simulation_part1``!
+
     """
     time_logger.start_time('det. response (sim)')
 
@@ -553,8 +582,10 @@ def apply_det_response(
         detector_simulation_part2=None,
         channel_ids=None):
     """
-    Apply the detector response to the simulated electric field, i.e., the voltage traces
-    seen by the readout system. This function combines all electric fields (from different showers and
+    Apply the detector response to the simulated electric field.
+
+    Computes the voltage traces seen by the readout system.
+    This function combines all electric fields (from different showers and
     ray tracing solutions) of one detector channel/antenna. This includes the effect of the antenna response, the
     analog signal chain. The result is a list of Channel objects which are added to the
     Station object.
@@ -563,14 +594,15 @@ def apply_det_response(
     ----------
     evt : NuRadioReco.framework.event.Event
         Event object containing all the showers/emitters and electric fields
+        The Event should only contain a single station
     det : Detector object
         the detector description defining all channels.
     config : dict
         the NuRadioMC configuration dictionary (from the yaml file)
     detector_simulation_filter_amp: function (optional)
         a function that applies the filter and amplifier response to the electric field
-        the arguments to the function are (event, station, detector)
-        if not provided, the function `detector_simulation_part2` needs to be provided.
+        the arguments to the function are (``evt``, ``station``, ``det``)
+        if not provided, the function ``detector_simulation_part2`` needs to be provided.
     add_noise : bool
         if True, noise is added to the channels
     Vrms_per_channel : dict
@@ -583,11 +615,26 @@ def apply_det_response(
         the channels that should not have noise added
     detector_simulation_part2: function (optional)
         this function gives the user the full flexibility to implement all processing
-        arguments to the function are (event, station, detector)
+        The function will be passed the arguments (``evt``, ``station``, ``det``, ``add_noise``)
     channel_ids: list of ints
         the channel ids for which the detector response should be calculated. If None, all channels are used.
 
-    Returns nothing. The Channels are added to the Station object.
+    Notes
+    -----
+    This function does not return anything but adds the channels to the event / station in-place.
+
+    Requires either ``detector_simulation_filter_amp`` or ``detector_simulation_part2``
+    to be specified. If the former, the following module sequence is run:
+
+    1. ``efieldToVoltageConverter`` (applies antenna response and adds cable delays)
+    2. (optionally) ``channelGenericNoiseAdder`` (adds pre-amplifier noise)
+    3. ``detector_simulation_filter_amp`` (applies user-defined filter / amplifier response)
+
+    If ``detector_simulation_part2`` is defined, ``detector_simulation_filter_amp``
+    is ignored, and only ``detector_simulation_part2`` is executed.
+    This allows to specify, e.g., more complicated noise models which are added at multiple
+    stages. Note that in this case, also the antenna response needs to be part of this function!
+
     """
     time_logger.start_time('det. response')
 
@@ -1098,6 +1145,54 @@ def remove_all_traces(evt):
 
 
 class simulation:
+    """
+    Base class for NuRadioMC end-to-end simulation
+
+    Base class for the simulation of an in-ice radio detector, starting from
+    particle showers in ice and including the antenna response, 
+    (optionally) noise, detector signal chain (filters, amplifiers, cables),
+    and trigger logic.
+
+    .. Note::
+
+        In order to use this class for a simulation, a user-defined class
+        needs to inherit from this class, and define (at least) the additional
+        methods ``_detector_simulation_filter_amp`` and ``_detector_simulation_trigger``
+        need to be defined!
+
+    
+    Examples
+    --------
+    .. code-block:: Python
+    
+        import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
+        import NuRadioReco.modules.trigger.highLowThreshold
+
+        hardware_response = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
+        highLowThreshold = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
+
+        class mySimulation(simulation.simulation):
+
+            def _detector_simulation_filter_amp(self, evt, station, det): # simulate the detector response
+                hardware_response.run(evt, station, det, sim_to_data=True)
+
+            def _detector_simulation_trigger(self, evt, station, det): # run the trigger simulation
+                highLowThreshold.run(
+                    evt, station, det, triggered_channels=[0,1,2,3], trigger_name='main_trigger')
+
+        sim = mySimulation(
+            inputfilename="input.hdf5",
+            outputfilename="output.hdf5",
+            detectorfile="RNO_G/RNO_single_station.json",
+            outputfilenameNuRadioReco="output.nur",
+            config_file='config.yaml',
+            trigger_channels=[0,1,2,3])
+
+        # run the simulation: this will produce the output files 'output.hdf5'
+        # and 'output.nur' containing the triggering events
+        sim.run()
+
+    """
 
     def __init__(
             self, inputfilename,
@@ -1109,13 +1204,13 @@ class simulation:
             debug=False,
             evt_time=datetime.datetime(2018, 1, 1),
             config_file=None,
-            log_level=LOGGING_STATUS,
+            log_level=logging.NOTSET,
             default_detector_station=None,
             default_detector_channel=None,
             file_overwrite=False,
             write_detector=True,
             event_list=None,
-            log_level_propagation=LOGGING_STATUS,
+            log_level_propagation=logging.NOTSET,
             ice_model=None,
             trigger_channels = None,
             **kwargs):
@@ -1145,12 +1240,13 @@ class simulation:
             effective volume calculations
         debug: bool
             True activates debug mode, default False
+            (This argument is currently ignored)
         evt_time: datetime object
             the time of the events, default 1/1/2018
         config_file: string
             path to config file
         log_level: logging.LEVEL
-            the log level
+            the log level. Defaults to NOTSET
         default_detector_station: int or None
             DEPRECATED: Define reference stations in the detector JSON file instead
         default_detector_channel: int or None
@@ -1741,6 +1837,7 @@ class simulation:
     def add_filtered_noise_to_channels(self, evt, station, channel_ids):
         """
         Add noise to the traces of the channels in the event.
+
         This function is used to add noise to the traces of the non-trigger channels.
         The traces of the non-trigger channels already have the detector response applied to them.
         Hence we add "filtered" noise, i.e., noise which is based through the same filter seperatly.
@@ -1830,12 +1927,19 @@ class simulation:
             return False
 
     def get_Vrms(self):
+        """Returns the config-specified root-mean-squared voltage of the noise"""
         return self._Vrms
 
     def get_sampling_rate(self):
+        """Returns the sampling rate of the simulation
+
+        Generally, a sampling rate higher than that of the detector is used
+        and only downsampled to the target sampling rate at the end of the simulation.
+        """
         return 1. / self._config['sampling_rate']
 
     def get_bandwidth(self):
+        """Bandwidth of the first simulated channel"""
         return self._bandwidth
 
     def _check_if_was_pre_simulated(self):
@@ -1872,6 +1976,10 @@ class simulation:
 
     @property
     def integrated_channel_response(self):
+        """The effective bandwidth of a channel before amplification
+
+        Used to set the correct noise level, if noise is simulated.
+        """
         return self._integrated_channel_response
 
     @integrated_channel_response.setter
