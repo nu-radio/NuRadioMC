@@ -644,7 +644,19 @@
            <div itemprop="articleBody">
              
   <h1>Source code for NuRadioMC.simulation.simulation</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span></span><span class="sd">"""</span>
+<span class="sd">Core simulation module of NuRadioMC</span>
+
+<span class="sd">This module provides the `simulation` base class which</span>
+<span class="sd">is used to define an end-to-end simulation of the radio</span>
+<span class="sd">emission from particle cascades, including propagation,</span>
+<span class="sd">Askaryan emission, detector response, adding noise and</span>
+<span class="sd">trigger calculation. For more detail on how the simulation</span>
+<span class="sd">works, see :doc:`here &lt;/NuRadioMC/pages/Manuals/simulation_configuration&gt;`.</span>
+
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
@@ -1142,24 +1154,27 @@
         <span class="n">event_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">detector_simulation_part1</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
-<span class="sd">    Apply the detector response to the simulated electric field, i.e., calculate the voltage traces as</span>
-<span class="sd">    seen by the readout system, per shower, raytracing solution and channel.</span>
+<span class="sd">    Apply the detector response to the simulated electric fields.</span>
+
+<span class="sd">    Calculates the voltage traces as seen by the readout system,</span>
+<span class="sd">    per shower, raytracing solution and channel.</span>
 <span class="sd">    This includes the effect of the antenna response, the</span>
 <span class="sd">    analog signal chain. The result is a list of SimChannel objects which are added to the</span>
 <span class="sd">    SimStation object.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    sim_station : sim_station object that contains the electric fields at the observer positions</span>
-<span class="sd">        A list of SimEfield objects, one for each shower and propagation solution</span>
+<span class="sd">    sim_station : sim_station</span>
+<span class="sd">        SimStation that contains the electric fields at the observer positions</span>
+<span class="sd">        one for each shower and propagation solution</span>
 <span class="sd">    det : Detector object</span>
 <span class="sd">        the detector description defining all channels.</span>
 <span class="sd">    config : dict</span>
 <span class="sd">        the NuRadioMC configuration dictionary (from the yaml file)</span>
 <span class="sd">    detector_simulation_filter_amp: function (optional)</span>
 <span class="sd">        a function that applies the filter and amplifier response to the electric field</span>
-<span class="sd">        the arguments to the function are (event, station, detector)</span>
-<span class="sd">        if not provided, the function `detector_simulation_part1` needs to be provided.</span>
+<span class="sd">        the arguments to the function are (``evt``, ``sim_station``, ``det``)</span>
+<span class="sd">        if not provided, the function ``detector_simulation_part1`` needs to be provided.</span>
 <span class="sd">    evt : NuRadioReco event object (optional)</span>
 <span class="sd">        all NuRadioReco modules that get executed will be registered to the event.</span>
 <span class="sd">        If no event is provided, a dummy event is created so that the function runs, but</span>
@@ -1168,9 +1183,23 @@
 <span class="sd">        the time of the event to be simulated</span>
 <span class="sd">    detector_simulation_part1: function (optional)</span>
 <span class="sd">        this function gives the user the full flexibility to implement all processing</span>
-<span class="sd">        arguments to the function are (event, station, detector)</span>
+<span class="sd">        arguments to the function are (``sim_station``, ``det``)</span>
 
-<span class="sd">    Returns nothing. The SimChannels are added to the SimStation object.</span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function does not return anything but adds the SimChannels to the ``sim_station`` in-place.</span>
+
+<span class="sd">    Requires either ``detector_simulation_filter_amp`` or ``detector_simulation_part1``</span>
+<span class="sd">    to be specified. If the former, the following module sequence is executed:</span>
+
+<span class="sd">    1. ``efieldToVoltageConverterPerEfield`` (applies antenna response)</span>
+<span class="sd">    2. ``channelAddCableDelay`` (applies cable delays)</span>
+<span class="sd">    3. ``detector_simulation_filter_amp`` (applies user-defined filter / amplifier response)</span>
+
+<span class="sd">    If ``detector_simulation_part1`` is defined, ``detector_simulation_filter_amp``</span>
+<span class="sd">    is ignored, and only ``detector_simulation_part1`` is executed. Note that in this case</span>
+<span class="sd">    also the antenna response and cable delays should be handled by ``detector_simulation_part1``!</span>
+
 <span class="sd">    """</span>
     <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">'det. response (sim)'</span><span class="p">)</span>
 
@@ -1213,8 +1242,10 @@
         <span class="n">detector_simulation_part2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">channel_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
-<span class="sd">    Apply the detector response to the simulated electric field, i.e., the voltage traces</span>
-<span class="sd">    seen by the readout system. This function combines all electric fields (from different showers and</span>
+<span class="sd">    Apply the detector response to the simulated electric field.</span>
+
+<span class="sd">    Computes the voltage traces seen by the readout system.</span>
+<span class="sd">    This function combines all electric fields (from different showers and</span>
 <span class="sd">    ray tracing solutions) of one detector channel/antenna. This includes the effect of the antenna response, the</span>
 <span class="sd">    analog signal chain. The result is a list of Channel objects which are added to the</span>
 <span class="sd">    Station object.</span>
@@ -1223,14 +1254,15 @@
 <span class="sd">    ----------</span>
 <span class="sd">    evt : NuRadioReco.framework.event.Event</span>
 <span class="sd">        Event object containing all the showers/emitters and electric fields</span>
+<span class="sd">        The Event should only contain a single station</span>
 <span class="sd">    det : Detector object</span>
 <span class="sd">        the detector description defining all channels.</span>
 <span class="sd">    config : dict</span>
 <span class="sd">        the NuRadioMC configuration dictionary (from the yaml file)</span>
 <span class="sd">    detector_simulation_filter_amp: function (optional)</span>
 <span class="sd">        a function that applies the filter and amplifier response to the electric field</span>
-<span class="sd">        the arguments to the function are (event, station, detector)</span>
-<span class="sd">        if not provided, the function `detector_simulation_part2` needs to be provided.</span>
+<span class="sd">        the arguments to the function are (``evt``, ``station``, ``det``)</span>
+<span class="sd">        if not provided, the function ``detector_simulation_part2`` needs to be provided.</span>
 <span class="sd">    add_noise : bool</span>
 <span class="sd">        if True, noise is added to the channels</span>
 <span class="sd">    Vrms_per_channel : dict</span>
@@ -1243,11 +1275,26 @@
 <span class="sd">        the channels that should not have noise added</span>
 <span class="sd">    detector_simulation_part2: function (optional)</span>
 <span class="sd">        this function gives the user the full flexibility to implement all processing</span>
-<span class="sd">        arguments to the function are (event, station, detector)</span>
+<span class="sd">        The function will be passed the arguments (``evt``, ``station``, ``det``, ``add_noise``)</span>
 <span class="sd">    channel_ids: list of ints</span>
 <span class="sd">        the channel ids for which the detector response should be calculated. If None, all channels are used.</span>
 
-<span class="sd">    Returns nothing. The Channels are added to the Station object.</span>
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This function does not return anything but adds the channels to the event / station in-place.</span>
+
+<span class="sd">    Requires either ``detector_simulation_filter_amp`` or ``detector_simulation_part2``</span>
+<span class="sd">    to be specified. If the former, the following module sequence is run:</span>
+
+<span class="sd">    1. ``efieldToVoltageConverter`` (applies antenna response and adds cable delays)</span>
+<span class="sd">    2. (optionally) ``channelGenericNoiseAdder`` (adds pre-amplifier noise)</span>
+<span class="sd">    3. ``detector_simulation_filter_amp`` (applies user-defined filter / amplifier response)</span>
+
+<span class="sd">    If ``detector_simulation_part2`` is defined, ``detector_simulation_filter_amp``</span>
+<span class="sd">    is ignored, and only ``detector_simulation_part2`` is executed.</span>
+<span class="sd">    This allows to specify, e.g., more complicated noise models which are added at multiple</span>
+<span class="sd">    stages. Note that in this case, also the antenna response needs to be part of this function!</span>
+
 <span class="sd">    """</span>
     <span class="n">time_logger</span><span class="o">.</span><span class="n">start_time</span><span class="p">(</span><span class="s1">'det. response'</span><span class="p">)</span>
 
@@ -1788,6 +1835,54 @@
 <div class="viewcode-block" id="simulation">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.simulation">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">simulation</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Base class for NuRadioMC end-to-end simulation</span>
+
+<span class="sd">    Base class for the simulation of an in-ice radio detector, starting from</span>
+<span class="sd">    particle showers in ice and including the antenna response, </span>
+<span class="sd">    (optionally) noise, detector signal chain (filters, amplifiers, cables),</span>
+<span class="sd">    and trigger logic.</span>
+
+<span class="sd">    .. Note::</span>
+
+<span class="sd">        In order to use this class for a simulation, a user-defined class</span>
+<span class="sd">        needs to inherit from this class, and define (at least) the additional</span>
+<span class="sd">        methods ``_detector_simulation_filter_amp`` and ``_detector_simulation_trigger``</span>
+<span class="sd">        need to be defined!</span>
+
+<span class="sd">    </span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    .. code-block:: Python</span>
+<span class="sd">    </span>
+<span class="sd">        import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator</span>
+<span class="sd">        import NuRadioReco.modules.trigger.highLowThreshold</span>
+
+<span class="sd">        hardware_response = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()</span>
+<span class="sd">        highLowThreshold = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()</span>
+
+<span class="sd">        class mySimulation(simulation.simulation):</span>
+
+<span class="sd">            def _detector_simulation_filter_amp(self, evt, station, det): # simulate the detector response</span>
+<span class="sd">                hardware_response.run(evt, station, det, sim_to_data=True)</span>
+
+<span class="sd">            def _detector_simulation_trigger(self, evt, station, det): # run the trigger simulation</span>
+<span class="sd">                highLowThreshold.run(</span>
+<span class="sd">                    evt, station, det, triggered_channels=[0,1,2,3], trigger_name='main_trigger')</span>
+
+<span class="sd">        sim = mySimulation(</span>
+<span class="sd">            inputfilename="input.hdf5",</span>
+<span class="sd">            outputfilename="output.hdf5",</span>
+<span class="sd">            detectorfile="RNO_G/RNO_single_station.json",</span>
+<span class="sd">            outputfilenameNuRadioReco="output.nur",</span>
+<span class="sd">            config_file='config.yaml',</span>
+<span class="sd">            trigger_channels=[0,1,2,3])</span>
+
+<span class="sd">        # run the simulation: this will produce the output files 'output.hdf5'</span>
+<span class="sd">        # and 'output.nur' containing the triggering events</span>
+<span class="sd">        sim.run()</span>
+
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">inputfilename</span><span class="p">,</span>
@@ -1799,13 +1894,13 @@
             <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">evt_time</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2018</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
             <span class="n">config_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">log_level</span><span class="o">=</span><span class="n">LOGGING_STATUS</span><span class="p">,</span>
+            <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span>
             <span class="n">default_detector_station</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">default_detector_channel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">file_overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">write_detector</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">event_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">log_level_propagation</span><span class="o">=</span><span class="n">LOGGING_STATUS</span><span class="p">,</span>
+            <span class="n">log_level_propagation</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">,</span>
             <span class="n">ice_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">trigger_channels</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1835,12 +1930,13 @@
 <span class="sd">            effective volume calculations</span>
 <span class="sd">        debug: bool</span>
 <span class="sd">            True activates debug mode, default False</span>
+<span class="sd">            (This argument is currently ignored)</span>
 <span class="sd">        evt_time: datetime object</span>
 <span class="sd">            the time of the events, default 1/1/2018</span>
 <span class="sd">        config_file: string</span>
 <span class="sd">            path to config file</span>
 <span class="sd">        log_level: logging.LEVEL</span>
-<span class="sd">            the log level</span>
+<span class="sd">            the log level. Defaults to NOTSET</span>
 <span class="sd">        default_detector_station: int or None</span>
 <span class="sd">            DEPRECATED: Define reference stations in the detector JSON file instead</span>
 <span class="sd">        default_detector_channel: int or None</span>
@@ -2436,6 +2532,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">add_filtered_noise_to_channels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">channel_ids</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add noise to the traces of the channels in the event.</span>
+
 <span class="sd">        This function is used to add noise to the traces of the non-trigger channels.</span>
 <span class="sd">        The traces of the non-trigger channels already have the detector response applied to them.</span>
 <span class="sd">        Hence we add "filtered" noise, i.e., noise which is based through the same filter seperatly.</span>
@@ -2528,18 +2625,25 @@
 <div class="viewcode-block" id="simulation.get_Vrms">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.simulation.get_Vrms">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_Vrms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Returns the config-specified root-mean-squared voltage of the noise"""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Vrms</span></div>
 
 
 <div class="viewcode-block" id="simulation.get_sampling_rate">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.simulation.get_sampling_rate">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_sampling_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Returns the sampling rate of the simulation</span>
+
+<span class="sd">        Generally, a sampling rate higher than that of the detector is used</span>
+<span class="sd">        and only downsampled to the target sampling rate at the end of the simulation.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_config</span><span class="p">[</span><span class="s1">'sampling_rate'</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="simulation.get_bandwidth">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.simulation.get_bandwidth">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_bandwidth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Bandwidth of the first simulated channel"""</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bandwidth</span></div>
 
 
@@ -2577,6 +2681,10 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">integrated_channel_response</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The effective bandwidth of a channel before amplification</span>
+
+<span class="sd">        Used to set the correct noise level, if noise is simulated.</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integrated_channel_response</span>
 
     <span class="nd">@integrated_channel_response</span><span class="o">.</span><span class="n">setter</span>

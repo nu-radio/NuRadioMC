@@ -651,6 +651,13 @@
              
   <section id="module-NuRadioMC.simulation.simulation">
 <span id="nuradiomc-simulation-simulation-module"></span><h1>NuRadioMC.simulation.simulation module<a class="headerlink" href="#module-NuRadioMC.simulation.simulation" title="Link to this heading"></a></h1>
+<p>Core simulation module of NuRadioMC</p>
+<p>This module provides the <a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation" title="NuRadioMC.simulation.simulation.simulation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">simulation</span></code></a> base class which
+is used to define an end-to-end simulation of the radio
+emission from particle cascades, including propagation,
+Askaryan emission, detector response, adding noise and
+trigger calculation. For more detail on how the simulation
+works, see <a class="reference internal" href="../pages/Manuals/simulation_configuration.html"><span class="doc">here</span></a>.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.merge_config">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">merge_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#merge_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.merge_config" title="Link to this definition"></a></dt>
@@ -750,23 +757,25 @@ the station will not be set as candidate station.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.apply_det_response_sim">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">apply_det_response_sim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sim_station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector_simulation_filter_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector_simulation_part1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#apply_det_response_sim"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.apply_det_response_sim" title="Link to this definition"></a></dt>
-<dd><p>Apply the detector response to the simulated electric field, i.e., calculate the voltage traces as
-seen by the readout system, per shower, raytracing solution and channel.
+<dd><p>Apply the detector response to the simulated electric fields.</p>
+<p>Calculates the voltage traces as seen by the readout system,
+per shower, raytracing solution and channel.
 This includes the effect of the antenna response, the
 analog signal chain. The result is a list of SimChannel objects which are added to the
 SimStation object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>sim_station</strong><span class="classifier">sim_station object that contains the electric fields at the observer positions</span></dt><dd><p>A list of SimEfield objects, one for each shower and propagation solution</p>
+<dt><strong>sim_station</strong><span class="classifier">sim_station</span></dt><dd><p>SimStation that contains the electric fields at the observer positions
+one for each shower and propagation solution</p>
 </dd>
 <dt><strong>det</strong><span class="classifier">Detector object</span></dt><dd><p>the detector description defining all channels.</p>
 </dd>
 <dt><strong>config</strong><span class="classifier">dict</span></dt><dd><p>the NuRadioMC configuration dictionary (from the yaml file)</p>
 </dd>
 <dt><strong>detector_simulation_filter_amp: function (optional)</strong></dt><dd><p>a function that applies the filter and amplifier response to the electric field
-the arguments to the function are (event, station, detector)
-if not provided, the function <em class="xref py py-obj">detector_simulation_part1</em> needs to be provided.</p>
+the arguments to the function are (<code class="docutils literal notranslate"><span class="pre">evt</span></code>, <code class="docutils literal notranslate"><span class="pre">sim_station</span></code>, <code class="docutils literal notranslate"><span class="pre">det</span></code>)
+if not provided, the function <code class="docutils literal notranslate"><span class="pre">detector_simulation_part1</span></code> needs to be provided.</p>
 </dd>
 <dt><strong>evt</strong><span class="classifier">NuRadioReco event object (optional)</span></dt><dd><p>all NuRadioReco modules that get executed will be registered to the event.
 If no event is provided, a dummy event is created so that the function runs, but
@@ -775,34 +784,47 @@ then this information is not available to the user.</p>
 <dt><strong>event_time: time object (optional)</strong></dt><dd><p>the time of the event to be simulated</p>
 </dd>
 <dt><strong>detector_simulation_part1: function (optional)</strong></dt><dd><p>this function gives the user the full flexibility to implement all processing
-arguments to the function are (event, station, detector)</p>
-</dd>
-<dt><strong>Returns nothing. The SimChannels are added to the SimStation object.</strong></dt><dd></dd>
-</dl>
+arguments to the function are (<code class="docutils literal notranslate"><span class="pre">sim_station</span></code>, <code class="docutils literal notranslate"><span class="pre">det</span></code>)</p>
 </dd>
 </dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This function does not return anything but adds the SimChannels to the <code class="docutils literal notranslate"><span class="pre">sim_station</span></code> in-place.</p>
+<p>Requires either <code class="docutils literal notranslate"><span class="pre">detector_simulation_filter_amp</span></code> or <code class="docutils literal notranslate"><span class="pre">detector_simulation_part1</span></code>
+to be specified. If the former, the following module sequence is executed:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">efieldToVoltageConverterPerEfield</span></code> (applies antenna response)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">channelAddCableDelay</span></code> (applies cable delays)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">detector_simulation_filter_amp</span></code> (applies user-defined filter / amplifier response)</p></li>
+</ol>
+<p>If <code class="docutils literal notranslate"><span class="pre">detector_simulation_part1</span></code> is defined, <code class="docutils literal notranslate"><span class="pre">detector_simulation_filter_amp</span></code>
+is ignored, and only <code class="docutils literal notranslate"><span class="pre">detector_simulation_part1</span></code> is executed. Note that in this case
+also the antenna response and cable delays should be handled by <code class="docutils literal notranslate"><span class="pre">detector_simulation_part1</span></code>!</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.apply_det_response">
 <span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">apply_det_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector_simulation_filter_amp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_noise</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms_per_channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integrated_channel_response</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noiseless_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detector_simulation_part2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#apply_det_response"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.apply_det_response" title="Link to this definition"></a></dt>
-<dd><p>Apply the detector response to the simulated electric field, i.e., the voltage traces
-seen by the readout system. This function combines all electric fields (from different showers and
+<dd><p>Apply the detector response to the simulated electric field.</p>
+<p>Computes the voltage traces seen by the readout system.
+This function combines all electric fields (from different showers and
 ray tracing solutions) of one detector channel/antenna. This includes the effect of the antenna response, the
 analog signal chain. The result is a list of Channel objects which are added to the
 Station object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>evt</strong><span class="classifier">NuRadioReco.framework.event.Event</span></dt><dd><p>Event object containing all the showers/emitters and electric fields</p>
+<dt><strong>evt</strong><span class="classifier">NuRadioReco.framework.event.Event</span></dt><dd><p>Event object containing all the showers/emitters and electric fields
+The Event should only contain a single station</p>
 </dd>
 <dt><strong>det</strong><span class="classifier">Detector object</span></dt><dd><p>the detector description defining all channels.</p>
 </dd>
 <dt><strong>config</strong><span class="classifier">dict</span></dt><dd><p>the NuRadioMC configuration dictionary (from the yaml file)</p>
 </dd>
 <dt><strong>detector_simulation_filter_amp: function (optional)</strong></dt><dd><p>a function that applies the filter and amplifier response to the electric field
-the arguments to the function are (event, station, detector)
-if not provided, the function <em class="xref py py-obj">detector_simulation_part2</em> needs to be provided.</p>
+the arguments to the function are (<code class="docutils literal notranslate"><span class="pre">evt</span></code>, <code class="docutils literal notranslate"><span class="pre">station</span></code>, <code class="docutils literal notranslate"><span class="pre">det</span></code>)
+if not provided, the function <code class="docutils literal notranslate"><span class="pre">detector_simulation_part2</span></code> needs to be provided.</p>
 </dd>
 <dt><strong>add_noise</strong><span class="classifier">bool</span></dt><dd><p>if True, noise is added to the channels</p>
 </dd>
@@ -815,14 +837,26 @@ to the bandwidth it is generated for.</p>
 <dt><strong>noiseless_channels</strong><span class="classifier">dict (keys station_id) of list of ints</span></dt><dd><p>the channels that should not have noise added</p>
 </dd>
 <dt><strong>detector_simulation_part2: function (optional)</strong></dt><dd><p>this function gives the user the full flexibility to implement all processing
-arguments to the function are (event, station, detector)</p>
+The function will be passed the arguments (<code class="docutils literal notranslate"><span class="pre">evt</span></code>, <code class="docutils literal notranslate"><span class="pre">station</span></code>, <code class="docutils literal notranslate"><span class="pre">det</span></code>, <code class="docutils literal notranslate"><span class="pre">add_noise</span></code>)</p>
 </dd>
 <dt><strong>channel_ids: list of ints</strong></dt><dd><p>the channel ids for which the detector response should be calculated. If None, all channels are used.</p>
 </dd>
-<dt><strong>Returns nothing. The Channels are added to the Station object.</strong></dt><dd></dd>
 </dl>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>This function does not return anything but adds the channels to the event / station in-place.</p>
+<p>Requires either <code class="docutils literal notranslate"><span class="pre">detector_simulation_filter_amp</span></code> or <code class="docutils literal notranslate"><span class="pre">detector_simulation_part2</span></code>
+to be specified. If the former, the following module sequence is run:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">efieldToVoltageConverter</span></code> (applies antenna response and adds cable delays)</p></li>
+<li><p>(optionally) <code class="docutils literal notranslate"><span class="pre">channelGenericNoiseAdder</span></code> (adds pre-amplifier noise)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">detector_simulation_filter_amp</span></code> (applies user-defined filter / amplifier response)</p></li>
+</ol>
+<p>If <code class="docutils literal notranslate"><span class="pre">detector_simulation_part2</span></code> is defined, <code class="docutils literal notranslate"><span class="pre">detector_simulation_filter_amp</span></code>
+is ignored, and only <code class="docutils literal notranslate"><span class="pre">detector_simulation_part2</span></code> is executed.
+This allows to specify, e.g., more complicated noise models which are added at multiple
+stages. Note that in this case, also the antenna response needs to be part of this function!</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1039,8 +1073,77 @@ Otherwise, the weight is calculated based on the particle’s zenith, energy, fl
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.simulation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputfilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detectorfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfilenameNuRadioReco</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evt_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">datetime.datetime(2018,</span> <span class="pre">1,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_detector_station</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_detector_channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level_propagation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ice_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.simulation.simulation.</span></span><span class="sig-name descname"><span class="pre">simulation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputfilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detectorfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">det_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputfilenameNuRadioReco</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evt_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">datetime.datetime(2018,</span> <span class="pre">1,</span> <span class="pre">1,</span> <span class="pre">0,</span> <span class="pre">0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_file</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_detector_station</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_detector_channel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_detector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level_propagation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ice_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#simulation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for NuRadioMC end-to-end simulation</p>
+<p>Base class for the simulation of an in-ice radio detector, starting from
+particle showers in ice and including the antenna response, 
+(optionally) noise, detector signal chain (filters, amplifiers, cables),
+and trigger logic.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In order to use this class for a simulation, a user-defined class
+needs to inherit from this class, and define (at least) the additional
+methods <code class="docutils literal notranslate"><span class="pre">_detector_simulation_filter_amp</span></code> and <code class="docutils literal notranslate"><span class="pre">_detector_simulation_trigger</span></code>
+need to be defined!</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.integrated_channel_response" title="NuRadioMC.simulation.simulation.simulation.integrated_channel_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">integrated_channel_response</span></code></a></dt><dd><p>The effective bandwidth of a channel before amplification</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.add_filtered_noise_to_channels" title="NuRadioMC.simulation.simulation.simulation.add_filtered_noise_to_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_filtered_noise_to_channels</span></code></a>(evt, station, ...)</p></td>
+<td><p>Add noise to the traces of the channels in the event.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.get_Vrms" title="NuRadioMC.simulation.simulation.simulation.get_Vrms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_Vrms</span></code></a>()</p></td>
+<td><p>Returns the config-specified root-mean-squared voltage of the noise</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.get_bandwidth" title="NuRadioMC.simulation.simulation.simulation.get_bandwidth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_bandwidth</span></code></a>()</p></td>
+<td><p>Bandwidth of the first simulated channel</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.get_sampling_rate" title="NuRadioMC.simulation.simulation.simulation.get_sampling_rate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code></a>()</p></td>
+<td><p>Returns the sampling rate of the simulation</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.run" title="NuRadioMC.simulation.simulation.simulation.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>()</p></td>
+<td><p>run the NuRadioMC simulation</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.RNO_G.hardwareResponseIncorporator</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.trigger.highLowThreshold</span>
+
+<span class="n">hardware_response</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RNO_G</span><span class="o">.</span><span class="n">hardwareResponseIncorporator</span><span class="o">.</span><span class="n">hardwareResponseIncorporator</span><span class="p">()</span>
+<span class="n">highLowThreshold</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">highLowThreshold</span><span class="o">.</span><span class="n">triggerSimulator</span><span class="p">()</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">mySimulation</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">simulation</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_detector_simulation_filter_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span> <span class="c1"># simulate the detector response</span>
+        <span class="n">hardware_response</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_detector_simulation_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span> <span class="c1"># run the trigger simulation</span>
+        <span class="n">highLowThreshold</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">trigger_name</span><span class="o">=</span><span class="s1">'main_trigger'</span><span class="p">)</span>
+
+<span class="n">sim</span> <span class="o">=</span> <span class="n">mySimulation</span><span class="p">(</span>
+    <span class="n">inputfilename</span><span class="o">=</span><span class="s2">"input.hdf5"</span><span class="p">,</span>
+    <span class="n">outputfilename</span><span class="o">=</span><span class="s2">"output.hdf5"</span><span class="p">,</span>
+    <span class="n">detectorfile</span><span class="o">=</span><span class="s2">"RNO_G/RNO_single_station.json"</span><span class="p">,</span>
+    <span class="n">outputfilenameNuRadioReco</span><span class="o">=</span><span class="s2">"output.nur"</span><span class="p">,</span>
+    <span class="n">config_file</span><span class="o">=</span><span class="s1">'config.yaml'</span><span class="p">,</span>
+    <span class="n">trigger_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+
+<span class="c1"># run the simulation: this will produce the output files 'output.hdf5'</span>
+<span class="c1"># and 'output.nur' containing the triggering events</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
 <p>initialize the NuRadioMC end-to-end simulation</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1064,13 +1167,14 @@ waveforms of the triggered events
 default: None, i.e., no output file will be written which is useful for
 effective volume calculations</p>
 </dd>
-<dt><strong>debug: bool</strong></dt><dd><p>True activates debug mode, default False</p>
+<dt><strong>debug: bool</strong></dt><dd><p>True activates debug mode, default False
+(This argument is currently ignored)</p>
 </dd>
 <dt><strong>evt_time: datetime object</strong></dt><dd><p>the time of the events, default 1/1/2018</p>
 </dd>
 <dt><strong>config_file: string</strong></dt><dd><p>path to config file</p>
 </dd>
-<dt><strong>log_level: logging.LEVEL</strong></dt><dd><p>the log level</p>
+<dt><strong>log_level: logging.LEVEL</strong></dt><dd><p>the log level. Defaults to NOTSET</p>
 </dd>
 <dt><strong>default_detector_station: int or None</strong></dt><dd><p>DEPRECATED: Define reference stations in the detector JSON file instead</p>
 </dd>
@@ -1093,7 +1197,8 @@ default True</p>
 </dd>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt><strong>integrated_channel_response</strong></dt><dd></dd>
+<dt><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.integrated_channel_response" title="NuRadioMC.simulation.simulation.simulation.integrated_channel_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">integrated_channel_response</span></code></a></dt><dd><p>The effective bandwidth of a channel before amplification</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -1103,21 +1208,17 @@ default True</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.add_filtered_noise_to_channels" title="NuRadioMC.simulation.simulation.simulation.add_filtered_noise_to_channels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_filtered_noise_to_channels</span></code></a>(evt, station, ...)</p></td>
 <td><p>Add noise to the traces of the channels in the event.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.run" title="NuRadioMC.simulation.simulation.simulation.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.get_Vrms" title="NuRadioMC.simulation.simulation.simulation.get_Vrms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_Vrms</span></code></a>()</p></td>
+<td><p>Returns the config-specified root-mean-squared voltage of the noise</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.get_bandwidth" title="NuRadioMC.simulation.simulation.simulation.get_bandwidth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_bandwidth</span></code></a>()</p></td>
+<td><p>Bandwidth of the first simulated channel</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.get_sampling_rate" title="NuRadioMC.simulation.simulation.simulation.get_sampling_rate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sampling_rate</span></code></a>()</p></td>
+<td><p>Returns the sampling rate of the simulation</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.simulation.simulation.simulation.run" title="NuRadioMC.simulation.simulation.simulation.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>()</p></td>
 <td><p>run the NuRadioMC simulation</p></td>
-</tr>
-</tbody>
-</table>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><strong>get_Vrms</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>get_bandwidth</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>get_sampling_rate</strong></p></td>
-<td></td>
 </tr>
 </tbody>
 </table>
@@ -1130,8 +1231,8 @@ default True</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.simulation.add_filtered_noise_to_channels">
 <span class="sig-name descname"><span class="pre">add_filtered_noise_to_channels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">evt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_ids</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#simulation.add_filtered_noise_to_channels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation.add_filtered_noise_to_channels" title="Link to this definition"></a></dt>
-<dd><p>Add noise to the traces of the channels in the event.
-This function is used to add noise to the traces of the non-trigger channels.
+<dd><p>Add noise to the traces of the channels in the event.</p>
+<p>This function is used to add noise to the traces of the non-trigger channels.
 The traces of the non-trigger channels already have the detector response applied to them.
 Hence we add “filtered” noise, i.e., noise which is based through the same filter seperatly.</p>
 </dd></dl>
@@ -1139,22 +1240,29 @@ Hence we add “filtered” noise, i.e., noise which is based through the same f
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.simulation.get_Vrms">
 <span class="sig-name descname"><span class="pre">get_Vrms</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#simulation.get_Vrms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation.get_Vrms" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Returns the config-specified root-mean-squared voltage of the noise</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.simulation.get_sampling_rate">
 <span class="sig-name descname"><span class="pre">get_sampling_rate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#simulation.get_sampling_rate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation.get_sampling_rate" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Returns the sampling rate of the simulation</p>
+<p>Generally, a sampling rate higher than that of the detector is used
+and only downsampled to the target sampling rate at the end of the simulation.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.simulation.get_bandwidth">
 <span class="sig-name descname"><span class="pre">get_bandwidth</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/simulation/simulation.html#simulation.get_bandwidth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation.get_bandwidth" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Bandwidth of the first simulated channel</p>
+</dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="NuRadioMC.simulation.simulation.simulation.integrated_channel_response">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">integrated_channel_response</span></span><a class="headerlink" href="#NuRadioMC.simulation.simulation.simulation.integrated_channel_response" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>The effective bandwidth of a channel before amplification</p>
+<p>Used to set the correct noise level, if noise is simulated.</p>
+</dd></dl>
 
 </dd></dl>
 

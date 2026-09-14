@@ -650,50 +650,72 @@
              
   <section id="simulation-and-configuration">
 <h1>Simulation and configuration<a class="headerlink" href="#simulation-and-configuration" title="Link to this heading"></a></h1>
-<p>The simulation class and the module of the same name, located in the <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/tree/master/NuRadioMC/simulation">simulation</a> folder, constitute the heart of NuRadioMC. The simulation module takes the neutrino input files and creates events with them. These events are then processed using the information in the config file and the detector layout specified in the detector JSON file. Finally, the trigger description in a steering file is used to determine whether an event triggers or not.</p>
+<p>The <a class="reference internal" href="../../apidoc/NuRadioMC.simulation.simulation.html#NuRadioMC.simulation.simulation.simulation" title="NuRadioMC.simulation.simulation.simulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">simulation</span></code></a> class and the module of the same name, constitute the heart of NuRadioMC.
+The simulation module takes the neutrino input files and creates events with them.
+These events are then processed using the information in the config file and the detector layout specified in the detector JSON file.
+Finally, the trigger description in a steering file is used to determine whether an event triggers or not.</p>
 <p>This page outlines the important aspects of how to operate a NuRadioMC simulation. For a practical example, visit <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/tree/master/NuRadioMC/examples/06_webinar">the webinar example</a>.</p>
 <p>Let us begin with a description of the steering files needed to run the simulation then let us discuss a brief outline of the procedure in <code class="docutils literal notranslate"><span class="pre">simulation.py</span></code>.</p>
-<blockquote>
-<div><div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>The description of the simulation module, steering files, and configuration files reflect the status of the master as of July 2020. This needs to be updated after the new looping is approved and merged.</p>
-</div>
-</div></blockquote>
 <section id="steering-files">
 <h2>Steering files<a class="headerlink" href="#steering-files" title="Link to this heading"></a></h2>
-<p>A NuRadioMC steering file is the file that describes and runs the simulation. As a small example, we can define a detector with an empty detector description. Every steering file should have a class that inherits from the simulation class, that we can call <code class="docutils literal notranslate"><span class="pre">mySimulation</span></code>. This class must have a method called <code class="docutils literal notranslate"><span class="pre">_detector_simulation</span></code>, which uses NuRadioReco modules to simulate the detector response.</p>
+<p>A NuRadioMC steering file is the file that describes and runs the simulation. As a small example, we can define a detector with an empty detector description.
+Every steering file should have a class that inherits from the simulation class, that we can call <code class="docutils literal notranslate"><span class="pre">mySimulation</span></code>.
+This class must at least define the methods <code class="docutils literal notranslate"><span class="pre">_detector_simulation_filter_amp</span></code> and <code class="docutils literal notranslate"><span class="pre">_detector_simulation_trigger</span></code>, which
+define the detector signal chain response (filters, amplifiers) and the trigger(s), respectively.</p>
 <p>To create a simulation instance, we need a NuRadioMC neutrino input file, a detector description JSON file, a YAML file with various configuration settings, the output file name, and optionally the output NuRadioReco file name (nur file).</p>
 <p>The following code shows how to run a simulation by creating an instance of mySimulation, who is a child class of simulation, and then run it.</p>
 <blockquote>
-<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.simulation</span><span class="w"> </span><span class="kn">import</span> <span class="n">simulation</span>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.RNO_G.hardwareResponseIncorporator</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.trigger.highLowThreshold</span>
 
-<span class="c1"># The paths to the input file, output file, detector file and config file should be defined here</span>
-<span class="n">inputfilename</span> <span class="o">=</span> <span class="s1">'input.hdf5'</span>
-<span class="n">outpufilename</span> <span class="o">=</span> <span class="s1">'output.hdf5'</span>
-<span class="n">detectorfile</span> <span class="o">=</span> <span class="s1">'detector.json'</span>
-<span class="n">config_file</span> <span class="o">=</span> <span class="s1">'config.yaml'</span>
+<span class="n">hardware_response</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">RNO_G</span><span class="o">.</span><span class="n">hardwareResponseIncorporator</span><span class="o">.</span><span class="n">hardwareResponseIncorporator</span><span class="p">()</span>
+<span class="n">highLowThreshold</span> <span class="o">=</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">trigger</span><span class="o">.</span><span class="n">highLowThreshold</span><span class="o">.</span><span class="n">triggerSimulator</span><span class="p">()</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">mySimulation</span><span class="p">(</span><span class="n">simulation</span><span class="o">.</span><span class="n">simulation</span><span class="p">):</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_detector_simulation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_detector_simulation_filter_amp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span> <span class="c1"># simulate the detector response</span>
+        <span class="n">hardware_response</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">sim_to_data</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="n">sim</span> <span class="o">=</span> <span class="n">mySimulation</span><span class="p">(</span><span class="n">inputfilename</span><span class="o">=</span><span class="n">inputfilename</span><span class="p">,</span>
-                   <span class="n">outputfilename</span><span class="o">=</span><span class="n">outputfilename</span><span class="p">,</span>
-                   <span class="n">detectorfile</span><span class="o">=</span><span class="n">detectorfile</span><span class="p">,</span>
-                   <span class="n">config_file</span><span class="o">=</span><span class="n">config_file</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_detector_simulation_trigger</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span> <span class="c1"># run the trigger simulation</span>
+        <span class="n">highLowThreshold</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">,</span> <span class="n">triggered_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">trigger_name</span><span class="o">=</span><span class="s1">'main_trigger'</span><span class="p">)</span>
 
+<span class="n">sim</span> <span class="o">=</span> <span class="n">mySimulation</span><span class="p">(</span>
+    <span class="n">inputfilename</span><span class="o">=</span><span class="s2">"input.hdf5"</span><span class="p">,</span>
+    <span class="n">outputfilename</span><span class="o">=</span><span class="s2">"output.hdf5"</span><span class="p">,</span>
+    <span class="n">detectorfile</span><span class="o">=</span><span class="s2">"RNO_G/RNO_single_station.json"</span><span class="p">,</span>
+    <span class="n">outputfilenameNuRadioReco</span><span class="o">=</span><span class="s2">"output.nur"</span><span class="p">,</span>
+    <span class="n">config_file</span><span class="o">=</span><span class="s1">'config.yaml'</span><span class="p">,</span>
+    <span class="n">trigger_channels</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+
+<span class="c1"># run the simulation: this will produce the output files 'output.hdf5'</span>
+<span class="c1"># and 'output.nur' containing the triggering events</span>
 <span class="n">sim</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>When the simulation child object is initialised, the detector description in the JSON file is loaded via NuRadioReco. Then, when the <code class="docutils literal notranslate"><span class="pre">run()</span></code> method is called, the simulation module starts the following process:</p>
 <blockquote>
-<div><ol class="arabic simple">
+<div><ol class="arabic">
 <li><p>It reads the events from the input file, one by one, and assigns weights given by the probability that the neutrino reaches our effective volume</p></li>
 <li><p>It calculates the ray tracing solutions from the interaction vertices to the channels in each station</p></li>
 <li><p>Then, for the existing ray tracing solutions, the electric field is calculated using the SignalGen models, taking into account that propagation will modify the SignalGen input parameters</p></li>
-<li><p>The detector is simulated with the description provided in <code class="docutils literal notranslate"><span class="pre">_detector_simulation</span></code>. Usually, at least a conversion to voltage, a filter, and a trigger is applied.</p></li>
+<li><p>The detector is simulated:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>The electric fields are convolved with the antenna response to obtain voltage traces;</p></li>
+<li><p>(Optionally) noise is added. By default, flat (white) noise is added prior to the amplification stage;</p></li>
+<li><p>The signal chain (filters, amplifiers) are applied,
+as defined in the user-provided <code class="docutils literal notranslate"><span class="pre">_detector_simulation_filter_amp</span></code> method;</p></li>
+<li><p>The trigger(s) are computed to determine if the event would satisfy the detector trigger conditions,
+as implemented by the the user-provided <code class="docutils literal notranslate"><span class="pre">_detector_simulation_trigger</span></code> method;</p></li>
+<li><p>The voltage traces are cut to the appropriate readout windows (the trace lengths specified by the detector),
+and downsampled to the detector sampling frequency</p></li>
+</ol>
+</div></blockquote>
+</li>
+<li><p>Finally, some properties for all triggering events are stored in an output <a class="reference internal" href="../HDF5_structure.html"><span class="doc">HDF5 file</span></a>,
+and (optionally) the full events are stored in a <a class="reference internal" href="../../../NuRadioReco/pages/event_structure.html"><span class="doc">.nur file</span></a>.</p></li>
 </ol>
 </div></blockquote>
 <p>An example of a steering file, complete with detector description, can be found in <a class="reference external" href="https://github.com/nu-radio/NuRadioMC/blob/master/NuRadioMC/examples/06_webinar/W02RunSimulation.py">examples/06_webinar/W02RunSimulation.py</a>.</p>
@@ -723,8 +745,8 @@
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">simple</span></code>: assuming interaction happens at the surface and approximating the Earth with constant density</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">core\_mantle\_crust\_simple</span></code>: assuming interaction happens at the surface and approximating the Earth with 3 layers of constant density</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">core\_mantle\_crust</span></code>: approximating the Earth with 3 layers of constant density, path through Earth to interaction vertex is considered</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">core_mantle_crust_simple</span></code>: assuming interaction happens at the surface and approximating the Earth with 3 layers of constant density</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">core_mantle_crust</span></code>: approximating the Earth with 3 layers of constant density, path through Earth to interaction vertex is considered</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">PREM</span></code>: density of Earth is parameterised as a function of radius, path through Earth to interaction vertex is considered</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">None</span></code>: all weights are set to 1.</p></li>
 </ul>
@@ -736,8 +758,7 @@
 
 <span class="nt">seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1235</span><span class="w"> </span><span class="c1"># This seed is used for the first call to the random library</span>
 
-<span class="c1"># The following parameters are used to filter events that we</span>
-<span class="l l-Scalar l-Scalar-Plain">know that</span>
+<span class="c1"># The following parameters are used to filter events that we know that</span>
 <span class="c1"># they will not trigger, gaining time in the process.</span>
 <span class="nt">speedup</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">minimum_weight_cut</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.e-5</span><span class="w"> </span><span class="c1"># If the assigned weight is less than this one,</span>
@@ -777,7 +798,7 @@
 <span class="w">  </span><span class="nt">n_freq</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25</span><span class="w">  </span><span class="c1"># the number of frequencies where the attenuation length is</span>
 <span class="w">  </span><span class="c1"># calculated for. The remaining frequencies will be determined from a linear</span>
 <span class="w">  </span><span class="c1"># interpolation between the reference frequencies. The reference frequencies are</span>
-<span class="w">  </span><span class="c1"># equally spaced over the complet frequency range.</span>
+<span class="w">  </span><span class="c1"># equally spaced over the complete frequency range.</span>
 <span class="w">  </span><span class="nt">focusing</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">  </span><span class="c1"># if True apply the focusing effect.</span>
 <span class="w">  </span><span class="nt">focusing_limit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span><span class="w">  </span><span class="c1"># the maximum amplification factor of the focusing correction</span>
 <span class="w">  </span><span class="nt">n_reflections</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w">  </span><span class="c1"># the maximum number of reflections off a reflective layer</span>
@@ -801,8 +822,11 @@
 <span class="w">  </span><span class="nt">Vrms</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span><span class="w">  </span><span class="c1"># the RMS noise value in volts. Not compatible with 'noise_temperature',</span>
 <span class="w">  </span><span class="c1"># if Vrms is set, 'noise_temperature' must be None</span>
 
-<span class="nt">save_all</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w"> </span><span class="c1"># if True, save all events. Otherwise, NuRadioMC will only</span>
-<span class="c1"># save triggering events</span>
+<span class="nt">output</span><span class="p">:</span><span class="w"> </span><span class="c1"># control which, if any, waveforms to store. By default, all waveforms are stored.</span>
+<span class="w">  </span><span class="nt">channel_traces</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
+<span class="w">  </span><span class="nt">electric_field_traces</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
+<span class="w">  </span><span class="nt">sim_channel_traces</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
+<span class="w">  </span><span class="nt">sim_electric_field_traces</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
 </pre></div>
 </div>
 </div></blockquote>
