@@ -107,7 +107,7 @@ def _plot_kde_fancy(ax, data, label, truth_mean=None, truth_std=None,
     try:
         kde = gaussian_kde(data)
         mu = np.mean(data)
-        sigma = np.std(data)
+        sigma = np.std(data, ddof=1)
         x_min, x_max = np.min(data), np.max(data)
         if truth_mean is not None and truth_std is not None:
             x_min = min(x_min, truth_mean - 4 * truth_std)
