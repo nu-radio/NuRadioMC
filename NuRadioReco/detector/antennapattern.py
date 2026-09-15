@@ -1498,7 +1498,8 @@ class AntennaPattern(AntennaPatternBase):
             logger.debug("phi bounds {0} ,{1}, {2}".format(self.phi_lower_bound, phi, self.phi_upper_bound))
             logger.warning("theta, phi or frequency out of range, returning (0,0j)")
             logger.debug("{0},{1},{2}".format(freq, self.frequency_lower_bound, self.frequency_upper_bound))
-            return np.zeros(shape=(2,1), dtype=complex)
+            shape = np.shape(np.atleast_1d(freq))
+            return np.zeros(shape, dtype=complex), np.zeros(shape, dtype=complex)
 
         # the angular and frequency grids are not necessarily equally spaced (e.g. the
         # theta grid of RNOG_vpol_4inch_center_n1.73), hence look up the bracketing
@@ -1822,6 +1823,12 @@ class AntennaPatternProvider(object):
         significant amount of memory.
         """
         logger.setLevel(log_level)
+
+        # this is a singleton, i.e. __init__ runs on every instantiation. Only set up the
+        # buffer once, otherwise the already loaded patterns would be thrown away
+        if hasattr(self, "_open_antenna_patterns"):
+            return
+
         self._open_antenna_patterns = {}
         self._antenna_model_replacements = {}
 
@@ -1850,11 +1857,20 @@ class AntennaPatternProvider(object):
 
             name = self._antenna_model_replacements[name]
 
-        if name not in self._open_antenna_patterns:
+        # the kwargs are part of the identity of a pattern, a model requested with
+        # different kwargs is a different antenna and must not be served from the buffer
+        key = (name,) + tuple(sorted((k, repr(v)) for k, v in kwargs.items()))
+
+        if key not in self._open_antenna_patterns:
+            if any(buffered[0] == name for buffered in self._open_antenna_patterns):
+                logger.warning(
+                    "antenna model {} is already buffered with different arguments, "
+                    "loading a second copy for {}".format(name, kwargs))
+
             if name.startswith("analytic"):
-                self._open_antenna_patterns[name] = AntennaPatternAnalytic(name, **kwargs)
+                self._open_antenna_patterns[key] = AntennaPatternAnalytic(name, **kwargs)
                 logger.info("loading analytic antenna model {}".format(name))
             else:
-                self._open_antenna_patterns[name] = AntennaPattern(name, **kwargs)
+                self._open_antenna_patterns[key] = AntennaPattern(name, **kwargs)
 
-        return self._open_antenna_patterns[name]
+        return self._open_antenna_patterns[key]

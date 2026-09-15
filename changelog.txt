@@ -27,6 +27,11 @@ bugfixes:
 - Fixing the interpolation of antenna models which are not sampled on an equally spaced grid. The node indices were calculated
   from the grid boundaries, which silently picked the wrong nodes and extrapolated. Only RNOG_vpol_4inch_center_n1.73 (used in all
   RNO_G detector descriptions) is affected, where the vector effective length was off by up to 70% at some zenith angles.
+- The AntennaPatternProvider buffer is no longer emptied every time the (singleton) provider is instantiated. Antenna models
+  were reloaded from disk whenever another module created its own provider.
+- The AntennaPatternProvider no longer ignores the keyword arguments (e.g. interpolation_method, max_VEL) when the antenna
+  model is already buffered. They are now part of the buffer key.
+- Antenna responses for directions outside the tabulated range return one value per frequency instead of a single value.
 - Fix bug in the readRNOGDataMattak where the trigger dependend readout delays were applied with the
   the wrong sign to the trace_start_time
 
