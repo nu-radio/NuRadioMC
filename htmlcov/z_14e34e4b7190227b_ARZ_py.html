@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">591 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">268<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">323<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">263<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">328<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_29957eda1e4dfd03_HCRB2017_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.4">coverage.py v7.15.4</a>,
-            created at 2026-09-02 13:25 +0000
+            created at 2026-09-15 08:46 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -442,8 +442,8 @@
     <p class="pln"><span class="n"><a id="t360" href="#t360">360</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t361" href="#t361">361</a></span><span class="t">        <span class="nam">download_file</span> <span class="op">=</span> <span class="key">False</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t362" href="#t362">362</a></span><span class="t">        <span class="key">if</span><span class="op">(</span><span class="key">not</span> <span class="nam">os</span><span class="op">.</span><span class="nam">path</span><span class="op">.</span><span class="nam">exists</span><span class="op">(</span><span class="nam">path</span><span class="op">)</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t363" href="#t363">363</a></span><span class="t">            <span class="nam">logger</span><span class="op">.</span><span class="nam">warning</span><span class="op">(</span><span class="str">&quot;shower library version {} does not exist on the local file system yet. It will be downloaded to {}&quot;</span><span class="op">.</span><span class="nam">format</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">_version</span><span class="op">,</span> <span class="nam">path</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t364" href="#t364">364</a></span><span class="t">            <span class="nam">download_file</span> <span class="op">=</span> <span class="key">True</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t363" href="#t363">363</a></span><span class="t">            <span class="nam">logger</span><span class="op">.</span><span class="nam">warning</span><span class="op">(</span><span class="str">&quot;shower library version {} does not exist on the local file system yet. It will be downloaded to {}&quot;</span><span class="op">.</span><span class="nam">format</span><span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">_version</span><span class="op">,</span> <span class="nam">path</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t364" href="#t364">364</a></span><span class="t">            <span class="nam">download_file</span> <span class="op">=</span> <span class="key">True</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t365" href="#t365">365</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t366" href="#t366">366</a></span><span class="t">        <span class="key">if</span><span class="op">(</span><span class="nam">os</span><span class="op">.</span><span class="nam">path</span><span class="op">.</span><span class="nam">exists</span><span class="op">(</span><span class="nam">path</span><span class="op">)</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t367" href="#t367">367</a></span><span class="t">            <span class="nam">BUF_SIZE</span> <span class="op">=</span> <span class="num">65536</span> <span class="op">*</span> <span class="num">2</span> <span class="op">**</span> <span class="num">4</span>  <span class="com"># lets read stuff in 64kb chunks!</span>&nbsp;</span><span class="r"></span></p>
@@ -471,10 +471,10 @@
     <p class="run"><span class="n"><a id="t389" href="#t389">389</a></span><span class="t">        <span class="key">if</span> <span class="key">not</span> <span class="nam">download_file</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t390" href="#t390">390</a></span><span class="t">            <span class="key">return</span> <span class="key">True</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t391" href="#t391">391</a></span><span class="t">        <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t392" href="#t392">392</a></span><span class="t">            <span class="key">from</span> <span class="nam">NuRadioReco</span><span class="op">.</span><span class="nam">utilities</span><span class="op">.</span><span class="nam">dataservers</span> <span class="key">import</span> <span class="nam">download_from_dataserver</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t392" href="#t392">392</a></span><span class="t">            <span class="key">from</span> <span class="nam">NuRadioReco</span><span class="op">.</span><span class="nam">utilities</span><span class="op">.</span><span class="nam">dataservers</span> <span class="key">import</span> <span class="nam">download_from_dataserver</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t393" href="#t393">393</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t394" href="#t394">394</a></span><span class="t">            <span class="nam">remote_path</span> <span class="op">=</span> <span class="str">&#x27;shower_library/library_v{:d}.{:d}.pkl&#x27;</span><span class="op">.</span><span class="nam">format</span><span class="op">(</span><span class="op">*</span><span class="nam">self</span><span class="op">.</span><span class="nam">_version</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t395" href="#t395">395</a></span><span class="t">            <span class="nam">download_from_dataserver</span><span class="op">(</span><span class="nam">remote_path</span><span class="op">,</span> <span class="nam">path</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t394" href="#t394">394</a></span><span class="t">            <span class="nam">remote_path</span> <span class="op">=</span> <span class="str">&#x27;shower_library/library_v{:d}.{:d}.pkl&#x27;</span><span class="op">.</span><span class="nam">format</span><span class="op">(</span><span class="op">*</span><span class="nam">self</span><span class="op">.</span><span class="nam">_version</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t395" href="#t395">395</a></span><span class="t">            <span class="nam">download_from_dataserver</span><span class="op">(</span><span class="nam">remote_path</span><span class="op">,</span> <span class="nam">path</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t396" href="#t396">396</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t397" href="#t397">397</a></span><span class="t">    <span class="key">def</span> <span class="nam">__set_model_parameters</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">arz_version</span><span class="op">=</span><span class="str">&#x27;ARZ2020&#x27;</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t398" href="#t398">398</a></span><span class="t">        <span class="str">&quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
@@ -1334,7 +1334,7 @@
             <a class="nav" href="z_29957eda1e4dfd03_HCRB2017_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.15.4">coverage.py v7.15.4</a>,
-            created at 2026-09-02 13:25 +0000
+            created at 2026-09-15 08:46 +0000
         </p>
     </div>
 </footer>
