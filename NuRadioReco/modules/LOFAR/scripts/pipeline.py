@@ -29,11 +29,10 @@ from NuRadioReco.modules.LOFAR import stationGalacticCalibrator  # noqa: E402
 from NuRadioReco.modules.LOFAR import stationPulseFinder  # noqa: E402
 from NuRadioReco.modules.LOFAR import stationRFIFilter  # noqa: E402
 from NuRadioReco.modules.LOFAR import iftReconstructor  # noqa: E402
-from NuRadioReco.modules.LOFAR.iftReconstructor import (  # noqa: E402
+from NuRadioReco.modules.LOFAR.reconstruction.iftReconstructor import (  # noqa: E402
     _DEFAULT_N_VI_ITERATIONS, _DEFAULT_N_SAMPLES,
-    _EARLY_ABORT_XMAX_STD_GCM2, _EARLY_ABORT_XMAX_AFTER_ITERS, _EARLY_ABORT_MAX_FLUENCE,
 )
-from NuRadioReco.modules.LOFAR.utilities.iftDataHelpers import MAX_SIGNAL_SNR_THRESHOLD  # noqa: E402
+from NuRadioReco.utilities.LOFAR.iftDataHelpers import MAX_SIGNAL_SNR_THRESHOLD  # noqa: E402
 from NuRadioReco.modules.io.LOFAR import readLOFARData  # noqa: E402
 from NuRadioReco.utilities import units  # noqa: E402
 
@@ -161,12 +160,19 @@ def run_pipeline(args):
     calibrator = stationGalacticCalibrator.stationGalacticCalibrator()
     pulse_finder = stationPulseFinder.stationPulseFinder()
     direction_fitter = planeWaveDirectionFitter_LOFAR.planeWaveDirectionFitter()
-    reconstructor = iftReconstructor.iftReconstructor()
+    reconstructor = iftReconstructor()
 
     debug_dir = os.path.join(args.output_dir, "debug_plots", str(args.event_id)) if args.debug_plots else None
 
     processed_event = None
     for event in reader.run(detector, trace_length=65536):
+        if args.io_done_file:
+            try:
+                with open(args.io_done_file, "w") as fh:
+                    fh.write("%d\n" % os.getpid())
+            except OSError as exc:
+                LOGGER.warning("Could not write --io-done-file %s: %s",
+                               args.io_done_file, exc)
         if args.debug_plots:
             _save_trace_snapshot(event, debug_dir, "01_reader")
 
@@ -233,16 +239,12 @@ def run_pipeline(args):
             enable_timing_correlated_field=args.enable_timing_correlated_field,
             export_posterior_samples=args.export_posterior_samples,
             output_directory=args.output_dir,
-            debug_plots=args.debug_plots,
-            debug_plot_dir=debug_dir,
-            run_nifty=not args.no_nifty,
+            dry_run=args.dry_run,
             step_deg=1.0,
             atmosphere_dir=args.atmosphere_dir,
             gdas_cache_dir=args.gdas_cache_dir,
             max_signal_fallback=args.max_signal_fallback,
             max_signal_snr_threshold=args.max_signal_snr,
-            early_abort_xmax_std_gcm2=args.early_abort_xmax_std,
-            early_abort_max_fluence=args.early_abort_max_fluence,
         )
         if args.ift_iterations is not None:
             recon_kwargs["n_iterations"] = args.ift_iterations
@@ -303,16 +305,10 @@ def build_arg_parser():
                              "fallback (default: %(default)s, calibrated so that ~1.5%% "
                              "of pure-noise antennas pass).")
 
-    parser.add_argument("--early-abort-xmax-std", type=float,
-                        default=_EARLY_ABORT_XMAX_STD_GCM2,
-                        help="Abort the event if the Xmax posterior is still wider than "
-                             "this (g/cm2) after %d VI iterations (default: %%(default)s). "
-                             "0 disables the check." % _EARLY_ABORT_XMAX_AFTER_ITERS)
-    parser.add_argument("--early-abort-max-fluence", type=float,
-                        default=_EARLY_ABORT_MAX_FLUENCE,
-                        help="Abort the event if any input fluence exceeds this or is "
-                             "not finite (default: %(default)s). 0 disables the check.")
-
+    parser.add_argument("--io-done-file", default=None,
+                        help="Path to touch once the TBB read-in for this event has "
+                             "finished. Lets a submit script cap the number of tasks in "
+                             "the I/O stage without capping the array as a whole.")
     parser.add_argument("--output-dir", default=os.getcwd(),
                         help="Directory for output files and debug plots")
     parser.add_argument("--output-nur", default=None,
@@ -330,11 +326,11 @@ def build_arg_parser():
                         help="Writable directory for downloaded GDAS binaries and newly generated "
                              "ATMOSPHERE_*.DAT files. Defaults to ~/.cache/lofar_gdas.")
 
-    parser.add_argument("--no-nifty", action="store_true",
-                        help="Skip the NIFTy/VI reconstruction (preprocessing and debug plots only)")
     parser.add_argument("--debug-plots", action="store_true")
     parser.add_argument("--log-level", default="INFO")
 
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Check IFT event selection without running the fit.")
     return parser
 
 

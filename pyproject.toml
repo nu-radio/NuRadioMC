@@ -52,6 +52,9 @@ healpy = {version = "*", optional = true}
 MCEq = {version = "*", optional = true}
 crflux = {version = "*", optional = true}
 cr-pulse-interpolator = {version = ">=1.1.1", optional = true}
+jax = {version = "*", optional = true}
+jaxlib = {version = "*", optional = true}
+nifty = {version = "*", optional = true}
 pre-commit = {version = "*", optional = true}
 
 [tool.poetry.dev-dependencies]
@@ -63,4 +66,5 @@ proposal = ["proposal"]
 galacticnoise = ['pylfmap', 'pygdsm', 'healpy']
 muon-flux = ['MCEq', 'crflux']
 cr_interpolator = ["cr-pulse-interpolator"]
-ALL = ["proposal", "pylfmap", "healpy", "MCEq", "crflux", "cr-pulse-interpolator"]
+niftyre = ["jax", "jax_lib", "nifty"]
+ALL = ["proposal", "pylfmap", "healpy", "MCEq", "crflux", "cr-pulse-interpolator", "niftyre"]

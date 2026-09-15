@@ -12,7 +12,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.voltageToEfieldConverter import voltageToEfieldConverter
-from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
+from NuRadioReco.utilities.LOFAR.beamforming_utilities import mini_beamformer
 
 lightspeed = constants.c * units.m / units.s
 

@@ -8,7 +8,7 @@ from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import units
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
-from NuRadioReco.modules.LOFAR.beamforming_utilities import mini_beamformer
+from NuRadioReco.utilities.LOFAR.beamforming_utilities import mini_beamformer
 
 
 def find_snr_of_timeseries(timeseries, sampling_rate=None, window_start=0, window_end=-1, noise_start=0, noise_end=-1,
@@ -160,7 +160,7 @@ class stationPulseFinder:
         values_per_pol = []
 
         # the first few samples are tapered with half-Hann, which would blow up the SNR
-        noise_window_start = 10000
+        noise_window_start = self.__noise_window_size
         noise_window_end = noise_window_start + self.__noise_window_size
 
         for i, channel_ids in enumerate(channel_ids_per_pol):
@@ -317,6 +317,7 @@ class stationPulseFinder:
                     )
                     station.set_parameter(stationParameters.triggered, False)
                     continue
+
 
                 # Find the antenna positions by only looking at the channels from a given polarisation
                 position_array = [

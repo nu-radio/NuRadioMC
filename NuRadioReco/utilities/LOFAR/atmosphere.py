@@ -11,8 +11,14 @@ Provides:
 from typing import Optional
 
 import numpy as np
-import jax.numpy as jnp
-from jax import lax
+try:
+    import jax
+    import jax.numpy as jnp
+    from jax import lax
+except ImportError:
+    jax = None
+    jnp = None
+    lax = None
 
 # Physical constants
 _R_EARTH = 6.371e6   # radius of Earth [m]
@@ -227,7 +233,7 @@ class GDASAtmosphere:
         """Return the pre-loaded 5-layer model parameters ``(a, b, c, layers)``."""
         return self.a, self.b, self.c, self.layers
 
-    def get_refractive_index(self, h: jnp.ndarray) -> jnp.ndarray:
+    def get_refractive_index(self, h: jax.typing.ArrayLike) -> jax.typing.ArrayLike:
         """Return the refractive index at height *h* (metres) via interpolation."""
         return jnp.interp(x=h, xp=self.h_grid, fp=self.n_grid)
 
@@ -278,7 +284,7 @@ class Atmosphere:
     def obs_lvl(self, observation_level: float = 0.0) -> None:
         self._obs_lvl = observation_level
 
-    def __get_density_from_height(self, height: jnp.ndarray) -> jnp.ndarray:
+    def __get_density_from_height(self, height: jax.typing.ArrayLike) -> jax.typing.ArrayLike:
         height = jnp.asarray(height)
 
         dens = 0.0 * height
@@ -303,12 +309,12 @@ class Atmosphere:
 
         return dens
 
-    def get_density(self, grammage: jnp.ndarray, zenith: jnp.ndarray) -> jnp.ndarray:
+    def get_density(self, grammage: jax.typing.ArrayLike, zenith: jax.typing.ArrayLike) -> jax.typing.ArrayLike:
         """Return atmospheric density at the given slant depth and zenith angle."""
         vert_height = self.get_vertical_height(grammage * jnp.cos(zenith) * 1e4)
         return self.__get_density_from_height(vert_height)
 
-    def get_refractive_index(self, grammage: jnp.ndarray, zenith: jnp.ndarray) -> jnp.ndarray:
+    def get_refractive_index(self, grammage: jax.typing.ArrayLike, zenith: jax.typing.ArrayLike) -> jax.typing.ArrayLike:
         """Return the refractive index at the given slant depth and zenith angle."""
         vert_height = self.get_vertical_height(grammage * jnp.cos(zenith) * 1e4)
         if self._gdas_model is not None:
@@ -317,12 +323,12 @@ class Atmosphere:
         density_at_obs = self.__get_density_from_height(jnp.array(self._obs_lvl))
         return (self._n0 - 1) * density_at_h / (density_at_obs + _EPSILON) + 1
 
-    def get_cherenkov_angle(self, grammage: jnp.ndarray, zenith: jnp.ndarray) -> jnp.ndarray:
+    def get_cherenkov_angle(self, grammage: jax.typing.ArrayLike, zenith: jax.typing.ArrayLike) -> jax.typing.ArrayLike:
         """Return the Cherenkov angle at the given slant depth and zenith angle."""
         n = self.get_refractive_index(grammage, zenith)
         return jnp.arccos(jnp.minimum(1.0, 1.0 / n))
 
-    def get_atmosphere(self, height: jnp.ndarray) -> jnp.ndarray:
+    def get_atmosphere(self, height: jax.typing.ArrayLike) -> jax.typing.ArrayLike:
         """Return the atmospheric grammage (g/cm²·1e4 → g/m²) at a given height."""
         y = jnp.where(height < self.layers[0],
                       self.a[0] + self.b[0] * jnp.exp(-height / self.c[0]),
@@ -336,7 +342,7 @@ class Atmosphere:
         y = jnp.where(height < _H_MAX, y, 0.0)
         return y
 
-    def get_vertical_height(self, at: jnp.ndarray) -> jnp.ndarray:
+    def get_vertical_height(self, at: jax.typing.ArrayLike) -> jax.typing.ArrayLike:
         """Return the vertical height (m) corresponding to a vertical grammage value."""
         at = jnp.asarray(at)
 
@@ -365,14 +371,14 @@ class Atmosphere:
 
         return h
 
-    def get_geometric_distance_grammage(self, grammage: jnp.ndarray, zenith: jnp.ndarray) -> jnp.ndarray:
+    def get_geometric_distance_grammage(self, grammage: jax.typing.ArrayLike, zenith: jax.typing.ArrayLike) -> jax.typing.ArrayLike:
         """Return the geometric distance from the observer to a point at the given slant depth."""
         height = self.get_vertical_height(grammage * jnp.cos(zenith) * 1e4) + self._obs_lvl
         r = _R_EARTH + self._obs_lvl
         sqrt_arg = height**2 + 2 * r * height + r**2 * jnp.cos(zenith)**2
         return jnp.sqrt(jnp.maximum(0.0, sqrt_arg)) - r * jnp.cos(zenith)
 
-    def get_xmax_from_distance(self, distance: jnp.ndarray, zenith: jnp.ndarray) -> jnp.ndarray:
+    def get_xmax_from_distance(self, distance: jax.typing.ArrayLike, zenith: jax.typing.ArrayLike) -> jax.typing.ArrayLike:
         """Return the slant depth X_max (g/cm²) from the geometric distance to the shower maximum."""
         r = _R_EARTH + self._obs_lvl
         x = distance * jnp.sin(zenith)

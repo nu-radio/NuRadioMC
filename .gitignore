@@ -147,6 +147,7 @@ NuRadioMC/EvtGen/proposal_tables/
 
 # Default location for sample data for interactive examples
 NuRadioReco/examples/Interactive/data/
+NuRadioReco/examples/Interactive/lofar_ift_demo/
 
 # zipped DB json files
 *json.xz

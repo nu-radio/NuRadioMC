@@ -15,6 +15,7 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - Improved simulation of galactic noise with the channelGalacticNoiseAdder for deep in-ice antennas: I) take into account attenuation (small effect),
   II) more realistic treatment of refraction, calculate refraction through the firn layer and not only on the ice-air boundary (changes effective angle
   at the antenna and thus has, depending on the antenna model a noticeable effect on signal strength in antenna)
+- Included the LOFAR data and simulation pipeline. In particular, group IDs are used in the efieldToVoltageConverter when initialising a Channel object, and options for HybridShowers are available in readCoREASDetector. A new directory `pipeline/` is also created to store scripts that are not examples, but are used in a general pipeline. All LOFAR modules are now self-contained in corresponding subdirectories called "LOFAR". 
 
 bugfixes:
 - Fixing bug in the simulation of non-trigger channels when an event is splitted into multiple events based on the signal arrival time.

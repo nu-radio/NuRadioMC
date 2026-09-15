@@ -183,7 +183,8 @@ class channelMeasuredNoiseAdder:
             else:
                 pass
 
-            channel_trace += noise_trace
+            channel_trace_with_noise = channel_trace + noise_trace
+            channel.set_trace(channel_trace_with_noise, channel.get_sampling_rate())
 
             # if draw_noise_statistics == True
             if self.__noise_data is not None:

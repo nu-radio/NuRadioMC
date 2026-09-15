@@ -293,6 +293,12 @@ class pipelineVisualizer:
 
         return fig_dir
 
+    def show_fluence_plot(self, event, detector, min_number_good_antennas=4):
+        """
+        Plot the 2-D fluence map of the signal fluence.
+        """
+        pass  # Placeholder for future implementation of fluence plot
+
     def show_time_fluence_plot(self, event, detector, min_number_good_antennas=4):
 
         """

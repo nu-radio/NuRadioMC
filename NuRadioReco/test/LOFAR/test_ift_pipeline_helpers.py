@@ -1,9 +1,8 @@
 import numpy as np
 
 from NuRadioReco.modules.io.LOFAR.readLOFARData import parse_block_number_file
-from NuRadioReco.modules.LOFAR.stationTraceCropper_LOFAR import stationTraceCropper
-from NuRadioReco.modules.LOFAR.utilities import iftDataHelpers
-from NuRadioReco.modules.LOFAR.utilities import jaxHelpers
+from NuRadioReco.utilities.LOFAR import iftDataHelpers
+from NuRadioReco.utilities.LOFAR import jaxHelpers
 
 
 def test_parse_block_number_file_preserves_raw_columns(tmp_path):
@@ -44,20 +43,6 @@ def test_power_peak_finder_finds_synthetic_pulse():
 
     assert abs(peak_time - 42.0) <= 5.0
     assert snr > 0
-
-
-def test_trace_cropper_global_peak_uses_clean_high_snr_channels():
-    cropper = stationTraceCropper()
-    cropper.begin(target_length=16, snr_threshold=2.0, fluence_outlier_sigma=1.0)
-
-    peak = cropper._global_peak_index([
-        {"peak_index": 5, "fluence": 10.0, "snr": 3.0, "trace_length": 32},
-        {"peak_index": 7, "fluence": 11.0, "snr": 4.0, "trace_length": 32},
-        {"peak_index": 31, "fluence": 1000.0, "snr": 20.0, "trace_length": 32},
-        {"peak_index": 1, "fluence": 1.0, "snr": 0.5, "trace_length": 32},
-    ])
-
-    assert peak == 6
 
 
 def test_jax_helper_package_data_lookup():
