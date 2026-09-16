@@ -7,9 +7,6 @@ from NuRadioMC.utilities import medium
 import logging
 from radiotools import helper as hp
 from radiotools import plthelpers as php
-logger = logging.getLogger('NuRadioMC.SignalProp.raytracing')
-logger.setLevel(logging.INFO)
-# ray.cpp_available=False
 
 x1 = np.array([478., 0., -149.]) * units.m
 x2 = np.array([635., 0., -5.]) * units.m  # direct ray solution

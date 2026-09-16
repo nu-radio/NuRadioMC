@@ -36,7 +36,6 @@ class Singleton(type):
         """
         create_new = kwargs.pop('create_new', None)
 
-
         create_new = (
             create_new
             or cls not in Singleton._instances

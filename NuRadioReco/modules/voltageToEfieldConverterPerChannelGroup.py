@@ -64,7 +64,7 @@ class voltageToEfieldConverterPerChannelGroup:
             zenith = station[stnp.zenith]
             azimuth = station[stnp.azimuth]
 
-        use_channels = det.get_channel_ids(station.get_id())
+        use_channels = station.get_channel_ids()
         frequencies = station.get_channel(use_channels[0]).get_frequencies()  # assuming that all channels have the  same sampling rate and length
 
         sampling_rate = station.get_channel(use_channels[0]).get_sampling_rate()

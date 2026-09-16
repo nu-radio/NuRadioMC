@@ -56,6 +56,9 @@ jax = {version = "*", optional = true}
 jaxlib = {version = "*", optional = true}
 nifty = {version = "*", optional = true}
 pre-commit = {version = "*", optional = true}
+iminuit = {version = "*", optional = true}
+scikit-optimize = {version = "*", optional = true}
+noisyopt = {version = "*", optional = true}
 
 [tool.poetry.dev-dependencies]
 pre-commit = "*"
@@ -67,4 +70,15 @@ galacticnoise = ['pylfmap', 'pygdsm', 'healpy']
 muon-flux = ['MCEq', 'crflux']
 cr_interpolator = ["cr-pulse-interpolator"]
 niftyre = ["jax", "jax_lib", "nifty"]
-ALL = ["proposal", "pylfmap", "healpy", "MCEq", "crflux", "cr-pulse-interpolator", "niftyre"]
+minimizers = ["iminuit", "scikit-optimize", "noisyopt"]
+ALL = ["proposal", "pygdsm", "pylfmap", "healpy", "MCEq", "crflux", "cr-pulse-interpolator", "iminuit", "scikit-optimize", "noisyopt", "niftyre"]
+
+[tool.coverage.run]
+parallel = true
+relative_files = true
+source = ["NuRadioMC", "NuRadioReco"]
+omit = [
+    "*/test/*",
+    "*/tests/*",
+    "*/examples/*",
+]

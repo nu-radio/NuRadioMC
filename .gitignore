@@ -10,6 +10,17 @@
 !*reference*.nur
 !*reference*.hdf5
 
+# other binary storage files
+*.gz
+*.xz
+*.zip
+*.bz
+*.lzma
+*.tar
+*.npz
+*.npy
+*.root
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
