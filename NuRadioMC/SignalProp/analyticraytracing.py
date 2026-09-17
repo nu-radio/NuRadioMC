@@ -311,6 +311,21 @@ class ray_tracing(ray_tracing_base):
             self.__logger.warning(f"[x1 {self._x1}, x2 {self._x2}] {self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed!")
             #self._results = []
 
+    def get_C0(self, iS):
+        """ Returns the C0 parameter of the solution
+
+        Parameters
+        ----------
+        iS: int
+            Choose for which solution, counting starts at zero
+
+        Returns
+        -------
+        C_0: float
+            float, defining the ray shape
+        """
+        return self._results[iS]['C0']
+
     def get_solution_type(self, iS):
         """ Returns the type of the solution
 
@@ -911,6 +926,7 @@ class ray_tracing(ray_tracing_base):
                 self._x1, self._x2, res['C0'],
                 res['reflection'], res['reflection_case']
             )
+            print("get_focusing_analytic yields: ",f)
 
         if np.isnan(f): # either the analytic calculation failed, or we asked for the numerical solution
             distance = self.get_path_length(iS)
@@ -954,6 +970,10 @@ class ray_tracing(ray_tracing_base):
             # (this is already included in the analytic calculation)
             impedance_factor = np.sqrt(n1 / n2)
             f = focusing * impedance_factor
+            print(f"calculating focussing numerically: ",f)
+
+        
+
 
         self.__logger.debug('amplification due to focusing of solution %d = %.3f x %.3f = %.3f ', iS, f / impedance_factor, impedance_factor, f)
         if f / impedance_factor > limit:
