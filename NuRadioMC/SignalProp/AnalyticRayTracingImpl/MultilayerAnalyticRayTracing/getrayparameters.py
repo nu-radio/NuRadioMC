@@ -594,7 +594,7 @@ def get_reflection_angle(c0, x1, x2, layers):
         y1, z1, y2, z2, c0, layers, downgoing, with_air
     )
 
-    if solution_type != REFLECTED:
+    if (solution_type != REFLECTED) and not with_air:
         return None
 
     # evaluate just below surface
