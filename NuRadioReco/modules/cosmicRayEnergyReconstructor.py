@@ -31,7 +31,11 @@ class cosmicRayEnergyReconstructor:
     
     * a 10th order Butterworth bandpass filter with passband 80-300 MHz
     * a direction reconstruction
-    * the voltageToAnalyticEfieldConverter
+    * an electric-field reconstruction module: e.g.
+
+        * `NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor`
+        * `NuRadioReco.modules.crEfieldReconstructor`
+        * `NuRadioReco.modules.voltageToAnalyticEfieldConverter`
     
     """
 
@@ -56,12 +60,6 @@ class cosmicRayEnergyReconstructor:
                 'falloff': np.array([[-0.3391,  0.1738], [ 0.9543, -1.6967]])
             }
         }
-        self.__elevations = {  # TODO: This should be changed once we have implemented a proper coordinate system
-            'mooresbay': 30.,
-            'southpole': 2800.,
-            'auger': 1560.,
-            'summit': 3216.
-        }
         self.__site = None
 
     def begin(self, site=None):
@@ -79,7 +77,9 @@ class cosmicRayEnergyReconstructor:
 
         """
         self.__site = site
-        if site not in self.__parametrizations.keys():
+        if site is None:
+            self.logger.warning('No site specified, will attempt to read site from detector.')
+        elif site not in self.__parametrizations.keys():
             self.logger.error('Unsupported site. Please select one of the following: {}'.format(self.__parametrizations.keys()))
             raise ValueError
 
@@ -125,7 +125,7 @@ class cosmicRayEnergyReconstructor:
                 self.logger.error('Unsupported site. Please select one of the following: {}'.format(self.__parametrizations.keys()))
                 raise ValueError
         parametrization_for_site = self.__parametrizations[site]
-        elevation = self.__elevations[site]
+        elevation = detector.get_site_elevation(station.get_id())
 
         if zenith < 30. * units.deg:
             self.logger.warning('Zenith angle is smaller than 30deg. Energy reconstruction is likely to be inaccurate!')
