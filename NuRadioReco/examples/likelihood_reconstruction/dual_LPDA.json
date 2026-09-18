@@ -1,0 +1,55 @@
+{
+    "channels": {
+        "0": {
+            "adc_n_samples": 512,
+            "adc_sampling_frequency": 0.5,
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x": 0,
+            "ant_position_y": 0,
+            "ant_position_z": 0.01,
+            "ant_rotation_phi": 90.0,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
+            "cab_length": 0,
+            "cab_time_delay": 0,
+            "channel_group_id": 0,
+            "channel_id": 0,
+            "commission_time": "{TinyDate}:2017-11-01T00:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "noise_temperature": 300,
+            "station_id": 1
+        },
+        "1": {
+            "adc_n_samples": 512,
+            "adc_sampling_frequency": 0.5,
+            "ant_orientation_phi": 0.0,
+            "ant_orientation_theta": 0.0,
+            "ant_position_x": 0,
+            "ant_position_y": 0,
+            "ant_position_z": 0.01,
+            "ant_rotation_phi": 0.0,
+            "ant_rotation_theta": 90.0,
+            "ant_type": "createLPDA_100MHz_InfFirn_n1.4",
+            "cab_length": 0,
+            "cab_time_delay": 0,
+            "channel_group_id": 0,
+            "channel_id": 1,
+            "commission_time": "{TinyDate}:2017-11-01T00:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "noise_temperature": 300,
+            "station_id": 1
+        }
+    },
+    "stations": {
+        "11": {
+            "commission_time": "{TinyDate}:2017-11-04T00:00:00",
+            "decommission_time": "{TinyDate}:2038-01-01T00:00:00",
+            "pos_altitude": 0,
+            "pos_easting": 0,
+            "pos_northing": 0,
+            "pos_site": "LOFAR",
+            "station_id": 1
+        }
+    }
+}

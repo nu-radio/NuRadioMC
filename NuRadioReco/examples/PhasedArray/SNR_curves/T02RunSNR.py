@@ -28,10 +28,11 @@ import json
 import logging
 import copy
 import numpy as np
+from scipy import integrate
 from NuRadioMC.simulation import simulation
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.trigger.simpleThreshold
-import NuRadioReco.modules.phasedarray.triggerSimulator
+import NuRadioReco.modules.phasedarray.phasedArrayTrigger
 import NuRadioReco.modules.channelResampler
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.channelGenericNoiseAdder
@@ -61,7 +62,7 @@ n_channels = args.nchannels
 # initialize detector sim modules
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin(debug=False)
-triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
+triggerSimulator = NuRadioReco.modules.phasedarray.phasedArrayTrigger.PhasedArrayTrigger()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
@@ -92,7 +93,7 @@ fff = np.linspace(min_freq, max_freq, 10000)
 filt1_highres = channelBandPassFilter.get_filter(fff, 0, 0, None, passband=[0, 220 * units.MHz], filter_type="cheby1", order=7, rp=.1)
 filt2_highres = channelBandPassFilter.get_filter(fff, 0, 0, None, passband=[96 * units.MHz, 100 * units.GHz], filter_type="cheby1", order=4, rp=.1)
 filt_highres = filt1_highres * filt2_highres
-bandwidth = np.trapz(np.abs(filt_highres) ** 2, fff)
+bandwidth = integrate.trapezoid(np.abs(filt_highres) ** 2, fff)
 Vrms_ratio = np.sqrt(bandwidth / (max_freq - min_freq))
 
 Vrms = 1

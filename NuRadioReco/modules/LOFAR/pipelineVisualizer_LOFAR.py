@@ -8,7 +8,6 @@ import logging
 import numpy as np
 import matplotlib.pyplot as plt
 import radiotools
-from matplotlib.cm import get_cmap
 from matplotlib.colors import Normalize
 
 from NuRadioReco.utilities import units
@@ -18,8 +17,20 @@ from NuRadioReco.modules.base.module import register_run
 
 def check_for_good_ant(event, detector):
     """
-    Create a dictionary which for every station in the event contains a list of antennas which have not
-    been flagged.
+    Create a list of good (non-flagged) antennas
+
+    Create a dictionary, which for every station in the event contains
+    a list of antennas which have not been flagged.
+
+    Parameters
+    ----------
+    event : Event
+    detector : Detector
+
+    Returns
+    -------
+    good_antenna_dict : dict
+        Dictionary listing non-flagged antennas
     """
     good_antennas_dict = {}
     for station in event.get_stations():
@@ -50,9 +61,9 @@ def check_for_good_ant(event, detector):
 
 class pipelineVisualizer:
     """
-    Creates debug plots from the LOFAR pipeline - 
-    This is the pipelineVisualizerTM for LOFAR.
+    Creates debug plots from the LOFAR pipeline.
 
+    This is the pipelineVisualizerTM for LOFAR.
     Any significant plots resulting from the pipeline
     should be added here by creating a function for them,
     and calling all functions sequentially.
@@ -70,6 +81,7 @@ class pipelineVisualizer:
     def plot_polarization(self, event, detector):
         """
         Plot the polarization of the electric field.
+
         This method calculates the stokes parameters of the pulse
         using get_stokes from framework.electric_field, and
         determines the polarization angle and degree, plotting
@@ -101,7 +113,7 @@ class pipelineVisualizer:
         ]
         num_stations = len(triggered_station_ids)
 
-        cmap = get_cmap('jet')  
+        cmap = plt.get_cmap('jet')
         norm = Normalize(vmin=0, vmax=num_stations-1) 
 
         lora_core = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.core)
@@ -246,7 +258,7 @@ class pipelineVisualizer:
         ]
         num_stations = len(triggered_station_ids)
 
-        cmap = get_cmap('jet')
+        cmap = plt.get_cmap('jet')
         norm = Normalize(vmin=0, vmax=num_stations-1) 
 
         for i, station in enumerate(event.get_stations()):
@@ -321,7 +333,7 @@ class pipelineVisualizer:
         ]
         num_stations = len(triggered_station_ids)
 
-        cmap = get_cmap('jet')
+        cmap = plt.get_cmap('jet')
         norm = Normalize(vmin=0, vmax=num_stations-1) 
         
         fluences = []

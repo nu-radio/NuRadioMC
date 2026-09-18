@@ -68,6 +68,17 @@ class BaseShower(NuRadioReco.framework.parameter_storage.ParameterStorage):
                                          self.get_parameter(showerParameters.azimuth),
                                          self.get_parameter(showerParameters.magnetic_field_vector))
 
+    def __str__(self):
+        def print_key(key, add=""):
+            if self.has_parameter(key):
+                return f"{str(self.get_parameter(key))}{add}"
+            else:
+                return "-"
+
+        return f"Shower {self._id}: E = {print_key(showerParameters.energy, ' eV')}" + \
+            f", (zen, azi) = ({print_key(showerParameters.zenith, ' deg')}, {print_key(showerParameters.azimuth, ' deg')})" + \
+            f", (x, y, z) = ({print_key(showerParameters.vertex, 'm')})"
+
     def serialize(self):
         data = NuRadioReco.framework.parameter_storage.ParameterStorage.serialize(self)
         data['_id'] = self._id
@@ -77,3 +88,40 @@ class BaseShower(NuRadioReco.framework.parameter_storage.ParameterStorage):
         data = pickle.loads(data_pkl)
         NuRadioReco.framework.parameter_storage.ParameterStorage.deserialize(self, data)
         self._id = data.get('_id', None)
+
+    def show(self, show_parameters=1, print_stdout=True, **kwargs):
+        """
+        Print an overview of the structure of the Shower.
+
+        Parameters
+        ----------
+        show_parameters : int, default: 1
+            If > 0, print the parameters stored in the Shower.
+
+        Other Parameters
+        ----------------
+        print_stdout : bool, optional
+            If `True` (default), print the Shower structure to stdout.
+            Otherwise, return the string representation
+
+        Returns
+        -------
+        str_output : str, optional
+            A string representation of the Shower structure.
+
+        """
+        self_string = [f'Shower({self.get_id()})']
+
+        if show_parameters > 0:
+            self_string += ['    Parameters']
+            par_string = [f'      {par.name:16s}: {val}'
+                for par, val in self.get_parameters().items()]
+            self_string += par_string
+
+        output = '\n'.join(self_string)
+
+        if print_stdout:
+            print(output)
+            return
+
+        return output

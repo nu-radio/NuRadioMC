@@ -1,11 +1,18 @@
 from NuRadioReco.utilities import units
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays
 
 from scipy import interpolate, integrate, linalg
 import numpy as np
 import logging
 
+
 try:
     import radiopropa as RP
+    # nu2rp_meter = RP.meter / units.meter
+    # The line above gives 1. The reason why we are not using it is that it gives an error when building the docs:
+    # TypeError: unsupported operand type(s) for /: 'meter' and 'int'
+    # I do not understand why... Therefore we define it manually here
+    nu2rp_meter = 1
     radiopropa_is_imported = True
 except ImportError:
     radiopropa_is_imported = False
@@ -225,10 +232,6 @@ class IceModelSimple(IceModel):
 
         Parameters
         ----------
-        z_air_boundary: float, NuRadio length units
-            z coordinate of the surface of the glacier
-        z_bottom: float, NuRadio length units
-            z coordinate of the bedrock/bottom of the glacier.
         n_ice: float, dimensionless
             refractive index of the deep bulk ice
         delta_n: float, NuRadio length units
@@ -238,6 +241,10 @@ class IceModelSimple(IceModel):
             scale depth of the exponential
         z_shift: float, NuRadio length units
             up or down shift od the exponential profile
+        z_air_boundary: float, NuRadio length units
+            z coordinate of the surface of the glacier
+        z_bottom: float, NuRadio length units
+            z coordinate of the bedrock/bottom of the glacier.
         """
 
         super().__init__(z_air_boundary, z_bottom)
@@ -268,7 +275,7 @@ class IceModelSimple(IceModel):
                 return 1
         else:
             ior = self.n_ice - self.delta_n * np.exp((position[:, 2] - self.z_shift) / self.z_0)
-            ior[position[:, 2] >= 0] = 1.
+            ior[position[:, 2] - self.z_air_boundary > 0] = 1.
             return ior
 
     def get_average_index_of_refraction(self, position1, position2):
@@ -331,14 +338,14 @@ class IceModelSimple(IceModel):
         def gradient_z(z):
             return -self.delta_n / self.z_0 * np.exp((z - self.z_shift) / self.z_0)
 
-        if (isinstance(position, list) or position.ndim == 1):
-            gradient = np.array([0,0,0])
+        if isinstance(position, list) or position.ndim == 1:
+            gradient = np.array([0, 0, 0], dtype=float)
             if (position[2] - self.z_air_boundary) <= 0:
                 gradient[2] = gradient_z(position[2])
         else:
-            gradient = gradient_z(position[:,2])
-            gradient[position[:, 2] >= 0] = 0
-            gradient = np.stack((np.zeros_like(gradient),np.zeros_like(gradient),gradient),axis=1)
+            gradient = gradient_z(position[:, 2])
+            gradient[position[:, 2] - self.z_air_boundary > 0] = 0
+            gradient = np.stack((np.zeros_like(gradient), np.zeros_like(gradient), gradient), axis=1)
 
         return gradient
 
@@ -361,29 +368,40 @@ class IceModelSimple(IceModel):
             raise ImportError('RadioPropa could not be imported')
 
         scalar_field = RP.IceModel_Simple(
-            z_surface=self.z_air_boundary*RP.meter/units.meter,
+            z_surface=self.z_air_boundary * nu2rp_meter,
             n_ice=self.n_ice, delta_n=self.delta_n,
-            z_0=self.z_0 * RP.meter / units.meter,
-            z_shift=self.z_shift * RP.meter / units.meter)
+            z_0=self.z_0 * nu2rp_meter,
+            z_shift=self.z_shift * nu2rp_meter
+        )
+
         return RadioPropaIceWrapper(self, scalar_field)
 
 
 class IceModelBirefringence(IceModelSimple):
     """
-    predefined birefringence ice model (to inherit from) including different indieces of refraction for differnt directions
+    predefined birefringence ice model (to inherit from) including different indices of refraction for different directions
     """
     def __init__(self, bir_model):
-
         """
-        initiaion of a birefringent ice model with an interpolation of the data as described in:
-        https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
+        Initialize birefringent ice model from data
 
         Parameters
         ----------
-        bire_model: string
-            choose the interpolation to fit the measured refractive index data
-            options include (A, B, C, D, E) description can be found under: NuRadioMC/NuRadioMC/utilities/birefringence_models/model_description
+        bir_model : array
+            (3, 3)-shaped array, where the first axis iterates over the three orthogonal directions,
+            and the second axis contains the 't, c and k' (knots, coefficients and degree)
+            of the `scipy.interpolate.UnivariateSpline` object for each direction. See the
+            :ref:`birefringent ice models manual <NuRadioMC/pages/Manuals/icemodels:birefringence ice models>`
+            for more details.
 
+        """
+        self._load_birefringence_model(bir_model)
+
+    def _load_birefringence_model(self, bir_model):
+
+        """
+        Function to load a birefringent ice model with an interpolation of the data as described in:
+        https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y
         """
 
         self.f1 = interpolate.UnivariateSpline._from_tck(bir_model[0])
@@ -418,7 +436,7 @@ class IceModelExponentialPolynomial(IceModel):
     """
     def __init__(self, a, z_0, z_shift=0 * units.meter, z_air_boundary=0 * units.meter, z_bottom=None,
                  density_factor=0.8506 * (units.cm**3 / units.gram)):
-        """
+        r"""
         Initiation of an exponential polynomial ice model.
 
         .. math::
@@ -443,7 +461,8 @@ class IceModelExponentialPolynomial(IceModel):
         z_0: float, NuRadio length units
             scale depth of the exponential
 
-        [optional]
+        Other Parameters
+        ----------------
         z_shift: float, NuRadio length units
             up or down shift od the exponential profile
         z_air_boundary: float, NuRadio length units
@@ -490,7 +509,7 @@ class IceModelExponentialPolynomial(IceModel):
                 return 1.
         else:
             ior = ior(position[:,2])
-            ior[position[:, 2] > 0] = 1.
+            ior[position[:, 2] - self.z_air_boundary > 0] = 1.
             return ior
 
     def get_average_index_of_refraction(self, position1, position2):
@@ -571,7 +590,7 @@ class IceModelExponentialPolynomial(IceModel):
                 return np.array([0, 0, 0])
         else:
             dior = dior_dz(position[:,2])
-            dior[position[:, 2] > 0] = 0
+            dior[position[:, 2] - self.z_air_boundary > 0] = 0
             return np.stack((np.zeros_like(dior),np.zeros_like(dior),dior),axis=1)
 
 
@@ -591,23 +610,24 @@ class IceModelExponentialPolynomial(IceModel):
         ice: RadioPropaIceWrapper
             object holding the radiopropa scalarfield and modules
         """
-        if radiopropa_is_imported:
-            coeff = RP.DoubleVector_1D()
-            for ai in self._a:
-                coeff.push_back(ai / (units.kg / units.meter**3) * (RP.kilogram / RP.meter**3))
-
-            scalar_field = RP.IceModel_Polynomial(
-                coeff,
-                self._z_0 * RP.meter / units.meter,
-                self.z_air_boundary * RP.meter / units.meter,
-                self._z_shift * RP.meter / units.meter,
-                self._density_factor / (units.meter**3 / units.kilogram) * (RP.meter**3 / RP.kilogram))
-
-            return RadioPropaIceWrapper(self, scalar_field)
-        else:
+        if not radiopropa_is_imported:
             logger.error('The radiopropa dependency was not import and can therefore not be used.'
                          '\nMore info on https://github.com/nu-radio/RadioPropa')
             raise ImportError('RadioPropa could not be imported')
+
+        coeff = RP.DoubleVector_1D()
+        for ai in self._a:
+            coeff.push_back(ai)
+
+        scalar_field = RP.IceModel_Polynomial(
+            coeff,
+            self._z_0 * nu2rp_meter,
+            self.z_air_boundary * nu2rp_meter,
+            self._z_shift * nu2rp_meter,
+            self._density_factor)
+
+        return RadioPropaIceWrapper(self, scalar_field)
+
 
     def set_density_factor(self, density_factor):
         """
@@ -642,6 +662,8 @@ if radiopropa_is_imported:
         --> this converts the distance from SI unit meter into NuRadio units
     """
 
+    z_unit = RP.Vector3d(0, 0, 1)
+
     class RadioPropaIceWrapper():
         """
         This class holds all the necessary variables for the radiopropa raytracer to work.
@@ -658,45 +680,30 @@ if radiopropa_is_imported:
             # layers, observers to confine the model in a certain space ...
             self.__modules = {}
 
-            step = np.array([0, 0, 1])*units.centimeter
+            step = np.array([0, 0, 1]) * units.centimeter
             air_boundary_pos = np.array([0, 0, self.__ice_model_nuradio.z_air_boundary])
-            air_boundary = RP.Discontinuity(RP.Plane(RP.Vector3d(*(air_boundary_pos*(RP.meter/units.meter))),
-                                                     RP.Vector3d(0,0,1),
-                                                    ),
-                                            self.__ice_model_nuradio.get_index_of_refraction(air_boundary_pos-step),
-                                            self.__ice_model_nuradio.get_index_of_refraction(air_boundary_pos+step),
-                                           )
-            self.__modules["air boundary"]=air_boundary
 
-            boundary_above_surface = RP.ObserverSurface(RP.Plane(RP.Vector3d(*((air_boundary_pos+100*step)
-                                                                             *(RP.meter/units.meter)),
-                                                                            ),
-                                                                 RP.Vector3d(0,0,1)),
-                                                                )
-            air_observer = RP.Observer()
-            air_observer.setDeactivateOnDetection(True)
-            air_observer.add(boundary_above_surface)
-            self.__modules["air observer"] = air_observer
+            air_boundary = RP.Discontinuity(
+                RP.Plane(RP.Vector3d(0, 0, self.__ice_model_nuradio.z_air_boundary * nu2rp_meter), z_unit),
+                self.__ice_model_nuradio.get_index_of_refraction(air_boundary_pos - step),
+                self.__ice_model_nuradio.get_index_of_refraction(air_boundary_pos + step),
+            )
+            self.__modules["air boundary"] = air_boundary
 
-            bottom_boundary_pos = np.array([0, 0, self.__ice_model_nuradio.z_bottom])
-            boundary_bottom = RP.ObserverSurface(RP.Plane(RP.Vector3d(*((bottom_boundary_pos)
-                                                                      *(RP.meter/units.meter)),
-                                                                     ),
-                                                          RP.Vector3d(0,0,1)),
-                                                         )
+            boundary_bottom = RP.ObserverSurface(
+                RP.Plane(RP.Vector3d(0, 0, self.__ice_model_nuradio.z_bottom * nu2rp_meter), z_unit))
+
             bottom_observer = RP.Observer()
             bottom_observer.setDeactivateOnDetection(True)
             bottom_observer.add(boundary_bottom)
             self.__modules["bottom observer"] = bottom_observer
 
             if hasattr(self.__ice_model_nuradio, 'reflection') and self.__ice_model_nuradio.reflection is not None:
-                reflection_pos = np.array([0, 0, self.__ice_model_nuradio.reflection])
-                bottom_reflection = RP.ReflectiveLayer(RP.Plane(RP.Vector3d(*(reflection_pos*(RP.meter/units.meter))),
-                                                                RP.Vector3d(0,0,1),
-                                                                ),
-                                                       self.__ice_model_nuradio.reflection_coefficient,
-                                                      )
-                self.__modules["bottom reflection"]=bottom_reflection
+                bottom_reflection = RP.ReflectiveLayer(
+                    RP.Plane(RP.Vector3d(0, 0, self.__ice_model_nuradio.reflection * nu2rp_meter), z_unit),
+                    self.__ice_model_nuradio.reflection_coefficient,
+                )
+                self.__modules["bottom reflection"] = bottom_reflection
 
         def get_modules(self):
             """
@@ -815,7 +822,7 @@ if radiopropa_is_imported:
             n: float
                 index of refraction
             """
-            pos = np.array([position.x, position.y, position.z])*(units.meter/RP.meter)
+            pos = np.array([position.x, position.y, position.z]) / nu2rp_meter
             return self.__ice_model_nuradio.get_index_of_refraction(pos)
 
         def getGradient(self, position): #name may not be changed because linked to c++ radiopropa module
@@ -832,6 +839,432 @@ if radiopropa_is_imported:
             n_nabla: radiopropa.Vector3d
                 gradient of index of refraction at the point
             """
-            pos = np.array([position.x, position.y, position.z])*(units.meter/RP.meter)
-            gradient = self.__ice_model_nuradio.get_gradient_of_index_of_refraction(pos)*(1 / (RP.meter/units.meter))
+            pos = np.array([position.x, position.y, position.z]) / nu2rp_meter
+            gradient = self.__ice_model_nuradio.get_gradient_of_index_of_refraction(pos) / nu2rp_meter
             return RP.Vector3d(*gradient)
+
+
+class IceModelExpLayers(IceModel):
+    """
+    Medium model consisting of multiple exponential layers.
+
+    This class represents a stratified medium where each layer has a
+    refractive index profile described by an exponential function like this:
+
+    n(z) = n_ice - delta_n * exp(z / z_0)
+
+    It is designed for use with the multilayer analytic ray tracer.
+
+    Parameters
+    ----------
+    layers : list of dict
+        List of layer definitions. Each layer must be a dictionary
+        containing the following keys:
+
+        - ``"z_min"`` : float
+            Lower boundary of the layer (depth).
+        - ``"z_max"`` : float
+            Upper boundary of the layer (depth).
+        - ``"n_ice"`` : float
+            Asymptotic refractive index of the layer.
+        - ``"delta_n"`` : float
+            Factor defining the steepness of the refractive index change.
+        - ``"z_0"`` : float
+            Exponential scale depth, defining the vertival location of the change.
+        - ``"region_name"`` : str
+            Name/identifier of the layer.
+
+    Notes
+    -----
+    Layers are automatically sorted by decreasing ``z_min`` and validated
+    to ensure continuous boundaries between adjacent layers.
+    """
+    def __init__(self, layers):
+        """
+        Initialize the multilayer ice model.
+
+        Parameters
+        ----------
+        layers : list of dict
+            Layer definitions (see class docstring).
+        """
+        
+        self._set_layers(layers)
+        
+
+    def _set_layers(self, layers, z_shift=0*units.meter, z_air_boundary=0*units.meter):
+        """
+        Setting refractive index layer definitions
+
+        Layers get sorted and validated and a numba compatible array is provided
+
+        Parameters
+        ----------
+        layers : list of dict
+            Layer definitions (see class docstring).
+        """
+        
+        self.z_air_boundary = z_air_boundary
+        self.z_shift = z_shift
+        self.layers = sorted(layers, key=lambda L: L["z_min"],reverse = True)
+        self._validate_layers()
+
+        self._layers_arr = layers_to_arrays(self.layers)
+
+    def _validate_layers(self):
+        """
+        Validate layer continuity.
+
+        Ensures that adjacent layers have matching boundaries, i.e.,
+        the lower boundary of one layer coincides with the upper
+        boundary of the next layer.
+
+        Raises
+        ------
+        ValueError
+            If any two adjacent layers do not form a continuous boundary (which would cause undefined z regions) or the definition is inconsistent.
+        """
+        for i in range(len(self.layers) - 1):
+            if not np.isclose(self.layers[i]["z_min"], self.layers[i+1]["z_max"]):
+                raise ValueError(f"Layers {i} and {i+1} don't overlap, boundaries are not continuous! Check definition!")
+
+        z_min = np.asarray([layer["z_min"] for layer in self.layers], dtype=float)
+        z_max = np.asarray([layer["z_max"] for layer in self.layers], dtype=float)
+        n_ice = np.asarray([layer["n_ice"] for layer in self.layers], dtype=float)
+        delta_n = np.asarray([layer["delta_n"] for layer in self.layers], dtype=float)
+        z0 = np.asarray([layer["z_0"] for layer in self.layers], dtype=float)
+
+        n = len(z_min)
+
+        # --- Length consistency check ---
+        if not (len(z_max) == len(n_ice) == len(delta_n) == len(z0) == n):
+            raise ValueError("All layer parameter arrays must have the same length. Did you forget to specify something?")
+
+    def get_index_of_refraction(self, position):
+        """
+        Compute the refractive index at a given position.
+
+        According to n(z) = n_ice - delta_n * exp(z / z_0), using the layer parameters corresponding to a given z.
+
+        Parameters
+        ----------
+        position : array-like
+            Position(s) at which to evaluate the refractive index.
+            Can be either:
+
+            - 1D array-like of shape (3,)
+            - 2D array-like of shape (N, 3)
+
+            The third component (``z``) is used for evaluation.
+
+        Returns
+        -------
+        float or ndarray
+            Refractive index at the given position(s). Returns a scalar
+            for a single position or an array for multiple positions.
+
+        Raises
+        ------
+        ValueError
+            If a position lies outside all defined layers.
+        """
+
+        z_min, z_max, n_ice, delta_n, z0 = self._layers_arr
+        eps = 1e-14
+
+        def n_of_z(z):
+            for i in range(len(z_min)):
+                if z_min[i] + eps <= z < z_max[i]+eps:
+                    return n_ice[i] - delta_n[i] * np.exp(z / z0[i])
+
+            raise ValueError(f"Position z={z} is not covered by any layer!")
+
+        if isinstance(position, list) or position.ndim == 1:
+            n = n_of_z(position[2])
+            return float(n)
+        else:
+            #return np.array([n_of_z(z) for z in position[:,2]])
+            zvals = position[:, 2]
+            out = np.empty(len(zvals))
+
+            for i in range(len(zvals)):
+                out[i] = n_of_z(zvals[i])
+
+            return out
+
+    def get_layer_name(self, z):
+        """
+        Return the name of the layer at a given depth.
+
+        Parameters
+        ----------
+        z : float
+            Depth coordinate.
+
+        Returns
+        -------
+        str
+            Name of the layer containing the given depth.
+
+        Raises
+        ------
+        ValueError
+            If the depth is not covered by any layer.
+        """
+        for L in self.layers:
+            if L["z_min"] <= z < L["z_max"]:
+                return L["region_name"]
+        raise ValueError(f"Position z={z} is not covered by any layer!")
+
+    def get_average_index_of_refraction(self, position1, position2):
+        """
+        Returns average refractive index between two points.
+
+        Parameters
+        ----------
+        position1, position2 : ndarray
+            Shape (3,) or (N,3)
+
+        Returns
+        -------
+        float or ndarray
+        """
+
+        def layer_average(L, z1, z2):
+            """
+            Average refractive index inside a single layer.
+            """
+
+            if np.isclose(z1, z2):
+                return (
+                    L["n_ice"]
+                    - L["delta_n"] * np.exp(z1 / L["z_0"])
+                )
+
+            return (
+                L["n_ice"]
+                - L["delta_n"]
+                * L["z_0"]
+                / (z2 - z1)
+                * (
+                    np.exp(z2 / L["z_0"])
+                    - np.exp(z1 / L["z_0"])
+                )
+            )
+
+        def average_between(z1, z2):
+
+            zmin = min(z1, z2)
+            zmax = max(z1, z2)
+
+            # total integral of n(z) dz
+            integral = 0.0
+
+            for L in self.layers:
+
+                # overlap of path interval with layer
+                a = max(zmin, L["z_min"])
+                b = min(zmax, L["z_max"])
+
+                if b <= a:
+                    continue
+
+                n_avg_layer = layer_average(L, a, b)
+
+                integral += n_avg_layer * (b - a)
+
+            return integral / (zmax - zmin)
+
+        # scalar case
+        if (
+            (isinstance(position1, list) or position1.ndim == 1)
+            and
+            (isinstance(position2, list) or position2.ndim == 1)
+        ):
+
+            return average_between(position1[2], position2[2])
+
+        # vectorized case
+        else:
+
+            return np.array([
+                average_between(z1, z2)
+                for z1, z2 in zip(position1[:, 2], position2[:, 2])
+            ])
+
+    def get_gradient_of_index_of_refraction(self, position):
+        """
+        Returns gradient of refractive index at position(s).
+
+        Parameters
+        ----------
+        position : ndarray
+            Shape (3,) or (N,3)
+
+        Returns
+        -------
+        ndarray
+            Shape (3,) or (N,3)
+        """
+
+        def grad_z(z):
+            for L in self.layers:
+                if L["z_min"] <= z < L["z_max"]:
+                    return (
+                        -L["delta_n"] / L["z_0"]
+                        * np.exp(z / L["z_0"])
+                    )
+            raise ValueError(f"Position z={z} is not covered by any layer!")
+
+        if isinstance(position, list) or position.ndim == 1:
+            g = np.zeros(3, dtype=float)
+            g[2] = grad_z(position[2])
+            return g
+
+        else:
+            gz = np.array([grad_z(z) for z in position[:, 2]])
+
+            return np.stack(
+                (
+                    np.zeros_like(gz),
+                    np.zeros_like(gz),
+                    gz
+                ),
+                axis=1
+            )
+
+
+    @property
+    def get_layers_array(self):
+        """
+        Get layer parameters as NumPy arrays.
+
+        Returns
+        -------
+        tuple of ndarray
+            See the internal method _layers_to_arrays for details.
+        """
+        return self._layers_arr
+
+    # for backwards compatibility with stuff IceModelSimple:
+
+    @property
+    def n_ice(self):
+        return self.layers[-1]["n_ice"]
+
+    @property
+    def delta_n(self):
+        return self.layers[-1]["delta_n"]
+
+    @property
+    def z_0(self):
+        return self.layers[-1]["z_0"]
+
+    @property
+    def z_air_boundary(self):
+        return self._z_air_boundary
+
+    @z_air_boundary.setter
+    def z_air_boundary(self, value):
+        self._z_air_boundary = value
+
+class IceModelContinuousExpLayers(IceModelExpLayers):
+
+    """
+    Implements a continuous and continuously-differentiable piecewise-exponential ice model.
+    """
+    def _parametrized_layers(self, nN, delta_nN, ls, zs,
+                             z_bot = -3000.0, z_surface = 0.0):
+        """
+        Parametrizes a three-layer ice model with continuous n(z) and n'(z) in terms of
+            nN        ... Asymptotic refractive index of the bottommost layer
+            delta_nN  ... Refractive index step in the bottommost layer
+            ls        ... Length scale of the layers, starting at the bottommost layer
+            zs        ... Depth of transition between layers, starting at the bottom
+        """
+
+        # Need to have one more layer than layer transition
+        assert len(ls) == len(zs) + 1
+
+        def _get_ni_delta_ni(zz, li, nii, delta_nii, lii):
+            """
+            Calculate parameters (ni, delta_ni) for layer `i` from parameters for
+            layer `ii`, such that the two layers are connected at `zz` in a continuous and
+            continuously-differentiable way.
+            """
+            delta_ni = delta_nii * li / lii * np.exp(zz * (1.0 / lii - 1.0 / li))
+            ni = nii - delta_nii * np.exp(zz / lii) + delta_ni * np.exp(zz / li)
+
+            return ni, delta_ni
+
+        z_trans = [z_bot] + zs + [z_surface]
+
+        # Generate the layers starting from the bottom
+        layers_gen = []
+
+        cur_n = nN
+        cur_delta_n = delta_nN
+        for cur_l, next_l, cur_zmin, cur_zmax in zip(ls, ls[1:] + [1],
+                                                     z_trans[:-1], z_trans[1:]):
+            layers_gen.append(
+                    {
+                        "z_min": cur_zmin,
+                        "z_max": cur_zmax,
+                        "n_ice": cur_n,
+                        "delta_n": cur_delta_n,
+                        "z_0": cur_l,
+                        "region": "ice",
+                        "region_name": "ice"
+                    }
+                )
+            cur_n, cur_delta_n = _get_ni_delta_ni(cur_zmax, next_l, cur_n, cur_delta_n, cur_l)
+
+        # Add the air layer, which is constant and not parametrized
+        layers_gen.append(
+                # The air is constant and not parametrized
+                {
+                    "z_min": z_surface,
+                    "z_max": np.inf,
+                    "n_ice": 1.00027,
+                    "delta_n": 2.7e-4,
+                    "z_0": -8000.0,
+                    "region": "air",
+                    "region_name": "Air"
+                }
+            )
+
+        return layers_gen
+
+    def __init__(self, nN, delta_nN, ls, zs):
+        layers = self._parametrized_layers(nN, delta_nN, ls, zs)
+        super().__init__(layers)
+        self._set_params(nN, delta_nN, ls, zs)
+
+    def get_average_index_of_refraction(self, position1, position2):
+        z1, z2 = position1[2], position2[2]
+        def get_ior(z):
+            return self.get_index_of_refraction([0, 0, z])
+        int_ior = integrate.quad(get_ior, z1, z2)[0]
+        return np.abs(int_ior / (z2 - z1))
+
+    def _set_params(self, nN, delta_nN, ls, zs):
+        # keep values of continuous-ice parameterization around
+        self.nN = nN
+        self.delta_nN = delta_nN
+        self.ls = ls
+        self.zs = zs
+
+        layers = self._parametrized_layers(self.nN, self.delta_nN, self.ls, self.zs)
+        self._set_layers(layers)
+
+    def get_description(self):
+        desc = {
+                    "type": type(self).__name__,
+                    "args": {
+                        "nN": self.nN,
+                        "delta_nN": self.delta_nN,
+                        "ls": self.ls,
+                        "zs": self.zs
+                        }
+                    }
+        return desc

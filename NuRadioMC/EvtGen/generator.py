@@ -1038,7 +1038,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 max_n_events_batch=1e5,
                                 write_events=True,
                                 seed=None,
-                                interaction_type="ccnc"):
+                                interaction_type="ccnc",
+                                cross_sections_model="hedis_bgr18"):
     """
     Event generator
 
@@ -1229,7 +1230,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         logger.debug("interaction type")
         if interaction_type == "ccnc":
             data_sets["interaction_type"] = inelasticities.get_ccnc(
-                n_events_batch, rnd=rnd, model="hedis_bgr18",
+                n_events_batch, rnd=rnd, model=cross_sections_model,
                 energy=data_sets["energies"], flavors=data_sets["flavors"])
         elif interaction_type == "cc" or interaction_type == "nc":
             data_sets["interaction_type"] = np.full(n_events_batch, interaction_type, dtype='U2')
@@ -1240,7 +1241,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         # generate inelasticity
         logger.debug("generating inelasticities")
         data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(
-            n_events_batch, rnd=rnd, model="hedis_bgr18",  nu_energies=data_sets["energies"],
+            n_events_batch, rnd=rnd, model=cross_sections_model,  nu_energies=data_sets["energies"],
             flavors=data_sets["flavors"], ncccs=data_sets["interaction_type"])
 
         if deposited:
@@ -1403,11 +1404,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     if write_events:
         write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
-        logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
+        logger.status(f"Generated {len(data_sets_fiducial['event_group_ids'])} event groups in {pretty_time_delta(time.time() - t_start)}. Write them to {filename}")
     else:
         for key, value in data_sets_fiducial.items():
             if value.dtype.kind == 'U':
                 data_sets_fiducial[key] = np.array(value, dtype=h5py.string_dtype(encoding='utf-8'))
 
-        logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
+        logger.status(f"Generated {len(data_sets_fiducial['event_group_ids'])} event groups in {pretty_time_delta(time.time() - t_start)}")
         return data_sets_fiducial, attributes

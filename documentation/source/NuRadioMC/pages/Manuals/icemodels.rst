@@ -178,7 +178,7 @@ Birefringence Ice Models
 
 Birefringence is an optional propagation setting in NuRadioMC which allows to simulate radio pulses propagating in anisotropic ice. The details about how the calculations in the propagation work can be found here `(Heyer & Glaser, 2023) <https://link.springer.com/article/10.1140/epjc/s10052-023-11238-y>`__. When using birefringence several options exist about what birefringence-ice-model to propagate in and what propagation code should be used for the propagation.
 
-There are several example scripts available demonstrating all available (``NuRadioMC/SignalProp/examples/birefringence_examples``) functions when dealing with birefringent ice. Check read_me.txt for a more detailed description of the examples and data used.
+There are several example scripts available demonstrating all available (``NuRadioMC/examples/SignalProp/birefringence_examples``) functions when dealing with birefringent ice. Check read_me.txt for a more detailed description of the examples and data used.
 
 .. warning:: Using this code assumes that the ice flow points in the positive x-direction. Therefore, a rotation of the detector geometry into this coordinate system might be necessary. This rotation can be done by either changing the source/antenna positions or by using the 'angle_to_iceflow' parameter in the config file.
 

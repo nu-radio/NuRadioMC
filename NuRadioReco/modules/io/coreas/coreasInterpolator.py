@@ -395,6 +395,12 @@ class coreasInterpolator:
         """
         Transform the position of the antenna on ground to the shower plane.
 
+        Notes
+        -----
+        This function uses the core position of the original shower to perform the transformation which, typically,
+        has zero x and y coordinates (i.e., [0, 0, altitude]). Hence, `position_on_ground` is expected to be relative
+        to the shower-core for which you want to perform the interpolation.
+
         Parameters
         ----------
         position_on_ground : np.ndarray
@@ -425,10 +431,13 @@ class coreasInterpolator:
         """
         Calculate the interpolated electric field given an antenna position on ground.
 
+        Notes
+        -----
         If the geomagnetic angle is smaller than 15deg,
         the electric field of the closest observer position is returned instead.
 
-        Note that `position_on_ground` is in absolute coordinates, not relative to the core position.
+        Note that `position_on_ground` is in relative coordinates (in x and y), relative to the shower-core for
+        which you want to perform the interpolation. The z-coordinate should be absolute, i.e., the height above sea level.
         Extrapolation outside of the starshape is handled by the ``cr-pulse-interpolator`` package (see
         also the description of ``kwargs`` in `initialize_efield_interpolator`).
 
@@ -490,7 +499,10 @@ class coreasInterpolator:
         """
         Calculate the interpolated fluence for a given position on the ground.
 
-        Note that ``position_on_ground`` is in absolute coordinates, not relative to the core position.
+        Notes
+        -----
+        Note that `position_on_ground` is in relative coordinates (in x and y), relative to the shower-core for
+        which you want to perform the interpolation. The z-coordinate should be absolute, i.e., the height above sea level.
         Extrapolation outside of the starshape is handled by the ``cr-pulse-interpolator`` package (see
         also the description of ``kwargs`` in `initialize_fluence_interpolator`).
 

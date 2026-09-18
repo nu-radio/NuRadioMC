@@ -244,8 +244,8 @@ class ProposalFunctions(object):
             upper_energy_limit of tables that will be created by PROPOSAL, in NuRadioMC units (eV).
             There will be an error if primaries with energies above this energy will be injected.
             Note that PROPOSAL will have to regenerate tables for a new values of upper_energy_limit
-        create_new: bool (default:False)
-            Can be used to force the creation of a new ProposalFunctions object.
+        create_new: bool (default: None)
+            Set to ``True`` to force the creation of a new ProposalFunctions object.
             By default, the __init__ will only create a new object if none already exists.
             For more details, check the documentation for the
             :class:`Singleton metaclass <NuRadioReco.utilities.metaclasses.Singleton>`.

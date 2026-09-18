@@ -1,5 +1,6 @@
 import logging
 import numpy as np
+from scipy import integrate
 from numpy.random import Generator, Philox
 from NuRadioReco.utilities import units, fft
 from NuRadioReco.modules.base.module import register_run
@@ -339,7 +340,7 @@ class channelGenericNoiseAdder:
 
         if amplitude is not None:
             # power = np.sum(spectrum**2)
-            norm = np.trapz(np.abs(spectrum) ** 2, frequencies)
+            norm = integrate.trapezoid(np.abs(spectrum) ** 2, frequencies)
             max_freq = frequencies[-1]
             amplitude = amplitude / (norm / max_freq) ** 0.5
             sigscale = (1. * n_samples) / np.sqrt(n_samples_freq)

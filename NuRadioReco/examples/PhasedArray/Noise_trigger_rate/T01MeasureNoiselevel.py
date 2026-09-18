@@ -1,11 +1,12 @@
 import argparse
 import time
 import numpy as np
+from scipy import integrate
 from astropy.time import Time
 from multiprocessing import Pool as ThreadPool
 import NuRadioReco.modules.channelGenericNoiseAdder
 import NuRadioReco.modules.channelBandPassFilter
-import NuRadioReco.modules.phasedarray.triggerSimulator
+import NuRadioReco.modules.phasedarray.phasedArrayTrigger
 import NuRadioReco.modules.trigger.simpleThreshold
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
@@ -83,14 +84,14 @@ fff = np.linspace(min_freq, max_freq, 10000)
 filt1_highres = channelBandPassFilter.get_filter(fff, 0, 0, None, passband=[0, 220 * units.MHz], filter_type="cheby1", order=7, rp=.1)
 filt2_highres = channelBandPassFilter.get_filter(fff, 0, 0, None, passband=[96 * units.MHz, 100 * units.GHz], filter_type="cheby1", order=4, rp=.1)
 filt_highres = filt1_highres * filt2_highres
-bandwidth = np.trapz(np.abs(filt_highres) ** 2, fff)
+bandwidth = integrate.trapezoid(np.abs(filt_highres) ** 2, fff)
 
 Vrms_ratio = np.sqrt(bandwidth / (max_freq - min_freq))
 amplitude = Vrms / Vrms_ratio
 
 pattern = f"pa_trigger_rate_{n_channels:d}channels_{upsampling_factor}xupsampling"
 
-triggerSimulator = NuRadioReco.modules.phasedarray.triggerSimulator.triggerSimulator()
+triggerSimulator = NuRadioReco.modules.phasedarray.phasedArrayTrigger.PhasedArrayTrigger()
 thresholdSimulator = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
 
@@ -134,30 +135,30 @@ def loop(zipped):
 
     return triggered
 
+if __name__ == "__main__":
+    pool = ThreadPool(ncpus)
 
-pool = ThreadPool(ncpus)
-
-for threshold in thresholds:
-    n_triggers = 0
-    i = 0
-    t00 = time.time()
-    t0 = time.time()
-
-    while i < ntrials:
-        n_pool = int(float(ntrials) / 10.0)
-
-        print("Events:", i, " Delta t=", time.time() - t00, " N_triggers =", n_triggers)
-        i += n_pool
+    for threshold in thresholds:
+        n_triggers = 0
+        i = 0
         t00 = time.time()
+        t0 = time.time()
 
-        results = pool.map(loop, zip(threshold * np.ones(n_pool), np.random.get_state()[1][0] + i + np.arange(n_pool)))
+        while i < ntrials:
+            n_pool = int(float(ntrials) / 10.0)
 
-        n_triggers += np.sum(results)
+            print("Events:", i, " Delta t=", time.time() - t00, " N_triggers =", n_triggers)
+            i += n_pool
+            t00 = time.time()
+
+            results = pool.map(loop, zip(threshold * np.ones(n_pool), np.random.get_state()[1][0] + i + np.arange(n_pool)))
+
+            n_triggers += np.sum(results)
+            rate = 1. * n_triggers / (i * n_samples * dt)
+
         rate = 1. * n_triggers / (i * n_samples * dt)
 
-    rate = 1. * n_triggers / (i * n_samples * dt)
-
-    with open(f"{pattern}.txt", "a") as fout:
-        fout.write(f"{threshold}\t{n_triggers}\t{i*n_samples*dt}\t{rate}\n")
-        fout.close()
-    print(f"threshold = {threshold:.3f}: n_triggers = {n_triggers} -> rate = {rate/units.Hz:.0f} Hz, {(time.time() -  t0)/i*1000:.1f}ms per event -> {(time.time() -  t0)/n_triggers*100/60:.1f}min for 100 triggered events")
+        with open(f"{pattern}.txt", "a") as fout:
+            fout.write(f"{threshold}\t{n_triggers}\t{i*n_samples*dt}\t{rate}\n")
+            fout.close()
+        print(f"threshold = {threshold:.3f}: n_triggers = {n_triggers} -> rate = {rate/units.Hz:.0f} Hz, {(time.time() -  t0)/i*1000:.1f}ms per event -> {(time.time() -  t0)/n_triggers*100/60:.1f}min for 100 triggered events")

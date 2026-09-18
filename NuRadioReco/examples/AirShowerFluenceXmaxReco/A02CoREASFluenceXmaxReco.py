@@ -23,7 +23,7 @@ import logging
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import cm
-from scipy import constants
+from scipy import constants, integrate
 from scipy import optimize as opt
 from astropy import time
 from NuRadioReco.detector import detector
@@ -141,7 +141,7 @@ for iE, evt in enumerate(coreas_reader.run(det, [core])):
     max_freq = 0.5 * det.get_sampling_frequency(station.get_id(), 1)
     ff = np.linspace(0, max_freq, 10000)
     filt = channelBandPassFilter.get_filter(ff, station.get_id(), None, det, **filt_settings)
-    bandwidth = np.trapz(np.abs(filt) ** 2, ff)
+    bandwidth = integrate.trapezoid(np.abs(filt) ** 2, ff)
     Vrms = (Tnoise * 50 * constants.k * bandwidth / units.Hz) ** 0.5
     amplitude = Vrms/ (bandwidth / max_freq) ** 0.5
     channelGenericNoiseAdder.run(evt, station, det, type="rayleigh", amplitude=1 * amplitude,

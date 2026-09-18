@@ -14,7 +14,7 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
                           time_coincidence=5 * units.ns, dt=1 * units.ns,
                           step=1, align_strides_to_start=False):
     """
-    calculates a high low trigger in a time coincidence window
+    Calculates a high low trigger in a time coincidence window
 
     Parameters
     ----------
@@ -82,7 +82,7 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
 def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * units.ns, dt=1 * units.ns,
                        step=1, align_strides_to_start=False):
     """
-    calculates a majority logic trigger
+    Calculates a majority logic trigger
 
     Parameters
     ----------
@@ -175,7 +175,7 @@ class triggerSimulator:
             align_strides_to_start=False,
             pre_trigger_time=None):
         """
-        simulate ARIANNA trigger logic
+        Calculates the high-low coincidence trigger for an event.
 
         Parameters
         ----------
@@ -216,6 +216,7 @@ class triggerSimulator:
             Options:
             * 'voltage' to store the ADC output as discretised voltage trace
             * 'counts' to store the ADC output in ADC counts
+
         step: int
             stride length for sampling rate and clock rate mismatch in trigger logic
         align_strides_to_start: bool (default: False)
@@ -230,6 +231,10 @@ class triggerSimulator:
             start of the trace and the trigger time.
             if only a float is given, the same pre_trigger_time is used for all channels
             If none, the default value of the HighLowTrigger class is used, which is currently 55ns.
+        Returns
+        -------
+        has_triggered: bool
+            True if the trigger condition was met
         """
         t = time.time()
 
@@ -326,6 +331,8 @@ class triggerSimulator:
         station.set_trigger(trigger)
 
         self.__t += time.time() - t
+
+        return has_triggered
 
     def end(self):
         from datetime import timedelta

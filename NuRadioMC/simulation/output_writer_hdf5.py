@@ -267,12 +267,15 @@ class outputWriterHDF5:
                         keys_channel_rt_data = ['travel_times', 'travel_distances']
                         if self._mout_attributes['config']['speedup']['amp_per_ray_solution']:
                             keys_channel_rt_data.extend(['time_shower_and_ray', 'max_amp_shower_and_ray'])
+
                         nCh = stn.get_number_of_channels()
                         for key in keys_channel_rt_data:
                             channel_rt_data[key] = np.zeros((nCh, self._nS)) * np.nan
+
                         keys_channel_rt_data_3D = ['launch_vectors', 'receive_vectors', 'polarization']
                         for key in keys_channel_rt_data_3D:
                             channel_rt_data[key] = np.zeros((nCh, self._nS, 3)) * np.nan
+
                         # important: we need to loop over the channels of the station object, not
                         # the channels present in the sim_station object. This is because the sim
                         # channel object only contains the channels that have a signal, i.e., a ray
@@ -284,9 +287,23 @@ class outputWriterHDF5:
                                 if efield.get_shower_id() == shower.get_id():
                                     iS = efield.get_ray_tracing_solution_id()
                                     for key, value in efield[efp.raytracing_solution].items():
+
+                                        value = np.asarray(value)  # Ensure value is a NumPy array (handles scalars too)
+
                                         if key not in channel_rt_data:
-                                            channel_rt_data[key] = np.zeros((nCh, self._nS)) * np.nan
-                                        channel_rt_data[key][iCh, iS] = value
+                                            # First time seeing this key: initialize storage based on value's shape
+                                            if value.ndim == 0:  # Scalar (ndim=0 for numpy scalars)
+                                                channel_rt_data[key] = np.zeros((nCh, self._nS)) * np.nan
+                                            else:
+                                                # For arrays, add an extra dimension to store the entire array per (iCh, iS)
+                                                channel_rt_data[key] = np.zeros((nCh, self._nS, *value.shape)) * np.nan
+
+                                        # Assign the value
+                                        if channel_rt_data[key].ndim == 2:  # Scalar storage
+                                            channel_rt_data[key][iCh, iS] = value
+                                        else:  # Array storage
+                                            channel_rt_data[key][iCh, iS, ...] = value
+
                                     channel_rt_data['launch_vectors'][iCh, iS] = efield[efp.launch_vector]
                                     receive_vector = hp.spherical_to_cartesian(efield[efp.zenith], efield[efp.azimuth])
                                     channel_rt_data['receive_vectors'][iCh, iS] = receive_vector
@@ -311,6 +328,7 @@ class outputWriterHDF5:
                         for key, value in channel_rt_data.items():
                             self.__add_parameter(sg, key, value)
             # end event loop
+
             # now determine triggers per shower. This is a bit tricky, we need to consider all events
             # and count a shower if it contributed to any of the events. The trigger_times field contains
             # the earliest trigger time of all stations and triggers
@@ -349,7 +367,7 @@ class outputWriterHDF5:
 
         # save trigger information on first level
         shower_id_to_index = {shower_id: i for i, shower_id in enumerate(shower_ids)}
-        triggered = np.zeros(len(shower_ids_stn), dtype=bool)
+        triggered = np.zeros(len(shower_ids), dtype=bool)
         multiple_triggers = np.zeros((len(shower_ids), len(self._mout_attributes['trigger_names'])), dtype=bool)
         trigger_times = np.ones((len(shower_ids), len(self._mout_attributes['trigger_names'])), dtype=float) * np.nan
         for shower_id in shower_ids:
@@ -543,7 +561,7 @@ class outputWriterHDF5:
             logger.debug("No 'weights' present in HDF5 output, assuming all weights are unity.")
             n_triggered_weighted = n_triggered
         n_events = self._mout_attributes['n_events']
-        logger.status(f'fraction of triggered events = {n_triggered:.0f}/{n_events:.0f} (sum of weights = {n_triggered_weighted:.2f})')
+        logger.status(f'Fraction of triggered events = {n_triggered:.0f}/{n_events:.0f}. Sum of triggered event weights = {n_triggered_weighted:.2f}.')
 
         if 'volume' in self._mout_attributes: # this key is not present for e.g. emitter simulations
             V = self._mout_attributes['volume']

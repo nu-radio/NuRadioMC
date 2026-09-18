@@ -15,8 +15,11 @@ try:
 except ImportError:
     numba_available = False
 
+if not hasattr(np, 'trapezoid'):
+    # needed for compatibility with old numpy versions
+    np.trapezoid = np.trapz
+
 logger = logging.getLogger("NuRadioMC.SignalGen.ARZ")
-# logger.setLevel(logging.INFO)
 
 ######################
 ######################
@@ -268,7 +271,7 @@ def get_vector_potential(
 #         F_p[~mask] = 1.e-30 * fc / xntot
         F_p[~mask] = 0
 
-        vp[it] = np.trapz(-v * profile_ce_interp2 * F_p / R, z)
+        vp[it] = np.trapezoid(-v * profile_ce_interp2 * F_p / R, z)
 
     vp *= factor
 
@@ -607,63 +610,62 @@ class ARZ(object):
         # to the Cherenkov angle, but NuRadioMC will reuse the shower realization of the first ray tracing solution.
         if np.abs(theta - cherenkov_angle) > maximum_angle:
             logger.info(f"viewing angle {theta/units.deg:.1f}deg is more than {maximum_angle/units.deg:.1f}deg away from the Cherenkov cone. Returning zero trace.")
-            empty_trace = np.zeros((3, N))
-            return empty_trace
+            trace_onsky = np.zeros((3, N))
+        else:
+            # get the appropriate model parameters
+            if shower_type == "HAD":
+                model_parameters = dict(
+                    Af = self._Af_p,
+                    t0_pos = self._t0_p_pos,
+                    freq_pos = self._freq_p_pos,
+                    exp_pos = self._exp_p_pos,
+                    t0_neg = self._t0_p_neg,
+                    freq_neg = self._freq_p_neg,
+                    exp_neg = self._exp_p_neg
+                )
+                em_factor = self.em_fraction(shower_energy)
+            elif shower_type == "EM":
+                model_parameters = dict(
+                    Af = self._Af_e,
+                    t0_pos = self._t0_e_pos,
+                    freq_pos = self._freq_e_pos,
+                    exp_pos = self._exp_e_pos,
+                    t0_neg = self._t0_e_neg,
+                    freq_neg = self._freq_e_neg,
+                    exp_neg = self._exp_e_neg
+                )
+                em_factor = 1.
+            elif(shower_type == "TAU"):
+                logger.error("Tau showers are not yet implemented")
+                raise NotImplementedError("Tau showers are not yet implemented")
+            else:
+                msg = "showers of type {} are not implemented. Use 'HAD', 'EM'".format(shower_type)
+                logger.error(msg)
+                raise NotImplementedError(msg)
+            if self._use_numba:
+                vp = get_vector_potential_numba(
+                    shower_energy, theta, N, dt, profile_depth, profile_ce,
+                    shower_type=shower_type, n_index=n_index, distance=R,
+                    interp_factor=self._interp_factor, interp_factor2=self._interp_factor2,
+                    shift_for_xmax=shift_for_xmax, **model_parameters, em_factor=em_factor
+                )
+            else:
+                vp = get_vector_potential(
+                    shower_energy, theta, N, dt, profile_depth, profile_ce,
+                    shower_type=shower_type, n_index=n_index, distance=R,
+                    interp_factor=self._interp_factor, interp_factor2=self._interp_factor2,
+                    shift_for_xmax=shift_for_xmax, **model_parameters, em_factor=em_factor
+                )
+            trace = -np.diff(vp, axis=0) / dt
 
-        # get the appropriate model parameters
-        if shower_type == "HAD":
-            model_parameters = dict(
-                Af = self._Af_p,
-                t0_pos = self._t0_p_pos,
-                freq_pos = self._freq_p_pos,
-                exp_pos = self._exp_p_pos,
-                t0_neg = self._t0_p_neg,
-                freq_neg = self._freq_p_neg,
-                exp_neg = self._exp_p_neg
-            )
-            em_factor = self.em_fraction(shower_energy)
-        elif shower_type == "EM":
-            model_parameters = dict(
-                Af = self._Af_e,
-                t0_pos = self._t0_e_pos,
-                freq_pos = self._freq_e_pos,
-                exp_pos = self._exp_e_pos,
-                t0_neg = self._t0_e_neg,
-                freq_neg = self._freq_e_neg,
-                exp_neg = self._exp_e_neg
-            )
-            em_factor = 1.
-        elif(shower_type == "TAU"):
-            logger.error("Tau showers are not yet implemented")
-            raise NotImplementedError("Tau showers are not yet implemented")
-        else:
-            msg = "showers of type {} are not implemented. Use 'HAD', 'EM'".format(shower_type)
-            logger.error(msg)
-            raise NotImplementedError(msg)
-        if self._use_numba:
-            vp = get_vector_potential_numba(
-                shower_energy, theta, N, dt, profile_depth, profile_ce,
-                shower_type=shower_type, n_index=n_index, distance=R,
-                interp_factor=self._interp_factor, interp_factor2=self._interp_factor2,
-                shift_for_xmax=shift_for_xmax, **model_parameters, em_factor=em_factor
-            )
-        else:
-            vp = get_vector_potential(
-                shower_energy, theta, N, dt, profile_depth, profile_ce,
-                shower_type=shower_type, n_index=n_index, distance=R,
-                interp_factor=self._interp_factor, interp_factor2=self._interp_factor2,
-                shift_for_xmax=shift_for_xmax, **model_parameters, em_factor=em_factor
-            )
-        trace = -np.diff(vp, axis=0) / dt
-#         trace = -np.gradient(vp, axis=0) / dt
+            # use viewing angle relative to shower maximum for rotation into spherical coordinate system (that reduced eR component)
+            if shift_for_xmax:  # if we shifted the observerposition already to be relative to Xmax, we don't need to do that here.
+                thetaprime = theta
+            else:
+                thetaprime = theta_to_thetaprime(theta, xmax, R)
+            cs = cstrafo.cstrafo(zenith=thetaprime, azimuth=0)
+            trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
 
-        # use viewing angle relative to shower maximum for rotation into spherical coordinate system (that reduced eR component)
-        if shift_for_xmax:  # if we shifted the observerposition already to be relative to Xmax, we don't need to do that here.
-            thetaprime = theta
-        else:
-            thetaprime = theta_to_thetaprime(theta, xmax, R)
-        cs = cstrafo.cstrafo(zenith=thetaprime, azimuth=0)
-        trace_onsky = cs.transform_from_ground_to_onsky(trace.T)
         if(output_mode == 'full'):
             return trace_onsky, profile_depth, profile_ce
         elif(output_mode == 'Xmax'):
@@ -920,7 +922,7 @@ class ARZ(object):
     #         F_p[~mask] = 1.e-30 * fc / xntot
             F_p[~mask] = 0
 
-            vp[it] = np.trapz(-v * profile_ce_interp2 * F_p / R, z)
+            vp[it] = np.trapezoid(-v * profile_ce_interp2 * F_p / R, z)
             if  0:
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots(1, 1)

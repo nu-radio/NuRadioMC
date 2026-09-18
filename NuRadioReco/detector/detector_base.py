@@ -1,4 +1,7 @@
 import numpy as np
+import glob
+from functools import lru_cache
+import scipy.interpolate
 from NuRadioReco.utilities import units
 import NuRadioReco.detector.RNO_G.analog_components
 import NuRadioReco.detector.ARIANNA.analog_components
@@ -13,6 +16,7 @@ from datetime import datetime
 from tinydb_serialization import Serializer
 import six  # # used for compatibility between py2 and py3
 import warnings
+import json
 try:
     from erfa import ErfaWarning
 except ImportError: # users with astropy < 4.2 may not have pyerfa installed
@@ -22,6 +26,9 @@ import NuRadioReco.utilities.metaclasses
 logger = logging.getLogger('NuRadioReco.detector')
 warnings.filterwarnings('ignore', category=ErfaWarning)
 
+# load site coordinates / elevation from json
+with open(os.path.join(os.path.dirname(__file__), 'coordinates.json')) as f:
+    site_coordinates = json.load(f)
 
 class DateTimeSerializer(Serializer):
     """
@@ -139,6 +146,7 @@ class DetectorBase(object):
                  dictionary=None, assume_inf=True, antenna_by_depth=True):
         """
         Initialize the stations detector properties.
+
         By default, a new detector instance is only created of none exists yet, otherwise the existing instance
         is returned. To force the creation of a new detector instance, pass the additional keyword parameter
         `create_new=True` to this function. For more details, check the documentation for the
@@ -162,8 +170,8 @@ class DetectorBase(object):
             if True the antenna model is determined automatically depending on the depth of the antenna. This is done by
             appending e.g. '_InfFirn' to the antenna model name.
             if False, the antenna model as specified in the database is used.
-        create_new: bool (default:False)
-            Can be used to force the creation of a new detector object. By default, the __init__ will only create a new
+        create_new: bool (default: None)
+            Set to ``True`` to force the creation of a new detector object. By default, the __init__ will only create a new
             object if none already exists.
         """
         self._serialization = SerializationMiddleware()
@@ -243,7 +251,7 @@ class DetectorBase(object):
         the value to the attribute.
         """
         if isinstance(value, bool):
-            self.__assume_inf = value
+            self._antenna_by_depth = value
         else:
             raise ValueError(f"Value for antenna_by_depth should be boolean, not {type(value)}")
 
@@ -604,19 +612,48 @@ class DetectorBase(object):
         ----------
         station_id: int
             the station ID
+
+        Returns
+        -------
+        tuple of float
+            The latitude and longitude of the detector site.
+
+            .. Warning:: The latitude and longitude are given in **degrees**, not radians!
+
+        See Also
+        --------
+        get_site_elevation :
+            Method to obtain the elevation (altitude) of a detector site
+
         """
-        sites = {
-            'auger': (-35.10, -69.55),
-            'mooresbay': (-78.74, 165.09),
-            'southpole': (-90., 0.),
-            'summit': (72.57, -38.46),
-            'lofar': (52.92, 6.87),
-            'ska': (-26.825, 116.764),
-        }
         site = self.get_site(station_id).lower()
-        if site in sites.keys():
-            return sites[site]
-        return (None, None)
+        if site in site_coordinates:
+            coords = site_coordinates[site]
+            return coords['latitude'], coords['longitude']
+        else:
+            logger.warning(f"No coordinates known for site '{site}' ")
+            return (None, None)
+
+    def get_site_elevation(self, station_id):
+        """
+        Get the elevation of a given detector site
+
+        Parameters
+        ----------
+        station_id: int
+            the station ID
+
+        See Also
+        --------
+        get_site_coordinates :
+            Method to obtain the GPS coordinates of a detector site
+        """
+        site = self.get_site(station_id).lower()
+        if site in site_coordinates:
+            return site_coordinates[site]['elevation']
+        else:
+            logger.warning(f"No elevation known for site '{site}' ")
+            return None
 
     def get_number_of_channels(self, station_id):
         """
@@ -861,11 +898,12 @@ class DetectorBase(object):
         if 'amp_type' in res.keys():
             amp_type = res['amp_type']
         if amp_type is None:
-            raise ValueError(
-                'Amplifier type for station {}, channel {} not in detector description'.format(
+            logger.error(
+                'Amplifier type for station {}, channel {} not in detector description. No amplifier response will be applied.'.format(
                     station_id,
                     channel_id
                 ))
+            return np.ones_like(frequencies, dtype=complex)
         amp_response_functions = None
         if amp_type in NuRadioReco.detector.RNO_G.analog_components.get_available_amplifiers():
             amp_response_functions = NuRadioReco.detector.RNO_G.analog_components.load_amp_response(amp_type)
@@ -873,6 +911,12 @@ class DetectorBase(object):
             if amp_response_functions is not None:
                 raise ValueError('Amplifier name {} is not unique'.format(amp_type))
             amp_response_functions = NuRadioReco.detector.ARIANNA.analog_components.load_amplifier_response(amp_type)
+        # check for custom amplifier responses
+        if _load_custom_amp(amp_type) is not None:
+            if amp_response_functions is not None:
+                raise ValueError(f'Custom amplifier type {amp_type} is already in use. Please rename your custom amplifier.')
+            amp_response_functions = _load_custom_amp(amp_type)
+
         if amp_response_functions is None:
             raise ValueError('Amplifier of type {} not found'.format(amp_type))
         amp_gain = amp_response_functions['gain'](frequencies)
@@ -1079,3 +1123,35 @@ class DetectorBase(object):
         if 'noiseless' not in res:
             return False
         return res['noiseless']
+
+
+@lru_cache(maxsize=128)
+def _load_custom_amp(amp_type, directory=os.path.join(os.path.dirname(__file__), 'amps', 'custom')):
+    """
+    List custom amplifiers (in CSV format) available under ``directory``.
+
+    Note that this expects the amplifier response to be in a fixed format:
+    3 columns (frequency in Hz, S21 magnitude, S21 phase in radians)
+
+    """
+    custom_amp_files = glob.glob(os.path.join(directory, '*.csv'))
+    custom_amps = {os.path.basename(f).strip('.csv') : f for f in custom_amp_files}
+    if amp_type not in custom_amps:
+        return None
+
+    amp_csv = np.loadtxt(custom_amps[amp_type])
+    assert amp_csv.shape[1] == 3, "Custom amplifier response does not have expected format (frequency in Hz, S21 mag, S21 phase in rad)"
+
+    def interp_amp(freqs):
+        return np.interp(freqs, amp_csv[:,0] * units.Hz, amp_csv[:,1], left=0, right=0)
+
+    # for some reason 'phase' in response_functions is actually the magnitude-normalized complex response
+    def interp_phase(freqs):
+        return np.exp(1j * np.interp(freqs, amp_csv[:,0] * units.Hz, amp_csv[:,2], left=0, right=0))
+
+    response_functions = dict(
+        gain = interp_amp,
+        phase = interp_phase
+    )
+
+    return response_functions

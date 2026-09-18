@@ -61,11 +61,14 @@ def _check_detector_time(method):
         return method(self, *method_args, **method_kwargs)
     return _impl
 
+def _format_t(t, f="%Y-%m-%d %H:%M:%S"):
+    return t.strftime(f)
+
 
 class Detector():
     def __init__(self, database_connection='RNOG_public', log_level=logging.NOTSET, over_write_handset_values=None,
                  database_time=None, always_query_entire_description=False, detector_file=None,
-                 select_stations=None, create_new=False):
+                 select_stations=None, create_new=False, database_name=None, signal_chain_measurement_name=None):
         """
         The RNO-G detector description.
 
@@ -100,9 +103,18 @@ class Detector():
             This is useful for example in simulations when one wants to simulate only one station. The default None
             means to descibe all commissioned stations.
 
-        create_new : bool (Default: False)
-            If False, and a database already exists, the existing database will be used rather than initializing a
-            new connection. Set to True to create a new database connection.
+        create_new : bool (Default: None)
+            If ``False``, the existing database connection (if there is one) will be used rather than initializing a
+            new connection. Set to ``True`` to always create a new database connection.
+            The default is to create a new database only if the ``database_connection`` argument has changed.
+
+        database_name : str (Default: None)
+            Name of the database to connect to. If None, the default database will be used
+            (see Database class in db_mongo_read.py).
+
+        signal_chain_measurement_name : str (Default: None)
+            Name of the signal chain measurement to use. If None, the signal chain is selected based on
+            database / primary time.
 
         Notes
         -----
@@ -124,22 +136,31 @@ class Detector():
         self.additional_data = {}
         self.comment = ""
 
+        # If `self.__signal_chain_measurement_name is None` select signal chain according to primary time
+        self.__signal_chain_measurement_name = signal_chain_measurement_name
+
         if select_stations is not None and not isinstance(select_stations, list):
             select_stations = [select_stations]
 
         self.selected_stations = select_stations
-        self.logger.info(f"Select the following stations (if possible): {select_stations}")
+        if self.selected_stations is not None:
+            self.logger.info(f"Select the following stations (if possible): {select_stations}")
+
         self.__db = None
         if detector_file is None:
             self._det_imported_from_file = False
 
-            self.__db = Database(database_connection=database_connection, create_new=create_new)
+            self.__db = Database(
+                database_connection=database_connection,
+                create_new=create_new, database_name=database_name)
+
             if database_time is not None:
                 self.__db.set_database_time(database_time)
 
-            self.logger.info(
+            self.logger.debug(
                 "Collect time periods of station commission/decommission ...")
             self._time_periods_per_station = self.__db.query_modification_timestamps_per_station()
+
             self.logger.info(
                 f"Found the following stations in the database: {list(self._time_periods_per_station.keys())}")
 
@@ -152,7 +173,7 @@ class Detector():
 
             self.logger.debug("Register the following modification periods:")
             for key, value in self._time_periods_per_station.items():
-                self.logger.debug(f'{key}: {value}["modification_timestamps"]')
+                self.logger.debug(f'{key}: {value["modification_timestamps"]}')
 
             # Used to keep track which time period is buffered. Index of 0, not buffered jet.
             self._time_period_index_per_station = collections.defaultdict(int)
@@ -174,7 +195,10 @@ class Detector():
         over_write_handset_values = over_write_handset_values or {}
         self.__default_values.update(over_write_handset_values)
 
-        info = f"Query entire detector description at once: {self._query_all}"
+        if not self._det_imported_from_file:
+            info = f"Query entire detector description at once: {self._query_all}"
+        else:
+            info = ""
 
         info += "\nUsing the following hand-set values:"
         n = np.amax([len(key) for key in self.__default_values.keys()]) + 3
@@ -185,6 +209,25 @@ class Detector():
 
         self.assume_inf = None  # Compatibility with other detectors classes
         self.antenna_by_depth = None  # Compatibility with other detectors classes
+
+    @property
+    def signal_chain_measurement_name(self):
+        """
+        The name of the signal chain measurement, or None if not set.
+        """
+        return self.__signal_chain_measurement_name
+
+    @signal_chain_measurement_name.setter
+    def signal_chain_measurement_name(self, name):
+        """
+        Set the name of the signal chain measurement.
+        """
+        if name != self.__signal_chain_measurement_name:
+            for station_id in self.__buffered_stations:
+                for channel_id in self.__buffered_stations[station_id]["channels"]:
+                    self.__buffered_stations[station_id]["channels"][channel_id].pop("signal_chain", None)
+
+            self.__signal_chain_measurement_name = name
 
     def export(self, filename, json_kwargs=None, additional_data=None, drop_response_data=False, comment=None):
         """
@@ -207,6 +250,16 @@ class Detector():
         comment: str (Default: None)
             An optional comment describing this detector that will be added to the exported detector description.
         """
+
+        if not self._query_all:
+            # When not querying the entire description at once,
+            # we need to make sure that the buffer is updated
+            # for all stations before exporting.
+            self.logger.info("Query entire detector description at once before exporting (this might take a while) ...")
+            for station_id in self.__buffered_stations:
+                # remove everything (could be handled smarter ...)
+                self.__buffered_stations[station_id] = {}
+                self._query_station_information(station_id, query_all_information=True)
 
         periods = {}
         for station_id in self.__buffered_stations:
@@ -321,6 +374,8 @@ class Detector():
                 station_data["devices"] = {int(device_id): device_data for device_id, device_data in station_data["devices"].items()}
                 self.__buffered_stations[int(station_id)] = station_data
 
+            self.logger.info(f"Imported the following stations from file: {', '.join([str(st) for st in self.__buffered_stations])}")
+
             # need to convert modification_timestamps back to datetime objects
             self._time_periods_per_station = {
                 int(station_id): {"modification_timestamps":
@@ -335,6 +390,19 @@ class Detector():
                 self._time_periods_per_station[station_id]["station_commission_timestamps"] = [modification_timestamps[0]]
                 self._time_periods_per_station[station_id]["station_decommission_timestamps"] = [modification_timestamps[-1]]
 
+            table_rows = [
+                (str(station_id), value["station_commission_timestamps"][0].date().isoformat(),
+                 value["station_decommission_timestamps"][0].date().isoformat())
+                for station_id, value in self._time_periods_per_station.items()
+            ]
+            header = ("Station", "Commissioned", "Decommissioned")
+            col_widths = [max(len(row[i]) for row in [header] + table_rows) for i in range(3)]
+            table_str = "\n".join(
+                " | ".join(col.center(col_widths[i]) for i, col in enumerate(row))
+                for row in [header] + table_rows
+            )
+            self.logger.info(f"De/commission timestamps per station:\n{table_str}")
+
             self._time_period_index_per_station = {
                 st_id: 1 for st_id in self.__buffered_stations}
             self.__default_values = import_dict["default_values"]
@@ -343,12 +411,15 @@ class Detector():
             raise ReferenceError(f"{detector_file} with unknown version.")
 
         # print any potential comment present in this detector description
-        if self.comment is not None:
+        if self.comment is not None and self.comment != "":
             self.logger.info("\n".join(["Loaded detector description with comment:", self.comment]))
 
     def _check_update_buffer(self):
         """
-        Checks whether the correct detector description per station in in the current period.
+        Checks, per station, whether the current description is "still" in the correct period.
+        I.e., it should detect if the period changed. Periods are defined by the modification timestamps
+        of the station/channels/calibrations/... (de)commissioning. If the period changed, the buffer needs
+        to be updated by querying the new station information from the database.
 
         Returns
         -------
@@ -363,11 +434,10 @@ class Detector():
                                  [dt.timestamp() for dt in
                                   self._time_periods_per_station[station_id]["modification_timestamps"]])
 
-            if period != self._time_period_index_per_station[station_id]:
-                need_update[station_id] = True
-            else:
-                need_update[station_id] = False
+            # update station if periods do not match
+            need_update[station_id] = not (period == self._time_period_index_per_station[station_id])
 
+            # update period for next check (this means we have to update buffer immediately ...)
             self._time_period_index_per_station[station_id] = period
 
         debug_str = "The following stations need to be updated:"
@@ -397,13 +467,28 @@ class Detector():
                 "Set invalid time for detector. Time has to be of type `datetime.datetime`")
             raise TypeError(
                 "Set invalid time for detector. Time has to be of type `datetime.datetime`")
+
+        # FS: The database does not import the timestamps with time zones. Once this is fixed the following
+        # block can be uncommented.
+        # if time.tzinfo is None:
+        #     self.logger.warning(f"The detector time object has not time zone, assuming UTC ...")
+        #     time = time.replace(tzinfo=datetime.timezone.utc)
+
         self.__detector_time = time
 
+        if not self._det_imported_from_file:
+            if self.__db is None:
+                self.logger.error("Database is None.")
+                raise ValueError("Database is None.")
+
+            self.__db.set_detector_time(time)
+
+
     def get_detector_time(self):
-        """
+        """ Return current detector time
+
         Returns
         -------
-
         time: `datetime.datetime`
             Detector time
         """
@@ -414,36 +499,65 @@ class Detector():
 
     def update(self, time):
         """
-        Updates the detector. If configure in constructor this function with trigger the
-        database query.
+        Updates the detector. Queries the database for new information if necessary.
+
+        Notes
+        -----
+        A station's description is updated if a change in the detector description is detected. The check
+        is perfomed by `self._check_update_buffer` which checks if the current detector time is still in the
+        same "period" as the buffered description. Periods are defined by the modification timestamps of
+        the station/channels/calibrations/... (de)commissioning timestamps. If the period changed, the buffer needs
+        to be updated by querying the new station information from the database. The modification timestamps for each
+        station are queried at class initialization with `self.__db.query_modification_timestamps_per_station()` and
+        stored in `self._time_periods_per_station`. The current period for each station is tracked with
+        `self._time_period_index_per_station` and updated inside `self._check_update_buffer`.
 
         Parameters
         ----------
         time: `datetime.datetime` or ``astropy.time.Time``
             Unix time of measurement.
+
+        Returns
+        -------
+
+        updated: bool
+            True if the detector description was (re-)queried from the database because the
+            detector time moved into a new period. False if the buffered description was still
+            valid and no update was necessary.
         """
         if isinstance(time, astropy.time.Time):
             time = _convert_astro_time_to_datetime(time)
 
-        if self.__detector_time is None:
-            self.logger.info(f"Update detector to {time}")
-
         self.__set_detector_time(time)
-        if not self._det_imported_from_file:
-            self.__db.set_detector_time(time)
 
         update_buffer_for_station = self._check_update_buffer()
-        any_update = np.any([v for v in update_buffer_for_station.values()])
+        any_update = bool(np.any([v for v in update_buffer_for_station.values()]))
 
         if self._det_imported_from_file and any_update:
-            self.logger.warning(f"Update detector to {time}")
-            self.logger.error(
-                "You have imported the detector description from a pickle/json file but it is not valid anymore. Full stop!")
-            raise ValueError(
-                "You have imported the detector description from a pickle/json file but it is not valid anymore. Full stop!")
+            for station_id, need_update in update_buffer_for_station.items():
+                if need_update:
+                    self.logger.warning(
+                        f"Station {station_id} is not valid anymore at {_format_t(time)} but the detector description "
+                        "was imported from a pickle/json file and can not be updated. Dropping this "
+                        "station's description entirely.")
+                    # remove everything (could be handled smarter ...)
+                    self.__buffered_stations[station_id] = {}
 
-        if any_update:
-            self.logger.info(f"Update detector to {time}")
+            if not any(self.__buffered_stations.values()):
+                self.logger.error(
+                    "You have imported the detector description from a json file but none of the "
+                    f"stations' description are valid anymore for {_format_t(time)}. Change the detector time by "
+                    "calling `det.update(...)`. Full stop!")
+                raise ValueError(
+                    "You have imported the detector description from a json file but none of the "
+                    f"stations' description are valid anymore for {_format_t(time)}. Change the detector time by "
+                    "calling `det.update(...)`. Full stop!")
+
+        elif any_update:
+            self.logger.info(
+                "Update description of station(s) "
+                f"{', '.join(str(st) for st, up in update_buffer_for_station.items() if up)} to {_format_t(time)}")
+
             for key in self.__buffered_stations:
                 if update_buffer_for_station[key]:
                     # remove everything (could be handled smarter ...)
@@ -451,19 +565,20 @@ class Detector():
 
             for station_id, need_update in update_buffer_for_station.items():
                 if need_update and self.has_station(station_id):
-                    self._query_station_information(station_id)
+                    self._query_station_information(station_id, query_all_information=self._query_all)
 
         # Return when buffer is not empty. This has to come first ...
         for station_id in self.__buffered_stations:
             if len(self.__buffered_stations[station_id]):
-                return
+                return any_update
 
         # ... and than second
         if len(self.__buffered_stations):
-            return
+            return any_update
 
         # When you reach this point something went wrong ...
         self.logger.warning(f"Empty detector for {time}!")
+        return any_update
 
 
     @_check_detector_time
@@ -522,18 +637,18 @@ class Detector():
         self.logger.debug(f"Station {station_id} not commissioned!")
         return False
 
-    def _query_station_information(self, station_id):
+    def _query_station_information(self, station_id, query_all_information):
         """
         Query information about a specific station from the database via the db_mongo_read interface.
-        You can query only information from the station_list collection (all=False) or the complete
-        information of the station (all=True).
+        You can query only information from the station_list collection (query_all_information=False)
+        or the complete information of the station (query_all_information=True).
 
         Parameters
         ----------
         station_id: int
             Station id
 
-        all: bool
+        query_all_information: bool
             If true, query all relevant information form a station including its channel and devices (position, signal chain, ...).
             If false, query only the information from the station list collection (describes a station with all channels and devices
             with their (de)commissioning timestamps but not data like position, signal chain, ...)
@@ -543,11 +658,12 @@ class Detector():
             raise ValueError(
                 f"Query information for station {station_id} which is still in buffer.")
 
-        self.logger.info(
+        self.logger.debug(
             f"Query information for station {station_id} at {self.get_detector_time()}")
-        if self._query_all:
+
+        if query_all_information:
             station_information = self.__db.get_complete_station_information(
-                station_id)
+                station_id, measurement_signal_chain=self.signal_chain_measurement_name)
         else:
             station_information = self.__db.get_general_station_information(
                 station_id)
@@ -614,9 +730,10 @@ class Detector():
 
             signal_id = self.__buffered_stations[station_id]["channels"][channel_id]['id_signal']
             self.logger.debug(
-                f"Query signal chain of station.channel {station_id}.{channel_id} with id {signal_id}")
+                f"Query signal chain of station.channel {station_id}.{channel_id} with id {signal_id} "
+                f"and measurement name {self.__signal_chain_measurement_name}")
 
-            channel_sig_info = self.__db.get_channel_signal_chain(signal_id)
+            channel_sig_info = self.__db.get_channel_signal_chain(signal_id, measurement_name=self.__signal_chain_measurement_name)
             channel_sig_info.pop('channel_id', None)
 
             self.__buffered_stations[station_id]["channels"][channel_id]['signal_chain'] = channel_sig_info
@@ -887,52 +1004,80 @@ class Detector():
 
         # total_response can be None if imported from file
         if response_key not in signal_chain_dict or signal_chain_dict[response_key] is None:
-            measurement_components_dic = signal_chain_dict[response_chain_key]
+            measurement_components_list = signal_chain_dict[response_chain_key]
 
+            #### This HACK was introduced to handle the NuRadio placeholder measurements, which are not needed anymore. It has been commented out for archival purposes. ####
             # Here comes a HACK
-            components = list(measurement_components_dic.keys())
-            is_equal = False
-            if "drab_board" in components and "iglu_board" in components:
+            # components = [entry["collection"] for entry in measurement_components_list]
+            # is_equal = False
+            # if "drab_board" in components and "iglu_board" in components:
+            #     is_equal = np.allclose(
+            #         measurement_components_list[components.index("drab_board")]["mag"],
+            #         measurement_components_list[components.index("iglu_board")]["mag"])
 
-                is_equal = np.allclose(
-                    measurement_components_dic["drab_board"]["mag"],
-                    measurement_components_dic["iglu_board"]["mag"])
-
-                if is_equal:
-                    self.logger.warn(
-                        f"Station.channel {station_id}.{channel_id}: Currently both, "
-                        "iglu and drab board are configured in the signal chain but their "
-                        "responses are the same (because we measure them together in the lab). "
-                        "Skip the drab board response.")
+            #     if is_equal:
+            #         self.logger.warning(
+            #             f"Station.channel {station_id}.{channel_id}: Currently both, "
+            #             "iglu and drab board are configured in the signal chain but their "
+            #             "responses are the same (because we measure them together in the lab). "
+            #             "Skip the drab board response.")
 
             responses = []
-            for key, value in measurement_components_dic.items():
-
+            for component_entry in measurement_components_list:
                 # Skip drab_board if its equal with iglu (see warning above)
-                if is_equal and key == "drab_board":
-                    continue
+                # if is_equal and component_entry["collection"] == "drab_board":
+                #     continue
 
-                if "weight" not in value:
-                    self.logger.warn(f"Component {key} does not have a weight. Assume a weight of 1 ...")
-                weight = value.get("weight", 1)
+                if "collection" not in component_entry:
+                    component_entry["collection"] = "default"
 
-                attenuator = value.get("attenuator", 0)
-
-                if "time_delay" in value:
-                    time_delay = value["time_delay"]
-                else:
-                    self.logger.warning(
-                        f"The signal chain component \"{key}\" of station.channel "
-                        f"{station_id}.{channel_id} has no time delay stored... "
-                        "Set component time delay to 0")
+                if component_entry['collection'] == "gain_calibration":
+                    ydata = component_entry["gain_factor"]
+                    y_units = component_entry["gain_factor_unit"]
+                    frequencies = None
                     time_delay = 0
+                    weight = component_entry.get("weight", 1)  # returns 1 as the default if weight is not included
 
-                ydata = [value["mag"], value["phase"]]
-                response = Response(value["frequencies"], ydata, value["y-axis_units"],
-                                    time_delay=time_delay, weight=weight, name=key,
-                                    station_id=station_id, channel_id=channel_id,
-                                    log_level=self.__log_level,
-                                    attenuator_in_dB=attenuator)
+                elif component_entry['collection'] == "time_delays":
+                    ydata = 1  # Fake gain factor of 1 in magitude (does nothing)
+                    y_units = "mag"
+                    frequencies = None
+                    time_delay = component_entry["time_delay"] * getattr(units, component_entry["time_delay_unit"])
+                    weight = component_entry.get("weight", 1)  # returns 1 as the default if weight is not included
+
+                else:
+                    # Get the response data
+                    ydata = [component_entry["mag"], component_entry["phase"]]
+                    y_units = component_entry["y-axis_units"]
+                    frequencies = component_entry["frequencies"]
+
+                    weight = component_entry.get("weight", 1) # returns 1 as the default if weight is not included
+                    attenuator = component_entry.get("attenuator", 0) # returns 0 as the default if attenuator is not included
+
+                    if "time_delay" in component_entry:
+                        time_delay = component_entry["time_delay"]
+                    else:
+                        self.logger.warning(
+                            f"The signal chain component \"{component_entry['collection']}\" with the name \"{component_entry['name']}\" of station.channel "
+                            f"{station_id}.{channel_id} has no time delay stored... "
+                            "Set component time delay to 0")
+                        time_delay = 0
+
+                    # Apply the addtional attenuator (stored in dB) to the response if present in measurement
+                    if attenuator:
+                        if y_units[0] == "dB":
+                            ydata[0] = np.asarray(ydata[0]) + attenuator
+                        elif y_units[0].lower() == "mag":
+                            ydata[0] = np.asarray(ydata[0]) * 10 ** (attenuator / 20)
+                        else:
+                            raise KeyError
+
+                response = Response(
+                    frequencies, ydata, y_units,
+                    time_delay=time_delay, weight=weight,
+                    name=f'{component_entry["collection"]}:{component_entry["name"]}',
+                    station_id=station_id, channel_id=channel_id,
+                    log_level=self.__log_level)
 
                 responses.append(response)
 
@@ -965,8 +1110,8 @@ class Detector():
         signal_chain_dict = self.get_channel_signal_chain(
             station_id, channel_id)
         signal_chain_components = {
-            key: value["weight"] for key, value in
-                signal_chain_dict['response_chain'].items()}
+            ele["name"]: ele["weight"] for ele in
+                signal_chain_dict['response_chain']}
 
         return signal_chain_components
 
@@ -1024,8 +1169,8 @@ class Detector():
 
             position_id = self.__buffered_stations[station_id]["devices"][device_id]["id_position"]
 
-            device_pos_info = self.__db.get_device_position(
-                device_position_id=position_id)
+            device_pos_info = self.__db.get_position(
+                position_id=position_id, component="device")
             self.__buffered_stations[station_id]["devices"][device_id]['device_position'] = device_pos_info
 
         return np.array(self.__buffered_stations[station_id]["devices"][device_id]["device_position"]["position"])
@@ -1253,7 +1398,7 @@ class Detector():
         get_time_delay
         """
         signal_chain_dict = self.get_channel_signal_chain(
-        station_id, channel_id)
+            station_id, channel_id)
 
         if trigger:
             response_chain_key = "trigger_response_chain"
@@ -1266,21 +1411,25 @@ class Detector():
         else:
             response_chain_key = "response_chain"
 
-        measurement_components_dic = signal_chain_dict[response_chain_key]
+        measurement_components_list = signal_chain_dict[response_chain_key]
 
         total_time_delay = 0
-        for key, value in measurement_components_dic.items():
+        for component_dic in measurement_components_list:
+            key = component_dic["collection"]
 
-            if "weight" in value:
-                weight = value["weight"]
+            if key == "gain_calibration":
+                continue  # skip gain calibration, it has no time delay
+
+            if "weight" in component_dic:
+                weight = component_dic["weight"]
             else:
-                self.logger.warn(f"Component {key} does not have a weight. Assume a weight of 1 ...")
+                self.logger.warning(f"Component {key} does not have a weight. Assume a weight of 1 ...")
                 weight = 1
 
             assert abs(weight) == 1, f"Weight is {weight}, only values of `-1` and `1` are currently supported."
 
-            if "time_delay" in value:
-                time_delay = value["time_delay"]
+            if "time_delay" in component_dic:
+                time_delay = component_dic["time_delay"]
             else:
                 self.logger.warning(
                     f"The signal chain component \"{key}\" of station.channel "
@@ -1341,16 +1490,20 @@ class Detector():
                 raise KeyError(f"No trigger response for station.channel {station_id}.{channel_id}")
 
             prefix = "trigger_" if trigger else ""
-            for key, value in signal_chain_dict[f"{prefix}response_chain"].items():
-                ydata = [value["mag"], value["phase"]]
+            for component_dic in signal_chain_dict[f"{prefix}response_chain"]:
+                key = component_dic["collection"]
+                if key == "gain_calibration":
+                    continue  # skip gain calibration, it has no time delay
+
+                ydata = [component_dic["mag"], component_dic["phase"]]
                 # This is different from within `get_signal_chain_response` because we do set the time delay here
                 # and thus we do not remove it from the response.
-                response = Response(value["frequencies"], ydata, value["y-axis_units"],
+                response = Response(component_dic["frequencies"], ydata, component_dic["y-axis_units"],
                                     name=key, station_id=station_id, channel_id=channel_id,
                                     log_level=self.__log_level)
 
-                weight = value.get("weight", 1)
-                time_delay += weight * response._calculate_time_delay()
+                weight = component_dic.get("weight", 1)
+                time_delay += weight * response.calculate_time_delay()
 
         return time_delay
 

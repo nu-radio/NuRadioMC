@@ -40,7 +40,7 @@ independent of the sampling rate.
 .. Important:: Always use these helper functions when doing Fourier transformations.
 
 Metaclasses
-------------------------
+-----------
 
 Singleton
 ^^^^^^^^^
@@ -52,3 +52,9 @@ already exists and return that instance instead of creating a new one.
 
 If you want to enforce the creation of a new class instance, you can overwrite this behavior
 by passing ``create_new=True`` as a parameter to the __call__ method.
+
+.. Note::
+  Prior to version 3.1.0, any arguments passed to the ``__init__()`` of a Singleton class
+  would be silently ignored. As of version 3.1.0, instead a new instance of the class is generated
+  with the correct arguments if ``create_new==None`` (the new default), or an error is raised if
+  ``create_new==False``.

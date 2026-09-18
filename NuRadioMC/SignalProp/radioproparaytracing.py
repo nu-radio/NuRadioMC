@@ -43,7 +43,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
     how to install it can be found at https://github.com/nu-radio/RadioPropa"""
 
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
-                 n_frequencies_integration=None, n_reflections=None, config=None, detector=None):
+                 n_frequencies_integration=None, n_reflections=None, config=None, detector=None, use_cpp=None):
 
         """
         class initilization
@@ -85,6 +85,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 config['propagation']['radiopropa']['auto_step_size'] = False
                 config['propagation']['radiopropa']['iter_steps_zenith'] = [.5, .05, .005]
         detector: detector object
+        use_cpp: bool
+            Not used here. For compatibility with analytic ray tracer.
         """
         self.__logger = logging.getLogger('NuRadioMC.SignalProp.radiopropa_ray_tracing')
         self.__logger.setLevel(log_level)
@@ -131,18 +133,31 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         Set the start and end points of the raytracing
 
+        If the start and end points are identical to those of the previous ray tracing,
+        the existing solutions are kept and `find_solutions` will not recalculate them.
+        Call `reset_solutions` before this function to force a recalculation.
+
         Parameters
         ----------
         x1: 3dim np.array
             start point of the ray
         x2: 3dim np.array
             stop point of the ray
+
+        Returns
+        -------
+        geometry_changed: bool
+            False if the start and end points are unchanged with respect to the previous
+            ray tracing (in which case the existing solutions are kept), True otherwise.
         """
         self._source = x1
         self._antenna = x2
 
-        super().set_start_and_end_point(x1, x2)
+        if not super().set_start_and_end_point(x1, x2):
+            return False
+
         self.set_iterative_step_sizes(step_zeniths=self._step_zeniths) #if auto is on this set the automated step size, otherwise nothing happens
+        return True
 
     def set_shower_axis(self, shower_axis):
         """
@@ -153,7 +168,14 @@ class radiopropa_ray_tracing(ray_tracing_base):
         shower_axis: np.array of shape (3,), default unit
             the direction of the shower in cartesian coordinates
         """
-        self._shower_axis = shower_axis / np.linalg.norm(shower_axis)
+        shower_axis = shower_axis / np.linalg.norm(shower_axis)
+        if self._shower_axis is not None and not np.array_equal(shower_axis, self._shower_axis):
+            # the solutions can depend on the shower axis (rays are preselected with a viewing angle
+            # cut around the cherenkov angle), so existing solutions have to be recalculated
+            self._results = None
+            self._rays = None
+
+        self._shower_axis = shower_axis
 
     def set_iterative_sphere_sizes(self, sphere_sizes=None):
         """
@@ -313,7 +335,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
             w = (u / np.linalg.norm(u)) * 2*sphere_size
             boundary_behind_channel = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(*(X2 + w)), radiopropa.Vector3d(*w)))
             obs2.add(boundary_behind_channel)
-            boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0, 0, 1*radiopropa.meter), radiopropa.Vector3d(0, 0, 1)))
+            max_height=np.max([self._X1[2], self._X2[2]+2*sphere_size, 1*radiopropa.meter])
+            boundary_above_surface = radiopropa.ObserverSurface(radiopropa.Plane(radiopropa.Vector3d(0, 0, max_height), radiopropa.Vector3d(0, 0, 1)))
             obs2.add(boundary_above_surface)
             sim.add(obs2)
 
@@ -331,7 +354,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
                     viewing = np.arccos(np.dot(shower_dir, ray_dir)) * units.radian
                     return viewing - cherenkov_angle
 
-                if (self._shower_axis is None) or (abs(delta(ray_dir,self._shower_axis)) < self._cut_viewing_angle):
+                if (self._shower_axis is None) or (abs(delta(ray_dir, self._shower_axis)) < self._cut_viewing_angle):
 
                     source = radiopropa.Source()
                     source.add(radiopropa.SourcePosition(radiopropa.Vector3d(*X1)))
@@ -647,7 +670,14 @@ class radiopropa_ray_tracing(ray_tracing_base):
     def find_solutions(self):
         """
         find all solutions between X1 and X2
+
+        If solutions for the current start and end points (and shower axis) already exist,
+        they are kept and not recalculated. Call `reset_solutions` first to force a recalculation.
         """
+        if self._results is not None:
+            self.__logger.debug("solutions for the current geometry already exist, skipping ray tracing")
+            return
+
         results = []
         rays_results = []
 
@@ -1121,7 +1151,9 @@ class radiopropa_ray_tracing(ray_tracing_base):
         recPos1 = np.array([self._X2[0], self._X2[1], self._X2[2] + dz])
         if not hasattr(self, "_r1"):
             self._r1 = radiopropa_ray_tracing(self._medium, self._attenuation_model, logging.WARNING, self._n_frequencies_integration, self._n_reflections, config = self._config)
-        self._r1.set_shower_axis(self._shower_axis)
+        if self._shower_axis is not None:
+            self._r1.set_shower_axis(self._shower_axis)
+
         self._r1.set_start_and_end_point(vetPos, recPos1)
         self._r1.find_solutions()
         if iS < self._r1.get_number_of_solutions():
