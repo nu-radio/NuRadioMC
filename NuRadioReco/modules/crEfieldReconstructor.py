@@ -5,7 +5,7 @@ This module provides the `CREfieldReconstructor` class which can be used
 to reconstruct the direction and polarization of a cosmic-ray air shower signal.
 It currently works only if the arrival direction
 of the signal can be assumed to be the same for all antennas
-(e.g., shallow in-ice antennas that are all at the same refractive index).
+(e.g., in-ice antennas that are all at the same refractive index).
 
 This code is largely based on the `NuRadioReco.modules.voltageToAnalyticEfieldConverter`
 module.
@@ -37,14 +37,17 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.impulsiveSignalReconstructor import get_dt_correlation
 
 logger = logging.getLogger('NuRadioReco.CREfieldReconstructor')
+_REFRACTIVE_INDEX_AIR = 1.000293
 
 class CREfieldReconstructor:
     """"
-    Reconstruction class for cosmic-rays using shallow in-ice antennas
+    Reconstruction class for cosmic-rays using (shallow) in-ice antennas
 
     Uses a forward-folding algorithm to fit the electric field
-    (and therefore direction & polarization) of a cosmic-ray air-shower induced
-    signal in shallow in-ice antennas.
+    (and direction & polarization) of a cosmic-ray air-shower induced
+    signal in in-ice antennas. It assumes that all antennas see the same
+    electric field (i.e. they have to be sufficiently close to each other
+    and see the same refractive index).
 
     Notes
     -----
@@ -75,27 +78,34 @@ class CREfieldReconstructor:
         self._station = None
         self._det = None
         self._channels_sorted = None
-        self._debug = False
-        self._debug_folder = '.'
+        self.begin() # initialize with default parameters
 
-    def begin(self, debug=False, debug_folder='.'):
+    def begin(self, n_ice=1.3, n_surface=1.3, debug=False, debug_folder='.'):
         """
         Set debug parameters
 
         Parameters
         ----------
+        n_ice : float, default 1.3
+            The refractive index at the antennas.
+        n_surface : float, default 1.3
+            The refractive index at the air-ice boundary (used to compute
+            the Fresnel coefficients)
         debug : bool, default: ``False``
             If True, produce debug plots
         debug_folder : str, default '.'
             Path to save debug plots to. By default, saves plots to current directory.
         """
+        self._n_ice = n_ice
+        self._n_surface = n_surface
         self._debug = debug
         self._debug_folder = debug_folder
 
 
     def get_cosmic_ray_spectra(
             self, zenith, azimuth, amplitude, pol_angle, slope,
-            phase_p0, phase_p1=0, quadratic_term=0, quadratic_term_offset=0.08, return_efield=False):
+            phase_p0, phase_p1=0, quadratic_term=0, quadratic_term_offset=0.08,
+            return_efield=False):
         """
         Return the cosmic-ray spectra
 
@@ -108,9 +118,9 @@ class CREfieldReconstructor:
         Parameters
         ----------
         zenith : float
-            Zenith of the incoming cosmic ray
+            Zenith of the incoming cosmic ray (in air)
         azimuth : float
-            Azimuth of the incoming cosmic ray
+            Azimuth of the incoming cosmic ray (in air)
         amplitude : float
             Amplitude of the radio emission
         pol_angle : float
@@ -151,16 +161,20 @@ class CREfieldReconstructor:
            signal measured in one single station, http://dx.doi.org/10.1088/1475-7516/2019/10/075
 
         """
-
-        antenna_response = trace_utilities.get_efield_antenna_factor(
-            self._station, self._freqs, self._channels_sorted, self._det, zenith, azimuth, self.__antenna_provider)
-        time_delays = geometryUtilities.get_time_delay_from_direction(zenith, azimuth, self._channel_positions)
+        zenith_in_ice = geometryUtilities.get_fresnel_angle(zenith, n_2=self._n_ice, n_1=_REFRACTIVE_INDEX_AIR)
+        t_theta = geometryUtilities.get_fresnel_t_p(zenith, n_2=self._n_surface, n_1=_REFRACTIVE_INDEX_AIR)
+        t_phi = geometryUtilities.get_fresnel_t_s(zenith, n_2=self._n_surface, n_1=_REFRACTIVE_INDEX_AIR)
+        antenna_response = signal_processing.get_efield_antenna_factor(
+            self._station, self._freqs, self._channels_sorted, self._det, zenith_in_ice, azimuth,
+            self.__antenna_provider, efield_is_at_antenna=True)
+        time_delays = geometryUtilities.get_time_delay_from_direction(
+            zenith_in_ice, azimuth, self._channel_positions, n=self._n_ice)
         efield = analytic_pulse.get_analytic_pulse_freq(
             100, -np.abs(slope), phase_p0=phase_p0, n_samples_time=self._n_samples_time, sampling_rate=self._sampling_rate,
             phase_p1=phase_p1, bandpass=None, quadratic_term=quadratic_term, quadratic_term_offset=quadratic_term_offset)
 
-        A_theta = amplitude * np.cos(pol_angle)
-        A_phi = amplitude * np.sin(pol_angle)
+        A_theta = amplitude * np.cos(pol_angle) * t_theta
+        A_phi = amplitude * np.sin(pol_angle) * t_phi
 
         if return_efield:
             return np.array([np.zeros_like(efield), A_theta*efield*self._filt, A_phi*efield*self._filt])
@@ -177,7 +191,7 @@ class CREfieldReconstructor:
 
     def get_cosmic_ray_traces(
             self, zenith, azimuth, amplitude, pol_angle, slope,
-            phase_p0, phase_p1=0, quadratic_term=0, quadratic_term_offset=0.08):
+            phase_p0, phase_p1=0, quadratic_term=0, quadratic_term_offset=0.08, return_efield=False):
         """
         Return the voltage traces
 
@@ -208,11 +222,11 @@ class CREfieldReconstructor:
         quadratic_term_offset : float, default: 80 * units.MHz
             Offset of the quadratic term (by default, 80 MHz)
         return_efield : bool, default: False
-            If False (default), returns the voltage spectra, i.e.
+            If False (default), returns the voltage traces, i.e.
             the electric field signals convolved with the antenna and detector signal chain
             responses.
 
-            If True, returns the electric field spectra directly.
+            If True, returns the electric field traces directly.
 
         Returns
         -------
@@ -350,7 +364,7 @@ class CREfieldReconstructor:
     @register_run()
     def run(
             self, event, station, detector,
-            channel_ids, vrms=10*units.mV, bandpass=None,
+            channel_ids, vrms=10*units.mV, bandpass=None, *,
             use_MC_direction=False, include_quadratic_term=True,
             quadratic_term_offset = 80*units.MHz, basinhopping=False
         ):
@@ -382,7 +396,7 @@ class CREfieldReconstructor:
                one should **not** manually bandpass the ``event`` before passing it
                to this class, as this will not be accounted for in the reconstruction.
 
-        
+
         Other Parameters
         ----------------
         use_MC_direction : bool, default: False
@@ -450,7 +464,7 @@ class CREfieldReconstructor:
             fft.freq2time(station.get_channel(channel).get_frequency_spectrum() * self._filt, self._sampling_rate)
             for channel in channels_sorted])
         self._quadratic_term_offset = quadratic_term_offset
-        minimizer_options = {} #dict(options=dict(maxiter=5000))#dict(method = 'Nelder-Mead')
+        minimizer_options = {}
 
         # obtain initial guess
         lags = scipy.signal.correlation_lags(self._n_samples_time, self._n_samples_time)
@@ -465,7 +479,7 @@ class CREfieldReconstructor:
             x0 = [zenith_guess, azimuth_guess, 1, np.pi/2, -2, 0, p1_guess, 0]
             zenith, azimuth = self._fit_direction_analytic(x0)
 
-        try:
+        try: # get simulated direction if available, used for debug output only
             sim_station = station.get_sim_station()
             zenith_sim = sim_station.get_parameter(stnp.zenith)
             azimuth_sim = sim_station.get_parameter(stnp.azimuth)
@@ -473,12 +487,14 @@ class CREfieldReconstructor:
             zenith_sim, azimuth_sim = np.nan, np.nan
 
         logger.debug(f"initial guess: {zenith/units.deg:.0f}, {azimuth/units.deg:.0f} (simulated: {zenith_sim/units.deg:.0f}, {azimuth_sim/units.deg:.0f})")
-        traces_guess = self.get_cosmic_ray_traces(zenith, azimuth, 1, np.pi/2, -2, 0, phase_p1=p1_guess)
+        traces_guess = self.get_cosmic_ray_traces(
+            zenith, azimuth, 1, np.pi/2, -2, 0, phase_p1=p1_guess)
 
         iCh = 0 # we use the channel with the largest signal to obtain our first guess
         p1_guess += lags[np.argmax(hp.get_normalized_xcorr(traces_guess[iCh], self._traces_data[iCh]))] * 2*np.pi
         logger.debug(f"p1_shift: {p1_guess:.1f}")
-        traces_guess = self.get_cosmic_ray_traces(zenith, azimuth, 1, np.pi/2, -2, 0, phase_p1=p1_guess)
+        traces_guess = self.get_cosmic_ray_traces(
+            zenith, azimuth, 1, np.pi/2, -2, 0, phase_p1=p1_guess)
 
         # We fit the electric field in staged - we start by fitting the most
         # 'significant' parameters, while keeping the rest fixed,
@@ -649,21 +665,24 @@ class CREfieldReconstructor:
         while n_iterations < maxiter:
             params[0:2] = zenith_guess, azimuth_guess
             traces_guess = self.get_cosmic_ray_traces(*params)[:3]
-            delta_t_geometry = geometryUtilities.get_time_delay_from_direction(zenith_guess, azimuth_guess, self._channel_positions)
+            zenith_ice = geometryUtilities.get_fresnel_angle(zenith_guess, n_2=self._n_ice, n_1=_REFRACTIVE_INDEX_AIR)
+            delta_t_geometry = geometryUtilities.get_time_delay_from_direction(
+                zenith_ice, azimuth_guess, self._channel_positions, n=self._n_ice)
             templates = [np.roll(t, -int(np.round(delta_t * self._sampling_rate))) for t, delta_t in zip(traces_guess, delta_t_geometry)]
 
-            t_shifts_guess, corr = get_dt_correlation(channels, self._channel_positions, templates=templates, full_output=True)
+            t_shifts_guess, corr = get_dt_correlation(
+                channels, self._channel_positions, templates=templates, n_index=self._n_ice, full_output=True)
             max_corr = np.sum(corr)
             zenith = np.nan
-            i = 0
 
-            # the best guess (by correlation) may not have a solution; in that case, we check the
-            # 'second best' guess by taking the next-highest correlation for the lowest SNR channel
-            while np.isnan(zenith):
-                zenith, azimuth = geometryUtilities.analytic_plane_wave_fit(t_shifts_guess, self._channel_positions)
-                i += 1
+            zenith_ice, azimuth = geometryUtilities.analytic_plane_wave_fit(
+                t_shifts_guess, self._channel_positions, n_index=self._n_ice)
+            # convert back to in-air angle
+            zenith = geometryUtilities.get_fresnel_angle(
+                zenith_ice, n_1=self._n_ice, n_2=_REFRACTIVE_INDEX_AIR)
 
-            if np.isnan(zenith): # no solution was found in the end, so we just return the initial guess
+            if (zenith is None) or np.isnan(zenith): # no solution was found in the end, so we just return the initial guess
+                logger.debug('Analytic direction from template correlation failed, returning initial guess for direction.')
                 zenith = zenith_guess
                 azimuth = azimuth_guess
                 break
