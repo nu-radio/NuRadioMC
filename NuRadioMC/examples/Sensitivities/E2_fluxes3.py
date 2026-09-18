@@ -217,6 +217,16 @@ nu_mu_offset_down = 1.44 - 0.26
 nu_mu_show_data_points = True
 
 
+## km3-230213A
+# From https://www.nature.com/articles/s41586-024-08543-1
+
+KM3_230231A_E = np.array([220])  * units.PeV
+KM3_230231A_E_err = np.array( [[220-72], [2600-220]]) * units.PeV
+KM3_230231A_flux = np.array ([5.8e-8])  * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr **-1)
+KM3_230231A_flux_err = np.array([[3.7e-8],[10.1e-8]]) * (units.GeV * units.cm ** -2 * units.second ** -1 * units.sr **-1)
+
+
+
 def ice_cube_nu_fit(energy, slope=nu_mu_slope, offset=nu_mu_offset):
     flux = 3 * offset * (energy / (100 * units.TeV)) ** slope * 1e-18 * \
         (units.GeV ** -1 * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
@@ -643,7 +653,8 @@ def get_E2_limit_figure(diffuse=True,
                         show_prediction_arianna_200=False,
                         show_PUEO_100=False,
                         show_beacon=False,
-                        show_ice_cube_EHE_limit_18=False  # old IC limit
+                        show_ice_cube_EHE_limit_18=False,  # old IC limit,
+                        show_KM3_230213A = True
                         ):
 
     # Limit E2 Plot
@@ -893,8 +904,8 @@ def get_E2_limit_figure(diffuse=True,
                         horizontalalignment='left', color='forestgreen', rotation=0, fontsize=legendfontsize)
         else:
             ax.annotate('Auger',
-                        xy=(9.9e16 * units.eV / plotUnitsEnergy, 4e-8), xycoords='data',
-                        horizontalalignment='right', color='forestgreen', rotation=-50, fontsize=legendfontsize)
+                        xy=(1.5e17 * units.eV / plotUnitsEnergy, 7e-8), xycoords='data',
+                        horizontalalignment='right', color='forestgreen', rotation=-45, fontsize=legendfontsize)
 
     if show_ara_1year:
         ax.plot(ara_1year[:, 0] / plotUnitsEnergy, ara_1year[:, 1] / plotUnitsFlux, color='indigo')
@@ -1016,6 +1027,11 @@ def get_E2_limit_figure(diffuse=True,
                     xy=(7e18 * units.eV / plotUnitsEnergy, 9e-10), xycoords='data',
                     horizontalalignment='left', verticalalignment="bottom", color='#F97807', rotation=35, fontsize=legendfontsize)
         # second_legend.append(beaconleg)
+
+    if show_KM3_230213A:
+        ax.errorbar(KM3_230231A_E / plotUnitsEnergy, KM3_230231A_flux / plotUnitsFlux, KM3_230231A_flux_err / plotUnitsFlux, KM3_230231A_E_err / plotUnitsEnergy, color='deeppink')
+        ax.scatter(KM3_230231A_E / plotUnitsEnergy, KM3_230231A_flux / plotUnitsFlux, color='deeppink')
+        ax.annotate('KM3-230213A', xy = (KM3_230231A_E[0] / plotUnitsEnergy*1.1, KM3_230231A_flux[0]/plotUnitsFlux*1.1), color='deeppink', fontsize=legendfontsize)
 
     ax.set_yscale('log')
     ax.set_xscale('log')

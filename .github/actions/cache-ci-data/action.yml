@@ -16,4 +16,6 @@ runs:
           NuRadioReco/examples/Interactive/data
           NuRadioReco/test/data
           NuRadioReco/detector/AntennaModels
+          NuRadioMC/utilities/data/*.npz
+          NuRadioMC/SignalGen/ARZ/shower_library
         key: ${{ inputs.cache-key }}

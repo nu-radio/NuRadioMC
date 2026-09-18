@@ -133,18 +133,31 @@ class radiopropa_ray_tracing(ray_tracing_base):
         """
         Set the start and end points of the raytracing
 
+        If the start and end points are identical to those of the previous ray tracing,
+        the existing solutions are kept and `find_solutions` will not recalculate them.
+        Call `reset_solutions` before this function to force a recalculation.
+
         Parameters
         ----------
         x1: 3dim np.array
             start point of the ray
         x2: 3dim np.array
             stop point of the ray
+
+        Returns
+        -------
+        geometry_changed: bool
+            False if the start and end points are unchanged with respect to the previous
+            ray tracing (in which case the existing solutions are kept), True otherwise.
         """
         self._source = x1
         self._antenna = x2
 
-        super().set_start_and_end_point(x1, x2)
+        if not super().set_start_and_end_point(x1, x2):
+            return False
+
         self.set_iterative_step_sizes(step_zeniths=self._step_zeniths) #if auto is on this set the automated step size, otherwise nothing happens
+        return True
 
     def set_shower_axis(self, shower_axis):
         """
@@ -155,7 +168,14 @@ class radiopropa_ray_tracing(ray_tracing_base):
         shower_axis: np.array of shape (3,), default unit
             the direction of the shower in cartesian coordinates
         """
-        self._shower_axis = shower_axis / np.linalg.norm(shower_axis)
+        shower_axis = shower_axis / np.linalg.norm(shower_axis)
+        if self._shower_axis is not None and not np.array_equal(shower_axis, self._shower_axis):
+            # the solutions can depend on the shower axis (rays are preselected with a viewing angle
+            # cut around the cherenkov angle), so existing solutions have to be recalculated
+            self._results = None
+            self._rays = None
+
+        self._shower_axis = shower_axis
 
     def set_iterative_sphere_sizes(self, sphere_sizes=None):
         """
@@ -650,7 +670,14 @@ class radiopropa_ray_tracing(ray_tracing_base):
     def find_solutions(self):
         """
         find all solutions between X1 and X2
+
+        If solutions for the current start and end points (and shower axis) already exist,
+        they are kept and not recalculated. Call `reset_solutions` first to force a recalculation.
         """
+        if self._results is not None:
+            self.__logger.debug("solutions for the current geometry already exist, skipping ray tracing")
+            return
+
         results = []
         rays_results = []
 

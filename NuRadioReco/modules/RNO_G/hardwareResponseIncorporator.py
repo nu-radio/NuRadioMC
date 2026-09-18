@@ -101,7 +101,7 @@ class hardwareResponseIncorporator:
             # it reads the log file. change this to load_amp_measurement if you want the RI file
             amp_response = analog_components.load_amp_response(amp_type)
             response_list = [amp_response['gain'](frequencies, temp), np.angle(amp_response['phase'](frequencies))]
-            amp_response = response.Response(frequencies, response_list, ["mag", "rad"])
+            amp_response = response.Response(frequencies, response_list, ["mag", "rad"], station_id=station_id, channel_id=channel_id)
         else:
             raise NotImplementedError("Detector type not implemented")
 

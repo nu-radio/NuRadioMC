@@ -300,7 +300,7 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
         # check if for this device an entry already exists
         component_filter = [{'$match': {'_id': unique_station_id}},
                             {'$unwind': '$devices'},
-                            {'$match': {'device.id': device_id}}]
+                            {'$match': {'devices.id': device_id}}]
 
         entries = list(self.db[self.__station_collection].aggregate(component_filter))
 
@@ -729,12 +729,12 @@ class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
             if len(stations) > 1:
                 logger.error('More than one active station was found.')
             else:
-                object_id = stations[0]['_id']
+                object_id_st = stations[0]['_id']
 
                 # change the commission/decomission time
                 if re.fullmatch(r"station", object_name):
                     self.db[self.__station_collection].update_one(
-                        {'_id': object_id}, {'$set': {'decommission_time': decomm_time}})
+                        {'_id': object_id_st}, {'$set': {'decommission_time': decomm_time}})
                 else:
                     self.db[self.__station_collection].update_one(
-                        {'_id': object_id}, {'$set': {f'{object_name}s.$[updateIndex].decommission_time': decomm_time}}, array_filters=[{"updateIndex.id": object_id}])
+                        {'_id': object_id_st}, {'$set': {f'{object_name}s.$[updateIndex].decommission_time': decomm_time}}, array_filters=[{"updateIndex.id": object_id}])

@@ -22,6 +22,7 @@ jobs:
           cache: 'pip'
 
       - name: Install dependencies
+        timeout-minutes: 20
         run: |
           sudo apt-get install libgsl-dev
           python -m pip install --upgrade pip
@@ -30,7 +31,7 @@ jobs:
           pip install -e .[dev,proposal,cr_interpolator]
           export PYTHONPATH=$PWD:$PYTHONPATH
           echo $PYTHONPATH
-          NuRadioMC/SignalProp/install.sh
+          NuRadioMC/SignalProp/AnalyticRayTracingImpl/install.sh
 
       - name: Debugging
         run: |
