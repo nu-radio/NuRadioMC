@@ -1,0 +1,6 @@
+*.nur
+*.hdf5
+plots/*.png
+plots/efield_reco/*.png
+plots/vertex_reco/*.png
+lookup_tables/*
