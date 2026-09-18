@@ -160,6 +160,15 @@ def find_threshold_crossing_from_stft(
     Uses a short-time fourier transform (STFT) to effectively integrate the power across multiple frequency
     bins, and subsequently look for coincident threshold crossings across multiple channels.
 
+    .. warning::
+
+        This function was developed for RNO-G, so may not work as expected if used for other
+        experimental setups. In particular:
+        * It uses the first half of the trace to estimate the background, and looks
+          for pulses only in the second half of the trace
+        * It uses a semi-empirical expression for the signal threshold, which may not
+          be appropriate for different noise / amplifier spectra
+
     Parameters
     ----------
     channels : list of `NuRadioReco.framework.channel.Channel` objects
@@ -557,7 +566,7 @@ class ImpulsiveSignalReconstructor():
         zenith, azimuth = geometryUtilities.analytic_plane_wave_fit(dt, pos)
 
         if np.isnan(zenith):
-            logger.warning(f'No valid analytic solution for {evt} / {station}, direction reconstruction failed')
+            logger.warning(f'No valid analytic solution for event {evt.get_id()} / station {station.get_id()}, direction reconstruction failed')
 
         station[stationParameters.zenith] = zenith
         station[stationParameters.azimuth] = azimuth
