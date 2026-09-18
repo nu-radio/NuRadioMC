@@ -164,6 +164,7 @@ def find_threshold_crossing_from_stft(
 
         This function was developed for RNO-G, so may not work as expected if used for other
         experimental setups. In particular:
+
         * It uses the first half of the trace to estimate the background, and looks
           for pulses only in the second half of the trace
         * It uses a semi-empirical expression for the signal threshold, which may not
