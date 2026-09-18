@@ -181,11 +181,11 @@ class CREfieldReconstructor:
         """
         Return the voltage traces
 
-        Convenience function that returns the analytically-parameterized cosmic ray spectra
+        Convenience function that returns the analytically-parameterized cosmic ray traces
         for all channels as an array. For details of the parameterization, see [1]_.
 
-        By default, this function returns the voltage spectra (including antenna and signal chain responses);
-        to return the electric field spectra, set ``return_efield=True``.
+        By default, this function returns the voltage traces (including antenna and signal chain responses);
+        to return the electric field traces, set ``return_efield=True``.
 
         Parameters
         ----------
@@ -216,11 +216,11 @@ class CREfieldReconstructor:
 
         Returns
         -------
-        spectra : complex np.ndarray
-            If ``return_efield==False``, an array of shape ``(n_channels, n_fft_samples)``
-            containing the voltage spectra of each antenna, in descending order of SNR.
+        traces : float np.ndarray
+            If ``return_efield==False``, an array of shape ``(n_channels, n_samples)``
+            containing the voltage traces of each antenna, in descending order of SNR.
 
-            If ``return_efield==True``, an array of shape ``(3, n_fft_samples)`` with the
+            If ``return_efield==True``, an array of shape ``(3, n_samples)`` with the
             three polarization components ``(eR, eTheta, ePhi)`` of the electric field
 
         See Also
@@ -534,18 +534,17 @@ class CREfieldReconstructor:
 
             ## and then we fit everything together
             self.fix_parameters(False)
-            self.fix_parameters(amplitude=True) # amplitude is determined exactly, no need to fit
-            res1 = self._minimize(x0=res_quadratic.x, **minimizer_options, bounds=bounds)
+            # amplitude is determined exactly, no need to fit
+            self.fix_parameters(zenith=use_MC_direction, azimuth=use_MC_direction, amplitude=True)
+            res = self._minimize(x0=res_quadratic.x, **minimizer_options, bounds=bounds)
 
-        if use_MC_direction:
-            res = res1
-        else:
+        if not use_MC_direction:
             # we check the direction once more - it's possible we ended up in a local minimum
-            x0 = copy.copy(res1.x)
+            x0 = copy.copy(res.x)
             zenith, azimuth = self._fit_direction_analytic(x0)
             x0[:2] = zenith, azimuth
             res2 = self._minimize(x0=x0, **minimizer_options, bounds=bounds, method='Nelder-Mead')
-            if res2.fun < res1.fun:
+            if res2.fun < res.fun:
                 logger.debug("Found new minimum for different direction")
                 res = res2
                 if not res.success:
@@ -553,8 +552,6 @@ class CREfieldReconstructor:
                     if res2.fun < res.fun:
                         logger.debug('Additional BFGS minimization improved minimum.')
                         res = res2
-            else:
-                res = res1
 
         logger.debug(f"Final result: {res.fun:.3g}, {res.x}")
 
