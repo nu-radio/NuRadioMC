@@ -357,7 +357,7 @@ class CREfieldReconstructor:
 
         res.x = x0_tmp
         if not res.success:
-            logger.warning(f"Fit failed: {res.message}")
+            logger.info(f"Fit failed: {res.message}")
 
         return res
 
@@ -619,8 +619,8 @@ class CREfieldReconstructor:
             fig, axs = plt.subplots(2*n_rows,3,figsize=(12,4*n_rows), sharey='row', height_ratios=n_rows*(2,1), layout='constrained')
 
             for i in range(len(traces_guess)):
-                axs[2*(i//3), i%3].plot(np.arange(self._n_samples_time)/self._sampling_rate, self._traces_data[i], color='k', lw=.5)
-                axs[2*(i//3), i%3].plot(np.arange(self._n_samples_time)/self._sampling_rate, traces_guess[i], lw=.5, alpha=.75, color='orange')
+                axs[2*(i//3), i%3].plot(np.arange(self._n_samples_time)/self._sampling_rate, self._traces_data[i], color='k', lw=.5, label='data')
+                axs[2*(i//3), i%3].plot(np.arange(self._n_samples_time)/self._sampling_rate, traces_guess[i], lw=.5, alpha=.75, color='orange', label='reco')
                 axs[2*(i//3), i%3].set_title(f'Ch. {self._channels_sorted[i]}: $\chi^2 = {np.sum( (self._traces_data[i]-traces_guess[i])**2 / self._vrms**2):.0f} / {len(traces_guess[i])}$')
                 axs[2*(i//3), i%3].set_xlabel('Time [ns]')
                 axs[2*(i//3), 0].set_ylabel('Voltage [V]')
@@ -632,6 +632,7 @@ class CREfieldReconstructor:
                 axs[2*(i//3) + 1, i%3].set_xlabel('Shift [ns]')
                 axs[2*(i//3) + 1, 0].set_ylabel('Correlation')
 
+            axs[0,0].legend()
             fig.suptitle(
                 f'S{station.get_id()}R{event.get_run_number()}E{event.get_id()}: $\\theta = {zenith/units.deg:.1f}^\circ, $'
                 + f'$\phi = {azimuth/units.deg:.1f}^\circ, $'
