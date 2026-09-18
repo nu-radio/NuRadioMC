@@ -1,11 +1,12 @@
 import argparse
 import os
+import logging
 import numpy as np
 
 from NuRadioReco.detector.detector import Detector
 from NuRadioReco.modules import channelAddCableDelay, crEfieldReconstructor, channelGenericNoiseAdder, cosmicRayEnergyReconstructor, electricFieldBandPassFilter
 from NuRadioReco.modules.io import eventReader
-from NuRadioReco.utilities import units, logging
+from NuRadioReco.utilities import units, dataservers
 from NuRadioReco.framework import parameters
 
 cabledelayadder = channelAddCableDelay.channelAddCableDelay()
@@ -15,7 +16,8 @@ noiseadder = channelGenericNoiseAdder.channelGenericNoiseAdder()
 energyreco = cosmicRayEnergyReconstructor.cosmicRayEnergyReconstructor()
 reader = eventReader.eventReader()
 
-logging.set_general_log_level(logging.INFO)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 if __name__ == "__main__":
     current_dir = os.path.dirname(__file__)
@@ -37,6 +39,13 @@ if __name__ == "__main__":
     parser.add_argument('--debug', default=False, const=True, action='store_const', help='Produce debug plots')
 
     args = parser.parse_args()
+
+    if not os.path.exists(args.file):
+        logger.warning(f'Could not find "{args.file}", attempt to download from server...')
+        try:
+            dataservers.download_from_dataserver(os.path.join('github_ci', os.path.basename(args.file)), args.file, unpack_tarball=False)
+        except OSError:
+            raise FileNotFoundError(f"Could not find file '{args.file}' locally or on server. Check you have specified the file path correctly.")
 
     reader.begin(args.file)
     detector = Detector(args.detector)
