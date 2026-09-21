@@ -40,7 +40,7 @@ logger = logging.getLogger('NuRadioReco.CREfieldReconstructor')
 _REFRACTIVE_INDEX_AIR = 1.000293
 
 class CREfieldReconstructor:
-    """"
+    """
     Reconstruction class for cosmic-rays using (shallow) in-ice antennas
 
     Uses a forward-folding algorithm to fit the electric field
@@ -619,9 +619,14 @@ class CREfieldReconstructor:
             fig, axs = plt.subplots(2*n_rows,3,figsize=(12,4*n_rows), sharey='row', height_ratios=n_rows*(2,1), layout='constrained')
 
             for i in range(len(traces_guess)):
-                axs[2*(i//3), i%3].plot(np.arange(self._n_samples_time)/self._sampling_rate, self._traces_data[i], color='k', lw=.5, label='data')
-                axs[2*(i//3), i%3].plot(np.arange(self._n_samples_time)/self._sampling_rate, traces_guess[i], lw=.5, alpha=.75, color='orange', label='reco')
-                axs[2*(i//3), i%3].set_title(f'Ch. {self._channels_sorted[i]}: $\chi^2 = {np.sum( (self._traces_data[i]-traces_guess[i])**2 / self._vrms**2):.0f} / {len(traces_guess[i])}$')
+                axs[2*(i//3), i%3].plot(
+                    np.arange(self._n_samples_time)/self._sampling_rate, self._traces_data[i],
+                    color='k', lw=.5, label='data')
+                axs[2*(i//3), i%3].plot(
+                    np.arange(self._n_samples_time)/self._sampling_rate, traces_guess[i],
+                    lw=.5, alpha=.75, color='orange', label='reco')
+                axs[2*(i//3), i%3].set_title(
+                    rf'Ch. {self._channels_sorted[i]}: $\chi^2 = {np.sum( (self._traces_data[i]-traces_guess[i])**2 / self._vrms**2):.0f} / {len(traces_guess[i])}$')
                 axs[2*(i//3), i%3].set_xlabel('Time [ns]')
                 axs[2*(i//3), 0].set_ylabel('Voltage [V]')
 
@@ -634,10 +639,10 @@ class CREfieldReconstructor:
 
             axs[0,0].legend()
             fig.suptitle(
-                f'S{station.get_id()}R{event.get_run_number()}E{event.get_id()}: $\\theta = {zenith/units.deg:.1f}^\circ, $'
-                + f'$\phi = {azimuth/units.deg:.1f}^\circ, $'
-                + f'$\\theta_\mathrm{{pol}} = {pol_angle/units.deg:.1f}^\circ$ '
-                + f' (exp: ${exp_pol_angle/units.deg:.1f}^\circ$)'
+                rf'S{station.get_id()}R{event.get_run_number()}E{event.get_id()}: $\theta = {zenith/units.deg:.1f}^\circ, $'
+                + rf'$\phi = {azimuth/units.deg:.1f}^\circ, $'
+                + rf'$\theta_\mathrm{{pol}} = {pol_angle/units.deg:.1f}^\circ$ '
+                + rf' (exp: ${exp_pol_angle/units.deg:.1f}^\circ$)'
                 )
             plt.savefig(os.path.join(self._debug_folder, f'S{station.get_id()}R{event.get_run_number()}E{event.get_id()}.pdf'))
             plt.close()
