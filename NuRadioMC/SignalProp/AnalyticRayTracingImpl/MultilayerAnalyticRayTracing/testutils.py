@@ -121,7 +121,7 @@ def make_tracer(
         ice,
         attenuation_model,
         n_frequencies_integration=n_freq,
-        n_reflections=n_reflections,
+        n_reflections=n_reflections, use_cpp = False
     )
 
 def make_grid(x_range, z_range, n_x, n_z, y=0.0):
@@ -276,7 +276,7 @@ def compare_point_full(
                 att_a = tracer_a.get_attenuation(i_a,freqs)[0]
                 foc_a = tracer_a.get_focusing(i_a)
                 type_a = tracer_a.get_solution_type(i_a)
-                c0_a = tracer_a.get_c0(i_a)
+                c0_a = tracer_a.get_C0(i_a)
                 #ra_a = tracer_a.get_receive_angle(i_a)
 
                 entry["a"] = {
@@ -341,7 +341,7 @@ def compare_point_full(
                 att_b = tracer_b.get_attenuation(i_b,freqs)[0]
                 foc_b = tracer_b.get_focusing(i_b)
                 type_b = tracer_b.get_solution_type(i_b)
-                c0_b = tracer_b.get_c0(i_b)
+                c0_b = tracer_b.get_C0(i_b)
                 #ra_b = tracer_b.get_receive_angle(i_b)
 
                 entry["b"] = {
