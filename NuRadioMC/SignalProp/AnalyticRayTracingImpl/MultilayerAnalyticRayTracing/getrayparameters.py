@@ -594,7 +594,7 @@ def get_reflection_angle(c0, x1, x2, layers):
         y1, z1, y2, z2, c0, layers, downgoing, with_air
     )
 
-    if (solution_type != REFLECTED) and not with_air:
+    if solution_type != REFLECTED and not with_air:
         return None
 
     # evaluate just below surface
@@ -602,7 +602,7 @@ def get_reflection_angle(c0, x1, x2, layers):
 
     incidence_angle = get_launch_angle(c0, x_surface, x2, layers)
 
-    return 2.0 * incidence_angle
+    return incidence_angle
 
 @njit(cache=True)
 def get_travel_time_analytic(c0, x1, x2, layers):
