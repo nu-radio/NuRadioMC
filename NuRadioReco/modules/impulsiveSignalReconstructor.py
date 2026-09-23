@@ -46,6 +46,8 @@ import warnings
 logger = logging.getLogger('NuRadioReco.impulsiveSignalReconstructor')
 
 SPEED_OF_LIGHT = scipy.constants.c * units.m / units.s # convert to NuRadio units
+_REFRACTIVE_INDEX_AIR = 1.000293
+
 
 def find_threshold_crossing(channels, threshold=None, offset=5*units.ns, min_amp=0, debug=False):
     """
@@ -335,7 +337,7 @@ def find_threshold_crossing_from_stft(
     return crossing_times
 
 
-def get_dt_correlation(channels, pos, passband=None, n_index=1., templates=None, full_output=False):
+def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_AIR, templates=None, full_output=False):
     """
     Determines the time delay between channels using correlation
 
@@ -350,7 +352,8 @@ def get_dt_correlation(channels, pos, passband=None, n_index=1., templates=None,
         defaults to [60 MHz, 750 MHz]
     n_index : float, optional
         Used to compute the maximum allowed time delay between two channels;
-        time delays larger than the travel time of light are excluded. Default: 1.
+        time delays larger than the travel time of light are excluded.
+        Default: 1.000293 (refractive index of air)
     templates : None | 1dim or 2dim array of floats, optional
         If no template is provided, the channel traces are cross-correlated directly with each other.
         Otherwise, if a template is provided, the channel traces are correlated with the template.
@@ -492,7 +495,7 @@ class ImpulsiveSignalReconstructor():
         """Unused"""
 
     @register_run()
-    def run(self, evt, station, det, use_channels, method='stft', **kwargs):
+    def run(self, evt, station, det, use_channels, method='stft', n_index=_REFRACTIVE_INDEX_AIR, **kwargs):
         """
         Run the direction reconstruction
 
@@ -518,6 +521,11 @@ class ImpulsiveSignalReconstructor():
               approach to identify the start of the pulse
               (see `get_threshold_crossing_from_stft`)
 
+        n_index : float, default 1.000293
+            The refractive index of the antennas. Note that the returned zenith
+            is always computed in air, i.e. if a different refractive index is specified
+            the refraction from air to ice is accounted for.
+
         **kwargs
             Additional keyword arguments passed to the function that
             determines the pulse arrival times (see ``method``)
@@ -525,14 +533,16 @@ class ImpulsiveSignalReconstructor():
         Returns
         -------
         zenith : float
-            The reconstructed zenith
+            The reconstructed zenith. If ``n_index != 1`` (e.g. for in-ice antennas),
+            the returned zenith is the in-air zenith of the signal (i.e. refraction into the ice
+            is accounted for).
         azimuth : float
             The reconstructed azimuth
 
         Notes
         -----
         The reconstructed parameters are stored in the ``station`` passed to the run function.
-        Note also that an analytic plane wave fit is used: this means
+        An analytic plane wave fit is used: this means
 
         1. if <= 3 channels are used, always the solution coming from above is returned,
            rather than the one coming from below;
@@ -549,7 +559,7 @@ class ImpulsiveSignalReconstructor():
         if method == 'stft':
             if not 'max_delta_t' in kwargs: # use a simple estimate
                 max_delta_t = np.max([
-                    np.linalg.norm(pi-pj) * ice.get_refractive_index(min(pi[2], pj[2]), det.get_site(station.get_id()))
+                    np.linalg.norm(pi-pj) * n_index
                     for pi in pos for pj in pos]) / SPEED_OF_LIGHT
                 dt = find_threshold_crossing_from_stft(
                     channels, max_delta_t=max_delta_t, **kwargs
@@ -557,17 +567,20 @@ class ImpulsiveSignalReconstructor():
             else:
                 dt = find_threshold_crossing_from_stft(channels, **kwargs)
         elif method == 'xcorr':
-            dt = get_dt_correlation(channels, pos, **kwargs)
+            dt = get_dt_correlation(channels, pos, n_index=n_index, **kwargs)
         elif method == 'simple_threshold':
             dt = find_threshold_crossing(channels, **kwargs)
         else:
             raise ValueError(f"Invalid value for method ({method}). Options are 'stft', 'xcorr' or 'simple_threshold'.")
 
             
-        zenith, azimuth = geometryUtilities.analytic_plane_wave_fit(dt, pos)
+        zenith, azimuth = geometryUtilities.analytic_plane_wave_fit(dt, pos, n_index=n_index)
 
-        if np.isnan(zenith):
+        zenith = geometryUtilities.get_fresnel_angle(zenith, n_1=n_index, n_2=_REFRACTIVE_INDEX_AIR)
+
+        if (zenith is None) or np.isnan(zenith):
             logger.warning(f'No valid analytic solution for event {evt.get_id()} / station {station.get_id()}, direction reconstruction failed')
+            zenith = np.nan # return same value regardless of where the failure occurred
 
         station[stationParameters.zenith] = zenith
         station[stationParameters.azimuth] = azimuth
