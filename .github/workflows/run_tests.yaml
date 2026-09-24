@@ -243,6 +243,7 @@ jobs:
     - name: "Test CR electric field and energy reconstruction"
       if: always()
       run: |
+        python NuRadioReco/test/CREfieldReconstructor/load-atmosphere.py
         python NuRadioReco/test/CREfieldReconstructor/test-reconstruction.py --add-noise
 
     - name: "Test module structure of all modules in NuRadioReco.modules"
