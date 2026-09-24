@@ -10,7 +10,8 @@ solution_types_revert = {v: k for k, v in solution_types.items()}
 available_modules = [
     'analytic',
     'radiopropa',
-    'direct_ray'
+    'direct_ray',
+    'air_ice'
 ]
 
 reflection_case = {
@@ -36,6 +37,9 @@ def get_propagation_module(name=None):
           index of refraction, but requires that RadioPropa is installed.
         * "direct_ray" : a dummy ray tracer that draws straight lines and
           ignores refraction. Useful for debugging.
+        * "air_ice" : the analytic ray tracer for in-ice pairs plus an air-to-ice
+          tracer (straight air leg, Snell refraction at a flat surface) when one
+          end point is above the surface. Requires an exponential ice model.
 
     """
     if name is None:
@@ -47,6 +51,9 @@ def get_propagation_module(name=None):
     elif name == available_modules[2]:
         from NuRadioMC.SignalProp.directRayTracing import direct_ray_tracing
         return direct_ray_tracing
+    elif name == available_modules[3]:
+        from NuRadioMC.SignalProp.airIceRayTracing import air_ice_ray_tracing
+        return air_ice_ray_tracing
     elif name == available_modules[1]:
         from NuRadioMC.SignalProp.radioproparaytracing import radiopropa_ray_tracing
         return radiopropa_ray_tracing
