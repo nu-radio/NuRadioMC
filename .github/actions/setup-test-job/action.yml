@@ -9,6 +9,12 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Display Github job network information
+      shell: bash
+      run: |
+        curl -4 https://api.ipify.org
+        echo
+
     - name: Setup GSL
       uses: ./.github/actions/setup-gsl
 
