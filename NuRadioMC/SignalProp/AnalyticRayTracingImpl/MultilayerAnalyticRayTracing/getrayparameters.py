@@ -546,8 +546,7 @@ def get_reflection_angle(c0, x1, x2, layers):
     Compute the surface reflection angle of a ray solution.
 
     For surface-reflected solutions, the incidence angle is evaluated
-    just below the surface (z ≈ 0) and the reflection angle is defined
-    as twice the incidence angle. This corresponds to the angle between
+    just below the surface (z ≈ 0). This corresponds to the angle between
     the incoming and reflected ray directions for specular reflection
     at a horizontal interface.
 
