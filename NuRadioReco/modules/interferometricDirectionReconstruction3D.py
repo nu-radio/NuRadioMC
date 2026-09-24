@@ -140,6 +140,7 @@ class InterferometricReco3D:
         'mode', 'hierarchical', 'tdoa_mode',
         'multi_ray_types', 'multiray_combo_mode',
         'multiray_table_name_pattern', 'table_name_pattern', 'table_scheme',
+        'allow_above_surface',
         'optimizer_method', 'optimizer_maxiter', 'n_optimizer_seeds',
         'optimizer_rho_offsets',
         'skip_optimizer', 'use_tdoa_seed',
@@ -494,12 +495,13 @@ class InterferometricReco3D:
         rho_min, rho_max, phi_min, phi_max, z_min, z_max = config['limits']
         d_rho, d_phi, d_z = config['step_sizes']
 
-        if z_max > 0:
+        if z_max > 0 and not config.get('allow_above_surface', False):
             raise ValueError(
                 f"z_max={z_max} is above the ice surface. Travel time "
-                f"tables only cover in-ice positions (z <= 0). "
-                f"Use negative z values, e.g. limits: "
-                f"[{rho_min}, {rho_max}, {phi_min}, {phi_max}, "
+                f"tables only cover in-ice positions (z <= 0) unless "
+                f"above-surface tables are used; set allow_above_surface: "
+                f"true with such tables, or use negative z values, e.g. "
+                f"limits: [{rho_min}, {rho_max}, {phi_min}, {phi_max}, "
                 f"-{abs(z_max)}, {z_min}]"
             )
 

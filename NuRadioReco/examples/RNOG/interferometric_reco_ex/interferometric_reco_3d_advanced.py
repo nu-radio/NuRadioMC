@@ -29,7 +29,7 @@ from NuRadioReco.modules.RNO_G.dataProviderRNOG import dataProviderRNOG
 from NuRadioReco.modules.RNO_G.dataProviderNuRadio import dataProviderNuRadio
 from NuRadioReco.utilities import units
 from NuRadioReco.detector.antennapattern import AntennaPatternProvider
-from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
+from NuRadioMC.SignalProp import propagation
 from NuRadioMC.utilities.medium import greenland_simple
 
 from NuRadioReco.modules.interferometricDirectionReconstruction3D import InterferometricReco3D
@@ -83,7 +83,7 @@ def compute_arrival_angles(rho, phi_deg, z, station_id, det, channels):
     ])
 
     angles = {}
-    rt = ray_tracing(ice, log_level=logging.WARNING)
+    rt = propagation.get_propagation_module('air_ice')(ice, log_level=logging.WARNING)
     for ch_id in channels:
         ch_abs = stn_abs + np.array(det.get_relative_position(station_id, ch_id))
         rt.set_start_and_end_point(source_abs, ch_abs)
@@ -113,7 +113,7 @@ def compute_launch_angles(emitter_abs, station_id, det, channels):
     """
     launch_angles = {}
     stn_abs = np.array(det.get_absolute_position(station_id))
-    rt = ray_tracing(ice, log_level=logging.WARNING)
+    rt = propagation.get_propagation_module('air_ice')(ice, log_level=logging.WARNING)
     for ch_id in channels:
         ch_abs = stn_abs + np.array(det.get_relative_position(station_id, ch_id))
         rt.set_start_and_end_point(emitter_abs, ch_abs)

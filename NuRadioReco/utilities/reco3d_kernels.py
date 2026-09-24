@@ -584,6 +584,13 @@ def _build_z_vec(z_min, z_max, n_z, spacing='linear', surface_offset=0.1):
         np.ndarray of length n_z, sorted ascending.
     """
     if spacing == 'log':
+        if z_max > surface_offset and z_min < 0:
+            n_above = max(2, int(round(n_z * np.log(z_max / surface_offset)
+                                       / (np.log(z_max / surface_offset) + np.log(-z_min / surface_offset)))))
+            n_below = max(2, n_z - n_above)
+            below = -np.geomspace(surface_offset, -z_min, n_below)[::-1]
+            above = np.geomspace(surface_offset, z_max, n_above)
+            return np.concatenate((below, above))
         if z_max >= 0 and z_min < 0:
             z_depths = np.geomspace(surface_offset, -z_min, n_z)
             return -z_depths[::-1]
