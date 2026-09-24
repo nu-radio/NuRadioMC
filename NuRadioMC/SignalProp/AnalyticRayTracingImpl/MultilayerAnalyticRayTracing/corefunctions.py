@@ -268,6 +268,117 @@ def compute_offsets(c0, y_start, z_start, layers, get_intersection_point = False
     else:
         return c1, idx_start, np.zeros(n_layers -1), np.zeros(n_layers -1)
 
+
+
+@njit(cache = True)
+def compute_offsets_plotting(c0, y_start, z_start, layers, get_intersection_point = False):
+    """
+    Compute horizontal offset constants for all layers.
+
+    The ray trajectory is expressed as
+
+        y(z) = F(z) + c1
+
+    where the constant ``c1`` differs between layers. This function
+    determines the offsets required to ensure continuity of the
+    trajectory across layer boundaries.
+
+    Parameters
+    ----------
+    c0 : float
+        Ray parameter.
+
+    y_start, z_start : float
+        Starting position of the ray.
+
+    layers : tuple of ndarray
+        Layer parameter arrays.
+
+    Returns
+    -------
+    c1 : ndarray
+        Offset constants for each layer.
+
+    idx_start : int
+        Index of the layer containing the starting depth.
+
+    Notes
+    -----
+    Offsets are propagated upward through the layer stack to enforce
+    continuity of the ray path going through the chosen starting point.
+    """
+    z_min, z_max, n_ice, delta_n, z0 = layers
+    n_layers = len(z_min)
+    c1 = np.zeros(n_layers)
+    c0 = float(c0)
+    y_start = float(y_start)
+    z_start = float(z_start)
+    idx_start = -1
+
+    for i in range(n_layers):
+
+        if z_start >= z_min[i] and z_start <= z_max[i]:
+            idx_start = i
+            break
+
+    f_start = analytic_F(z_start, c0, n_ice[idx_start], delta_n[idx_start], z0[idx_start])
+    c1[idx_start] = float(y_start - f_start)
+
+    if get_intersection_point is True:
+        ybs = np.zeros(n_layers-1)
+        zbs = np.zeros(n_layers-1)
+
+    for i in range(idx_start - 1, -1, -1):
+
+        zb = float(z_min[i])
+        f_deep = analytic_F(zb, c0, n_ice[i+1], delta_n[i+1], z0[i+1])
+        yb = float(f_deep + c1[i+1])
+
+        if get_intersection_point is True:
+            ybs[i]=yb
+            zbs[i]=zb
+
+        f_shallow = analytic_F(zb, c0, n_ice[i], delta_n[i], z0[i])
+        c1[i] = float(yb - f_shallow)
+
+    if idx_start < n_layers - 1:
+
+        for i in range(idx_start + 1, n_layers):
+
+            # Boundary between layer i-1 and layer i
+            zb = float(z_max[i])
+
+            # y at boundary from the layer above
+            f_upper = analytic_F(
+                zb,
+                c0,
+                n_ice[i - 1],
+                delta_n[i - 1],
+                z0[i - 1],
+            )
+
+            yb = float(f_upper + c1[i - 1])
+
+            if get_intersection_point is True:
+                ybs[i - 1] = yb
+                zbs[i - 1] = zb
+
+            # Determine c1 in the layer below
+            f_lower = analytic_F(
+                zb,
+                c0,
+                n_ice[i],
+                delta_n[i],
+                z0[i],
+            )
+
+            c1[i] = float(yb - f_lower)
+
+    if get_intersection_point is True:
+        return c1, idx_start, ybs, zbs
+    else:
+        return c1, idx_start, np.zeros(n_layers -1), np.zeros(n_layers -1)
+
 @njit(cache = True)
 def build_y_field(c0, z_array, layers, c1):
     """
