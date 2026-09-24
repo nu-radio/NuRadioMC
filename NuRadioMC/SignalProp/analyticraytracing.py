@@ -970,9 +970,6 @@ class ray_tracing(ray_tracing_base):
             impedance_factor = np.sqrt(n1 / n2)
             f = focusing * impedance_factor
 
-        
-
-
         self.__logger.debug('amplification due to focusing of solution %d = %.3f x %.3f = %.3f ', iS, f / impedance_factor, impedance_factor, f)
         if f / impedance_factor > limit:
             self.__logger.info(f"amplification due to focusing is {f / impedance_factor:.1f}x -> limiting amplification factor to {limit:.1f}x")
