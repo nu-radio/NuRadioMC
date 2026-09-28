@@ -225,7 +225,7 @@ def find_threshold_crossing_from_stft(
 
     crossings = []
     stft_plots = []
-    trace_start_times = []
+    trace_start_times = np.zeros(len(channels))
 
     for i, channel in enumerate(channels):
         f, t, stft_abs = scipy.signal.spectrogram(
@@ -234,7 +234,7 @@ def find_threshold_crossing_from_stft(
             mode=mode, window=window)
 
         t_mid = len(t) // 2
-        trace_start_times.append(channel.get_trace_start_time())
+        trace_start_times[i] = channel.get_trace_start_time()
         stft_median = np.median(stft_abs[:,:t_mid], axis=1)
         stft_max = np.max(stft_abs[:,t_mid:], axis=1)
         fmask = (f > passband[0]) & (f < passband[1])
@@ -287,7 +287,6 @@ def find_threshold_crossing_from_stft(
 
     ## We need to account for potentially different trace start times
     ## we will do this by prepending/appending an appropriate number of zeros
-    trace_start_times = np.asarray(trace_start_times)
     prepend_zeros = ((trace_start_times - min(trace_start_times)) * channel.get_sampling_rate()).astype(int)
     append_zeros = max(prepend_zeros) - prepend_zeros # also append zeros to ensure equal-length arrays
 
@@ -316,7 +315,7 @@ def find_threshold_crossing_from_stft(
         for i, stft_abs in enumerate(stft_plots):
             cax = axs[1,i].imshow(
                 stft_abs/units.mV**2, aspect='auto', origin='lower', norm=norm,
-                extent=(t[0]+channel.get_trace_start_time(), channel.get_trace_start_time()+t[-1], 0, f[-1]/units.MHz))
+                extent=(t[0]+trace_start_times[i], trace_start_times[i]+t[-1], 0, f[-1]/units.MHz))
             axs[1,i].set_ylim(passband[0]/units.MHz, passband[1]/units.MHz)
 
         axs[1,0].set_ylabel('Frequency [MHz]')
@@ -326,7 +325,7 @@ def find_threshold_crossing_from_stft(
             for j in range(3):
                 axs[j,i].axvline(crossing_times[i], color=['k','w','k'][j], ls=':')
 
-        plt.colorbar(mappable=cax, ax=axs[:], label='Energy Spectral Density [$\mathrm{mV}^2/\mathrm{GHz}$]')
+        plt.colorbar(mappable=cax, ax=axs[:], label=r'Energy Spectral Density [$\mathrm{mV}^2/\mathrm{GHz}$]')
 
         if isinstance(debug, str):
             plt.savefig(debug)
@@ -340,6 +339,11 @@ def find_threshold_crossing_from_stft(
 def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_AIR, templates=None, full_output=False):
     """
     Determines the time delay between channels using correlation
+
+    Cross-correlates all channels and determines the relative time delays
+    between them from the peaks in the cross-correlation. The maximum
+    time delay between channels is restricted by the distance between them
+    and the refractive index.
 
     Parameters
     ----------
@@ -379,7 +383,8 @@ def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_A
     sampling_rate = channel.get_sampling_rate()
 
     ds_max = np.max([np.linalg.norm(pos[i]-pos[j]) for i in range(3) for j in range(3)])
-    max_sample_delay = n_index * ds_max / SPEED_OF_LIGHT * sampling_rate
+    max_sample_delay = n_index * ds_max / SPEED_OF_LIGHT * sampling_rate + 1
+    trace_start_times = np.zeros(len(channels))
     corrs = []
 
     if templates is not None: # use templates to determine the pulse positions. This is slightly more involved...
@@ -390,7 +395,7 @@ def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_A
 
         if not hasattr(templates[0], '__len__'): # only one template
             templates = [templates]
-        for channel in channels:
+        for i, channel in enumerate(channels):
             corr = 0
             for template in templates:
                 corr = np.maximum(
@@ -399,18 +404,18 @@ def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_A
                         template
                 )))
             corrs.append(corr)
+            trace_start_times[i] = channel.get_trace_start_time()
 
-        corrs= np.array(corrs)
+        corrs = np.array(corrs)
         channels_sorted = np.argsort(-np.max(corrs,axis=1)) # sort channels in decreasing order of maximum correlation
         corr_index = np.argsort(-corrs, axis=-1) # sort correlation indices in decreasing order of correlation
-        # pos_xy = pos[channels_sorted[1:3]][:, :2] - pos[channels_sorted[0:1]][:, :2]
         dpos = pos[channels_sorted] - pos[channels_sorted[0:1]]
 
         i0 = corr_index[channels_sorted[0], :n_correlation_samples] # only look at n_correlation_samples highest correlation values for first channel
 
         for k1 in range(len(corrs[1]) // n_correlation_samples):
             i1 = corr_index[channels_sorted[1], k1*n_correlation_samples:(k1+1)*n_correlation_samples]
-            shift1 = i1[None] - i0[:, None] + int(np.round((channels[channels_sorted[1]].get_trace_start_time() - channels[channels_sorted[0]].get_trace_start_time()) * sampling_rate))
+            shift1 = i1[None] - i0[:, None] + int(np.round((trace_start_times[channels_sorted[1]] - trace_start_times[channels_sorted[0]]) * sampling_rate))
             if np.any(np.abs(shift1) < max_sample_delay):
                 break # if this takes more than one iteration, this method probably isn't working very well...
 
@@ -419,8 +424,8 @@ def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_A
 
 
             i = np.meshgrid(i0, i1, i2, indexing='ij')
-            t1 = (i[1] - i[0]) / sampling_rate + channels[channels_sorted[1]].get_trace_start_time() - channels[channels_sorted[0]].get_trace_start_time()
-            t2 = (i[2] - i[0]) / sampling_rate + channels[channels_sorted[2]].get_trace_start_time() - channels[channels_sorted[0]].get_trace_start_time()
+            t1 = (i[1] - i[0]) / sampling_rate + trace_start_times[channels_sorted[1]] - trace_start_times[channels_sorted[0]]
+            t2 = (i[2] - i[0]) / sampling_rate + trace_start_times[channels_sorted[2]] - trace_start_times[channels_sorted[0]]
 
             ds = SPEED_OF_LIGHT / n_index * np.array([t1.flatten(), t2.flatten()])
 
@@ -455,27 +460,34 @@ def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_A
                     channels[j].get_filtered_trace(passband, filter_type='butterabs', order=8)
                 ))
                 corrs.append(corr)
+            trace_start_times[i] = channels[i].get_trace_start_time()
 
         corrs = np.array(corrs)
         lags = scipy.signal.correlation_lags(len(channel.get_trace()), len(channel.get_trace()))
 
         lags_valid = lags[np.abs(lags) < max_sample_delay]
-        sample_delays = np.meshgrid(lags_valid, lags_valid)
-        sample_delays.append(sample_delays[1]-sample_delays[0])
-        sample_delays = np.array(sample_delays).reshape(3,-1)
+
+        # We cover all possible relative delays as follows:
+        # all possible delays of channel 2 - channel 1 (first entry)
+        # all possible delays of channel 3 - channel 1 (second entry);
+        # then the delay of channel 3 - channel 2 is fixed
+        sample_delays = np.asarray(np.meshgrid(lags_valid, lags_valid)).reshape(2, -1)
 
         # we require that a plane wave solution exists
         # if the non-singular part of the equation has a solution with norm < 1,
         # this guarantees that there exists a full 3D plane wave solution with norm 1
         dpos = pos - pos[0:1]
-        ds = SPEED_OF_LIGHT / n_index * sample_delays[:len(channels)-1] / sampling_rate
+        ds = SPEED_OF_LIGHT / n_index * sample_delays[:2] / sampling_rate
         u, s, _ = np.linalg.svd(dpos[1:])
         valid = np.linalg.norm(np.diag(1/s) @ u.T @ ds, axis=0) < 1
 
-        sample_delays = sample_delays[:,valid] - lags[0]
-        total_corr = np.sum([corrs[i,j] for i, j in enumerate(sample_delays)], axis=0)
+        sample_indices = sample_delays - lags[0] + np.round(
+            (trace_start_times[1:3, None] - trace_start_times[0]) * sampling_rate).astype(int) # adjust for different trace start times
+        valid &= np.all((sample_indices > 0) & (sample_indices < len(lags)), axis=0) # ensure only valid indices are included
+
+        total_corr = np.sum([corrs[i, j] for i, j in enumerate(sample_indices[:, valid])], axis=0)
         max_index = np.argmax(total_corr)
-        time_shifts = (sample_delays[:, max_index] + lags[0]) / sampling_rate
+        time_shifts = (sample_delays[:, valid][:, max_index]) / sampling_rate
         dt = np.array([0, *-time_shifts[:len(channels)-1]])
 
         if full_output:
@@ -573,7 +585,6 @@ class ImpulsiveSignalReconstructor():
         else:
             raise ValueError(f"Invalid value for method ({method}). Options are 'stft', 'xcorr' or 'simple_threshold'.")
 
-            
         zenith, azimuth = geometryUtilities.analytic_plane_wave_fit(dt, pos, n_index=n_index)
 
         zenith = geometryUtilities.get_fresnel_angle(zenith, n_1=n_index, n_2=_REFRACTIVE_INDEX_AIR)
