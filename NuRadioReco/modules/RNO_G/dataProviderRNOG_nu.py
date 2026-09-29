@@ -18,7 +18,7 @@ class dataProviderRNOG:
         self.channelCableDelayAdder = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
 
 
-    def begin(self, files, reader_kwargs={}, det=None):
+    def begin(self, files, reader_kwargs={}, det=None, glitch_evts = None):
         self.files = files
 
         self.channelGlitchDetector.begin()
@@ -28,6 +28,7 @@ class dataProviderRNOG:
 
         assert det is not None, "Detector object is None, please provide a detector object."
         self.detector = det
+        self.glitch_evts = glitch_evts
 
     def end(self):
         self.reader.end()
@@ -47,12 +48,23 @@ class dataProviderRNOG:
             times = None
             readout_times = None
         count = 0 
-        print(len(times))
-        print(sum(1 for _ in self.reader.run()))
+        #print(len(times))
+        #print(sum(1 for _ in self.reader.run()))
         
         for event in self.reader.run():
             station = event.get_station()
-            self.channelGlitchDetector.run(event, station, self.detector)
+            self.detector.update(station.get_station_time())
+
+            glitch_channels = []
+            if (self.glitch_evts != None and str(event.get_id()) in self.glitch_evts):
+                if ("glitch_channels" in self.glitch_evts[str(event.get_id())]):
+                    glitch_channels = self.glitch_evts[str(event.get_id())]["glitch_channels"]
+                    #print(glitch_channels, event.get_id(), "glitch")
+            
+            if (event.get_id() == 1796):
+                print(glitch_channels, "glitch channels dataProvider")
+
+            self.channelGlitchDetector.run(event, station, self.detector, glitch_channels)
 
             self.channelBlockOffsetFitter.run(event, station, self.detector)
 

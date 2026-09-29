@@ -126,6 +126,10 @@ class eventParametersRNOG(Enum):
     trigger_times = 20
     readout_times = 21
     energy = 22
+    min_depth_r = 23
+    min_depth_z = 24
+    bad_channels = 25
+    glitch_ts = 26
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')

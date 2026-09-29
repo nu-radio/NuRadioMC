@@ -7,8 +7,12 @@ parser.add_argument("--airplane_out", default = None)
 parser.add_argument("--wind_out", default = None)
 parser.add_argument("--intrarun_out", default = None)
 parser.add_argument("--spatiotemporal_out", default = None)
+parser.add_argument("--solar_out", default = None)
+parser.add_argument("--min_depth_sc_out", default = None)
+parser.add_argument("--glitch_out", default = None)
 parser.add_argument("--outfile", default = None, required=True)
 args = parser.parse_args()
+
 
 def run_num(run):
     nums = []
@@ -52,6 +56,15 @@ if (args.wind_out is not None):
 if (args.intrarun_out is not None):
     intrarun = pd.read_csv(args.intrarun_out).drop(columns=["Unnamed: 0"], errors="ignore")
     df_end = df_end.merge(intrarun, left_on=["run_num_clean", "event_id"], right_on=["run_number", "event_number"],how="left").drop(columns=["run_number", "event_number"], errors="ignore")
+if (args.solar_out is not None):
+    solar = pd.read_csv(args.solar_out).drop(columns=["Unnamed: 0"], errors="ignore")
+    df_end = df_end.merge(solar, left_on=["run_num_clean", "event_id"], right_on=["run_number", "event_number"],how="left").drop(columns=["run_number", "event_number"], errors="ignore")
+if (args.min_depth_sc_out is not None):
+    min_depth_sc = pd.read_csv(args.min_depth_sc_out).drop(columns=["Unnamed: 0"], errors="ignore")
+    df_end = df_end.merge(min_depth_sc, left_on=["run_num_clean", "event_id"], right_on=["run_number", "event_number"],how="left").drop(columns=["run_number", "event_number"], errors="ignore")
+if (args.glitch_out is not None):
+    glitch = pd.read_csv(args.glitch_out).drop(columns=["Unnamed: 0"], errors="ignore")
+    df_end = df_end.merge(glitch, left_on=["run_num_clean", "event_id"], right_on=["run_number", "event_number"],how="left").drop(columns=["run_number", "event_number"], errors="ignore")
 
 df_end = df_end.drop(columns=["run_num_clean"])
 

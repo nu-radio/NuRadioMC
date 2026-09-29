@@ -74,7 +74,7 @@ class channelGlitchDetector:
                                  f"/ {self.events_checked} = {100*glitching_fraction:.2f}% of events!")
 
     @register_run()
-    def run(self, event, station, det=None):
+    def run(self, event, station, det=None, glitch_channels=None):
         """ Run over channel traces and sets `channelParameter.glitch`.
 
         Parameters
@@ -95,7 +95,11 @@ class channelGlitchDetector:
 
             trace = ch.get_trace()
             trace_us = unscramble(trace, block_size=self._lab4d_sampling_blocksize, readout_size=self._lab4d_readout_size)
-
+            
+            if (glitch_channels != None and ch_id in glitch_channels):
+                sampling_rate = ch.get_sampling_rate()
+                ch.set_trace(trace_us, sampling_rate) 
+        
             # glitching test statistic and boolean discriminate
             glitch_ts = (diff_sq(trace, block_size=self._lab4d_sampling_blocksize) - 
                          diff_sq(trace_us, block_size=self._lab4d_sampling_blocksize)) / np.var(trace)

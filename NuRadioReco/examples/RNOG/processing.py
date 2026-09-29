@@ -33,11 +33,11 @@ channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.chan
 channelSignalReconstructor.begin()
 
 channelSinewaveSubtraction = NuRadioReco.modules.channelSinewaveSubtraction.channelSinewaveSubtraction()
-channelSinewaveSubtraction.begin(save_filtered_freqs=False, freq_band= (0.1, 0.6))
+channelSinewaveSubtraction.begin(save_filtered_freqs=False, freq_band= (0.05, 0.6))
+LAB4D_SAMPLING_BLOCK_SIZE = 64
 
 
-
-def process_event(evt, det):
+def process_event(evt, det, run_no = None, us_channels = None):
     """
     Recommended preprocessing for RNO-G events
 
@@ -54,7 +54,7 @@ def process_event(evt, det):
         # The RNO-G detector changed over time (e.g. because certain hardware components were replaced).
         # The time-dependent detector description has this information but needs to be updated with the
         # current time of the event.
-        det.update(station.get_station_time())
+        # det.update(station.get_station_time())
 
         # The first step is to upsample the data to a higher sampling rate. This will e.g. allow to
         # determine the maximum amplitude and time of the signal more accurately. Studies showed that
@@ -63,8 +63,123 @@ def process_event(evt, det):
         # and the required accuracy.
         # Also remember to always downsample the data again before saving it to disk to avoid unnecessary
         # large files.
+
+        if (us_channels != None):
+            if (evt.get_id() == 1796):
+                print("us channels processing")
+            for ch in station.iter_channels():
+                if (True == True):
+                    trace = ch.get_trace()
+                    sampling_rate = ch.get_sampling_rate()
+
+                    trimmed_trace = trace[LAB4D_SAMPLING_BLOCK_SIZE:-LAB4D_SAMPLING_BLOCK_SIZE]
+
+                    start_time = ch.get_trace_start_time()
+                    delta_t = 1 / sampling_rate
+                    new_start_time = start_time + LAB4D_SAMPLING_BLOCK_SIZE * delta_t
+
+                    ch.set_trace(trimmed_trace, sampling_rate)
+                    ch.set_trace_start_time(new_start_time)
+
         channelResampler.run(evt, station, det, sampling_rate=5 * units.GHz)
+        """ 
+        snr_before = {}
+        power_before = {}
+
+        for ch in station.iter_channels():
+            trace = ch.get_trace()
+            times = ch.get_times()
+            power = np.sum(trace**2) / len(trace)
+            vMax = max(trace)
+            vMin = min(trace)
+            vp2p = vMax - vMin
+            rms = 1e100
+            traceLen = len(trace)
+            segLen = traceLen // 8
+            if(segLen < 2):
+                raise Exception("Number of segments cannot be more than number of points in trace. Abort.")
+
+            segRem = traceLen % 8
+
+            for i in range(8):
+                start = i*segLen
+                if(i < segRem):
+                    start += i
+                end = start + segLen
+                if(i < segRem):
+                    end += 1
+
+                thisRms = np.sqrt(np.mean(trace[start:end+1]**2))
+
+                if(thisRms < rms):
+                    rms = thisRms
+
+            snr = vp2p/rms/2.0
+            snr_before[ch.get_id()] = snr 
+            power_before[ch.get_id()] = power
+
+        """
+        channelSinewaveSubtraction.run(evt, station, det, algorithm="simple", peak_prominence=3.0)
+        """
+        snr_after = {}
+        power_after = {}
+
+        for ch in station.iter_channels():
+            trace = ch.get_trace()
+            times = ch.get_times()
+            power = np.sum(trace**2) / len(trace)
+            vMax = max(trace)
+            vMin = min(trace)
+            vp2p = vMax - vMin
+            rms = 1e100
+            traceLen = len(trace)
+            segLen = traceLen // 8
+            if(segLen < 2):
+                raise Exception("Number of segments cannot be more than number of points in trace. Abort.")
+
+            segRem = traceLen % 8
+
+            for i in range(8):
+                start = i*segLen
+                if(i < segRem):
+                    start += i
+                end = start + segLen
+                if(i < segRem):
+                    end += 1
+
+                thisRms = np.sqrt(np.mean(trace[start:end+1]**2))
+
+                if(thisRms < rms):
+                    rms = thisRms
+            
+            snr = vp2p/rms/2.0
+            snr_after[ch.get_id()] = snr 
+            power_after[ch.get_id()] = power
         
+        np.save(f"/users/PAS2608/avijai/rno-g/NuRadioMC/NuRadioReco/examples/RNOG/interferometric_reco_nu/snr_pwr_diff_0721_3/{run_no}_{evt.get_id()}_snr_before.npy", snr_before)
+        np.save(f"/users/PAS2608/avijai/rno-g/NuRadioMC/NuRadioReco/examples/RNOG/interferometric_reco_nu/snr_pwr_diff_0721_3/{run_no}_{evt.get_id()}_snr_after.npy", snr_after)
+        np.save(f"/users/PAS2608/avijai/rno-g/NuRadioMC/NuRadioReco/examples/RNOG/interferometric_reco_nu/snr_pwr_diff_0721_3/{run_no}_{evt.get_id()}_pwr_before.npy", power_before)
+        np.save(f"/users/PAS2608/avijai/rno-g/NuRadioMC/NuRadioReco/examples/RNOG/interferometric_reco_nu/snr_pwr_diff_0721_3/{run_no}_{evt.get_id()}_pwr_after.npy", power_after)
+        """
+         
+        """
+        if (us_channels != None):
+            if (evt.get_id() == 1796):
+                print("us channels processing")
+            for ch in station.iter_channels():
+                if (True == True):
+                    trace = ch.get_trace()
+                    sampling_rate = ch.get_sampling_rate()
+
+                    trimmed_trace = trace[LAB4D_SAMPLING_BLOCK_SIZE:-LAB4D_SAMPLING_BLOCK_SIZE]
+
+                    start_time = ch.get_trace_start_time()
+                    delta_t = 1 / sampling_rate
+                    new_start_time = start_time + LAB4D_SAMPLING_BLOCK_SIZE * delta_t
+
+                    ch.set_trace(trimmed_trace, sampling_rate)
+                    ch.set_trace_start_time(new_start_time)
+        """
         pad_info = {}
         for ch in station.iter_channels():
             trace = ch.get_trace()
@@ -84,8 +199,8 @@ def process_event(evt, det):
             ch.set_trace(padded_trace, sampling_rate)
             ch.add_trace_start_time(-pad * delta_t)
 
-        channelSinewaveSubtraction.run(evt, station, det, algorithm="sliding", peak_prominence=4.0)
-
+        #channelSinewaveSubtraction.run(evt, station, det, algorithm="sliding", peak_prominence=1.5)
+        
 
         # Our antennas are only sensitive in a certain frequency range. Hence, we should apply a bandpass filter
         # in the range where the antennas are sensitive. This will reduce the noise in the data and make the
@@ -130,3 +245,4 @@ def process_event(evt, det):
         # direction of the signal, or reconstruct the energy of the signal.
         # The channelSignalReconstructor module is a good starting point for the signal reconstruction.
         channelSignalReconstructor.run(evt, station, det)
+        

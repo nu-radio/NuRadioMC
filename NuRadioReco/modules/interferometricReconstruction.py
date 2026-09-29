@@ -1021,8 +1021,9 @@ class InterferometricReco:
                     channel_signals[ch.get_id()] = np.abs(scipy.signal.hilbert(trace))
                 channel_times[ch.get_id()] = times
             
-
+        
         csp = self.CorrScoreProvider(channel_signals, channel_times, channel_pairs_to_include, cores)
+        self.detector.update(station.get_station_time())
         channel_positions = self.get_channel_positions(self.detector, station_id = station.get_id(), channels = channels_to_include)
         
         #angular reconstruction
@@ -1083,7 +1084,7 @@ class InterferometricReco:
             plt.close()
             """
         #plot correlation maps 
-        """ 
+        """         
         if (plotting == True):
             if os.path.exists(output_path):
                 self.plot(reco_ang, maxcorr_point_ang, "ang", azimuth_range, elevation_range, z_range, r_range, num_pts_z, num_pts_r, output_path, event.get_id(), run_no)
@@ -1449,4 +1450,63 @@ class SurfaceCorr:
 
         return surf_corr_ratio, max_surf_corr, max_r, max_z
 
-    
+class minDepth:
+
+    def __init__(self, station_id, detector):
+        """
+        Initializes minDepth class
+
+        Parameters
+
+        ----------
+        detector
+
+        station_id: int
+        """
+        #percentage of max correlation for the event
+        self.corr_frac = 0.6
+
+        #detector
+        self.detector = detector
+
+        #origin
+        #self.origin = detector.get_relative_position(station_id, 0)
+        self.origin = np.array([0,0,0])
+
+
+    def run(self, intmap, maxcorr):
+        """
+        Calculate minDepth i.e. shallowest depth associated with a correlation of self.corr_frac * maxcorr
+
+        Parameters
+
+        ----------
+        intmap: dictionary 
+            returned by rz reconstruction containing correlation map (numpy array), z_vals, r_vals, and azimuth 
+            z_vals, r_vals: z and r values for RZ reconstruction in meters where r = x^2 + y^2
+            azimuth: azimuth associated with max correlation point from angular reconstruction in radians
+
+        maxcorr: float 
+            maximum correlation in the correlation map obtained from RZ reconstruction
+
+        """
+        
+        corr_perc = self.corr_frac * maxcorr 
+
+        mask = intmap["map"] >= corr_perc
+
+        if np.any(mask):
+            r_idx, z_idx = np.where(mask)
+
+            z_vals = intmap["z"].flatten()
+            r_vals = intmap["r"].flatten()
+
+            shallowest = np.argmax(z_vals[z_idx])
+
+            min_depth_z = z_vals[z_idx][shallowest]
+            min_depth_r = r_vals[r_idx][shallowest]
+        else:
+            min_depth_z = np.nan
+            min_depth_r = np.nan
+
+        return min_depth_r, min_depth_z

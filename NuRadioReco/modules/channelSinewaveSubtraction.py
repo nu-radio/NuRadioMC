@@ -14,6 +14,7 @@ import sys
 import time
 import logging
 logger = logging.getLogger("NuRadioReco.modules.channelSinewaveSubtraction")
+from scipy.optimize import least_squares
 
 """
 This module provides a class for continuous wave (CW) noise filtering using sine subtraction.
@@ -69,10 +70,161 @@ class channelSinewaveSubtraction:
         for channel in station.iter_channels():
             sampling_rate = channel.get_sampling_rate()
             trace = channel.get_trace()
+            
+            trace_current = trace.copy()
+            freqs_final = []
+            
+            curr_freqs = [0]
+            count = 0
+
+            while len(curr_freqs) > 0:
+                if (True == True):
+                    trace_new, curr_freqs = sinewave_subtraction(
+                            trace_current,
+                            algorithm=algorithm,
+                            peak_prominence=peak_prominence,
+                            sampling_rate=sampling_rate,
+                            freq_band=self.freq_band)
+
+                # No frequencies found → stop
+                if len(curr_freqs) == 0:
+                    break
+
+                power_old = np.sum(trace_current**2)
+                power_new = np.sum(trace_new**2)
+
+                # Subtraction made things worse → stop
+                if power_new >= power_old:
+                    break
+
+                trace_current = trace_new
+                freqs_final.extend(curr_freqs)
+                count += 1
+
+            removed_freqs[channel.get_id()] = np.array(freqs_final)
+            channel.set_trace(trace_current, sampling_rate)
+        """ 
+        true_count = 0
+        max_remaining = {}
+        for channel in station.iter_channels():
+            sampling_rate = channel.get_sampling_rate()
+            trace = channel.get_trace()
+
+            trace_current = trace.copy()
+
+            spec_complex = fft.time2freq(trace_current, sampling_rate) # need later to estimate phase
+            spec = abs(spec_complex)
+            f_min, f_max = self.freq_band
+            freqs = fft.freqs(len(trace_current), sampling_rate)
+            band_mask = (freqs >= f_min) & (freqs <= f_max)
+            max_rem = np.max(spec[band_mask])
+            rms_band = np.sqrt(np.mean(spec[band_mask] ** 2))
+            
+            if (max_rem > (peak_prominence) * rms_band):
+                true_count += 1
+                max_remaining[channel.get_id()] = True
+            else:
+                max_remaining[channel.get_id()] = False
+
+        print("TRUE COUNT", true_count) 
+        if (true_count > 1):
+            print("TRUE COUNT > 1")
+            for channel in station.iter_channels():
+                trace = channel.get_trace()
+                trace_current = trace.copy()
+                freqs_final = list(removed_freqs[channel.get_id()])
+                if len(freqs_final) == 0:
+                    curr_freqs = [0]
+                    while len(curr_freqs) > 0:
+                        trace_new, curr_freqs = sinewave_subtraction(
+                                trace_current,
+                                algorithm=algorithm,
+                                peak_prominence=peak_prominence - 1,
+                                sampling_rate=sampling_rate,
+                                freq_band=self.freq_band)
+                
+                        if len(curr_freqs) == 0:
+                            break
+
+                        power_old = np.sum(trace_current**2)
+                        power_new = np.sum(trace_new**2)
+
+                        # Subtraction made things worse → stop
+                        if power_new >= power_old:
+                            break
+
+                        trace_current = trace_new
+                        freqs_final.extend(curr_freqs)
+                        count += 1
+
+                removed_freqs[channel.get_id()] = np.array(freqs_final)
+                channel.set_trace(trace_current, sampling_rate)
+        """
+        """
+            #for iteration in range(5):
+            if (count > 0):
+                if len(curr_freqs) > 0:
+                    trace_new, freqs = sinewave_subtraction(
+                        trace_current,
+                        algorithm=algorithm,
+                        peak_prominence=peak_prominence,
+                        sampling_rate=sampling_rate,
+                        freq_band=self.freq_band)
+
+                    power_old = np.sum(trace_current**2)
+                    power_new = np.sum(trace_new**2)
+
+                    if power_new >= power_old:
+                        break
+
+                    trace_current = trace_new
+                    curr_freqs = freqs
+                    freqs_final.extend(freqs)
+            else:
+                trace_new, freqs = sinewave_subtraction(
+                        trace_current,
+                        algorithm=algorithm,
+                        peak_prominence=peak_prominence,
+                        sampling_rate=sampling_rate,
+                        freq_band=self.freq_band)
+
+                power_old = np.sum(trace_current**2)
+                power_new = np.sum(trace_new**2)
+
+                if power_new >= power_old:
+                    break
+
+                trace_current = trace_new
+                curr_freqs = freqs
+                freqs_final.extend(freqs)
+                count += 1 
+            
+            print(count, curr_freqs, "count curr freqs")
+            
+            
+            print(channel.get_id(), "channel")
+            sampling_rate = channel.get_sampling_rate()
+            trace = channel.get_trace()
+            print("fit 1")
+            
+            
             trace_fil, freqs = sinewave_subtraction(
                 trace, algorithm=algorithm, peak_prominence=peak_prominence, sampling_rate=sampling_rate, freq_band=self.freq_band)
+            
+            print("fit 2")
+            trace_fil_2, freqs_2 = sinewave_subtraction(
+                trace_fil, algorithm=algorithm, peak_prominence=peak_prominence, sampling_rate=sampling_rate, freq_band=self.freq_band)
+            print("fit 3")
+            trace_fil_3, freqs_3 = sinewave_subtraction(
+                trace_fil_2, algorithm=algorithm, peak_prominence=peak_prominence, sampling_rate=sampling_rate, freq_band=self.freq_band)
+            
+            removed_freqs[channel.get_id()] = np.array(freqs_final)
+            channel.set_trace(trace_current, sampling_rate)
+            print(channel.get_id(), freqs_final, "channel freqs rem")
+            
             removed_freqs[channel.get_id()] = np.array(freqs)
             channel.set_trace(trace_fil, sampling_rate)
+            """
         self.removed_freqs = removed_freqs
 
     def get_filtered_frequencies(self):
@@ -183,6 +335,7 @@ def guess_phase(fft_spec: np.ndarray, freqs: np.ndarray, target_freq: float):
 
     return phase
 
+
 def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominence: float = 4.0, sampling_rate: float = 3.2, freq_band: tuple = (0.1, 0.7)):
     """
     Perform sine subtraction on a waveform to remove CW noise.
@@ -219,6 +372,11 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
 
     def sinusoid(t, amplitude, noise_frequency, phase):
         return amplitude * np.sin(2 * np.pi * noise_frequency * t + phase + np.pi/2)
+    
+    def residuals(params, t, wf):
+        amplitude, freq, phase = params
+        return sinusoid(t, amplitude, freq, phase) - wf
+
 
     spec_complex = fft.time2freq(wf, sampling_rate) # need later to estimate phase
 
@@ -244,8 +402,15 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
         rms_band = np.sqrt(np.mean(spec_roi ** 2))
 
         # Find noise peaks based on this band-limited RMS
-        peak_idxs, _ = signal.find_peaks(spec, height=peak_prominence * rms_band, width=(0, peak_width_limit))
-
+        
+        #peak_idxs, _ = signal.find_peaks(spec, height=peak_prominence * rms_band, width=(0, peak_width_limit))
+        
+        peak_idxs = np.where(spec > peak_prominence * rms_band)[0]
+        
+        if len(peak_idxs) > 0:
+            highest_peak_idx = peak_idxs[np.argmax(spec[peak_idxs])]
+            peak_idxs = np.array([highest_peak_idx])
+        
 
     elif algorithm == 'sliding':
         spec_roi = spec[band_mask]
@@ -258,12 +423,36 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
         all_peaks = []
         for i in range(len(rms_values)):
             local_spectrum = windowed_spectrum[i]
-
+            rms = rms_values[i]
+            
+            """ 
+            peaks, properties = signal.find_peaks(
+                    local_spectrum,
+                    height=peak_prominence * rms,
+                    width=(0, peak_width_limit))
+            """
             peaks, _  = signal.find_peaks(local_spectrum, height=peak_prominence * rms_values[i], width=(0, peak_width_limit))
+            """
+            if len(peaks) > 0:
+                widths = properties["widths"]
+                for peak, width in zip(peaks, widths):
+                    peak_height = local_spectrum[peak]
+
+                print(
+                    f"Window {i}: "
+                    f"height/rms = {peak_height/rms:.2f}, "
+                    f"width = {width * delta_f / units.MHz:.2f} MHz"
+                )
+            
+            
+            peak_idxs = np.where(spec > peak_prominence * rms_values[i])[0]
+            all_peaks.extend(peak_idxs)
 
             # Convert indices to global indices
+            """
             global_peaks = peaks + i
             all_peaks.extend(global_peaks)
+            
         #find first index of the band
         first_idx = np.argmax(band_mask) if np.any(band_mask) else -1
         # Remove duplicates (since windows overlap)
@@ -289,37 +478,66 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
             else:
             # Calculate the mean frequency for the current group of neighbors
                 noise_freqs.append(np.mean(freqs[group]))
+                #noise_freqs.extend(freqs[group])
                 # Start a new group with the current peak
                 group = [peak_idxs[i]]
 
         # Don't forget to append the last group
         if group:
+            #noise_freqs.extend(freqs[group])
             noise_freqs.append(np.mean(freqs[group]))
 
         # Convert the list to a NumPy array (optional, if you prefer an array)
         noise_freqs = np.array(noise_freqs)
+        #print(noise_freqs, "before noise")
+        noise_freqs = np.array(freqs[peak_idxs])
+        #print(noise_freqs, "after noise")
 
         for noise_freq in noise_freqs:
-
             ampl_guess = guess_amplitude_iir(wf, noise_freq, sampling_rate)
             phase = guess_phase(spec_complex, freqs, noise_freq)
-
+            
             initial_guess = [ampl_guess, noise_freq, phase]
             # Fit the sinusoidal model to the waveform
             try:
-
+                
+                #print(initial_guess, "ampl guess, noise freq, phase")    
                 params, covariance = curve_fit(sinusoid, t, wf, p0=initial_guess)
+                """ 
+                result = least_squares(
+                        residuals,
+                        x0=initial_guess,
+                        args=(t, wf),
+                        loss="linear",   # robust against impulsive features
+                        max_nfev=10000)
+                
+                result = least_squares(
+                        residuals,
+                        x0=initial_guess,
+                        args=(t, wf_cw),
+                        loss="soft_l1",
+                        max_nfev=10000)
+                
+                if not result.success:
+                    raise RuntimeError("Least squares fit failed")
+
+                params = result.x
+                """
                 # Check if any parameters are NaN or Inf
                 if np.any(np.isnan(params)) or np.any(np.isinf(params)):
                     raise RuntimeError("Fit returned invalid parameters.")
 
                 estimated_amplitude, estimated_freq, estimated_phase = params
+                #print(estimated_amplitude, estimated_freq, estimated_phase, "est amp freq phase")
 
+                #print(estimated_freq, noise_freq, "est real")
+                #print(estimated_amplitude, estimated_freq, estimated_phase, "est amp freq phase after")
                 filtered_freqs.append(estimated_freq)
                 # Check if the covariance matrix is invalid
+                
                 if np.all(np.isinf(covariance)) or np.all(np.isnan(covariance)):
                     raise RuntimeError("Fit covariance matrix is invalid, fit may not have converged.")
-
+                
                 # Generate the estimated CW noise
                 estimated_cw_noise = sinusoid(t, estimated_amplitude, estimated_freq,estimated_phase)
 
@@ -330,17 +548,31 @@ def sinewave_subtraction(wf: np.ndarray, algorithm: str='simple',  peak_prominen
                 corrected_waveform -= estimated_cw_noise
                 power_after_subtraction = np.sum(abs(fft.time2freq(corrected_waveform, sampling_rate)) ** 2)
                 logger.info(f"Power reduction: {100 * (1 - power_after_subtraction / power_orig):.1f}%")
+                
+                spec_before = np.abs(fft.time2freq(wf, sampling_rate))
+                spec_after = np.abs(fft.time2freq(corrected_waveform, sampling_rate))
 
+                idx = np.argmin(abs(freqs - estimated_freq))
+
+                #print("Before:", spec_before[idx])
+                #print("After :", spec_after[idx])
+                
+                #if power_after_subtraction > power_orig*(1+1e-3):          
                 if power_orig < power_after_subtraction:
-                    logger.warning("Power increased after subtraction. Skipping this frequency.")
+                    print(estimated_amplitude, estimated_freq, estimated_phase, "est amp freq phase")
+                    print(power_orig, power_after_subtraction, "before after skipped sub")
+                    logger.warning(f"Power increased after subtraction. Skipping this frequency: {noise_freq / units.MHz} MHz")
                     corrected_waveform += estimated_cw_noise
-                    raise RuntimeError("Power increased after subtraction. Reverse subtraction.")
-
+                    raise RuntimeError(f"Power increased after subtraction. Reverse subtraction: {noise_freq / units.MHz} MHz")
+                    filtered_freqs.remove(estimated_freq)
+                    
             except RuntimeError:
                 logger.error(f"Curve fitting failed for frequency: {noise_freq / units.MHz} MHz")
 
 
     return corrected_waveform, filtered_freqs
+
+
 
 
 def plot_ft(channel, ax, label=None, plot_kwargs=dict()):

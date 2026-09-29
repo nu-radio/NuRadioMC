@@ -1,3 +1,4 @@
+import json 
 import sys
 from pathlib import Path
 import json 
@@ -12,7 +13,7 @@ from NuRadioReco.examples.RNOG.processing import process_event
 from NuRadioReco.utilities.framework_utilities import get_averaged_channel_parameter
 from NuRadioReco.framework.parameters import (
     eventParametersRNOG as ep, channelParameters as chp, showerParameters as shp,
-    particleParameters as pap, generatorAttributes as gta, stationParameters as stp)
+    particleParameters as pap, generatorAttributes as gta, stationParameters as stp, channelParametersRNOG as chpr)
 import datetime
 from NuRadioReco.detector import detector
 import pickle
@@ -73,7 +74,7 @@ def run_num(run):
         num += float(nums[i])*(10**(len(nums)-i-1))
     return int(num)
 
-def get_event_source(path, det):
+def get_event_source(path, det, bad_evts = None):
     """
     Returns an iterator over events, regardless of input type.
     """
@@ -89,7 +90,7 @@ def get_event_source(path, det):
 
     else:
         provider = NuRadioReco.modules.RNO_G.dataProviderRNOG_nu.dataProviderRNOG()
-        provider.begin(files=path, det=det)
+        provider.begin(files=path, det=det, glitch_evts = bad_evts)
 
         def generator():
             for evt, times, readout_times in provider.run():
@@ -108,6 +109,7 @@ parser.add_argument('--detector-file', type=str, required=True)
 parser.add_argument('--burn-data-source', type=str, default=None)
 parser.add_argument('--sim-data-source', type=str, default=None)
 parser.add_argument('--burn-sample', type=str, default=None)
+parser.add_argument('--glitch-files', type=str, default=None)
 
 args = parser.parse_args()
 station_id = args.station
@@ -127,6 +129,12 @@ burn_sample = None
 if args.burn_sample:
     with open(args.burn_sample) as f:
         burn_sample = json.load(f)
+
+glitch_files = None
+if args.glitch_files:
+    with open(args.glitch_files) as f:
+        glitch_files = json.load(f)
+
 
 is_sim = items and items[0].endswith(".nur")
 
@@ -160,8 +168,8 @@ det.update(datetime.datetime(2022, 10, 1))
 det = rnog_detector.Detector(
         detector_file=None, log_level=logging.INFO,
         always_query_entire_description=True, select_stations=args.station)
-event_time = datetime.datetime(2024, 2, 3)
-det.update(event_time)
+#event_time = datetime.datetime(2024, 7, 3)
+#det.update(event_time)
 print("loaded det")
 #detector_file = "/data/i3home/avijai/detector_0414_11.json"
 #dict_with_temps = {0: 217.19629113753282, 1: 215.20627029636574, 2: 222.61509139414372, 3: 212.90523779386774, 5: 221.08190519458805, 6: 216.96692334930526, 7: 224.054135578712, 9: 223.37765887763643, 10: 226.38776506877818, 22: 220.25936001026346, 23: 222.77790088196727, 4: 117.61594720917961, 8: 118.91603235682096, 11: 116.02361247028553, 21: 120.91470289135322, 12: 377.4768636931619, 13: 350.1865829749677, 14: 379.53681971418484, 15: 379.9537072977946, 16: 349.76426069834565, 17: 378.9143374913414, 18: 378.3784770551233, 19: 348.31582771160225, 20: 378.6600575424777}
@@ -174,6 +182,7 @@ reco_refl = NuRadioReco.modules.interferometricReconstruction.InterferometricRec
 
 csw = NuRadioReco.modules.interferometricReconstruction.CSW(station_id, det)
 scr = NuRadioReco.modules.interferometricReconstruction.SurfaceCorr(station_id, det)
+minDepth = NuRadioReco.modules.interferometricReconstruction.minDepth(station_id, det)
 
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 eventWriter.begin(filename=output_file)
@@ -185,33 +194,113 @@ if (is_sim == False):
         run = f"{args.burn_data_source}/{run}"
         run_id = str(run_num(run.split("/")[-1]))
         if (run_id not in burn_sample):
-            continue 
+            continue
+
+        bad_evts = None 
+        if (run.split("/")[-1] in glitch_files):
+            bad_evts = glitch_files[run.split("/")[-1]]
+
         event_list = set(burn_sample[run_id])
         count = 0
         filename = run 
         run_id = filename.split("/")[-1]
-        event_source = get_event_source(filename, det)
-        print("got event source")
+        event_source = get_event_source(filename, det, bad_evts)
+        #print("got event source")
         for event, trig_times, readout_times in event_source:
             station = event.get_station(station_id)
+            det.update(station.get_station_time())
             time = station.get_station_time()
             triggers = station.get_triggers()
             trigger_names = [key for key in triggers]
         
             if (event.get_id() not in event_list):
                 continue
+            
+            glitch_channels = []
+            us_channels = []
+            all_bad_channels = None
+            if (bad_evts != None and str(event.get_id()) in bad_evts):
+                all_bad_channels = bad_evts[str(event.get_id())]
+                if ("transition_channels" in bad_evts[str(event.get_id())]):
+                    glitch_channels = bad_evts[str(event.get_id())]["transition_channels"]
+                if ("glitch_channels" in bad_evts[str(event.get_id())]):
+                    us_channels = bad_evts[str(event.get_id())]["glitch_channels"]
+            
+            """ 
+            if (event.get_id() != 1796):
+                continue
+            """
+            process_event(event, det, us_channels = us_channels)
+            
+            #glitch_channels = []
+            glitch_ts_all = {}
+            for channel in station.iter_channels():
+                channel.add_parameter_type(chpr)
+                glitch_ts_all[channel.get_id()] = channel.get_parameter(chpr.glitch_test_statistic)
+            """
+                if channel.has_parameter(chpr.glitch) and channel.get_parameter(chpr.glitch):
+                    if (channel.get_parameter(chpr.glitch) == True):
+                        glitch_channels.append(channel.get_id())
+            """
+            csw_info_evt = {
+                    key: [ch for ch in channels if ch not in glitch_channels]
+                    for key, channels in csw_info.items()}
 
-            process_event(event, det)
-            avg_snr = get_averaged_channel_parameter(event, chp.SNR, channels_to_include = csw_info["ALL"])
-            avg_rpr = get_averaged_channel_parameter(event, chp.root_power_ratio, channels_to_include = csw_info["ALL"]) 
-        
+            channels_to_include_evt = csw_info_evt["ALL"]
+            
+            if len(csw_info_evt["ALL"]) == 0:
+                print(f"Skipping event {event.get_id()}: all CSW channels are glitching")
+                continue
+
+
+            avg_snr = get_averaged_channel_parameter(event, chp.SNR, channels_to_include = csw_info_evt["ALL"])
+            avg_rpr = get_averaged_channel_parameter(event, chp.root_power_ratio, channels_to_include = csw_info_evt["ALL"]) 
+
             r = 300 #change initial guess for r (spherical) based on event to be reconstructed 
         
             #change ranges and number of points according to event reconstucted and range of travel time maps used 
             #change path to where correlation map plots are saved as needed 
-        
-            results_dir = reco_dir.run(event, station, channels_to_include, (-np.pi, np.pi), (-np.pi/2, np.pi/2), r, (-3000, 300), (0,3000), 250, 250, 180, 360, "plots_0326_out/early", return_reco = True, return_score = True, return_delays = True, return_maps = True)
-            results_refl = reco_refl.run(event, station, channels_to_include, (-np.pi, np.pi), (-np.pi/2, np.pi/2), r, (-3000, 300), (0,3000), 250, 250, 180, 360, "plots_0326_out/late", return_reco = True, return_score = True, return_delays = True, return_maps = True)
+                
+            """
+            if (event.get_id() == 1796):
+                outdir = "outliers_0925_pre-reco_infer"
+                x = event.get_id()
+                r = run_id
+                power_str = [7,6,5,4,8,3,2,1,0]
+                helper_str_1 = [11,10,9]
+                helper_str_2 = [21,22,23]
+                surface = [12,13,14,15,16,17,18,19,20]
+                reco_channels = [0,1,2,3,5,6,7,9,10,22,23]
+                fig, axs = plt.subplots(9, 3, figsize=(10, 20), sharex = True)
+                for ch in station.iter_channels():
+                    trace = ch.get_trace()
+                    times = ch.get_times()
+                    ch_id = ch.get_id()
+                    if (ch_id in power_str):
+                        axs[power_str.index(ch_id), 0].plot(times, trace)
+                        axs[power_str.index(ch_id), 0].set_title(f"Ch {ch_id}, V")
+                    if (ch_id in helper_str_1):
+                        axs[helper_str_1.index(ch_id) + 6, 1].plot(times, trace)
+                        axs[helper_str_1.index(ch_id) + 6, 1].set_title(f"Ch {ch_id}, V")
+                    if (ch_id in helper_str_2):
+                        axs[helper_str_2.index(ch_id) + 6, 2].plot(times, trace)
+                        axs[helper_str_2.index(ch_id) + 6, 2].set_title(f"Ch {ch_id}, V")
+
+                for i in range(6):
+                    fig.delaxes(axs[i][1])
+                    fig.delaxes(axs[i][2])
+                fig.text(0.5, 0.001, 'Time', ha='center')
+                fig.text(0.01, 0.5, 'Trace', va='center', rotation='vertical')
+                fig.suptitle(f"Event {x} Trace")
+                fig.tight_layout()
+
+
+                fig.savefig(f"{outdir}/evt_{r}_{x}_trace.png")
+
+                plt.close()
+            """
+            results_dir = reco_dir.run(event, station, channels_to_include_evt, (-np.pi, np.pi), (-np.pi/2, np.pi/2), r, (-3000, 300), (0,3000), 250, 250, 180, 360, "plots_0925_out/early", return_reco = True, return_score = True, return_delays = True, return_maps = True)
+            results_refl = reco_refl.run(event, station, channels_to_include_evt, (-np.pi, np.pi), (-np.pi/2, np.pi/2), r, (-3000, 300), (0,3000), 250, 250, 180, 360, "plots_0925_out/late", return_reco = True, return_score = True, return_delays = True, return_maps = True)
         
         
             max_corrs = np.array([results_dir["maxcorr"], results_refl["maxcorr"]])
@@ -222,32 +311,44 @@ if (is_sim == False):
             max_corr = np.max(max_corrs)
         
             #reconstruction, coherently summed waveform (CSW) and surface correlation ratio (SCR) calculation 
-            print(event.get_id(), max_results, max_corr, "stuff")
+            #print(event.get_id(), max_results, max_corr, "stuff")
             csw_rpr = {}
             csw_snr = {}
             csw_hilbert_snr = {}
             csw_impulsivity = {}
             csw_peak = {}
             csw_power = {}
-            for chan_combo in csw_info.keys():
-                if (max_soln == "early"):
-                    csw_times, csw_values = csw.run(event, station, channels_to_include, results_dir["maps"], results_dir["maxcorr_coord"], results_dir["score"], results_dir["delays"])
-                elif (max_soln == "late"):
-                    csw_times, csw_values = csw.run(event, station, channels_to_include, results_refl["maps"], results_refl["maxcorr_coord"], results_refl["score"], results_refl["delays"])
+            for chan_combo in csw_info_evt.keys():
+                if len(csw_info_evt[chan_combo]) == 0:
+                    csw_snr[chan_combo] = None
+                    csw_rpr[chan_combo] = None
+                    csw_hilbert_snr[chan_combo] = None
+                    csw_peak[chan_combo] = None
+                    csw_power[chan_combo] = None
+                    csw_impulsivity[chan_combo] = None
+
+                    continue
+                else:
+                    if (max_soln == "early"):
+                        csw_times, csw_values = csw.run(event, station, csw_info_evt[chan_combo], results_dir["maps"], results_dir["maxcorr_coord"], results_dir["score"], results_dir["delays"])
+                    elif (max_soln == "late"):
+                        csw_times, csw_values = csw.run(event, station, csw_info_evt[chan_combo], results_refl["maps"], results_refl["maxcorr_coord"], results_refl["score"], results_refl["delays"])
             
-                csw_snr[chan_combo]  = snr.get_snr_single(csw_times, csw_values)
-                csw_rpr[chan_combo] = rpr.get_single_rpr(csw_times, csw_values)
-                csw_hilbert_snr[chan_combo] = hilbert.hilbert_snr(csw_values)
-                csw_hilbert = np.abs(scipy.signal.hilbert(csw_values))
-                csw_peak[chan_combo] = max(csw_hilbert)
-                csw_power[chan_combo] = csw_times[np.argmax(np.array(csw_values)**2)]
-                csw_impulsivity[chan_combo] = impulsivity.calculate_impulsivity_measures(csw_values)
+                    csw_snr[chan_combo]  = snr.get_snr_single(csw_times, csw_values)
+                    csw_rpr[chan_combo] = rpr.get_single_rpr(csw_times, csw_values)
+                    csw_hilbert_snr[chan_combo] = hilbert.hilbert_snr(csw_values)
+                    csw_hilbert = np.abs(scipy.signal.hilbert(csw_values))
+                    csw_peak[chan_combo] = max(csw_hilbert)
+                    csw_power[chan_combo] = csw_times[np.argmax(np.array(csw_values)**2)]
+                    csw_impulsivity[chan_combo] = impulsivity.calculate_impulsivity_measures(csw_values)
 
             #surf_corr_ratio, max_surf_corr, max_r, max_r = scr.run(max_results["reco"], results["maxcorr"])
             if (max_soln == "early"):
                 surf_corr_ratio, max_surf_corr, max_r, max_z = scr.run(results_dir["reco"], max_corr)
+                min_depth_r, min_depth_z = minDepth.run(results_dir["reco"], max_corr)
             elif (max_soln == "late"):
-                surf_corr_ratio, max_surf_corr, max_r, max_z = scr.run(results_refl["reco"], max_corr)        
+                surf_corr_ratio, max_surf_corr, max_r, max_z = scr.run(results_refl["reco"], max_corr)  
+                min_depth_r, min_depth_z = minDepth.run(results_refl["reco"], max_corr)
             
             event.add_parameter_type(ep)
             event[ep.run_num] = run_id
@@ -268,12 +369,19 @@ if (is_sim == False):
             event[ep.unixtime] = time
             event[ep.energy] = None
             event[ep.trigger_times] = trig_times
-            event[ep.readout_times] = readout_times 
+            event[ep.readout_times] = readout_times
+            event[ep.min_depth_r] = min_depth_r
+            event[ep.min_depth_z] = min_depth_z
+            event[ep.bad_channels] = all_bad_channels
+            event[ep.glitch_ts] = glitch_ts_all
             eventWriter.run(event, det=None, mode={'Channels':False, "ElectricFields":False})
-
-    
-            print(event.get_id(), run_id, avg_snr, avg_rpr, csw_snr, csw_rpr, csw_hilbert_snr, csw_impulsivity, csw_peak, csw_power, max_results, max_corr, surf_corr_ratio, max_surf_corr, trigger_names, time)
-       
+            
+            if (event.get_id() == 1796):
+                print(event.get_id())
+                print(csw_snr, max_corrs)
+            """
+            print(event.get_id(), run_id, avg_snr, avg_rpr, csw_snr, csw_rpr, csw_hilbert_snr, csw_impulsivity, csw_peak, csw_power, max_results, max_corr, surf_corr_ratio, max_surf_corr, trigger_names, time, min_depth_r, min_depth_z, glitch_channels, glitch_ts_all)
+            """
         count += 1
 
 if (is_sim == True):
@@ -286,6 +394,7 @@ if (is_sim == True):
         print("got event source")
         for event in event_source:
             station = event.get_station(station_id)
+            det.update(station.get_station_time())
             primary = event.get_primary()
             energy = primary[pap.energy]
             """
@@ -303,16 +412,38 @@ if (is_sim == True):
             event.set_id(count)
 
             process_event(event, det)
-            avg_snr = get_averaged_channel_parameter(event, chp.SNR, channels_to_include = csw_info["ALL"])
-            avg_rpr = get_averaged_channel_parameter(event, chp.root_power_ratio, channels_to_include = csw_info["ALL"])
+            
+            glitch_channels = []
+            glitch_ts_all = {}
+            for channel in station.iter_channels():
+                channel.add_parameter_type(chpr)
+                glitch_ts_all[channel.get_id()] = channel.get_parameter(chpr.glitch_test_statistic)
+            """
+                if channel.has_parameter(chpr.glitch) and channel.get_parameter(chpr.glitch):
+                    if (channel.get_parameter(chpr.glitch) == True):
+                        glitch_channels.append(channel.get_id())
+            """
+            csw_info_evt = {
+                    key: [ch for ch in channels if ch not in glitch_channels]
+                    for key, channels in csw_info.items()}
+
+            channels_to_include_evt = csw_info_evt["ALL"]
+
+            if len(csw_info_evt["ALL"]) == 0:
+                print(f"Skipping event {event.get_id()}: all CSW channels are glitching")
+                continue
+
+            avg_snr = get_averaged_channel_parameter(event, chp.SNR, channels_to_include = csw_info_evt["ALL"])
+            avg_rpr = get_averaged_channel_parameter(event, chp.root_power_ratio, channels_to_include = csw_info_evt["ALL"])
 
             r = 300 #change initial guess for r (spherical) based on event to be reconstructed
 
             #change ranges and number of points according to event reconstucted and range of travel time maps used
             #change path to where correlation map plots are saved as needed
 
-            results_dir = reco_dir.run(event, station, channels_to_include, (-np.pi, np.pi), (-np.pi/2, np.pi/2), r, (-3000, 300), (0,3000), 250, 250, 180, 360, "plots_0326_out/early", return_reco = True, return_score = True, return_delays = True, return_maps = True)
-            results_refl = reco_refl.run(event, station, channels_to_include, (-np.pi, np.pi), (-np.pi/2, np.pi/2), r, (-3000, 300), (0,3000), 250, 250, 180, 360, "plots_0326_out/late", return_reco = True, return_score = True, return_delays = True, return_maps = True)
+
+            results_dir = reco_dir.run(event, station, channels_to_include_evt, (-np.pi, np.pi), (-np.pi/2, np.pi/2), r, (-3000, 300), (0,3000), 250, 250, 180, 360, "plots_0326_out/early", return_reco = True, return_score = True, return_delays = True, return_maps = True)
+            results_refl = reco_refl.run(event, station, channels_to_include_evt, (-np.pi, np.pi), (-np.pi/2, np.pi/2), r, (-3000, 300), (0,3000), 250, 250, 180, 360, "plots_0326_out/late", return_reco = True, return_score = True, return_delays = True, return_maps = True)
 
 
             max_corrs = np.array([results_dir["maxcorr"], results_refl["maxcorr"]])
@@ -330,26 +461,36 @@ if (is_sim == True):
             csw_impulsivity = {}
             csw_peak = {}
             csw_power = {}
-            for chan_combo in csw_info.keys():
-                if (max_soln == "early"):
-                    csw_times, csw_values = csw.run(event, station, channels_to_include, results_dir["maps"], results_dir["maxcorr_coord"], results_dir["score"], results_dir["delays"])
-                elif (max_soln == "late"):
-                    csw_times, csw_values = csw.run(event, station, channels_to_include, results_refl["maps"], results_refl["maxcorr_coord"], results_refl["score"], results_refl["delays"])
+            for chan_combo in csw_info_evt.keys():
+                if len(csw_info_evt[chan_combo]) == 0:
+                    csw_snr[chan_combo] = None
+                    csw_rpr[chan_combo] = None
+                    csw_hilbert_snr[chan_combo] = None
+                    csw_peak[chan_combo] = None
+                    csw_power[chan_combo] = None
+                    csw_impulsivity[chan_combo] = None
+                    continue
+                else:
+                    if (max_soln == "early"):
+                        csw_times, csw_values = csw.run(event, station, csw_info_evt[chan_combo], results_dir["maps"], results_dir["maxcorr_coord"], results_dir["score"], results_dir["delays"])
+                    elif (max_soln == "late"):
+                        csw_times, csw_values = csw.run(event, station, csw_info_evt[chan_combo], results_refl["maps"], results_refl["maxcorr_coord"], results_refl["score"], results_refl["delays"])
 
-                csw_snr[chan_combo]  = snr.get_snr_single(csw_times, csw_values)
-                csw_rpr[chan_combo] = rpr.get_single_rpr(csw_times, csw_values)
-                csw_hilbert_snr[chan_combo] = hilbert.hilbert_snr(csw_values)
-                csw_hilbert = np.abs(scipy.signal.hilbert(csw_values))
-                csw_peak[chan_combo] = max(csw_hilbert)
-                csw_power[chan_combo] = csw_times[np.argmax(np.array(csw_values)**2)]
-                csw_impulsivity[chan_combo] = impulsivity.calculate_impulsivity_measures(csw_values)
+                    csw_snr[chan_combo]  = snr.get_snr_single(csw_times, csw_values)
+                    csw_rpr[chan_combo] = rpr.get_single_rpr(csw_times, csw_values)
+                    csw_hilbert_snr[chan_combo] = hilbert.hilbert_snr(csw_values)
+                    csw_hilbert = np.abs(scipy.signal.hilbert(csw_values))
+                    csw_peak[chan_combo] = max(csw_hilbert)
+                    csw_power[chan_combo] = csw_times[np.argmax(np.array(csw_values)**2)]
+                    csw_impulsivity[chan_combo] = impulsivity.calculate_impulsivity_measures(csw_values)
 
             #surf_corr_ratio, max_surf_corr, max_r, max_r = scr.run(max_results["reco"], results["maxcorr"])
             if (max_soln == "early"):
                 surf_corr_ratio, max_surf_corr, max_r, max_z = scr.run(results_dir["reco"], max_corr)
+                min_depth_r, min_depth_z = minDepth.run(results_dir["reco"], max_corr)
             elif (max_soln == "late"):
                 surf_corr_ratio, max_surf_corr, max_r, max_z = scr.run(results_refl["reco"], max_corr)
-            
+                min_depth_r, min_depth_z = minDepth.run(results_refl["reco"], max_corr)
 
             event.add_parameter_type(ep)
             event[ep.run_num] = run_id
@@ -371,11 +512,15 @@ if (is_sim == True):
             event[ep.energy] = energy
             event[ep.trigger_times] = None
             event[ep.readout_times] = None
+            event[ep.min_depth_r] = min_depth_r
+            event[ep.min_depth_z] = min_depth_z
+            event[ep.bad_channels] = glitch_channels
+            event[ep.glitch_ts] = glitch_ts_all
 
             eventWriter.run(event, det=None, mode={'Channels':False, "ElectricFields":False})
 
 
-            print(event.get_id(), run_id, avg_snr, avg_rpr, csw_snr, csw_rpr, csw_hilbert_snr, csw_impulsivity, csw_peak, csw_power, max_results, max_corr, surf_corr_ratio, max_surf_corr, trigger_names, time, energy)
+            print(event.get_id(), run_id, avg_snr, avg_rpr, csw_snr, csw_rpr, csw_hilbert_snr, csw_impulsivity, csw_peak, csw_power, max_results, max_corr, surf_corr_ratio, max_surf_corr, trigger_names, time, energy, min_depth_r, min_depth_z, glitch_channels, glitch_ts_all)
 
             count += 1
 
