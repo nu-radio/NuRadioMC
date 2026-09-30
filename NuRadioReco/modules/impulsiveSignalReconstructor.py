@@ -338,16 +338,21 @@ def find_threshold_crossing_from_stft(
 
 def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_AIR, templates=None, full_output=False):
     """
-    Determines the time delay between channels using correlation
+    Determines the time delay between 3 channels using correlation
 
     Cross-correlates all channels and determines the relative time delays
     between them from the peaks in the cross-correlation. The maximum
     time delay between channels is restricted by the distance between them
     and the refractive index.
 
+    .. warning::
+        This function currently only works if exactly 3 channels
+        are specified, and will raise an error otherwise.
+
     Parameters
     ----------
-    channels : list of `NuRadioReco.framework.channel.Channel` objects
+    channels : list of 3 `NuRadioReco.framework.channel.Channel` objects
+        The 3 channels to obtain the cross-correlation from.
     pos : list
         The positions of the ``channels``
     passband : tuple of 2 floats
@@ -376,6 +381,9 @@ def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_A
         for each channel
 
     """
+    if len(channels) != 3:
+        raise ValueError(f'Expected 3 channels, got {len(channels)}!')
+
     if passband is None:
         passband = [0.06, 0.75]
 
@@ -496,10 +504,12 @@ def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_A
         return dt
 
 class ImpulsiveSignalReconstructor():
+    """
+    Class to reconstruct the direction of impulsive signals
+    """
 
     def __init__(self):
-        """
-        Class to reconstruct the direction of impulsive signals
+        """Initialize class
         """
         pass
 
@@ -521,6 +531,13 @@ class ImpulsiveSignalReconstructor():
             Detector description
         use_channels : list
             List of channel ids to use for the reconstruction
+
+            .. warning::
+                For most values of ``method``, the reconstruction will work
+                only if 3 channels are used. If provided more than 3 channels,
+                the reconstruction will either ignore any additional channels,
+                or raise an error.
+
         method : str, default='stft'
             Which method to use to estimate the pulse arrival times:
 
@@ -531,7 +548,7 @@ class ImpulsiveSignalReconstructor():
               `get_dt_correlation`;
             * ``'stft'`` (default): uses an short-time Fourier transform (STFT)
               approach to identify the start of the pulse
-              (see `get_threshold_crossing_from_stft`)
+              (see `find_threshold_crossing_from_stft`)
 
         n_index : float, default 1.000293
             The refractive index of the antennas. Note that the returned zenith
