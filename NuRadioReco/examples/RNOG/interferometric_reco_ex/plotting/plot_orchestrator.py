@@ -23,6 +23,10 @@ def main(argv=None):
                     help="combined_event_variables.h5 (consumed by sim_zenith_error).")
     ap.add_argument("--output-dir", required=True)
     ap.add_argument("--label", default="burn")
+    ap.add_argument("--station", type=int, help="Station id (needed by sim_zenith_error).")
+    ap.add_argument("--detector-source", default="rnog_mongo")
+    ap.add_argument("--detector-file", default=None)
+    ap.add_argument("--detector-date", default="2022-10-01")
     args = ap.parse_args(argv)
 
     with open(args.config) as f:
@@ -41,13 +45,17 @@ def main(argv=None):
             print("[plot_all] skipping reco_summary: --reco-merged not given")
 
     if "sim_zenith_error" in enabled:
-        if args.combined:
+        if args.combined and args.station is not None:
+            extra = ["--detector-source", args.detector_source, "--detector-date", args.detector_date]
+            if args.detector_file:
+                extra += ["--detector-file", args.detector_file]
             _run("plot_sim_zenith_error.py",
                  "--input", args.combined,
                  "--output-dir", args.output_dir,
-                 "--label", args.label)
+                 "--label", args.label,
+                 "--station", str(args.station), *extra)
         else:
-            print("[plot_all] skipping sim_zenith_error: --combined not given")
+            print("[plot_all] skipping sim_zenith_error: --combined or --station not given")
 
 
 if __name__ == "__main__":

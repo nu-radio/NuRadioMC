@@ -11,8 +11,10 @@ zenith ``truth_zenith`` (which is the source neutrino's arrival
 direction, capped at the sim's ``thetamax`` and unrelated to the
 PA->vertex geometric angle).
 
-Reco zenith is computed in the PA frame: ``arctan2(rho, z - PA_Z)``
-where PA_Z = -95 m in the reco coordinate system.
+Reco zenith is computed in the PA frame: ``arctan2(rho, z - PA_Z)`` with the
+PA depth taken from the detector description; the truth zenith uses the station's
+absolute position from the same description, because the simulation vertices are in
+the absolute array frame.
 
 Outputs four PNGs:
   - sim_zenith_error_hist.png   1D histogram of reco - truth, deg
@@ -21,6 +23,8 @@ Outputs four PNGs:
   - sim_truth_zenith_hist.png   1D histogram of truth PA->vertex zenith, deg
 """
 import argparse
+import datetime
+import logging
 import os
 
 import matplotlib
@@ -28,17 +32,26 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from NuRadioReco.detector.RNO_G import rnog_detector
 
-PA_Z_M = -95.0
-# Sim absolute coordinates of the PA center (st23 sim in production_v9 final_set;
-# inferred from ``station_23/antenna_positions[9..12]`` of the production HDF5
-# ledgers). Vertices in the sim live in the same absolute frame, NOT a
-# station-local frame, so we MUST subtract these to get the geometric
-# PA->vertex zenith. Setting PA_X = PA_Y = 0 gives the previous bug where
-# every event landed near zenith=90deg.
-PA_X_SIM = 82.41
-PA_Y_SIM = 2950.0
-PA_Z_SIM = -95.0
+PA_CHANNELS = (0, 1, 2, 3)
+
+
+def pa_position(station, source, detector_file, date):
+    """Phased-array centre: absolute (x, y, z) and station-local depth from the detector description.
+
+    The simulation vertices are in the absolute array frame, so the truth zenith needs the
+    station's absolute position; the reconstruction works in the station-local frame, so the
+    reco zenith needs only the depth. Both come from the mean of the four PA channels.
+    """
+    kwargs = dict(log_level=logging.ERROR, select_stations=[station])
+    if source == "rnog_file":
+        kwargs["detector_file"] = detector_file
+    det = rnog_detector.Detector(**kwargs)
+    det.update(datetime.datetime.fromisoformat(date))
+    origin = np.asarray(det.get_absolute_position(station), float)
+    rel = np.mean([np.asarray(det.get_relative_position(station, ch), float) for ch in PA_CHANNELS], axis=0)
+    return origin + rel, float(rel[2])
 
 
 def main():
@@ -47,7 +60,13 @@ def main():
                    help="combined_event_variables.h5 (any station; we filter to source='sim')")
     p.add_argument("--output-dir", required=True)
     p.add_argument("--label", default="sim")
+    p.add_argument("--station", type=int, required=True)
+    p.add_argument("--detector-source", default="rnog_mongo", choices=["rnog_mongo", "rnog_file"])
+    p.add_argument("--detector-file", default=None, help="MongoDB export, used with --detector-source rnog_file")
+    p.add_argument("--detector-date", default="2022-10-01")
     args = p.parse_args()
+    pa_abs, pa_depth = pa_position(args.station, args.detector_source, args.detector_file, args.detector_date)
+    print(f"station {args.station}: PA absolute position {np.round(pa_abs, 2).tolist()}, local depth {pa_depth:.2f} m")
 
     os.makedirs(args.output_dir, exist_ok=True)
     df = pd.read_hdf(args.input)
@@ -61,11 +80,11 @@ def main():
     keep = df[["peak_0_rho", "peak_0_z", "truth_vx", "truth_vy", "truth_vz"]].dropna()
     rho = keep["peak_0_rho"].to_numpy()
     z = keep["peak_0_z"].to_numpy()
-    dx = keep["truth_vx"].to_numpy() - PA_X_SIM
-    dy = keep["truth_vy"].to_numpy() - PA_Y_SIM
-    dz = keep["truth_vz"].to_numpy() - PA_Z_SIM
+    dx = keep["truth_vx"].to_numpy() - pa_abs[0]
+    dy = keep["truth_vy"].to_numpy() - pa_abs[1]
+    dz = keep["truth_vz"].to_numpy() - pa_abs[2]
     truth_rad = np.arctan2(np.sqrt(dx**2 + dy**2), dz)
-    reco_rad = np.arctan2(rho, z - PA_Z_M)
+    reco_rad = np.arctan2(rho, z - pa_depth)
 
     err_deg = np.degrees(reco_rad - truth_rad)
     truth_deg = np.degrees(truth_rad)
