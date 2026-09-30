@@ -405,7 +405,7 @@ def analytic_plane_wave_fit(dt, pos, n_index=1.000293):
     sin_theta = np.linalg.norm(sol_vector)
 
     if sin_theta > 1:
-        logger.warning("No valid solution!")
+        logger.warning("No valid solution of analytic plane wave fit!")
         return np.nan, np.nan
 
     if rot is None:
