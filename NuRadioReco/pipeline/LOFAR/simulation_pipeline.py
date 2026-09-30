@@ -108,9 +108,7 @@ def _save_pipeline_visualizer_plots(event, detector, output_dir):
     visualizer = pipelineVisualizer_LOFAR.pipelineVisualizer()
     visualizer.begin()
     try:
-        visualizer.run(
-            event, detector, save_dir=output_dir, polarization=True, direction=True
-        )
+        visualizer.run(event, detector, save_dir=output_dir, polarization=True, direction=True, fluence=True)
     except Exception as exc:
         LOGGER.warning("Skipping final LOFAR visualizer debug plots: %s", exc)
     finally:
