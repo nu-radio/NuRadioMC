@@ -8,7 +8,7 @@ import logging
 import numpy as np
 import matplotlib.pyplot as plt
 import radiotools
-from matplotlib.cm import get_cmap
+import matplotlib.cm as cm
 from matplotlib.colors import Normalize
 
 from NuRadioReco.utilities import units
@@ -101,7 +101,7 @@ class pipelineVisualizer:
         ]
         num_stations = len(triggered_station_ids)
 
-        cmap = get_cmap('jet')  
+        cmap = cm.jet
         norm = Normalize(vmin=0, vmax=num_stations-1) 
 
         lora_shower = event.get_hybrid_information().get_hybrid_shower("LORA")
@@ -255,7 +255,7 @@ class pipelineVisualizer:
         ]
         num_stations = len(triggered_station_ids)
 
-        cmap = get_cmap('jet')
+        cmap = cm.jet
         norm = Normalize(vmin=0, vmax=num_stations-1) 
 
         for i, station in enumerate(event.get_stations()):
@@ -336,7 +336,7 @@ class pipelineVisualizer:
         ]
         num_stations = len(triggered_station_ids)
 
-        cmap = get_cmap('jet')
+        cmap = cm.jet
         norm = Normalize(vmin=0, vmax=num_stations-1) 
         
         fluences = []

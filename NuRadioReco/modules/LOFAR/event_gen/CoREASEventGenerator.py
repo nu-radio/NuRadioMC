@@ -350,10 +350,6 @@ class CoREASEventGenerator:
             LOGGER.info(f"Converting electric field to voltage for event {evt.get_id()} at time {START_TIME}")
             for station in evt.get_stations():
 
-                # set the station time to the start time defined in macros.py
-                # TODO: should this not be random / based on a given observation time? 
-                # it should be read based on LORA triggered event time.
-                # station.set_station_time(START_TIME)
                 if save_debug_plots:
                     self._save_efield_trace_snapshot(evt, station.get_sim_station(), output_dir=event_debug_dir, stage="01_reader")
 
