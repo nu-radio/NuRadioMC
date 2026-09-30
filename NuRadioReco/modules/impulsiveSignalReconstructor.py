@@ -154,23 +154,14 @@ def find_threshold_crossing(channels, threshold=None, offset=5*units.ns, min_amp
     return np.asarray(threshold_times)
 
 def find_threshold_crossing_from_stft(
-        channels, max_delta_t=50*units.ns, passband=None, mode='psd',
-        window=('tukey', 0.1), use_maximum=False, debug=False):
+        channels, max_delta_t=50*units.ns, passband=None,
+        *, window=('tukey', 0.1), use_maximum=False, false_positive_rate=0.05, debug=False):
     """
     Find the start time of a pulse in multiple channels.
 
-    Uses a short-time fourier transform (STFT) to effectively integrate the power across multiple frequency
-    bins, and subsequently look for coincident threshold crossings across multiple channels.
-
-    .. warning::
-
-        This function was developed for RNO-G, so may not work as expected if used for other
-        experimental setups. In particular:
-
-        * It uses the first half of the trace to estimate the background, and looks
-          for pulses only in the second half of the trace
-        * It uses a semi-empirical expression for the signal threshold, which may not
-          be appropriate for different noise / amplifier spectra
+    Uses a short-time fourier transform (STFT) to effectively
+    integrate the power across multiple frequency bins, and
+    subsequently look for coincident threshold crossings across multiple channels.
 
     Parameters
     ----------
@@ -184,18 +175,20 @@ def find_threshold_crossing_from_stft(
         The low- and high-pass frequencies of the passband
         to apply before correlating. If not provided,
         defaults to [60 MHz, 750 MHz]
-    mode : str {'psd', 'amplitude'}, default: 'psd'
-        Which metric to use in the STFT:
-
-        * 'psd' : power (default)
-        * 'amplitude' : amplitude
-
     window : str or tuple, optional
         Arguments to pass to `scipy.signal.get_window` to determine
         which window to use in the STFT. Defaults to ``('tukey', 0.1)``
+
+    Other Parameters
+    ----------------
     use_maximum : bool, default: False
         If True, considers only local maxima (instead of threshold crossing)
         to determine pulse times and coincidences.
+    false_positive_rate : float, default 0.05
+        (Approximately) the expected false-positive rate at which
+        pure noise would exceed the threshold to be considered a signal.
+        Larger values increase the sensitivity to low-SNR signals
+        but are more likely to tag random noise fluctuations as a signal.
     debug : bool or str, default: False
         If True, produce some debug plots and show them.
         If a string, should specify a path to save the debug plots to.
@@ -231,21 +224,20 @@ def find_threshold_crossing_from_stft(
         f, t, stft_abs = scipy.signal.spectrogram(
             channel.get_trace(), channel.get_sampling_rate(),
             nperseg=n_samples_window, noverlap=n_samples_window-1,
-            mode=mode, window=window)
+            mode='psd', window=window)
 
-        t_mid = len(t) // 2
+        delta_f = f[1] - f[0]
+        n_windows = len(t) / n_samples_window
         trace_start_times[i] = channel.get_trace_start_time()
-        stft_median = np.median(stft_abs[:,:t_mid], axis=1)
-        stft_max = np.max(stft_abs[:,t_mid:], axis=1)
+        stft_max = np.max(stft_abs, axis=1)
+
         fmask = (f > passband[0]) & (f < passband[1])
-        max_over_med = stft_max / stft_median
-        # we select only frequencies with a significant excess over the median,
-        # defined here as SNR of 4 for magnitude or SNR of 10 for power
-        # TODO: this is probably not optimal for all detectors / trace lengths
-        if mode == 'magnitude':
-            inclusion_threshold = 4
-        else:
-            inclusion_threshold = 10
+
+        # CDF of chi-squared distribution with dof=2 is F(x) = 1 - np.exp(-x / 2)
+        sigma = np.quantile(stft_abs, q=0.33, axis=1) * 2.5 # assuming a chi-squared distribution
+        inclusion_threshold = -np.log(0.1 /  n_windows) # factor of 2 is aborbed by dividing by sigma = ndof = 2
+
+        max_over_med = stft_max / sigma
 
         if np.sum(max_over_med[fmask] > inclusion_threshold) > 1: # at least 2 bins
             fmask &= max_over_med > inclusion_threshold
@@ -253,26 +245,29 @@ def find_threshold_crossing_from_stft(
             fmask &= max_over_med >= np.sort(max_over_med[fmask])[-2]
 
         n_bins = np.sum(fmask)
-        stftsum = np.sum(stft_abs[fmask], axis=0) / np.sum(stft_median[fmask])
-        if mode == 'magnitude':
-            threshold = 1 + 4/np.sqrt(n_bins-1) # empirical parameterization for the 99th percentile noise fluctuations
-        elif mode == 'psd':
-            threshold = 1 + 12/(n_bins-1)**(2/3)
+        # Dividing by sigma/2 rescales the distribution of each frequency bin
+        # to a standard chi-squared distribution with 2 degrees of freedom.
+        stftsum = np.sum(stft_abs[fmask] / (sigma[fmask, None] / 2), axis=0)
+        # Summing over n_bins frequency bins should result in a
+        # chi-squared distribution with 2 degrees of freedom per frequency bin.
+        # We use the a threshold that is expected to be exceeded (by pure noise)
+        # only false_positive_rate times in the n_windows independent windows
+        threshold = scipy.stats.chi2(df=n_bins*2).ppf(1 - false_positive_rate / n_windows) # 5% chance of false positive
 
         if use_maximum:
             # use a maximum filter with half the width of the window
-            max_filter = scipy.ndimage.maximum_filter(stftsum[t_mid:], size=n_samples_window//2)
-            mask_is_max = max_filter == stftsum[t_mid:] # this selects all the peaks
+            max_filter = scipy.ndimage.maximum_filter(stftsum, size=n_samples_window//2)
+            mask_is_max = max_filter == stftsum # this selects all the peaks
             # if np.any(max_filter > threshold):
             mask_is_max &= max_filter > threshold # only consider peaks above the threshold
             crossings.append(mask_is_max)
             if debug:
                 axs[2,i].plot(
-                    t[t_mid:][mask_is_max] + channel.get_trace_start_time(), max_filter[mask_is_max],
+                    t[mask_is_max] + channel.get_trace_start_time(), max_filter[mask_is_max],
                     ls='', marker='x', color='k')
         else:
             # a threshold crossing implies sample i is below the threshold, but sample i+1 is above it
-            above_threshold = stftsum[t_mid-1:] > threshold
+            above_threshold = stftsum > threshold
             crossing = above_threshold[1:] * ~above_threshold[:-1]
             crossings.append(crossing)
 
@@ -284,6 +279,14 @@ def find_threshold_crossing_from_stft(
             axs[2,i].set_yscale('log')
             axs[0,i].set_title(f'Channel {channel.get_id()}')
             axs[2,i].set_xlabel('Time [ns]')
+            # highlight included regions
+            for fi in f[fmask]:
+                axs[1, i].fill_between(
+                    [t[0] + trace_start_times[i], t[-1] + trace_start_times[i] + 0.05 * (t[-1] - t[0])],
+                    np.asarray([fi - delta_f , fi - delta_f ]) / units.MHz,
+                    np.asarray([fi , fi ]) / units.MHz,
+                    color='grey', alpha=.2
+                    )
 
     ## We need to account for potentially different trace start times
     ## we will do this by prepending/appending an appropriate number of zeros
@@ -298,7 +301,7 @@ def find_threshold_crossing_from_stft(
     window_length = int(max_delta_t * channel.get_sampling_rate() + 1)
     sliding_view = np.lib.stride_tricks.sliding_window_view(crossings_sync, window_shape=(len(crossings_sync), window_length))
     window_index = np.argmax(np.sum(np.any(sliding_view, axis=-1), axis=-1)) # first window with maximum number of threshold crossings
-    crossing_samples = window_index + t_mid + np.arange(window_length)
+    crossing_samples = window_index + np.arange(window_length)
     crossings_indices = np.where(sliding_view[0, window_index], crossing_samples[None], np.nan)
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', 'All-NaN slice encountered')
@@ -315,7 +318,7 @@ def find_threshold_crossing_from_stft(
         for i, stft_abs in enumerate(stft_plots):
             cax = axs[1,i].imshow(
                 stft_abs/units.mV**2, aspect='auto', origin='lower', norm=norm,
-                extent=(t[0]+trace_start_times[i], trace_start_times[i]+t[-1], 0, f[-1]/units.MHz))
+                extent=(t[0]+trace_start_times[i], trace_start_times[i]+t[-1], 0, (f[-1] + delta_f)/units.MHz))
             axs[1,i].set_ylim(passband[0]/units.MHz, passband[1]/units.MHz)
 
         axs[1,0].set_ylabel('Frequency [MHz]')
