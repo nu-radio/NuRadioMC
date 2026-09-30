@@ -11,10 +11,9 @@ zenith ``truth_zenith`` (which is the source neutrino's arrival
 direction, capped at the sim's ``thetamax`` and unrelated to the
 PA->vertex geometric angle).
 
-Reco zenith is computed in the PA frame: ``arctan2(rho, z - PA_Z)`` with the
-PA depth taken from the detector description; the truth zenith uses the station's
-absolute position from the same description, because the simulation vertices are in
-the absolute array frame.
+Plots the table's ``reco_zenith_pa`` / ``truth_zenith_pa`` columns when present; for
+older tables both are computed here with the phased-array centre from the detector
+(absolute frame, as the reco and the simulation vertices are).
 
 Outputs four PNGs:
   - sim_zenith_error_hist.png   1D histogram of reco - truth, deg
@@ -38,12 +37,7 @@ PA_CHANNELS = (0, 1, 2, 3)
 
 
 def pa_position(station, source, detector_file, date):
-    """Phased-array centre: absolute (x, y, z) and station-local depth from the detector description.
-
-    The simulation vertices are in the absolute array frame, so the truth zenith needs the
-    station's absolute position; the reconstruction works in the station-local frame, so the
-    reco zenith needs only the depth. Both come from the mean of the four PA channels.
-    """
+    """Absolute (x, y, z) of the phased-array centre, the mean of the four PA channels, from the detector description."""
     kwargs = dict(log_level=logging.ERROR, select_stations=[station])
     if source == "rnog_file":
         kwargs["detector_file"] = detector_file
@@ -51,7 +45,7 @@ def pa_position(station, source, detector_file, date):
     det.update(datetime.datetime.fromisoformat(date))
     origin = np.asarray(det.get_absolute_position(station), float)
     rel = np.mean([np.asarray(det.get_relative_position(station, ch), float) for ch in PA_CHANNELS], axis=0)
-    return origin + rel, float(rel[2])
+    return origin + rel
 
 
 def main():
@@ -65,8 +59,6 @@ def main():
     p.add_argument("--detector-file", default=None, help="MongoDB export, used with --detector-source rnog_file")
     p.add_argument("--detector-date", default="2022-10-01")
     args = p.parse_args()
-    pa_abs, pa_depth = pa_position(args.station, args.detector_source, args.detector_file, args.detector_date)
-    print(f"station {args.station}: PA absolute position {np.round(pa_abs, 2).tolist()}, local depth {pa_depth:.2f} m")
 
     os.makedirs(args.output_dir, exist_ok=True)
     df = pd.read_hdf(args.input)
@@ -77,14 +69,23 @@ def main():
     # Use the GEOMETRIC PA->vertex zenith as truth, NOT the thrown primary
     # zenith stored in `truth_zenith` (which is the neutrino arrival
     # direction, capped at the sim's thetamax and not what the antennas see).
-    keep = df[["peak_0_rho", "peak_0_z", "truth_vx", "truth_vy", "truth_vz"]].dropna()
-    rho = keep["peak_0_rho"].to_numpy()
-    z = keep["peak_0_z"].to_numpy()
-    dx = keep["truth_vx"].to_numpy() - pa_abs[0]
-    dy = keep["truth_vy"].to_numpy() - pa_abs[1]
-    dz = keep["truth_vz"].to_numpy() - pa_abs[2]
-    truth_rad = np.arctan2(np.sqrt(dx**2 + dy**2), dz)
-    reco_rad = np.arctan2(rho, z - pa_depth)
+    if {"reco_zenith_pa", "truth_zenith_pa"} <= set(df.columns):
+        keep = df[["reco_zenith_pa", "truth_zenith_pa"]].dropna()
+        reco_rad = np.radians(keep["reco_zenith_pa"].to_numpy())
+        truth_rad = np.radians(keep["truth_zenith_pa"].to_numpy())
+        print("  using the table's reco_zenith_pa / truth_zenith_pa columns")
+    else:
+        pa_abs = pa_position(args.station, args.detector_source, args.detector_file, args.detector_date)
+        print(f"  no PA-frame zenith columns in the table; computing with PA centre "
+              f"{np.round(pa_abs, 2).tolist()} (station {args.station})")
+        keep = df[["peak_0_rho", "peak_0_z", "truth_vx", "truth_vy", "truth_vz"]].dropna()
+        rho = keep["peak_0_rho"].to_numpy()
+        z = keep["peak_0_z"].to_numpy()
+        dx = keep["truth_vx"].to_numpy() - pa_abs[0]
+        dy = keep["truth_vy"].to_numpy() - pa_abs[1]
+        dz = keep["truth_vz"].to_numpy() - pa_abs[2]
+        truth_rad = np.arctan2(np.sqrt(dx**2 + dy**2), dz)
+        reco_rad = np.arctan2(rho, z - pa_abs[2])
 
     err_deg = np.degrees(reco_rad - truth_rad)
     truth_deg = np.degrees(truth_rad)
