@@ -61,7 +61,7 @@ for iOmega, domega in enumerate(domegas):
     ax.set_xlabel("frequency [MHz]")
     ax.set_ylabel("amplitude [V/m] per {:.1f}MHz".format(df / units.MHz))
     ax.legend(fontsize='small')
-    ax.set_title("E = {:.1e}eV, $\Delta\Omega$ = {:.1f}deg, R = {:.1f}km, EM={}".format(E / units.eV, domega / units.deg, R / units.km, em))
+    ax.set_title(r"E = {:.1e}eV, $\Delta\Omega$ = {:.1f}deg, R = {:.1f}km, EM={}".format(E / units.eV, domega / units.deg, R / units.km, em))
     fig.tight_layout()
     fig.savefig("plots/AskaryanZHS_{:.1f}deg.png".format(domega / units.deg))
     plt.close('all')

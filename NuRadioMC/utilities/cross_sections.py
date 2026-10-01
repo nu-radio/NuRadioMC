@@ -63,7 +63,8 @@ def _integrate_over_differential_cross_section_BGR18(simple=False):
 
 def param(energy, inttype='cc', parameterization='ctw'):
     """
-    Parameterization and constants as used in get_nu_cross_section()
+    Parameterization and constants as used in `get_nu_cross_section`.
+
     See documentation there for details.
 
     """
@@ -422,7 +423,7 @@ def get_interaction_length(
     return L_int
 
 def integrate_pwpl(y, x, low=None, high=None, full_output=False):
-    """
+    r"""
     Integrate y over x, assuming y(x) is a piecewise-continuous power law.
 
     Analytic integral of y(x)dx, assuming y(x) is a piecewise-continuous power law;

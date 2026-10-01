@@ -74,8 +74,16 @@ class calculateAmplitudePerRaySolution:
                 if not efield.has_parameter(efp.max_amp_antenna):
                     efield[efp.max_amp_antenna] = {}
                     efield[efp.max_amp_antenna_envelope] = {}
-                efield[efp.max_amp_antenna][channel_id] = maximum
-                efield[efp.max_amp_antenna_envelope][channel_id] = maximum_envelope
+
+                # `get_parameter` returns a copy of the stored dict, so it needs to be
+                # written back with `set_parameter` after being updated in place.
+                max_amp_antenna = efield[efp.max_amp_antenna]
+                max_amp_antenna[channel_id] = maximum
+                efield[efp.max_amp_antenna] = max_amp_antenna
+
+                max_amp_antenna_envelope = efield[efp.max_amp_antenna_envelope]
+                max_amp_antenna_envelope[channel_id] = maximum_envelope
+                efield[efp.max_amp_antenna_envelope] = max_amp_antenna_envelope
 
         self.__t += time.time() - t
 

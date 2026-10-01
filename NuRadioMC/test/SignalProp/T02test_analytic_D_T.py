@@ -14,7 +14,7 @@ this unit test compares the numerical and analytic calculation of path length an
 the numerical integration should be better than the analytic formula. For both calculations, the python version is used.
 """
 
-ice = medium.southpole_simple()
+ice = medium.southpole_simple_layered()
 
 np.random.seed(0)  # set seed to have reproducible results
 n_events = int(1e3)

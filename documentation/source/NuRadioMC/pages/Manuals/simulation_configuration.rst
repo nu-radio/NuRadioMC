@@ -1,17 +1,21 @@
 Simulation and configuration
 =============================
 
-The simulation class and the module of the same name, located in the `simulation <https://github.com/nu-radio/NuRadioMC/tree/master/NuRadioMC/simulation>`__ folder, constitute the heart of NuRadioMC. The simulation module takes the neutrino input files and creates events with them. These events are then processed using the information in the config file and the detector layout specified in the detector JSON file. Finally, the trigger description in a steering file is used to determine whether an event triggers or not.
+The :class:`simulation <NuRadioMC.simulation.simulation.simulation>` class and the module of the same name, constitute the heart of NuRadioMC.
+The simulation module takes the neutrino input files and creates events with them.
+These events are then processed using the information in the config file and the detector layout specified in the detector JSON file.
+Finally, the trigger description in a steering file is used to determine whether an event triggers or not.
 
 This page outlines the important aspects of how to operate a NuRadioMC simulation. For a practical example, visit `the webinar example <https://github.com/nu-radio/NuRadioMC/tree/master/NuRadioMC/examples/06_webinar>`__.
 
 Let us begin with a description of the steering files needed to run the simulation then let us discuss a brief outline of the procedure in ``simulation.py``. 
 
-    .. Important:: The description of the simulation module, steering files, and configuration files reflect the status of the master as of July 2020. This needs to be updated after the new looping is approved and merged.
-
 Steering files
 ---------------
-A NuRadioMC steering file is the file that describes and runs the simulation. As a small example, we can define a detector with an empty detector description. Every steering file should have a class that inherits from the simulation class, that we can call ``mySimulation``. This class must have a method called ``_detector_simulation``, which uses NuRadioReco modules to simulate the detector response.
+A NuRadioMC steering file is the file that describes and runs the simulation. As a small example, we can define a detector with an empty detector description.
+Every steering file should have a class that inherits from the simulation class, that we can call ``mySimulation``.
+This class must at least define the methods ``_detector_simulation_filter_amp`` and ``_detector_simulation_trigger``, which
+define the detector signal chain response (filters, amplifiers) and the trigger(s), respectively.
 
 To create a simulation instance, we need a NuRadioMC neutrino input file, a detector description JSON file, a YAML file with various configuration settings, the output file name, and optionally the output NuRadioReco file name (nur file).
 
@@ -19,32 +23,53 @@ The following code shows how to run a simulation by creating an instance of mySi
 
     .. code-block:: Python
 
-        from NuRadioMC.simulation import simulation
+        import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
+        import NuRadioReco.modules.trigger.highLowThreshold
 
-        # The paths to the input file, output file, detector file and config file should be defined here
-        inputfilename = 'input.hdf5'
-        outpufilename = 'output.hdf5'
-        detectorfile = 'detector.json'
-        config_file = 'config.yaml'
+        hardware_response = NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator()
+        highLowThreshold = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 
         class mySimulation(simulation.simulation):
 
-            def _detector_simulation(self):
-                pass
+            def _detector_simulation_filter_amp(self, evt, station, det): # simulate the detector response
+                hardware_response.run(evt, station, det, sim_to_data=True)
 
-        sim = mySimulation(inputfilename=inputfilename,
-                           outputfilename=outputfilename,
-                           detectorfile=detectorfile,
-                           config_file=config_file)
-                       
+            def _detector_simulation_trigger(self, evt, station, det): # run the trigger simulation
+                highLowThreshold.run(
+                    evt, station, det, triggered_channels=[0,1,2,3], trigger_name='main_trigger')
+
+        sim = mySimulation(
+            inputfilename="input.hdf5",
+            outputfilename="output.hdf5",
+            detectorfile="RNO_G/RNO_single_station.json",
+            outputfilenameNuRadioReco="output.nur",
+            config_file='config.yaml',
+            trigger_channels=[0,1,2,3])
+
+        # run the simulation: this will produce the output files 'output.hdf5'
+        # and 'output.nur' containing the triggering events
         sim.run()
+
 
 When the simulation child object is initialised, the detector description in the JSON file is loaded via NuRadioReco. Then, when the ``run()`` method is called, the simulation module starts the following process:
 
-    1. It reads the events from the input file, one by one, and assigns weights given by the probability that the neutrino reaches our effective volume
-    2. It calculates the ray tracing solutions from the interaction vertices to the channels in each station
-    3. Then, for the existing ray tracing solutions, the electric field is calculated using the SignalGen models, taking into account that propagation will modify the SignalGen input parameters 
-    4. The detector is simulated with the description provided in ``_detector_simulation``. Usually, at least a conversion to voltage, a filter, and a trigger is applied.
+    #. It reads the events from the input file, one by one, and assigns weights given by the probability that the neutrino reaches our effective volume
+    #. It calculates the ray tracing solutions from the interaction vertices to the channels in each station
+    #. Then, for the existing ray tracing solutions, the electric field is calculated using the SignalGen models, taking into account that propagation will modify the SignalGen input parameters
+    #. The detector is simulated:
+
+        #. The electric fields are convolved with the antenna response to obtain voltage traces;
+        #. (Optionally) noise is added. By default, flat (white) noise is added prior to the amplification stage;
+        #. The signal chain (filters, amplifiers) are applied,
+           as defined in the user-provided ``_detector_simulation_filter_amp`` method;
+        #. The trigger(s) are computed to determine if the event would satisfy the detector trigger conditions,
+           as implemented by the the user-provided ``_detector_simulation_trigger`` method;
+        #. The voltage traces are cut to the appropriate readout windows (the trace lengths specified by the detector),
+           and downsampled to the detector sampling frequency
+
+    #. Finally, some properties for all triggering events are stored in an output :doc:`HDF5 file </NuRadioMC/pages/HDF5_structure>`,
+       and (optionally) the full events are stored in a :doc:`.nur file </NuRadioReco/pages/event_structure>`.
+
 
 An example of a steering file, complete with detector description, can be found in `examples/06_webinar/W02RunSimulation.py <https://github.com/nu-radio/NuRadioMC/blob/master/NuRadioMC/examples/06_webinar/W02RunSimulation.py>`__.
 
@@ -72,8 +97,8 @@ The following is a description of the default configuration file and what can be
 The available options for weight mode are:
 
     * ``simple``: assuming interaction happens at the surface and approximating the Earth with constant density
-    * ``core\_mantle\_crust\_simple``: assuming interaction happens at the surface and approximating the Earth with 3 layers of constant density
-    * ``core\_mantle\_crust``: approximating the Earth with 3 layers of constant density, path through Earth to interaction vertex is considered
+    * ``core_mantle_crust_simple``: assuming interaction happens at the surface and approximating the Earth with 3 layers of constant density
+    * ``core_mantle_crust``: approximating the Earth with 3 layers of constant density, path through Earth to interaction vertex is considered
     * ``PREM``: density of Earth is parameterised as a function of radius, path through Earth to interaction vertex is considered
     * ``None``: all weights are set to 1.
 
@@ -87,8 +112,7 @@ The available options for weight mode are:
 
         seed: 1235 # This seed is used for the first call to the random library
 
-        # The following parameters are used to filter events that we
-        know that
+        # The following parameters are used to filter events that we know that
         # they will not trigger, gaining time in the process.
         speedup:
           minimum_weight_cut: 1.e-5 # If the assigned weight is less than this one,
@@ -128,7 +152,7 @@ The available options for weight mode are:
           n_freq: 25  # the number of frequencies where the attenuation length is 
           # calculated for. The remaining frequencies will be determined from a linear 
           # interpolation between the reference frequencies. The reference frequencies are 
-          # equally spaced over the complet frequency range.
+          # equally spaced over the complete frequency range.
           focusing: False  # if True apply the focusing effect.
           focusing_limit: 2  # the maximum amplification factor of the focusing correction
           n_reflections: 0  # the maximum number of reflections off a reflective layer 
@@ -152,8 +176,11 @@ The available options for weight mode are:
           Vrms: null  # the RMS noise value in volts. Not compatible with 'noise_temperature', 
           # if Vrms is set, 'noise_temperature' must be None
 
-        save_all: False # if True, save all events. Otherwise, NuRadioMC will only
-        # save triggering events
+        output: # control which, if any, waveforms to store. By default, all waveforms are stored.
+          channel_traces: True
+          electric_field_traces: True
+          sim_channel_traces: True
+          sim_electric_field_traces: True
 
 Detector description
 ----------------------

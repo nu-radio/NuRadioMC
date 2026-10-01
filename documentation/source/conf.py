@@ -21,7 +21,13 @@ import os
 import sys
 import time
 import fnmatch
+import logging
 import NuRadioMC # we need this for the version number
+from NuRadioReco.utilities.logging import set_general_log_level
+
+# this will prevent NuRadio warning messages from appearing in the Sphinx output
+set_general_log_level(logging.ERROR)
+
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../..'))
 

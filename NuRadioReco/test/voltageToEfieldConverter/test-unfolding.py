@@ -19,6 +19,7 @@ logger = logging.getLogger('NuRadioReco.test.voltageToEfieldConverter')
 
 if __name__ == "__main__":
     current_dir = os.path.dirname(__file__)
+    parent_dir = os.path.dirname(current_dir)
     parser = argparse.ArgumentParser(
          description=(
              "Test voltageToEfieldConverter (unfolding). "
@@ -26,7 +27,7 @@ if __name__ == "__main__":
              "equal to the simulated electric field for a noiseless cosmic-ray event."
          )
     )
-    parser.add_argument('--file', type=str, default=os.path.join(current_dir, 'cr-noiseless-with-delays.nur'), help="Input .nur file")
+    parser.add_argument('--file', type=str, default=os.path.join(parent_dir, 'data', 'cr-noiseless-with-delays.nur'), help="Input .nur file")
     parser.add_argument('--detector', type=str, default=os.path.join(current_dir, 'cr-detector.json'), help='Detector description')
     parser.add_argument('--channels', default=[13,16,19], help='Channels to use in the unfolding')
     args = parser.parse_args()
@@ -35,7 +36,7 @@ if __name__ == "__main__":
     if not os.path.exists(args.file):
         logger.warning(f'Could not find "{args.file}", attempt to download from server...')
         try:
-            dataservers.download_from_dataserver(os.path.join('github_ci', args.file.replace(current_dir, '').strip('/')), args.file, unpack_tarball=False)
+            dataservers.download_from_dataserver(os.path.join('github_ci', os.path.basename(args.file)), args.file, unpack_tarball=False)
         except OSError:
             raise FileNotFoundError(f"Could not find file '{args.file}' locally or on server. Check you have specified the file path correctly.")
 

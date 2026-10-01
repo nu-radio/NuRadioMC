@@ -4,7 +4,7 @@ from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import io_utilities, units
 import logging
-import pickle
+import json
 from numpy import testing
 logger = logging.getLogger('NuRadioMC.test_raytracing')
 logger.setLevel(logging.INFO)
@@ -33,7 +33,7 @@ results_A_cpp = np.zeros((n_events, 2, n_freqs))
 t_start = time.time()
 ff = np.linspace(0, 500*units.MHz, n_freqs)
 # tt = 0
-r = ray.ray_tracing(ice, n_reflections=2)
+r = ray.ray_tracing(ice)
 for iX, x in enumerate(points):
     r.set_start_and_end_point(x, x_receiver)
     r.find_solutions()
@@ -43,7 +43,12 @@ for iX, x in enumerate(points):
 
 # with open("reference_C0_MooresBay.pkl", "wb") as fout:
 #     pickle.dump(results_C0s_cpp, fout)
-results_C0s_cpp_ref = io_utilities.read_pickle("reference_C0_MooresBay.pkl", encoding='latin1')
+# results_C0s_cpp_ref = io_utilities.read_pickle("reference_C0_MooresBay.pkl", encoding='latin1')
+
+with open("reference_C0_MooresBay.json", "r") as fin:
+    results_C0s_cpp_ref = np.array(json.load(fin))  # Convert list back to NumPy array
+    
+
 testing.assert_allclose(results_C0s_cpp, results_C0s_cpp_ref, rtol=1.e-6)
 
 print('T06unit_test_C0_mooresbay passed without issues')

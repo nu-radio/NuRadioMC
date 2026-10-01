@@ -52,5 +52,5 @@ with open("single_position.json") as fin:
     ax.set_aspect("equal")
     ax.set_xlabel("x [m]")
     ax.set_ylabel("y [m]")
-    fig.savefig("layout.pdf", bbox='tight')
+    fig.savefig("layout.pdf", bbox_inches='tight')
     plt.show()

@@ -1,6 +1,15 @@
+"""
+Example: radio-interferometric (RIT) reconstruction of a CoREAS air shower.
+
+Runs the interferometric depth reconstruction (`efieldRadioInterferometricReconstruction`)
+on the MC geometry and pulses.
+
+See read_full_CoREAS_shower.py for an explanation what readCoREAS and event_builder_auger do.
+"""
+
 from logging import debug
 from re import I
-import NuRadioReco.modules.io.coreas.readCoREASShower
+import NuRadioReco.modules.io.coreas.readCoREAS
 import NuRadioReco.modules.io.eventWriter
 import NuRadioReco.modules.efieldRadioInterferometricReconstruction
 import NuRadioReco.modules.eventTypeIdentifier
@@ -9,6 +18,8 @@ import NuRadioReco.modules.electricFieldBandPassFilter
 from NuRadioReco.detector import generic_detector as detector
 import argparse
 from NuRadioReco.utilities import units
+
+from read_full_CoREAS_shower import event_builder_auger
 
 # Parse eventfile as argument
 parser = argparse.ArgumentParser(description='NuRadioSim file')
@@ -33,8 +44,8 @@ args = parser.parse_args()
 # initialize modules
 det = detector.GenericDetector(json_filename=args.detectordescription, default_station=102, default_channel=0)
 
-readCoREASShower = NuRadioReco.modules.io.coreas.readCoREASShower.readCoREASShower()
-readCoREASShower.begin(args.inputfilename, det, set_ascending_run_and_event_number=args.set_run_number)
+readCoREAS = NuRadioReco.modules.io.coreas.readCoREAS.readCoREAS()
+readCoREAS.begin(args.inputfilename, set_ascending_run_and_event_number=args.set_run_number)
 
 efieldInterferometricDepthReco = NuRadioReco.modules.efieldRadioInterferometricReconstruction.efieldInterferometricDepthReco()
 efieldInterferometricDepthReco.begin(debug=False)
@@ -51,19 +62,20 @@ electricFieldBandPassFilter.begin()
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
 eventWriter.begin(args.output_filename)
 
-for event, gen_det in readCoREASShower.run():
+for coreas_event in readCoREAS.run():
+    event = event_builder_auger(coreas_event, det)
     print('Event {} {}'.format(event.get_run_number(), event.get_id()))
     for station in event.get_stations():
         eventTypeIdentifier.run(event, station, 'forced', 'cosmic_ray')
-        electricFieldBandPassFilter.run(event, station.get_sim_station(), gen_det, passband=[
+        electricFieldBandPassFilter.run(event, station.get_sim_station(), det, passband=[
                                         30*units.MHz, 80*units.MHz])
 
     efieldInterferometricDepthReco.run(
-        event, gen_det, use_MC_geometry=True, use_MC_pulses=True)
+        event, det, use_MC_geometry=True, use_MC_pulses=True)
     # efieldInterferometricAxisReco.run(
-    #     event, gen_det, use_MC_geometry=True, use_MC_pulses=True)
-    
-    eventWriter.run(event, gen_det)
+    #     event, det, use_MC_geometry=True, use_MC_pulses=True)
+
+    eventWriter.run(event, det)
 
 efieldInterferometricDepthReco.end()
 eventWriter.end()

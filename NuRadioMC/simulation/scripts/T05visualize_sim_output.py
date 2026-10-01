@@ -124,7 +124,7 @@ yy = np.array(fin['yy'])[triggered]
 zz = np.array(fin['zz'])[triggered]
 fig, ax = plotting.plot_vertex_distribution(xx, yy, zz, weights=weights, rmax=rmax, zmin=fin.attrs['zmin'],
                                            trigger_name=trigger_name)
-fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'), bbox='tight')
+fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'), bbox_inches='tight')
 
 ###########################
 # loop over all stations and produce station specific plots
@@ -251,7 +251,7 @@ for key, station in iteritems(fin):
         # plot flavor ratios
         ###########################
         flavor_labels = ['e cc', r'$\bar{e}$ cc', 'e nc', r'$\bar{e}$ nc',
-                   '$\mu$ cc', r'$\bar{\mu}$ cc', '$\mu$ nc', r'$\bar{\mu}$ nc',
+                   r'$\mu$ cc', r'$\bar{\mu}$ cc', r'$\mu$ nc', r'$\bar{\mu}$ nc',
                    r'$\tau$ cc', r'$\bar{\tau}$ cc', r'$\tau$ nc', r'$\bar{\tau}$ nc']
         yy = np.zeros(len(flavor_labels))
         yy[0] = np.sum(weights[(fin['flavors'][triggered] == 12) & (fin['interaction_type'][triggered] == b'cc')])
