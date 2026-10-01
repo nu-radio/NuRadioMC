@@ -3,6 +3,7 @@ import numpy as np
 from scipy import integrate
 from numpy.random import Generator, Philox
 from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities.logging import deprecated
 from NuRadioReco.modules.base.module import register_run
 import warnings
 
@@ -19,7 +20,6 @@ class channelGenericNoiseAdder:
 
         Parameters
         ----------
-
         amps: array of floats
             Data that random phase is added to.
         n_samples_time_domain: int
@@ -69,10 +69,10 @@ class channelGenericNoiseAdder:
 
         return np.fft.ifft(f).real
 
-    def bandlimited_noise(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type='perfect_white',
+    def bandlimited_noise(self, min_freq, max_freq, n_samples, sampling_rate, amplitude, type=None,
                           time_domain=True, bandwidth=None):
         """
-        Generate noise of n_samples in a bandwidth [min_freq,max_freq].
+        Generate noise of n_samples in a bandwidth [min_freq, max_freq].
 
         Parameters
         ----------
@@ -91,9 +91,8 @@ class channelGenericNoiseAdder:
             desired sampling rate of data
         amplitude: float
             desired voltage of noise as V_rms (only roughly, since bandpass limited)
-        type: string
-            perfect_white: flat frequency spectrum
-            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
+        type: string or None
+            * rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
         time_domain: bool (default True)
             if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
             might be more performant as the noise is generated internally in the frequency domain.
@@ -108,6 +107,16 @@ class channelGenericNoiseAdder:
             is implemented (RL 17-Sept-2018)
 
         """
+        if type == 'perfect_white':
+            msg = "type='perfect_white' noise is deprecated and will be removed in a future version"
+            warnings.warn(msg, DeprecationWarning)
+            self.logger.warning(msg)
+        elif type is None:
+            msg = "The default type='perfect_white' noise is deprecated and will become 'rayleigh' in a future version"
+            warnings.warn(msg, DeprecationWarning)
+            self.logger.warning(msg)
+            type = 'perfect_white'
+
         frequencies = fft.freqs(n_samples, sampling_rate)
 
         n_samples_freq = len(frequencies)
@@ -161,6 +170,7 @@ class channelGenericNoiseAdder:
         else:
             return noise
 
+    @deprecated("The method 'precalculate_bandlimited_noise_parameters' has been deprecated and will be removed in a future version.")
     def precalculate_bandlimited_noise_parameters(
             self, min_freq, max_freq, n_samples, sampling_rate, amplitude,
             type='perfect_white', bandwidth=None):
@@ -249,7 +259,7 @@ class channelGenericNoiseAdder:
                 "n_samples": n_samples
                 }
 
-
+    @deprecated("The method 'bandlimited_noise_from_precalculated_parameters' has been deprecated and will be removed in a future version.")
     def bandlimited_noise_from_precalculated_parameters(self, type='perfect_white',
                           time_domain=True):
         """
@@ -295,8 +305,9 @@ class channelGenericNoiseAdder:
             return noise
 
 
-    def bandlimited_noise_from_spectrum(self, n_samples, sampling_rate, spectrum, amplitude=None, type='perfect_white',
-                          time_domain=True):
+    def bandlimited_noise_from_spectrum(
+            self, n_samples, sampling_rate, spectrum, amplitude=None,
+            type=None, time_domain=True):
         """
         Generate noise of n_samples in a bandwidth [min_freq,max_freq].
 
@@ -320,7 +331,17 @@ class channelGenericNoiseAdder:
             if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter
             might be more performant as the noise is generated internally in the frequency domain.
         """
-        frequencies = np.fft.rfftfreq(n_samples, 1. / sampling_rate)
+        if type == 'perfect_white':
+            msg = "type='perfect_white' noise is deprecated and will be removed in a future version"
+            warnings.warn(msg, DeprecationWarning)
+            self.logger.warning(msg)
+        elif type is None:
+            msg = "The default type='perfect_white' noise is deprecated and will become 'rayleigh' in a future version"
+            warnings.warn(msg, DeprecationWarning)
+            self.logger.warning(msg)
+            type = 'perfect_white'
+
+        frequencies = fft.freqs(n_samples, 1. / sampling_rate)
         selection = frequencies > 0
         n_samples_freq = np.sum(selection)
 
@@ -371,7 +392,7 @@ class channelGenericNoiseAdder:
             amplitude=1 * units.mV,
             min_freq=50 * units.MHz,
             max_freq=2000 * units.MHz,
-            type='perfect_white',
+            type=None,
             excluded_channels=None,
             bandwidth=None):
 
@@ -380,12 +401,11 @@ class channelGenericNoiseAdder:
 
         Parameters
         ----------
+        event : Event
 
-        event
+        station : Station
 
-        station
-
-        detector
+        detector : Detector
 
         amplitude: float or dict of floats
             desired voltage of noise as V_rms for the specified bandwidth
@@ -396,8 +416,7 @@ class channelGenericNoiseAdder:
             Maximum frequency of passband for noise generation
             If the maximum frequency is above the Nquist frequencey (0.5 * sampling rate), the Nquist frequency is used
         type: string
-            perfect_white: flat frequency spectrum
-            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution
+            * 'rayleigh': Amplitude of each frequency bin is drawn from a Rayleigh distribution
         excluded_channels: list of ints
             the channels ids of channels where no noise will be added, default is that no channel is excluded
         bandwidth: float or None (default)
