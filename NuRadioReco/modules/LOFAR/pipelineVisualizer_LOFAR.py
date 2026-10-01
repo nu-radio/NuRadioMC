@@ -116,23 +116,32 @@ class pipelineVisualizer:
         cmap = plt.get_cmap('jet')
         norm = Normalize(vmin=0, vmax=num_stations-1) 
 
-        lora_core = event.get_hybrid_information().get_hybrid_shower("LORA").get_parameter(showerParameters.core)
+        lora_shower = event.get_hybrid_information().get_hybrid_shower("LORA")
+        lora_core = lora_shower.get_parameter(showerParameters.core)
 
-        try:
-            core = event.get_first_shower().get_parameter(showerParameters.core)
-        except KeyError:
-            self.logger.warning("No radio core found, using LORA core instead")
+        radio_shower = event.get_first_shower()
+        if radio_shower is not None:
+            try:
+                core = radio_shower.get_parameter(showerParameters.core)
+                zenith = radio_shower.get_parameter(showerParameters.zenith) / units.rad
+                azimuth = radio_shower.get_parameter(showerParameters.azimuth) / units.rad
+            except KeyError:
+                self.logger.warning("Radio shower missing core/direction, using LORA instead")
+                core = lora_core
+                zenith = lora_shower.get_parameter(showerParameters.zenith) / units.rad
+                azimuth = lora_shower.get_parameter(showerParameters.azimuth) / units.rad
+        else:
+            self.logger.warning("No radio shower found, using LORA direction")
             core = lora_core
+            zenith = lora_shower.get_parameter(showerParameters.zenith) / units.rad
+            azimuth = lora_shower.get_parameter(showerParameters.azimuth) / units.rad
+
+        cs = radiotools.coordinatesystems.cstrafo(
+            zenith, azimuth, magnetic_field_vector=None, site="lofar"
+        )
 
         for i, station in enumerate(event.get_stations()):
             if station.get_parameter(stationParameters.triggered):
-
-                zenith = station.get_parameter(stationParameters.cr_zenith) / units.rad
-                azimuth = station.get_parameter(stationParameters.cr_azimuth) / units.rad
-
-                cs = radiotools.coordinatesystems.cstrafo(
-                    zenith, azimuth, magnetic_field_vector=None, site="lofar"
-                )
 
                 efields = station.get_electric_fields()
 
@@ -296,6 +305,82 @@ class pipelineVisualizer:
 
         return fig_dir
 
+    def show_fluence_plot(self, event, detector, min_number_good_antennas=4):
+        """
+        Plot the 2-D fluence map of the signal fluence.
+        """
+        from matplotlib.colors import LogNorm
+
+
+        good_antennas_dict = check_for_good_ant(event, detector)
+
+        fig_fluence, ax = plt.subplots(figsize=(5, 5))
+
+        positions = []
+        fluences = []
+
+        for station in event.get_stations():
+            if station.get_parameter(stationParameters.triggered):
+                try:
+                    azimuth = station.get_parameter(stationParameters.cr_azimuth)
+                except KeyError:
+                    self.logger.info(
+                        f"Station CS{station.get_id():03d} does not have a reconstructed direction."
+                    )
+                    continue
+                
+                good_antennas = good_antennas_dict[station.get_id()]
+                if len(good_antennas) >= min_number_good_antennas:
+                    for antenna in good_antennas:
+                        positions.append(
+                            detector.get_relative_position(station.get_id(), antenna) + detector.get_absolute_position(station.get_id())
+                        )
+                        channel = station.get_channel(antenna)
+                        fluences.append(np.sum(np.square(channel.get_trace())))
+                    
+
+        if not positions:
+            self.logger.warning("No valid positions found for fluence plot.")
+            return fig_fluence
+
+        positions = np.array(positions)
+        fluences = np.array(fluences)
+        
+        sc = ax.scatter(
+            positions[:,0], 
+            positions[:,1], 
+            c=fluences, 
+            s=1, 
+            cmap='viridis',
+            zorder=-1
+        )
+        plt.colorbar(sc, label='Fluence')
+
+        lora_shower = event.get_hybrid_information().get_hybrid_shower("LORA")
+        if lora_shower is not None:
+            lora_core = lora_shower.get_parameter(showerParameters.core)
+            lora_azi = lora_shower.get_parameter(showerParameters.azimuth)
+            ax.scatter(lora_core[0], lora_core[1], color='tab:red', marker='X', label='LORA Core', zorder=2)
+            ax.quiver(lora_core[0], lora_core[1], np.cos(lora_azi), np.sin(lora_azi), 
+                      color='tab:red', scale=0.03, scale_units='xy', width=0.004, label='LORA Direction')
+
+        radio_shower = event.get_first_shower()
+        if radio_shower is not None and radio_shower.has_parameter(showerParameters.core):
+            core = radio_shower.get_parameter(showerParameters.core)
+            azi = radio_shower.get_parameter(showerParameters.azimuth)
+            ax.scatter(core[0], core[1], color='black', marker='*', label='Simulated MC Core', zorder=3)
+            ax.quiver(core[0], core[1], np.cos(azi), np.sin(azi), 
+                      color='black', scale=0.03, scale_units='xy', width=0.004, label='Simulated MC Direction')
+
+        ax.set_aspect('equal')
+        ax.set_xlabel('East [m]')
+        ax.set_ylabel('North [m]')
+        ax.set_title(f"Event {event.get_id()}")
+        plt.legend()
+
+        return fig_fluence
+
+
     def show_time_fluence_plot(self, event, detector, min_number_good_antennas=4):
 
         """
@@ -407,7 +492,7 @@ class pipelineVisualizer:
 
 
     @register_run()
-    def run(self, event, detector, save_dir='.', polarization=False, direction=False):
+    def run(self, event, detector, save_dir='.', polarization=False, direction=False, fluence=False):
         """
         Produce pipeline plots for the given event.
 
@@ -421,7 +506,7 @@ class pipelineVisualizer:
             The directory to save the plots to. Default is the 
             current directory.
         """
-
+        
         plots = []
         if polarization:
             pol_plot = self.plot_polarization(event, detector)
@@ -436,6 +521,12 @@ class pipelineVisualizer:
             time_fluence_plot = self.show_time_fluence_plot(event, detector)
             plots.append(time_fluence_plot)
             time_fluence_plot.savefig(f'{save_dir}/time_fluence_plot_{event.get_id()}.png')
+        
+        if fluence:
+            fluence_plot = self.show_fluence_plot(event, detector)
+            if fluence_plot:
+                plots.append(fluence_plot)
+                fluence_plot.savefig(f'{save_dir}/fluence_plot_{event.get_id()}.png')
 
         self.plots = [plot for plot in plots]
 
