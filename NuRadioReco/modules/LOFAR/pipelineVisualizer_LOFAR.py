@@ -354,7 +354,7 @@ class pipelineVisualizer:
             cmap='viridis',
             zorder=-1
         )
-        plt.colorbar(sc, label='Fluenec')
+        plt.colorbar(sc, label='Fluence')
 
         lora_shower = event.get_hybrid_information().get_hybrid_shower("LORA")
         if lora_shower is not None:
