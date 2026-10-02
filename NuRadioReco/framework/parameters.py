@@ -109,6 +109,9 @@ class stationParametersRNOG(TypedEnum):
     coherent_entropy = 3, float  #: Shannon entropy of the coherently summed waveform
     coherent_kurtosis = 4, float  #: kurtosis of the coherently summed waveform
 
+    digitizer = 100  #: the digitizer used by the station (derived from data format)
+
+
 class electricFieldParameters(TypedEnum):
     ray_path_type = 1, str  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
     polarization_angle = 2, float  #: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
@@ -129,6 +132,7 @@ class electricFieldParameters(TypedEnum):
     nu_vertex_propagation_time = 18, float  #: the time it takes for the signal to propagate from the vertex to the channel
     raytracing_solution = 19, dict[str, float]  #: the ray tracing solution (the dictionary returned by `get_raytracing_output(i_solution)`)
     launch_vector = 20, np.ndarray  #: the launch vector of the ray from which this efield originates (only available for in-ice simulations)
+
 
 class ARIANNAParameters(TypedEnum):  #: this class stores parameters specific to the ARIANNA data taking
     seq_start_time = 1, Any  #: the start time of a sequence

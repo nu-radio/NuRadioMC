@@ -15,7 +15,7 @@ import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.trigger
-from NuRadioReco.framework.parameters import channelParameters
+from NuRadioReco.framework.parameters import channelParameters, stationParametersRNOG as stpRNOG
 
 from NuRadioReco.utilities import units
 
@@ -56,12 +56,15 @@ def get_time_offset(trigger_type):
         "FORCE": 0,
         "LT": 250 * units.ns,
         "RADIANT": 475 * units.ns,
-        "UNKNOWN": 0  # Due to a firmware issue at the beginning of data taking the trigger types were not properly set.
+        "UNKNOWN": 0,  # Due to a firmware issue at the beginning of data taking the trigger types were not properly set.
+        "DIDAQ": 0,  # TODO: Dummy value, need to be set properly
     }
 
     # Should have the same time offset ?!
     if trigger_type.startswith("RADIANT"):
         trigger_type = "RADIANT"
+    elif trigger_type.startswith("DIDAQ"):
+        trigger_type = "DIDAQ"
 
     if trigger_type in time_offsets:
         return time_offsets[trigger_type]
@@ -97,7 +100,7 @@ def _all_files_in_directory(mattak_dir):
         return False
 
     if full_run:
-        req_files = ["daqstatus.root", "headers.root", "pedestal.root"]
+        req_files = ["daqstatus.root", "headers.root"]
         for file in req_files:
             if not os.path.exists(os.path.join(mattak_dir, file)):
                 logging.error(f"File {file} could not be found in {mattak_dir}")
@@ -353,7 +356,7 @@ class readRNOGData:
         self.__n_runs = 0
 
         # Set verbose for mattak
-        self._verbose = mattak_kwargs.pop("verbose", self.logger.level <= logging.DEBUG)
+        self._verbose = mattak_kwargs.pop("verbose", self.logger.getEffectiveLevel() <= logging.DEBUG)
         self._mattak_kwargs = mattak_kwargs
 
         for dir_file in dirs_files:
@@ -793,7 +796,9 @@ class readRNOGData:
 
                 channel.set_trace(wf, sampling_rate * units.GHz)
 
-            time_offset = readout_delays[channel_id] - get_time_offset(event_info.triggerType)
+            time_offset = - get_time_offset(event_info.triggerType)  # the minus signe is correct
+            if readout_delays is not None:
+                time_offset += readout_delays[channel_id] * units.ns
             channel.set_trace_start_time(time_offset)  # relative to event/trigger time
 
             station.add_channel(channel)
@@ -826,6 +831,10 @@ class readRNOGData:
 
                 t0 = time.time()
                 evt = self._get_event(evtinfo, wf)
+
+                # TODO: find a better way to do this. Also do we want to store a string, this enum lives in mattak ...
+                evt.get_station().set_parameter(stpRNOG.digitizer, dataset.digitizer)
+
                 self._time_run += time.time() - t0
                 yield evt
 
