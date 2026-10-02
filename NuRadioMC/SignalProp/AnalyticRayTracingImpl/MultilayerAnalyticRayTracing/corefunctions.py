@@ -273,15 +273,12 @@ def compute_offsets(c0, y_start, z_start, layers, get_intersection_point = False
 @njit(cache = True)
 def compute_offsets_plotting(c0, y_start, z_start, layers, get_intersection_point = False):
     """
-    Compute horizontal offset constants for all layers.
+    This function takes the role of compute_offsets for situations where we are interested in creating the complete path that a signal takes 
+    when being emitted from a given point (y_start, z_start) into a given direction.
 
-    The ray trajectory is expressed as
-
-        y(z) = F(z) + c1
-
-    where the constant ``c1`` differs between layers. This function
-    determines the offsets required to ensure continuity of the
-    trajectory across layer boundaries.
+    The compute_offsets function which is used in analyticraytracing.py on the other hand is tailored for quickly finding the path between two given points for an upwards going ray situation. 
+    While being more efficient for that case, it doesn't calculate the layer boundary offsets if they are not needed for this particular situation. 
+    For visualization purposes we need this function to be able to calculate the complete signal paths all the way through the ice volume.
 
     Parameters
     ----------
