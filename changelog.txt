@@ -4,6 +4,8 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.2.0-dev
 new features:
+- Added AGENTS.md (imported by .claude/CLAUDE.md) describing code structure, data structure and conventions for AI coding agents
+  and new developers.
 - Added automatic test coverage measurement to CI. Coverage is combined across all test jobs and reported as a PR
   comment and a README badge; see the "Test coverage" section of the contributing guide for details.
 - Store shower Xmax in simulated shower when simulating with ARZ Askaryan emission models.
@@ -20,6 +22,9 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - Likelihood-based reconstruction modules, including minimization and matched filter classes. Specialized reconstruction modules for electric fields and
   in-ice neutrino showers are implemeted. See https://arxiv.org/abs/2510.21925 and documentation for details.
 - Improve time_logger functionality - yielding significant reduction in simulation time (25-40%). Smaller improvements to logging.
+- Added a table based file format (parquet) for derived/reconstructed parameters (no traces): `eventWriterParquet` writes
+  one file per station and run (optionally sim station, sim channels and electric fields), `parquet_utilities.ParquetReader`
+  reads them with polars. The schema is derived from the parameter types. Requires pyarrow and polars (`pip install -e .[parquet]`).
 
 bugfixes:
 - Fixing bug in the simulation of non-trigger channels when an event is splitted into multiple events based on the signal arrival time.
