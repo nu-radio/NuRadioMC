@@ -56,6 +56,7 @@ pre-commit = {version = "*", optional = true}
 iminuit = {version = "*", optional = true}
 scikit-optimize = {version = "*", optional = true}
 noisyopt = {version = "*", optional = true}
+pyarrow = {version = "*", optional = true}
 
 [tool.poetry.dev-dependencies]
 pre-commit = "*"
@@ -67,6 +68,7 @@ galacticnoise = ['pylfmap', 'pygdsm', 'healpy']
 muon-flux = ['MCEq', 'crflux']
 cr_interpolator = ["cr-pulse-interpolator"]
 minimizers = ["iminuit", "scikit-optimize", "noisyopt"]
+parquet = ["pyarrow"]
 ALL = ["proposal", "pygdsm", "pylfmap", "healpy", "MCEq", "crflux", "cr-pulse-interpolator", "iminuit", "scikit-optimize", "noisyopt"]
 
 [tool.coverage.run]
