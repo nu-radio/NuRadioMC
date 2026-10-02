@@ -21,6 +21,7 @@ Usage::
     python parquet_io_example.py --parquetdir out/     # read the files in out/ (e.g. written by your processing)
 """
 import argparse
+import inspect
 import tempfile
 
 import numpy as np
@@ -38,6 +39,9 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.modules.io.eventWriterParquet import eventWriterParquet
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.parquet_utilities import ParquetReader
+
+# Newer polars versions warn if `explode` is called without `empty_as_null` (older ones do not know it)
+EXPLODE_KWARGS = {"empty_as_null": True} if "empty_as_null" in inspect.signature(pl.LazyFrame.explode).parameters else {}
 
 
 def make_event(rng, run, event_id, station_id, n_channels=4):
@@ -134,8 +138,8 @@ def read_example(path):
     # `explode` creates one row per list entry; `unnest` turns the {key, value} structs into columns.
     per_channel = (
         events.select("run", "event_id", "channel_ids", "channelParameters.SNR")
-        .explode("channel_ids", "channelParameters.SNR", empty_as_null=True)  # one row per channel
-        .explode("channelParameters.SNR", empty_as_null=True)  # one row per map entry
+        .explode("channel_ids", "channelParameters.SNR", **EXPLODE_KWARGS)  # one row per channel
+        .explode("channelParameters.SNR", **EXPLODE_KWARGS)  # one row per map entry
         .unnest("channelParameters.SNR")
         .filter(pl.col("key") == "peak_amplitude")
         .rename({"channel_ids": "channel_id", "value": "SNR_peak_amplitude"})

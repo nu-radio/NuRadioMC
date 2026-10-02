@@ -48,7 +48,7 @@ runs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest coverage
-        pip install -e .[proposal,galacticnoise,cr_interpolator,minimizers]
+        pip install -e .[proposal,galacticnoise,cr_interpolator,minimizers,parquet]
 
     - name: Enable coverage measurement for subprocesses
       shell: bash
