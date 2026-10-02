@@ -41,8 +41,8 @@ class stationParameters(TypedEnum):
     azimuth = 14, float  #: the azimuth angle of the incoming signal direction (WARNING: this parameter is not well defined as the incoming signal direction might be different for different channels)
     zenith_cr_templatefit = 15, float
     zenith_nu_templatefit = 16, float
-    cr_xcorrelations = 19, dict  #: dict of result of crosscorrelations with cr templates
-    nu_xcorrelations = 20, dict  #: dict of result of crosscorrelations with nu templates
+    cr_xcorrelations = 19, dict[str, float]  #: dict of result of crosscorrelations with cr templates
+    nu_xcorrelations = 20, dict[str, float]  #: dict of result of crosscorrelations with nu templates
     station_time = 21, astropy.time.Time  #: the station time. Written to parquet as two floats (jd1, jd2; UTC) for ns precision
     cr_energy_em = 24, float  #: the electromagnetic shower energy (the cosmic ray energy that ends up in electrons, positrons and gammas)
     nu_inttype = 25, str  #: interaction type, e.g., cc, nc, tau_em, tau_had
@@ -54,15 +54,15 @@ class stationParameters(TypedEnum):
     shower_energy = 31, float #: the energy of the shower
     viewing_angles = 32, dict[int, dict[int, float]] #: reconstructed viewing angles. A nested map structure. First key is channel id, second key is ray tracing solution id. Value is a float
     flagged_channels = 60, dict[int, list[str]]  #: a defaultdict of flagged NRR channel ids with as value a list of the reason(s) for flagging (used in readLOFARData, stationRFIFilter)
-    cr_dominant_polarisation = 61, Any  #: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)
-    dirty_fft_channels = 62, list  #: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)
+    cr_dominant_polarisation = 61, list[float]  #: the channel orientation containing the dominant cosmic ray signal (calculated by stationPulseFinder)
+    dirty_fft_channels = 62, list[int]  #: a list of FFT channels flagged as RFI (calculated by stationRFIFilter)
     channels_max_amplitude_norm = 63, float  #: maximum std-normalised peak to peak amplitude of all chosen channels
 
 class channelParameters(TypedEnum):
     zenith = 1, float  #: zenith angle of the incoming signal direction
     azimuth = 2, float  #: azimuth angle of the incoming signal direction
     maximum_amplitude = 4, float  #: the maximum ampliude of the magnitude of the trace
-    SNR = 5, dict[int, float]  #: a dictionary with the following signal-to-noise ratio definitions:
+    SNR = 5, dict[str, float]  #: a dictionary with the following signal-to-noise ratio definitions:
     # 'integrated_power':
         # Difference of the sum of the squared amplitudes in the signal window and in the noise window
         # SNR = sum_sig(V_i^2) - sum_noise(V_i^2)
@@ -81,13 +81,13 @@ class channelParameters(TypedEnum):
     nu_xcorrelations = 9, dict  #: dict of result of crosscorrelations with nu templates
     signal_time = 10, float  #: the time of the maximum amplitude of the envelope
     noise_rms = 11, float  #: the root mean square of the noise
-    signal_regions = 12, list     #: list of start and end times of regions that likely contain a signal
-    noise_regions = 13, list      #: list of start and end times of regions that likel do not contain any signals
-    signal_time_offset = 14, Any     #: the relative timing differences of the signal arrival times between channels
+    signal_regions = 12, list[int]     #: list of start and end times of regions that likely contain a signal
+    noise_regions = 13, list[int]      #: list of start and end times of regions that likel do not contain any signals
+    signal_time_offset = 14, float     #: the relative timing differences of the signal arrival times between channels
     signal_receiving_zenith = 15, float    #: the zenith angle of direction at which the radio signal arrived at the antenna
     signal_ray_type = 16, str        #: type of the ray propagation path of the signal received by this channel. Options are direct, reflected and refracted
     signal_receiving_azimuth = 17, float   #: the azimuth angle of direction at which the radio signal arrived at the antenna
-    block_offsets = 18, Any #: 'block' or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
+    block_offsets = 18, np.ndarray #: 'block' or pedestal offsets. See `NuRadioReco.modules.RNO_G.channelBlockOffsetFitter`
     Vrms_NuRadioMC_simulation = 19, float  #: the noise rms used in the MC simulation
     bandwidth_NuRadioMC_simulation = 20, float  #: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation
     Vrms_trigger_NuRadioMC_simulation = 21, float  #: the noise rms of the trigger channels (optional) used in the MC simulation
@@ -125,9 +125,9 @@ class electricFieldParameters(TypedEnum):
     reflection_coefficient_theta = 14, complex  #: for reflected rays: the complex Fresnel reflection coefficient of the eTheta component
     reflection_coefficient_phi = 15, complex  #: for reflected rays: the complex Fresnel reflection coefficient of the ePhi component
     cr_spectrum_quadratic_term = 16, float  #: result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
-    energy_fluence_ratios = 17, Any   #: Ratios of the energy fluences in different passbands
+    energy_fluence_ratios = 17, dict[str, float]   #: Ratios of the energy fluences in different passbands
     nu_vertex_propagation_time = 18, float  #: the time it takes for the signal to propagate from the vertex to the channel
-    raytracing_solution = 19, dict  #: the ray tracing solution (the dictionary returned by `get_raytracing_output(i_solution)`)
+    raytracing_solution = 19, dict[str, float]  #: the ray tracing solution (the dictionary returned by `get_raytracing_output(i_solution)`)
     launch_vector = 20, np.ndarray  #: the launch vector of the ray from which this efield originates (only available for in-ice simulations)
 
 class ARIANNAParameters(TypedEnum):  #: this class stores parameters specific to the ARIANNA data taking
