@@ -1,167 +1,110 @@
-import numpy as np
-import matplotlib.pyplot as plt
+import logging
+import os
+import warnings
+from datetime import datetime
+from reconstruction import (
+    PlaneWaveReconstructor,
+    plot_skymap,
+)
+from travel_time_maps import map_from_dict
 
+from NuRadioMC.utilities import medium
+from NuRadioReco.detector.RNO_G.rnog_detector import Detector
+from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.modules.channelSignalReconstructor import (
     channelSignalReconstructor,
 )
 from NuRadioReco.modules.RNO_G.dataProviderRNOG import dataProviderRNOG
-from NuRadioReco.detector.RNO_G.rnog_detector import Detector
-from NuRadioReco.utilities import units
-from NuRadioMC.utilities import medium
-import warnings, logging, scipy.ndimage
-import pandas as pd
 from NuRadioReco.utilities.logging import set_general_log_level
-from reconstruction import _build_travel_time_map
-from reconstruction import _run_deep_reco, get_SNRs
-from travel_time_maps import load_map, load_map_non_interp, map_from_dict
+
+logging.getLogger("NuRadioMC").setLevel(logging.ERROR)
+logging.getLogger("NuRadioMC.analytic_ray_tracing").setLevel(logging.ERROR)
+logger = logging.getLogger(__name__)
+
+
 set_general_log_level(logging.CRITICAL)
 warnings.filterwarnings("ignore")
 
-def plot_skymap(outpath, corrmap, zen, az):
-    from matplotlib.gridspec import GridSpec
-
-    fig = plt.figure(figsize = (5, 4), layout = "constrained")
-    gs = GridSpec(1, 1, figure = fig)
-    ax = fig.add_subplot(gs[0], projection="polar")
-
-    cmax = np.max(np.abs(corrmap))
-
-    im = ax.pcolormesh(az, zen, corrmap,
-                       cmap='bwr', rasterized=True, vmin=-cmax, vmax=cmax)
-    
-    cbar = fig.colorbar(im, ax=ax, orientation='vertical', fraction=0.05, pad = 0.03)
-        # Run peak finder
-
-    max_zenith_index, max_azimuth_index = np.unravel_index(
-        np.argmax(corrmap), corrmap.shape
-    )
-
-    ax.scatter(
-        az[max_azimuth_index],
-        zen[max_zenith_index],
-        edgecolor="green",
-        facecolor="none",
-        s=100,
-        label="Max Correlation",
-        zorder=10,
-    )
-    ax.annotate(
-        f"{corrmap[max_zenith_index, max_azimuth_index]:.2f}",
-        (az[max_azimuth_index], zen[max_zenith_index]),
-        textcoords="offset points",
-        xytext=(0, 5),
-        ha='center',
-        fontsize=8,
-        color="green",
-        zorder=11,
-    )
-    
-    data_max = scipy.ndimage.maximum_filter(corrmap, size=10)
-    mask = (corrmap == data_max) & (corrmap > 0.9 * cmax)
-    y, x = mask.nonzero()
-    # remove maxima from secondary peaks
-    max_mask = (y == max_zenith_index) & (x == max_azimuth_index)
-    x = x[~max_mask]
-    y = y[~max_mask]
-    
-    if len(x) != len(y):
-        print(f"Warning: Found {len(x)} secondary peaks but {len(y)} zenith indices. This should not happen.")
-        return 
-    
-    value = corrmap[y, x]
-    
-    
-    print(f"Found {len(x)} peaks at 2-sigma")
-    
-    ax.scatter(az[x], zen[y], edgecolor="black", facecolor="none", s=50, label="Secondary Peaks $2\\sigma$", zorder=10)
-    for i in range(len(x)):
-        ax.annotate(f"{value[i]:.2f}", (az[x[i]], zen[y[i]]), textcoords="offset points", xytext=(0, 5), ha='center', fontsize=8, color="black", zorder=11)
-    
-    fig.legend(loc="outside upper right", fontsize=10)
-    
-
-    ax.set_theta_zero_location("E")
-    ax.set_theta_direction(1)
-    ax.set_xticks(np.deg2rad([0, 45, 90, 135, 180, 225, 270, 315]))
-    ax.set_xticklabels(
-        ["E (0°)", "NE (45°)", "N (90°)", "NW (135°)",
-         "W (180°)", "SW (225°)", "S (270°)", "SE (315°)"],
-        fontsize=10, 
-    )
-    ax.set_rlim(0, np.pi / 2)
-    rticks = [np.deg2rad(r) for r in (0, 15.1, 30.1, 45.1, 60.1, 75.1, 90)]
-    ax.set_rticks(rticks)
-    
-    ax.set_yticklabels([f"{int(np.degrees(r))}°" for r in rticks],
-                       color="black", fontsize=10, zorder=10)
-
-    cbar.set_label("Correlation")
-
-    fig.savefig(outpath)
-    
-    plt.close()
 
 
-if __name__ == "__main__":
 
-    provider = dataProviderRNOG()
-    signal_reconstructor = channelSignalReconstructor()
+station_ = 11 
+run_id = 4710
+selected_events = range(3475, 3486)
+skymap_outdir = './skymaps'
+os.makedirs(skymap_outdir, exist_ok=True)
 
-    RUN_NR = 4710
-    EVENT_ID = 3475
+RNOG_DATA = "/pnfs/ifh.de/acs/radio/diskonly/data/full/root/"
+run_path = os.path.join(RNOG_DATA, f"station{station_}/run{run_id}")
 
-    detector = Detector(select_stations=11)
-    detector.update(pd.to_datetime("2024-01-02T00:00:00"))
+detector = Detector(select_stations=station_)
 
-    run_folder = f'/pnfs/ifh.de/acs/radio/diskonly/data/full/root/station11/run{RUN_NR}'
-    provider.begin(files=run_folder, det=detector,
-                reader_kwargs={
-                    "mattak_kwargs": {"backend": "uproot"},
-                    "apply_baseline_correction": None,
-                })
+detector.update(datetime(2024, 1, 2, 0, 0, 0))
+ice_model = medium.greenland_3exp_layered()
+# alternative, use calibrated ice model and detector positions
+#det_file = "/cvmfs/rnog.opensciencegrid.org/calibration/latest/station_11.json.xz"
+#detector = Detector(detector_file=det_file, select_stations=station_)
+#ice_model = _load_ice_model(det_file)
 
-    event = provider.reader.get_event(run_nr=RUN_NR, event_id=EVENT_ID)
-    station = event.get_station()
+channels = [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
 
-    provider.channelBlockOffsetFitter.run(event, station, detector)
-    provider.channelGlitchDetector.run(event, station, detector)
-    provider.channelCableDelayAdder.run(event, station, detector, mode="subtract")
-    signal_reconstructor.run(event, station, det=detector)
+# set up all the standard NuRadio modules
+provider = dataProviderRNOG()
+plane_wave_reconstructor = PlaneWaveReconstructor(
+    station=station_,
+    detector=detector,
+    channels=channels,
+    ice_model=ice_model,
+)
+plane_wave_reconstructor.begin()
 
-    deep_channels = [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]
+prep_map = plane_wave_reconstructor.tt_map
 
-    ice_model = medium.greenland_3exp_layered()
-            
-    tt_maps = _build_travel_time_map(
-        detector, ice_model, station.get_id(), deep_channels,
-        zeniths = np.linspace(0.01, np.pi/2, 90),
-        azimuths = np.linspace(0, 2*np.pi, 360),
-    )
+reader = provider.reader
+reader.logger.setLevel(60)
+logging.getLogger("NuRadioMC").setLevel(logging.ERROR)
+logging.getLogger("NuRadioReco").setLevel(logging.CRITICAL)
 
-    tt_maps = map_from_dict(tt_maps)
-    SNRs = get_SNRs(station, channels=deep_channels)
+signal_reconstructor = channelSignalReconstructor()
 
-    config_dict = {
-        "upsample_factor": 5,
-        "post_process": "norm-square",
-        "snr_min": 5.0,
-        "imp_min": 0.1,
-        "bandpass_lo_hi": [0.05, 0.5],
-        "bandpass_order": 8,
-    }
+# initialize all the NuRadio modules
+
+reader_kwargs = {
+    "mattak_kwargs": {"backend": "uproot"},
+    "apply_baseline_correction": None,
+}
+reader.begin([run_path], **reader_kwargs)
+
+provider.channelBlockOffsetFitter.begin()
+provider.channelGlitchDetector.begin()
+provider.channelCableDelayAdder.begin()
+signal_reconstructor.begin()
+
+# begin loop over events
+for event in reader.run():
+
+    event_id = event.get_id()
+    if selected_events is not None and event_id not in selected_events:
+        continue
+    print(f"Now on event {event_id}")
 
     station = event.get_station()
     trigger_type = station.get_first_trigger().get_name()
     station_time = station.get_station_time()
+    
+    signal_reconstructor.run(event, station, detector)
+    SNRs = [station.get_channel(ch)[chp.SNR]["peak_2_peak_amplitude"] for ch in channels]
 
-    (zenith, azimuth, correlation), corr_map = _run_deep_reco(
-        deep_channels, SNRs, station, detector, tt_maps,
-        RUN_NR, EVENT_ID, trigger_type, config_dict=config_dict,
+    (zenith, azimuth, correlation), corr_map = plane_wave_reconstructor.run(
+        event, station, return_corr_map=True
     )
-    skymap_path = "event_skymap.pdf"
+    
+    print(f"Event {event_id}: zenith={zenith}, azimuth={azimuth}, correlation={correlation:.2f}")
+    
+    skymap_path = os.path.join(skymap_outdir, 
+                                    f"station_{station_}_run_{run_id}_evt_{event_id}_corr_{correlation:.2f}.pdf")
+    plot_skymap(skymap_path, corr_map, prep_map["zeniths"], prep_map["azimuths"])
 
-
-    plot_skymap(skymap_path, corr_map, tt_maps["zeniths"], tt_maps["azimuths"])
-
-
-
+signal_reconstructor.end()
+provider.end()
+plane_wave_reconstructor.end()
