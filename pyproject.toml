@@ -57,6 +57,7 @@ iminuit = {version = "*", optional = true}
 scikit-optimize = {version = "*", optional = true}
 noisyopt = {version = "*", optional = true}
 pyarrow = {version = "*", optional = true}
+polars = {version = "*", optional = true}
 
 [tool.poetry.dev-dependencies]
 pre-commit = "*"
