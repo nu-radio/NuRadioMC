@@ -11,13 +11,21 @@ from pathlib import Path
 import h5py
 import numpy as np
 import pandas as pd
-from NuRadioReco.detector.RNO_G.rnog_detector import Detector
 from scipy.interpolate import RectSphereBivariateSpline
 
+from NuRadioReco.detector.RNO_G.rnog_detector import Detector
 
 
 def save_map(path: str | Path, tt_map: dict) -> None:
-    """Save a travel-time map using gzip-compressed HDF5 datasets."""
+    """Save a travel-time map using gzip-compressed HDF5 datasets.
+
+    Parameters
+    ----------
+    path : str | Path
+        The file path to save the travel-time map.
+    tt_map : dict
+        The travel-time map to save, containing 'zeniths', 'azimuths', and channel-pair arrays.
+    """
     destination = Path(path)
     with tempfile.NamedTemporaryFile(
         dir=destination.parent,
@@ -45,8 +53,37 @@ def save_map(path: str | Path, tt_map: dict) -> None:
 
 
 class InterpolatedMap(Mapping):
+    """
+    Interpolated travel-time map that lazily computes interpolations for channel-pair arrays.
+    Provides access to 'zeniths', 'azimuths', and channel-pair arrays as a read-only mapping.
+    """
     def __init__(self, source_zeniths, source_azimuths, target_zeniths, target_azimuths,
                  pairs, dtype=np.float32, path=None, group=None, raw_map=None):
+        """
+        Initialize an interpolated travel-time map.
+
+        Parameters
+        ----------
+        source_zeniths : np.ndarray
+            Array of source zenith angles.
+        source_azimuths : np.ndarray
+            Array of source azimuth angles.
+        target_zeniths : np.ndarray
+            Array of target zenith angles for interpolation.
+        target_azimuths : np.ndarray
+            Array of target azimuth angles for interpolation.
+        pairs : list of tuple
+            List of channel pairs to interpolate.
+        dtype : data-type, optional
+            Data type for the interpolated arrays. Default is np.float32.
+        path : str | Path, optional
+            Path to the HDF5 file containing the travel-time map. Default is None.
+        group : str, optional
+            HDF5 group within the file containing the travel-time map. Default is None.
+        raw_map : dict, optional
+            In-memory dictionary containing the travel-time map. Default is None.
+        """
+        
         if path is None and raw_map is None:
             raise ValueError("Must provide either `path`/`group` (HDF5) or `raw_map` (in-memory dict)")
         self.path, self.group, self.raw_map, self.pairs = path, group, raw_map, pairs
@@ -56,6 +93,19 @@ class InterpolatedMap(Mapping):
         self.cache = {}  # computed interpolations persist for the lifetime of this object
 
     def _build_interpolator(self, values):
+        """
+        Build a spherical bivariate spline interpolator for the given values.
+
+        Parameters
+        ----------
+        values : np.ndarray
+            Array of travel-time values corresponding to the source zenith and azimuth angles.
+
+        Returns
+        -------
+        RectSphereBivariateSpline
+            Spline interpolator for the given values.
+        """
         theta = self.source_zeniths
         phi = self.source_azimuths
 
@@ -92,7 +142,22 @@ class InterpolatedMap(Mapping):
 
 
 def load_map(path: str | Path, zeniths=90 * 10, azimuths=360 * 10) -> dict:
-    """Load a map whose channel-pair arrays interpolate lazily on access."""
+    """Load a map whose channel-pair arrays interpolate lazily on access.
+
+    Parameters
+    ----------
+    path : str | Path
+        The file path to the HDF5 travel-time map.
+    zeniths : int | np.ndarray, optional
+        Number of steps or array of target zenith angles for interpolation. Default is 90 * 10.
+    azimuths : int | np.ndarray, optional
+        Number of steps or array of target azimuth angles for interpolation. Default is 360 * 10.
+
+    Returns
+    -------
+    InterpolatedMap
+        Lazily-interpolating travel-time map object.
+    """
     with h5py.File(path, "r") as source:
         source_zeniths = source["zeniths"][:]
         source_azimuths = source["azimuths"][:]
@@ -106,7 +171,22 @@ def load_map(path: str | Path, zeniths=90 * 10, azimuths=360 * 10) -> dict:
 
 
 def map_from_dict(tt_map: dict, zeniths=90 * 10, azimuths=360 * 10) -> InterpolatedMap:
-    """Build a lazily-interpolating map directly from an in-memory tt_map dict, no HDF5 round-trip needed."""
+    """Build a lazily-interpolating map directly from an in-memory tt_map dict, no HDF5 round-trip needed.
+
+    Parameters
+    ----------
+    tt_map : dict
+        Dictionary containing the travel-time map with 'zeniths', 'azimuths', and channel-pair arrays.
+    zeniths : int | np.ndarray, optional
+        Number of steps or array of target zenith angles for interpolation. Default is 90 * 10.
+    azimuths : int | np.ndarray, optional
+        Number of steps or array of target azimuth angles for interpolation. Default is 360 * 10.
+
+    Returns
+    -------
+    InterpolatedMap
+        Lazily-interpolating travel-time map object.
+    """
     source_zeniths = np.asarray(tt_map["zeniths"])
     source_azimuths = np.asarray(tt_map["azimuths"])
     zeniths = np.linspace(0.001, np.pi / 2, zeniths) if isinstance(zeniths, int) else np.asarray(zeniths)
@@ -133,6 +213,9 @@ def load_map_non_interp(path: str | Path) -> dict:
 
 
 if __name__ == "__main__":
+    
+    ## Build and save the travel-time map for the specified station and calibration.
+    
     from reconstruction import _build_travel_time_map, _load_ice_model
 
     

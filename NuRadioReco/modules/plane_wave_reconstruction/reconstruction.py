@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def tqdm(*args, **kwargs):
     kwargs.setdefault("mininterval", 5)
-    #check if tqdm is available
+    #check if tqdm is available, if not, use a dummy tqdm
     try:
         from tqdm.auto import tqdm as tqdm_
     except ImportError:
@@ -30,6 +30,9 @@ def tqdm(*args, **kwargs):
 # =============================================================================
 
 def _load_ice_model(calibration_file):
+    """
+    load the ice model from the given calibration file.
+    """
     logger.warning("Loading ice model from %s", calibration_file)
     with lzma.open(calibration_file, "rt") as f:
         calibrated_ice_data = json.load(f)["additional_data"]["ice_model"]
@@ -37,6 +40,30 @@ def _load_ice_model(calibration_file):
     return medium_base.IceModelContinuousExpLayers(**medium_args)
 
 def _compute_pair_tt_map(pos_a, pos_b, delay_a, delay_b, zeniths, azimuths, rt):
+    """
+    Compute the travel-time map for a pair of channels given their positions, delays, and the ray-tracing object.
+    Parameters
+    ----------
+    pos_a : np.ndarray
+        (x, y, z) position of channel A.
+    pos_b : np.ndarray
+        (x, y, z) position of channel B.
+    delay_a : float
+        Time delay of channel A.
+    delay_b : float
+        Time delay of channel B.
+    zeniths : np.ndarray
+        Array of zenith angles.
+    azimuths : np.ndarray
+        Array of azimuth angles.
+    rt : RayTracing
+        Ray-tracing object.
+    
+    Returns
+    -------
+    tt_map : np.ndarray
+        Travel-time map for the channel pair.
+    """
     tt_map = np.empty((zeniths.size, azimuths.size), dtype=np.float32)
 
     rt.set_start_and_end_point_no_swap(pos_a, pos_b)
@@ -48,14 +75,39 @@ def _compute_pair_tt_map(pos_a, pos_b, delay_a, delay_b, zeniths, azimuths, rt):
     return tt_map
 
 def _build_travel_time_map(det, ice_model, station_id, channels,
-                           zeniths = np.linspace(1e-5, np.pi / 2, 90 * 1),
-                           azimuths = np.linspace(0.0, 2 * np.pi, 360 * 1),
+                           zeniths_steps = 90,
+                           azimuths_steps = 360,
                            use_multiprocessing=False):
+    """
+    Build the travel-time map for all pairs of channels in the given station.
+    Parameters
+    ----------
+    det : Detector
+        The detector object containing station and channel information.
+    ice_model : IceModel
+        The ice model used for ray tracing.
+    station_id : int
+        The ID of the station for which to build the travel-time map.
+    channels : list of int
+        List of channel indices to include in the travel-time map.
+    zeniths_steps : int, optional
+        Number of steps for the zenith angle array. Default is 90.
+    azimuths_steps : int, optional
+        Number of steps for the azimuth angle array. Default is 360.
+    use_multiprocessing : bool, optional
+        Whether to use multiprocessing for computing the travel-time maps. Default is False.
 
+    Returns
+    -------
+    tt_maps : dict
+        Dictionary containing the travel-time maps for all pairs of channels, along with the zenith and azimuth arrays.
+    """
     from NuRadioMC.SignalProp import propagation
     art = propagation.get_propagation_module("analytic")
     rt = art(ice_model, compile_numba=True)
 
+    zeniths = np.linspace(1e-5, np.pi / 2, zeniths_steps)
+    azimuths = np.linspace(0.0, 2 * np.pi, azimuths_steps)
     tt_maps = {"zeniths": zeniths, "azimuths": azimuths}
 
     channel_pairs = list(itertools.combinations(channels, 2))
@@ -89,6 +141,27 @@ def _build_travel_time_map(det, ice_model, station_id, channels,
 # =============================================================================
 
 def deep_plane_reco(trace_by_channel, fs, tt_maps, lags = None, normfact = None):
+    """
+    Perform deep plane wave reconstruction by computing the cross-correlation map for all pairs of channels.
+
+    Parameters
+    ----------
+    trace_by_channel : dict
+        Dictionary mapping channel indices to their corresponding traces.
+    fs : float
+        Sampling frequency of the traces.
+    tt_maps : dict
+        Travel-time maps for all pairs of channels.
+    lags : np.ndarray, optional
+        Array of lag values for cross-correlation. Default is None.
+    normfact : np.ndarray, optional
+        Normalization factor for cross-correlation. Default is None.
+
+    Returns
+    -------
+    corr_map : np.ndarray
+        Cross-correlation map averaged over all pairs of channels.
+    """
     
     corrs = []
     
@@ -120,21 +193,22 @@ def deep_plane_reco(trace_by_channel, fs, tt_maps, lags = None, normfact = None)
     return corr_map
 
 
-
-def _get_run_path(station_, run_id, inbox, new_dir):
-    
-    INBOX_RNOG_DATA = "/pnfs/ifh.de/acs/radio/diskonly/data/inbox/"
-    RNOG_DATA = "/pnfs/ifh.de/acs/radio/diskonly/data/full/root/"
-    NEW_DATA = "/pnfs/ifh.de/acs/radio/diskonly/new_data/"
-    
-    if inbox:
-        return os.path.join(INBOX_RNOG_DATA, f"station{station_}/run{run_id}/combined.root")
-    if new_dir:
-        return os.path.join(NEW_DATA, f"station{station_}/run{run_id}")
-    return os.path.join(RNOG_DATA, f"station{station_}/run{run_id}")
-
-
 def _get_coherent_snr(station, channels):
+    """
+    Compute the coherent signal-to-noise ratio (SNR) for a given station and set of channels.
+
+    Parameters
+    ----------
+    station : object
+        The station object containing channel data.
+    channels : list
+        List of channel indices to consider for the coherent SNR calculation.
+
+    Returns
+    -------
+    snr : float
+        The coherent signal-to-noise ratio for the given channels.
+    """
     traces = [station.get_channel(ch).get_trace() for ch in channels]
     SNRs = [station.get_channel(ch)[chp.SNR]["peak_2_peak_amplitude"] for ch in channels]
     argmax = np.argmax(SNRs)
@@ -147,44 +221,62 @@ def _get_coherent_snr(station, channels):
             ).get_sampling_rate()))
     return snr
 
-def _run_deep_reco(channels, station, tt_maps):
+def _run_deep_reco(channels, station, tt_maps, trace_preprocessor=None):
+    """
+    Run the deep plane wave reconstruction for a given set of channels and station.
+
+    Parameters
+    ----------
+    channels : list
+        List of channel indices to consider for the reconstruction.
+    station : object
+        The station object containing channel data.
+    tt_maps : dict
+        Travel-time maps for all pairs of channels.
+
+    Returns
+    -------
+    best_result : tuple
+        The best reconstruction result as a tuple (zenith, azimuth, correlation).
+    corr_map : np.ndarray
+        The cross-correlation map used for the reconstruction.
+    """
 
     # Trace preprocessing
     resample_factor = 8
     fs = station.get_channel(channels[0]).get_sampling_rate() * resample_factor
     
-    
-    def trace_preprocessor(trace):
+    if trace_preprocessor is None:
         
-        mod_trace = resample(trace, sampling_factor=resample_factor)
+        def trace_preprocessor(trace):
+        
+            mod_trace = resample(trace, sampling_factor=resample_factor)
 
-        pad_width = 512
-        padded_trace = np.pad(
-            mod_trace,
-            (pad_width, pad_width),
-            mode="constant",
-            constant_values=0,
-        )
+            pad_width = 512
+            padded_trace = np.pad(
+                mod_trace,
+                (pad_width, pad_width),
+                mode="constant",
+                constant_values=0,
+            )
 
-        filtered_trace = butterworth_filter_trace(
-            padded_trace,
-            fs,
-            [0.05, 0.5],
-            order=8,
-        )
+            filtered_trace = butterworth_filter_trace(
+                padded_trace,
+                fs,
+                [0.05, 0.5],
+                order=8,
+            )
 
-        # Remove the padding after filtering.
-        mod_trace = filtered_trace[pad_width:-pad_width]
+            # Remove the padding after filtering.
+            mod_trace = filtered_trace[pad_width:-pad_width]
 
-        std = np.std(mod_trace)
-        if std > 0:
-            mod_trace = mod_trace / std
+            std = np.std(mod_trace)
+            if std > 0:
+                mod_trace = mod_trace / std
 
-        return mod_trace
+            return mod_trace
 
     trace_by_channel = {ch: trace_preprocessor(station.get_channel(ch).get_trace()) for ch in channels}
-
-    
 
     # Correlation map calculation
     corr_map = deep_plane_reco(trace_by_channel, fs, tt_maps) 
@@ -202,6 +294,9 @@ def _run_deep_reco(channels, station, tt_maps):
 
 
 class PlaneWaveReconstructor():
+    """
+    Plane wave reconstructor class.
+    """
     def __init__(self, station, detector, channels, ice_model, tt_map_path=None):
         """Initialize class
         """
@@ -223,7 +318,21 @@ class PlaneWaveReconstructor():
     
     @register_run()
     def run(self, evt, station, return_corr_map=False):
-        """Run the plane wave reconstructor"""
+        """Run the plane wave reconstructor
+        Parameters
+        ----------
+        evt : Event object
+            The event to process.
+        station : Station object
+            The station containing the traces.
+        return_corr_map : bool, optional
+            Whether to return the correlation map, by default False.
+
+        Returns
+        -------
+        tuple
+            (zenith, azimuth, correlation) and optionally the correlation map.
+        """
         
         (zenith, azimuth, correlation), corr_map = _run_deep_reco(
             self.channels, station, self.tt_map,
@@ -238,6 +347,21 @@ class PlaneWaveReconstructor():
 
 
 def plot_skymap(outpath, corrmap, zen, az):
+    """
+    Plot the sky map of the correlation map with the reconstructed zenith and azimuth angles.
+
+    Parameters
+    ----------
+    outpath : str
+        The path to save the plot.
+    corrmap : 2D numpy array
+        The correlation map.
+    zen : 1D numpy array
+        The zenith angles corresponding to the correlation map.
+    az : 1D numpy array
+        The azimuth angles corresponding to the correlation map.
+    """
+    
     import matplotlib.pyplot as plt
     import scipy.ndimage
     from matplotlib.gridspec import GridSpec
