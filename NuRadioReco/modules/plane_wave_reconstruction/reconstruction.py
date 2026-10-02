@@ -39,7 +39,7 @@ def _load_ice_model(calibration_file):
     medium_args = calibrated_ice_data["args"]
     return medium_base.IceModelContinuousExpLayers(**medium_args)
 
-def _compute_pair_tt_map(pos_a, pos_b, delay_a, delay_b, zeniths, azimuths, rt):
+def _compute_pair_tt_map(pos_a: np.ndarray, pos_b: np.ndarray, delay_a: float, delay_b: float, zeniths: np.ndarray, azimuths: np.ndarray, rt) -> np.ndarray:
     """
     Compute the travel-time map for a pair of channels given their positions, delays, and the ray-tracing object.
     Parameters
@@ -74,10 +74,10 @@ def _compute_pair_tt_map(pos_a, pos_b, delay_a, delay_b, zeniths, azimuths, rt):
 
     return tt_map
 
-def _build_travel_time_map(det, ice_model, station_id, channels,
-                           zeniths_steps = 90,
-                           azimuths_steps = 360,
-                           use_multiprocessing=False):
+def _build_travel_time_map(det, ice_model, station_id: int, channels: list[int],
+                           zeniths_steps: int = 90,
+                           azimuths_steps: int = 360,
+                           use_multiprocessing: bool = False):
     """
     Build the travel-time map for all pairs of channels in the given station.
     Parameters
@@ -85,6 +85,7 @@ def _build_travel_time_map(det, ice_model, station_id, channels,
     det : Detector
         The detector object containing station and channel information.
     ice_model : IceModel
+        The ice model used for ray tracing. 
         The ice model used for ray tracing.
     station_id : int
         The ID of the station for which to build the travel-time map.
@@ -140,7 +141,7 @@ def _build_travel_time_map(det, ice_model, station_id, channels,
 # XCORR RECONSTRUCTION
 # =============================================================================
 
-def deep_plane_reco(trace_by_channel, fs, tt_maps, lags = None, normfact = None):
+def deep_plane_reco(trace_by_channel: dict[int, np.ndarray], fs: float, tt_maps: dict, lags: np.ndarray = None, normfact: np.ndarray = None):
     """
     Perform deep plane wave reconstruction by computing the cross-correlation map for all pairs of channels.
 
@@ -221,7 +222,7 @@ def _get_coherent_snr(station, channels):
             ).get_sampling_rate()))
     return snr
 
-def _run_deep_reco(channels, station, tt_maps, trace_preprocessor=None):
+def _run_deep_reco(channels: list[int], station, tt_maps: dict, trace_preprocessor=None):
     """
     Run the deep plane wave reconstruction for a given set of channels and station.
 
@@ -241,6 +242,7 @@ def _run_deep_reco(channels, station, tt_maps, trace_preprocessor=None):
     corr_map : np.ndarray
         The cross-correlation map used for the reconstruction.
     """
+    #TODO: allow user to pss custom channel weights
 
     # Trace preprocessing
     resample_factor = 8
