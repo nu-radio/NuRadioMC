@@ -1109,8 +1109,8 @@ def get_impulse_template_correlations(trace, sampling_rate):
     """Correlate a trace against idealised impulse templates.
 
     Returns a dict mapping template name (``delta``, ``bipolar``,
-    ``gaussian``, ``bipolar_wide``, ``sinc``) to max |normalised
-    correlation| in [0, 1].
+    ``gaussian``, ``bipolar_wide``, ``sinc``) to the maximum absolute
+    normalised correlation in [0, 1].
 
     Uses cached conjugate rFFTs of the zero-padded templates so all five
     correlations are computed in a single batched rFFT/irFFT pair per
@@ -1166,19 +1166,27 @@ def get_band_features(trace, sampling_rate, band_lo, band_hi,
     any cross-channel ratio built from it, robust to per-channel gain
     miscalibration.
 
-    Args:
-        trace: Voltage trace (1-D).
-        sampling_rate: Sampling rate (use GHz inside NuRadioReco).
-        band_lo, band_hi: Signal band edges, same units as sampling_rate.
-        fmin, fmax: Full spectral range for ``peak_frequency`` and the
-            band-power-ratio denominator. Default: full positive spectrum.
-        noise_segments, noise_lowest: Split-trace noise estimate controls
-            (mirror ``get_split_trace_noise_RMS``): the band noise power is
-            the mean in-band power of the ``noise_lowest`` quietest of
-            ``noise_segments`` equal segments, scaled to the full length.
+    Parameters
+    ----------
+    trace : array
+        Voltage trace (1-D).
+    sampling_rate : float
+        Sampling rate (use GHz inside NuRadioReco).
+    band_lo, band_hi : float
+        Signal band edges, same units as sampling_rate.
+    fmin, fmax : float, optional
+        Full spectral range for ``peak_frequency`` and the band-power-ratio
+        denominator. Default: full positive spectrum.
+    noise_segments, noise_lowest : int
+        Split-trace noise estimate controls (mirror
+        ``get_split_trace_noise_RMS``): the band noise power is the mean
+        in-band power of the ``noise_lowest`` quietest of ``noise_segments``
+        equal segments, scaled to the full length.
 
-    Returns:
-        dict with keys ``band_power`` (raw in-band power), ``band_snr``
+    Returns
+    -------
+    dict
+        Keys ``band_power`` (raw in-band power), ``band_snr``
         (gain-referenced in-band power-SNR), ``band_power_ratio`` (in-band
         / full-range power), ``band_slope`` (log10 of upper-half / lower-half
         in-band power; spectral tilt), and ``peak_frequency``.
@@ -1239,15 +1247,21 @@ def get_normalized_cross_correlation(trace_a, trace_b, max_lag=None):
     co-located HPOL/VPOL pairs: a coherent plane wave hits both with
     correlated structure at near-zero lag; thermal noise does not.
 
-    Args:
-        trace_a, trace_b: Equal-length voltage traces.
-        max_lag: If given, restrict the search to lags in [-max_lag, max_lag]
-            samples.
+    Parameters
+    ----------
+    trace_a, trace_b : array
+        Equal-length voltage traces.
+    max_lag : int, optional
+        If given, restrict the search to lags in [-max_lag, max_lag] samples.
 
-    Returns:
-        (max_abs_corr, lag) where max_abs_corr is in [0, 1] and lag is the
-        sample offset (b relative to a) at the peak. (nan, 0) if either
-        trace has zero norm.
+    Returns
+    -------
+    max_abs_corr : float
+        Peak absolute normalized correlation in [0, 1]; nan if either trace
+        has zero norm.
+    lag : int
+        Sample offset (b relative to a) at the peak; 0 if either trace has
+        zero norm.
     """
     a = np.asarray(trace_a, float)
     b = np.asarray(trace_b, float)
