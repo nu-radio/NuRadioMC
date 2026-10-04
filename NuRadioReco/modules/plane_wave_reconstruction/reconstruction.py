@@ -5,7 +5,8 @@ import lzma
 import os
 
 import numpy as np
-import scipy.signal
+import scipy.fft
+import time
 
 from NuRadioMC.utilities import medium_base
 from NuRadioReco.framework.parameters import channelParameters as chp
@@ -14,6 +15,24 @@ from NuRadioReco.utilities import trace_utilities, units
 from NuRadioReco.utilities.signal_processing import butterworth_filter_trace, resample
 
 logger = logging.getLogger(__name__)
+
+try:
+    import numba
+
+    @numba.njit(parallel=True)
+    def _add_interp(out, tt_map, correlation, fs, lag0):
+        """out += correlation linearly interpolated at lag = tt_map * fs (lag0 = index of zero lag); 0 outside."""
+        n_lags = correlation.size
+        one = np.float32(1.0)
+        for iz in numba.prange(tt_map.shape[0]):
+            for ia in range(tt_map.shape[1]):
+                x = tt_map[iz, ia] * fs + lag0
+                i0 = int(np.floor(x))
+                if 0 <= i0 < n_lags - 1:
+                    f = x - np.float32(i0)
+                    out[iz, ia] += correlation[i0] * (one - f) + correlation[i0 + 1] * f
+except ImportError:
+    numba = None
 
 
 def tqdm(*args, **kwargs):
@@ -141,7 +160,7 @@ def _build_travel_time_map(det, ice_model, station_id: int, channels: list[int],
 # XCORR RECONSTRUCTION
 # =============================================================================
 
-def deep_plane_reco(trace_by_channel: dict[int, np.ndarray], fs: float, tt_maps: dict, lags: np.ndarray = None, normfact: np.ndarray = None):
+def deep_plane_reco(trace_by_channel: dict[int, np.ndarray], fs: float, tt_maps: dict, use_numba: bool = False):
     """
     Perform deep plane wave reconstruction by computing the cross-correlation map for all pairs of channels.
 
@@ -153,10 +172,8 @@ def deep_plane_reco(trace_by_channel: dict[int, np.ndarray], fs: float, tt_maps:
         Sampling frequency of the traces.
     tt_maps : dict
         Travel-time maps for all pairs of channels.
-    lags : np.ndarray, optional
-        Array of lag values for cross-correlation. Default is None.
-    normfact : np.ndarray, optional
-        Normalization factor for cross-correlation. Default is None.
+    use_numba : bool, optional
+        Use a numba kernel for the lag interpolation. Default is False.
 
     Returns
     -------
@@ -164,33 +181,63 @@ def deep_plane_reco(trace_by_channel: dict[int, np.ndarray], fs: float, tt_maps:
         Cross-correlation map averaged over all pairs of channels.
     """
     
-    corrs = []
-    
-    for ((ch_a, trace_a), (ch_b, trace_b)) in itertools.combinations(trace_by_channel.items(), 2):
-        weight = 1.0
-    
+    n_samples = len(next(iter(trace_by_channel.values())))
+    n_fft = scipy.fft.next_fast_len(2 * n_samples - 1, real=True)
+    fs = np.float32(fs)
+
+    # lag axis in samples: -(N-1) ... N-1
+    lags = np.arange(-(n_samples - 1), n_samples, dtype=np.float32)
+    # correct for the varying number of overlapping samples at each lag: 1 / (N - |lag|)
+    inv_overlap = (1.0 / (n_samples - np.abs(lags))).astype(np.float32)
+
+    # one forward FFT per channel and one inverse FFT per pair, both batched (complex64 / float32)
+    channels = list(trace_by_channel)
+    traces = np.stack([trace_by_channel[ch] for ch in channels]).astype(np.float32)
+    spec = scipy.fft.rfft(traces, n=n_fft, axis=1, workers=-1)
+    idx_a, idx_b = np.array(list(itertools.combinations(range(len(channels)), 2))).T
+    r = scipy.fft.irfft(spec[idx_a] * np.conj(spec[idx_b]), n=n_fft, axis=1, workers=-1)
+    # circular -> linear lag order: lags -(N-1)..-1 sit at the end, 0..N-1 at the start
+    xcorrs = np.concatenate((r[:, n_fft - (n_samples - 1):], r[:, :n_samples]), axis=1) * inv_overlap
+
+    corrs = np.zeros((tt_maps["zeniths"].size, tt_maps["azimuths"].size), dtype=np.float32)
+    n_pairs = 0
+    # loop over all unique pairs of channels
+    for p, (i_a, i_b) in enumerate(zip(idx_a, idx_b)):
+        ch_a, ch_b = channels[i_a], channels[i_b]
+        weight = np.float32(1.0)
+        
+        # phased array channels get lower weight since they are so close together
         if ch_a in [0,1,2,3]:
             weight*=0.25
         if ch_b in [0,1,2,3]:
             weight*=0.25
         
-        if lags is None:
-            n_samples = len(trace_a)
-            lags = scipy.signal.correlation_lags(n_samples, n_samples, mode='full')
-
-        if normfact is None:
-            normfact = scipy.signal.correlate(np.ones_like(trace_a), np.ones_like(trace_b), mode = "full")
-
+        # lag axis in n_lag_samples: -(N-1) ... N-1
+        # (computed once above)
+            
+        # (overlap normalisation applied above)
+        
+        # 2d array: expected dt(zenith, azimuth) for this pair, in time units
         delta_t_map = tt_maps[(ch_a, ch_b)]
-        correlation = scipy.signal.correlate(
-                trace_a, trace_b,
-                mode="full"
-                ) / normfact * weight
+        
+        # 1d array: cross-correlation of the two traces, xcorr(n_lag_samples)
+        correlation = xcorrs[p] * weight
 
+        # expected lag in samples: dt * fs = n_lag_samples
+        # we go from 2D dt map -> 2D n_lag_samples map
         expected_lags = delta_t_map * fs
-        corrs.append(np.interp(expected_lags, lags, correlation, left=0.0, right=0.0))
-
-    corr_map = np.mean(corrs, axis = 0)
+        # interpolate, get the xcorr value at the expected lags for this pair
+        # with 2D input np.interp evaluates elementwise and returns 
+        # an array with same shape as first argument
+        # we go from 2D n_lag_samples map -> 2D xcorr map
+        
+        if use_numba:
+            _add_interp(corrs, delta_t_map, correlation, fs, np.float32(n_samples - 1))
+        else:
+            corrs += np.interp(expected_lags, lags, correlation, left=0.0, right=0.0)
+        n_pairs += 1
+    
+    corr_map = corrs / n_pairs
     return corr_map
 
 
@@ -222,7 +269,7 @@ def _get_coherent_snr(station, channels):
             ).get_sampling_rate()))
     return snr
 
-def _run_deep_reco(channels: list[int], station, tt_maps: dict, trace_preprocessor=None):
+def _run_deep_reco(channels: list[int], station, tt_maps: dict, trace_preprocessor=None, use_numba=False):
     """
     Run the deep plane wave reconstruction for a given set of channels and station.
 
@@ -281,7 +328,7 @@ def _run_deep_reco(channels: list[int], station, tt_maps: dict, trace_preprocess
     trace_by_channel = {ch: trace_preprocessor(station.get_channel(ch).get_trace()) for ch in channels}
 
     # Correlation map calculation
-    corr_map = deep_plane_reco(trace_by_channel, fs, tt_maps) 
+    corr_map = deep_plane_reco(trace_by_channel, fs, tt_maps, use_numba=use_numba)
    
     # Extraction of maximum-correlation direction
     corr_index = np.unravel_index(np.argmax(corr_map), corr_map.shape)
@@ -299,9 +346,15 @@ class PlaneWaveReconstructor():
     """
     Plane wave reconstructor class.
     """
-    def __init__(self, station, detector, channels, ice_model, tt_map_path=None):
+    def __init__(self, station, detector, channels, ice_model, tt_map_path=None, use_numba=True):
         """Initialize class
+
+        use_numba : bool, optional
+            Use the numba kernel for the lag interpolation (requires numba). Default is False.
         """
+        if use_numba and numba is None:
+            raise ImportError("use_numba=True requires numba to be installed")
+        self.use_numba = use_numba
         self.station = station
         self.detector = detector
         self.channels = channels
@@ -319,7 +372,7 @@ class PlaneWaveReconstructor():
 
     
     @register_run()
-    def run(self, evt, station, return_corr_map=False):
+    def run(self, evt, station, return_corr_map=False, print_execution_time=True):
         """Run the plane wave reconstructor
         Parameters
         ----------
@@ -335,10 +388,14 @@ class PlaneWaveReconstructor():
         tuple
             (zenith, azimuth, correlation) and optionally the correlation map.
         """
-        
+        t_start = time.perf_counter()
+
         (zenith, azimuth, correlation), corr_map = _run_deep_reco(
-            self.channels, station, self.tt_map,
+            self.channels, station, self.tt_map, use_numba=self.use_numba,
         )
+        if print_execution_time:
+            t_end = time.perf_counter()
+            print(f"Execution time: {t_end - t_start:.6f} seconds")
         if return_corr_map:
             return (zenith, azimuth, correlation), corr_map
         return (zenith, azimuth, correlation)
