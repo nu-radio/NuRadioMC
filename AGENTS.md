@@ -104,7 +104,7 @@ Manuals: `documentation/source/NuRadioMC/pages/Manuals/` (config, event generati
 - **FFT**: use `NuRadioReco.utilities.fft` (`freqs`, `time2freq`, `freq2time`), never bare `numpy.fft`. Convention: `rfft / sampling_rate * sqrt(2)` → spectra in V/GHz, energy-conserving (`sum(trace**2) * dt ≈ sum(|spec|**2) * df`, up to DC/Nyquist bins).
 - **Coordinates**: x = East, y = North, z = up; origin at the surface. Zenith 0° = up, 180° = down; azimuth counted from East towards North. Directions point to where the signal *came from* (exception: `launch_vector`). See `Introduction/pages/conventions.rst`.
 - **Particles**: PDG codes (12/14/16 = νe/νμ/ντ, negative = anti).
-- **Style**: PEP-8, space after commas, numpydoc docstrings (blank line before lists). Don't restyle untouched legacy code.
+- **Style**: PEP-8, space after commas, numpydoc docstrings (blank line before lists). Don't restyle untouched legacy code. In docstrings, the default Sphinx role resolves single backticks as Python references; use double backticks for anything that isn't an importable object (module lists, file paths, package names), or the docs build fails.
 - **API changes**: deprecate instead of removing public API (`deprecated` decorator in `NuRadioReco/utilities/logging.py`, or a property that warns).
 - **Dependencies**: do not add new ones without discussing with maintainers.
 
