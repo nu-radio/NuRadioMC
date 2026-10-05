@@ -256,6 +256,11 @@ jobs:
         python NuRadioReco/test/io/test_event_writer_parquet.py
         python NuRadioReco/examples/parquet_io_example.py
 
+    - name: "Test light utilities import without heavy dependencies"
+      if: always()
+      run: |
+        python NuRadioReco/test/utilities/test_light_imports.py
+
     - name: "Test calibration pulser example"
       if: always()
       run: |

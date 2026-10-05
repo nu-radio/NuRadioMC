@@ -25,9 +25,6 @@ See Also
 
 from NuRadioReco.utilities import units, geometryUtilities as geo_utl, fft, trace_utilities, constants
 
-from NuRadioReco.detector import filterresponse
-from NuRadioReco.detector.response import Response
-import NuRadioReco.framework.base_trace
 
 from scipy.signal.windows import hann
 from scipy import signal, interpolate, integrate
@@ -35,11 +32,21 @@ import numpy as np
 import fractions
 import decimal
 import copy
-
-from matplotlib import pyplot as plt  # for debugging plots
+import sys
 
 import logging
 logger = logging.getLogger("NuRadioReco.utilities.signal_processing")
+
+
+def _isinstance_if_loaded(obj, module_name, class_name):
+    """
+    Check ``isinstance(obj, module_name.class_name)`` without importing the module.
+
+    If the module was never imported, ``obj`` cannot be an instance. This keeps
+    the framework/detector packages out of the import chain of this module.
+    """
+    module = sys.modules.get(module_name)
+    return module is not None and isinstance(obj, getattr(module, class_name))
 
 
 def half_hann_window(length, half_percent=None, hann_window_length=None):
@@ -333,6 +340,7 @@ def get_filter_response(
         )
 
     else:
+        from NuRadioReco.detector import filterresponse  # lazy: keeps the detector package out of the import chain
         return filterresponse.get_filter_response(frequencies, filter_type)
 
 
@@ -433,7 +441,7 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
     """
     # Do nothing if time_delay is 0
     if not time_delay:
-        if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
+        if _isinstance_if_loaded(trace, 'NuRadioReco.framework.base_trace', 'BaseTrace'):
             if crop_trace:
                 return trace.get_trace(), 0
             else:
@@ -444,7 +452,7 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
             else:
                 return trace
 
-    if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
+    if _isinstance_if_loaded(trace, 'NuRadioReco.framework.base_trace', 'BaseTrace'):
         spectrum = trace.get_frequency_spectrum()
         frequencies = trace.get_frequencies()
         if trace.get_sampling_rate() != sampling_frequency:
@@ -720,7 +728,7 @@ def window_response_in_time_domain(
         The windowed response function or spectrum.
     """
 
-    if isinstance(resp, Response) or callable(resp):
+    if _isinstance_if_loaded(resp, 'NuRadioReco.detector.response', 'Response') or callable(resp):
         spec = resp(freqs)
         input_response = True
         num_samples = int(t0 * sampling_rate)
@@ -745,6 +753,7 @@ def window_response_in_time_domain(
     hilbert = np.abs(trace_utilities.get_hilbert_envelope(time_response))
 
     if show_debug:
+        from matplotlib import pyplot as plt
         fig, ax = plt.subplots()
         ax.plot(times, time_response / np.amax(time_response), label='time response', lw=1)
         ax.plot(times, hilbert / np.amax(hilbert), label='hilbert', lw=1)

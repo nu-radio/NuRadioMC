@@ -9,7 +9,6 @@ from NuRadioReco.utilities import units, ice
 from numpy.lib import scimath as SM
 from scipy import constants
 from scipy.spatial.transform import Rotation
-import radiotools.helper as hp
 import numpy as np
 import logging
 logger = logging.getLogger('NuRadioReco.geometryUtilities')
@@ -383,6 +382,8 @@ def analytic_plane_wave_fit(dt, pos, n_index=1.000293):
     """
     if len(dt) > 3:
         logger.warning("System overdetermined, using only first three time delays & observers")
+
+    import radiotools.helper as hp  # lazy: radiotools is not needed to import this module
 
     dpos = pos - pos[0:1]
     rot = None
