@@ -4,16 +4,21 @@ Check that lightweight utilities import without heavy third-party dependencies.
 Each import runs in a fresh subprocess with some packages made unimportable. Two categories exist:
 
 * ``LIGHT_MODULES``: numpy (and the stdlib) only.
-* ``SCIPY_MODULES``: additionally scipy
+* ``SCIPY_MODULES``: additionally scipy. matplotlib must be imported lazily, and neither the
+  NuRadioReco framework nor radiotools/astropy may be pulled in.
 
 Add a module to the respective list if it should stay importable with these dependencies only.
+Modules with heavier dependencies go to ``HEAVY_MODULES`` (not tested). Every module in
+``NuRadioReco.utilities`` has to be listed in one of the three, otherwise ``test_all_modules_classified`` fails.
 """
 import subprocess
 import sys
 
 LIGHT_MODULES = ["units", "fft", "logging", "ice", "particle_names", "timing", "metaclasses", "_fastnumpyio",
-                 "io_utilities"]
-SCIPY_MODULES = ["constants", "geometryUtilities", "trace_utilities", "signal_processing", "analytic_pulse"]
+                 "io_utilities", "templates"]
+SCIPY_MODULES = ["constants", "geometryUtilities", "trace_utilities", "signal_processing", "analytic_pulse", "cr_flux"]
+HEAVY_MODULES = ["_deprecated", "dataservers", "diodeSimulator", "framework_utilities", "interferometry", "matched_filter",
+                 "minimization", "noise", "version"]
 
 OTHER_HEAVY = ["astropy", "radiotools", "aenum", "pyarrow", "polars", "h5py", "pandas", "numba", "toml", "requests"]
 BLOCKED_LIGHT = ["scipy", "matplotlib"] + OTHER_HEAVY
@@ -55,6 +60,20 @@ def test_scipy_imports():
         assert res.returncode == 0, f"{module} needs more than scipy:\n{res.stderr[-1000:]}"
 
 
+def test_all_modules_classified():
+    """Every module in ``NuRadioReco.utilities`` is assigned to a dependency category."""
+    import pkgutil
+    import NuRadioReco.utilities
+
+    known = set(LIGHT_MODULES + SCIPY_MODULES + HEAVY_MODULES)
+    found = {m.name for m in pkgutil.iter_modules(NuRadioReco.utilities.__path__)}
+    missing = sorted(found - known)
+    assert not missing, (f"New module(s) {missing} not classified: add them to LIGHT_MODULES, SCIPY_MODULES "
+                         f"or HEAVY_MODULES in {__file__} (and to the docstring of NuRadioReco/utilities/__init__.py)")
+    stale = sorted(known - found)
+    assert not stale, f"Listed module(s) {stale} do not exist (anymore)"
+
+
 def test_deprecated_import_paths():
     """The deprecated import paths (with lazy imports) still resolve with all dependencies available."""
     code = ("import warnings\n"
@@ -69,5 +88,6 @@ def test_deprecated_import_paths():
 if __name__ == "__main__":
     test_light_imports()
     test_scipy_imports()
+    test_all_modules_classified()
     test_deprecated_import_paths()
     print("OK")
