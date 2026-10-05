@@ -44,7 +44,7 @@ bugfixes:
   This is only relevant when simulating primaries and large detector arrays.
 - `AntennaPatternProvider` no longer discards its buffer of loaded antenna models when it is instantiated a second time,
   which caused the (large) antenna model files to be read from disk again.
-- `AntennaPatternProvider.load_antenna_pattern` no longer ignores the keyword arguments (e.g. interpolation_method, max_VEL)
+- The AntennaPatternProvider (`AntennaPatternProvider.load_antenna_pattern`) no longer ignores the keyword arguments (e.g. interpolation_method, max_VEL)
   when the antenna model is already buffered, i.e. it returned a pattern configured differently than requested. The arguments
   are now part of the buffer key and loading a second variant of the same model is logged.
 - Fixing the 'magphase' interpolation of the antenna response, which unwrapped the phase along the frequency axis instead
@@ -54,8 +54,6 @@ bugfixes:
   RNO_G detector descriptions) is affected, where the vector effective length was off by up to 70% at some zenith angles.
 - The AntennaPatternProvider buffer is no longer emptied every time the (singleton) provider is instantiated. Antenna models
   were reloaded from disk whenever another module created its own provider.
-- The AntennaPatternProvider no longer ignores the keyword arguments (e.g. interpolation_method, max_VEL) when the antenna
-  model is already buffered. They are now part of the buffer key.
 - Antenna responses for directions outside the tabulated range return one value per frequency instead of a single value.
 - Fix bug in the readRNOGDataMattak where the trigger dependend readout delays were applied with the
   the wrong sign to the trace_start_time
