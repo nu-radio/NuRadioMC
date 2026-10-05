@@ -23,6 +23,8 @@ from NuRadioReco.framework.parameters import stationParameters, channelParameter
 
 from NuRadioReco.pipeline.LOFAR import simulation_pipeline
 
+core_spread = 10.0 # Set to a smaller value for testing; adjust as needed
+
 def validate_reconstruction(test_event, true_event):
     """Compare the reconstruction results of the test event with the pre-saved true event."""
     # Compare the reconstructed parameters
@@ -34,8 +36,8 @@ def validate_reconstruction(test_event, true_event):
     assert np.isclose(test_shower.get_parameter(showerParameters.azimuth), true_shower.get_parameter(showerParameters.azimuth), rtol=0.1)
     assert np.isclose(test_shower.get_parameter(showerParameters.shower_maximum), true_shower.get_parameter(showerParameters.shower_maximum), rtol=0.1)
     # absolute tolerance for the core is set such that it should be within 1 std of the randomised core spread (10 m) used in the simulation
-    assert np.isclose(test_shower.get_parameter(showerParameters.core)[0], true_shower.get_parameter(showerParameters.core)[0], atol=10.0) 
-    assert np.isclose(test_shower.get_parameter(showerParameters.core)[1], true_shower.get_parameter(showerParameters.core)[1], atol=10.0)
+    assert np.isclose(test_shower.get_parameter(showerParameters.core)[0], true_shower.get_parameter(showerParameters.core)[0], atol=core_spread) 
+    assert np.isclose(test_shower.get_parameter(showerParameters.core)[1], true_shower.get_parameter(showerParameters.core)[1], atol=core_spread)
     assert np.isclose(test_shower.get_parameter(showerParameters.core)[2], true_shower.get_parameter(showerParameters.core)[2], rtol=0.1)
     
 def validate_reco_vs_mc_truth(test_event):
@@ -48,8 +50,8 @@ def validate_reco_vs_mc_truth(test_event):
     assert np.isclose(test_shower.get_parameter(showerParameters.azimuth), mc_shower.get_parameter(showerParameters.azimuth), rtol=0.1)
     assert np.isclose(test_shower.get_parameter(showerParameters.shower_maximum), mc_shower.get_parameter(showerParameters.shower_maximum), rtol=0.1)
     # absolute tolerance for the core is set such that it should be within 1 std of the randomised core spread (10 m) used in the simulation
-    assert np.isclose(test_shower.get_parameter(showerParameters.core)[0], mc_shower.get_parameter(showerParameters.core)[0], atol=10.0)
-    assert np.isclose(test_shower.get_parameter(showerParameters.core)[1], mc_shower.get_parameter(showerParameters.core)[1], atol=10.0)
+    assert np.isclose(test_shower.get_parameter(showerParameters.core)[0], mc_shower.get_parameter(showerParameters.core)[0], atol=core_spread)
+    assert np.isclose(test_shower.get_parameter(showerParameters.core)[1], mc_shower.get_parameter(showerParameters.core)[1], atol=core_spread)
     assert np.isclose(test_shower.get_parameter(showerParameters.core)[2], mc_shower.get_parameter(showerParameters.core)[2], rtol=0.1)
     print("Reconstruction validation passed: test event matches MC truth.")
 
@@ -57,10 +59,10 @@ def validate_reco_vs_mc_truth(test_event):
 # event_id below
 sim_data_path = Path("./test-data/hdf5_sims")
 output_path = Path("./test-data/output-sim-pipeline")
-# download_from_dataserver(
-#     remote_path="lofar_share/lofar-sample-event-sim.tar.gz",
-#     target_path=str(sim_data_path / "sample-sim.tar.gz"),
-# )
+download_from_dataserver(
+    remote_path="lofar_share/lofar-sample-event-sim.tar.gz",
+    target_path=str(sim_data_path / "sample-sim.tar.gz"),
+)
 event_id = 92380604
 mass = "proton"
 coreas_sim_id = "000082"
@@ -69,10 +71,10 @@ coreas_hdf5_file = f"SIM{coreas_sim_id}.hdf5"  # Replace with the actual HDF5 fi
 pipeline_path = Path("./test-data/pipeline")
 atmosphere_dir = Path("./test-data/pipeline/atmosphere")
 noise_library_dir = pipeline_path / "noise_library"
-# download_from_dataserver(
-#     remote_path=f"lofar_share/pipeline-results-{event_id}.tar.gz",
-#     target_path=str(pipeline_path / f"pipeline-results-{event_id}.tar.gz"),
-# )
+download_from_dataserver(
+    remote_path=f"lofar_share/pipeline-results-{event_id}.tar.gz",
+    target_path=str(pipeline_path / f"pipeline-results-{event_id}.tar.gz"),
+)
 
 # Start from the actual CLI defaults
 # parse_args([]) would require event_id; do not parse the notebook kernel's argv.
@@ -82,7 +84,7 @@ pipeline_args.noise_library = str(noise_library_dir / "lofar_real_noise_library.
 pipeline_args.noise_library_nur = str(noise_library_dir / "lofar_real_noise_library.nur")
 pipeline_args.output_dir = str(output_path)
 pipeline_args.output_nur = None # do NOT save for the test, as we want to compare the results with the pre-saved ones
-pipeline_args.core_spread = 10.0 # Set to a smaller value for testing; adjust as needed
+pipeline_args.core_spread = core_spread # see above
 pipeline_args.atmosphere_dir = atmosphere_dir
 pipeline_args.gdas_cache_dir = str(output_path / "gdas_cache")
 pipeline_args.ift_iterations = 2        # increase for more refined reconstruction

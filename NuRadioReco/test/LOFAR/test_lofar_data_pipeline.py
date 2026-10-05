@@ -54,10 +54,10 @@ event_id = 92380604
 
 pipeline_path = Path("./test-data/pipeline")
 atmosphere_dir = Path("./test-data/pipeline/atmosphere")
-# download_from_dataserver(
-#     remote_path=f"lofar_share/pipeline-results-{event_id}.tar.gz",
-#     target_path=str(pipeline_path / f"pipeline-results-{event_id}.tar.gz"),
-# )
+download_from_dataserver(
+    remote_path=f"lofar_share/pipeline-results-{event_id}.tar.gz",
+    target_path=str(pipeline_path / f"pipeline-results-{event_id}.tar.gz"),
+)
 
 # Start from the actual CLI defaults
 # parse_args([]) would require event_id; do not parse the notebook kernel's argv.
