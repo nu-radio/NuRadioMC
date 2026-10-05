@@ -36,7 +36,7 @@ This is checked by ``NuRadioReco/test/utilities/test_light_imports.py``.
 **numpy only**
 
 `units`, `fft`, `logging`, `ice`, `timing`, `metaclasses`, `particle_names`, `io_utilities`
-(astropy only when converting times), `templates`, `_fastnumpyio`
+(astropy only when converting times), `templates`, ``_fastnumpyio``
 
 **numpy + scipy** (no matplotlib, radiotools, astropy or NuRadioReco framework/detector/modules)
 
@@ -54,7 +54,7 @@ This is checked by ``NuRadioReco/test/utilities/test_light_imports.py``.
 
 `noise`, `diodeSimulator`, `framework_utilities` (these also pull in scipy, radiotools, astropy, aenum)
 
-`version` imports the top-level `NuRadioReco` and `NuRadioMC` packages.
+`version` imports the top-level ``NuRadioReco`` and ``NuRadioMC`` packages.
 
 Matplotlib, radiotools and `NuRadioReco.detector` are imported lazily in `signal_processing`,
 `trace_utilities` and `geometryUtilities`, so keep it that way.
