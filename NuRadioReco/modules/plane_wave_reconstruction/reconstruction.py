@@ -18,19 +18,48 @@ logger = logging.getLogger(__name__)
 
 try:
     import numba
-
+    
+    n_cpus = numba.get_num_threads()
+    print(f"Numba: {n_cpus} available CPU threads")
+    numba.set_num_threads(min(12, n_cpus))
+    
     @numba.njit(parallel=True)
-    def _add_interp(out, tt_map, correlation, fs, lag0):
-        """out += correlation linearly interpolated at lag = tt_map * fs (lag0 = index of zero lag); 0 outside."""
-        n_lags = correlation.size
-        one = np.float32(1.0)
-        for iz in numba.prange(tt_map.shape[0]):
-            for ia in range(tt_map.shape[1]):
-                x = tt_map[iz, ia] * fs + lag0
-                i0 = int(np.floor(x))
-                if 0 <= i0 < n_lags - 1:
-                    f = x - np.float32(i0)
-                    out[iz, ia] += correlation[i0] * (one - f) + correlation[i0 + 1] * f
+    def _add_interp(correlation_map, pair_travel_times, pair_correlation, sampling_rate, zero_lag_index):
+        """Add each pair's correlation at its predicted travel-time lag.
+
+        For each direction, fit a parabola through the correlation samples one
+        lag below, at, and one lag above the nearest sample, then evaluate it
+        at the predicted (possibly fractional) lag. If d is the offset from
+        the middle sample, the interpolated value is:
+
+            y(d) = y_mid 
+                + 0.5*d*(y_hi - y_lo)
+                   + d^2*(y_hi + y_lo - 2*y_mid)/2
+        """
+        n_lags = pair_correlation.size
+        for zenith_index in numba.prange(pair_travel_times.shape[0]):
+            for azimuth_index in range(pair_travel_times.shape[1]):
+                # Convert the predicted travel time to a fractional array index.
+                expected_lag_index = (
+                    pair_travel_times[zenith_index, azimuth_index] * sampling_rate
+                    + zero_lag_index
+                )
+                nearest_lag_index = int(np.rint(expected_lag_index))
+
+                # A three-point parabola needs a sample on either side.
+                if 1 <= nearest_lag_index < n_lags - 1:
+                    fractional_offset = expected_lag_index - nearest_lag_index
+                    correlation_below = pair_correlation[nearest_lag_index - 1]
+                    correlation_at = pair_correlation[nearest_lag_index]
+                    correlation_above = pair_correlation[nearest_lag_index + 1]
+
+                    interpolated_correlation = (
+                        correlation_at
+                        + 0.5 * fractional_offset * (correlation_above - correlation_below)
+                        + 0.5 * fractional_offset**2
+                        * (correlation_above + correlation_below - 2 * correlation_at)
+                    )
+                    correlation_map[zenith_index, azimuth_index] += interpolated_correlation
 except ImportError:
     numba = None
 
@@ -160,6 +189,39 @@ def _build_travel_time_map(det, ice_model, station_id: int, channels: list[int],
 # XCORR RECONSTRUCTION
 # =============================================================================
 
+def _pairwise_xcorrs(trace_by_channel: dict[int, np.ndarray]):
+    """
+    Normalised cross-correlation of every channel pair, computed with FFTs.
+
+    Returns
+    -------
+    pairs : list of (ch_a, ch_b)
+        Channel pairs, in the same order as the rows of `xcorrs`.
+    lags : np.ndarray
+        Lag axis in samples, -(N-1) ... N-1.
+    xcorrs : np.ndarray
+        Shape (n_pairs, 2N-1): correlation per lag, divided by the N - |lag| overlapping samples.
+    """
+    channels = list(trace_by_channel)
+    row = {ch: i for i, ch in enumerate(channels)}
+    pairs = list(itertools.combinations(channels, 2))
+    n = len(trace_by_channel[channels[0]])
+    n_fft = scipy.fft.next_fast_len(2 * n - 1, real=True)  # >= 2N-1 so the circular correlation does not wrap
+
+    traces = np.stack([trace_by_channel[ch] for ch in channels]).astype(np.float32)
+    spectra = scipy.fft.rfft(traces, n=n_fft, axis=1, workers=-1)
+
+    rows_a = [row[ch_a] for ch_a, _ in pairs]
+    rows_b = [row[ch_b] for _, ch_b in pairs]
+    circular = scipy.fft.irfft(spectra[rows_a] * spectra[rows_b].conj(), n=n_fft, axis=1, workers=-1)
+
+    # circular -> linear order: negative lags wrap around to the end of the array
+    xcorrs = np.concatenate((circular[:, n_fft - (n - 1):], circular[:, :n]), axis=1)
+
+    lags = np.arange(-(n - 1), n, dtype=np.float32)
+    return pairs, lags, xcorrs / (n - np.abs(lags))
+
+
 def deep_plane_reco(trace_by_channel: dict[int, np.ndarray], fs: float, tt_maps: dict, use_numba: bool = False):
     """
     Perform deep plane wave reconstruction by computing the cross-correlation map for all pairs of channels.
@@ -181,29 +243,15 @@ def deep_plane_reco(trace_by_channel: dict[int, np.ndarray], fs: float, tt_maps:
         Cross-correlation map averaged over all pairs of channels.
     """
     
-    n_samples = len(next(iter(trace_by_channel.values())))
-    n_fft = scipy.fft.next_fast_len(2 * n_samples - 1, real=True)
     fs = np.float32(fs)
+    pairs, lags, xcorrs = _pairwise_xcorrs(trace_by_channel)
 
-    # lag axis in samples: -(N-1) ... N-1
-    lags = np.arange(-(n_samples - 1), n_samples, dtype=np.float32)
-    # correct for the varying number of overlapping samples at each lag: 1 / (N - |lag|)
-    inv_overlap = (1.0 / (n_samples - np.abs(lags))).astype(np.float32)
-
-    # one forward FFT per channel and one inverse FFT per pair, both batched (complex64 / float32)
-    channels = list(trace_by_channel)
-    traces = np.stack([trace_by_channel[ch] for ch in channels]).astype(np.float32)
-    spec = scipy.fft.rfft(traces, n=n_fft, axis=1, workers=-1)
-    idx_a, idx_b = np.array(list(itertools.combinations(range(len(channels)), 2))).T
-    r = scipy.fft.irfft(spec[idx_a] * np.conj(spec[idx_b]), n=n_fft, axis=1, workers=-1)
-    # circular -> linear lag order: lags -(N-1)..-1 sit at the end, 0..N-1 at the start
-    xcorrs = np.concatenate((r[:, n_fft - (n_samples - 1):], r[:, :n_samples]), axis=1) * inv_overlap
+    zero_lag = np.float32(-lags[0])  # position of lag 0 along the lag axis
 
     corrs = np.zeros((tt_maps["zeniths"].size, tt_maps["azimuths"].size), dtype=np.float32)
     n_pairs = 0
     # loop over all unique pairs of channels
-    for p, (i_a, i_b) in enumerate(zip(idx_a, idx_b)):
-        ch_a, ch_b = channels[i_a], channels[i_b]
+    for (ch_a, ch_b), xcorr in zip(pairs, xcorrs):
         weight = np.float32(1.0)
         
         # phased array channels get lower weight since they are so close together
@@ -211,17 +259,12 @@ def deep_plane_reco(trace_by_channel: dict[int, np.ndarray], fs: float, tt_maps:
             weight*=0.25
         if ch_b in [0,1,2,3]:
             weight*=0.25
-        
-        # lag axis in n_lag_samples: -(N-1) ... N-1
-        # (computed once above)
-            
-        # (overlap normalisation applied above)
-        
+
         # 2d array: expected dt(zenith, azimuth) for this pair, in time units
         delta_t_map = tt_maps[(ch_a, ch_b)]
-        
-        # 1d array: cross-correlation of the two traces, xcorr(n_lag_samples)
-        correlation = xcorrs[p] * weight
+
+        # 1d array: cross-correlation of the two traces over the lag axis
+        correlation = xcorr * weight
 
         # expected lag in samples: dt * fs = n_lag_samples
         # we go from 2D dt map -> 2D n_lag_samples map
@@ -230,9 +273,9 @@ def deep_plane_reco(trace_by_channel: dict[int, np.ndarray], fs: float, tt_maps:
         # with 2D input np.interp evaluates elementwise and returns 
         # an array with same shape as first argument
         # we go from 2D n_lag_samples map -> 2D xcorr map
-        
+        #
         if use_numba:
-            _add_interp(corrs, delta_t_map, correlation, fs, np.float32(n_samples - 1))
+            _add_interp(corrs, delta_t_map, correlation, fs, zero_lag)
         else:
             corrs += np.interp(expected_lags, lags, correlation, left=0.0, right=0.0)
         n_pairs += 1
@@ -364,10 +407,10 @@ class PlaneWaveReconstructor():
     def begin(self):
         """Begin the plane wave reconstructor"""
         if self.tt_map_path is not None:
-            from travel_time_maps import load_map
+            from NuRadioReco.modules.plane_wave_reconstruction.travel_time_maps import load_map
             self.tt_map = load_map(self.tt_map_path)
         else:
-            from travel_time_maps import map_from_dict
+            from NuRadioReco.modules.plane_wave_reconstruction.travel_time_maps import map_from_dict
             self.tt_map = map_from_dict( _build_travel_time_map(self.detector, self.ice_model, self.station, self.channels) )
 
     
