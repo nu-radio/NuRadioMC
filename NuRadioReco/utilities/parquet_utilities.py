@@ -122,6 +122,29 @@ def column_schema(enum_classes, prefix="", exclude=()):
     return columns
 
 
+def nur_to_parquet(filename, output_dir):
+    """ Convert a `.nur` file to parquet files (station / channel parameters incl. the RNO-G ones). """
+    # Imported here: eventWriterParquet imports this module
+    from NuRadioReco.framework import parameters
+    from NuRadioReco.modules.io.eventReader import eventReader
+    from NuRadioReco.modules.io.eventWriterParquet import eventWriterParquet
+
+    reader = eventReader()
+    reader.begin(filename, read_detector=False)
+
+    writer = eventWriterParquet()
+    writer.begin(
+        output_dir,
+        station_enums=[parameters.stationParameters, parameters.stationParametersRNOG],
+        channel_enums=[parameters.channelParameters, parameters.channelParametersRNOG],
+        comment=f"converted from {filename}",
+    )
+    for evt in reader.run():
+        writer.run(evt, evt.get_station())
+
+    print(f"Wrote {writer.end()} events to {output_dir}")
+
+
 _KEYS = ["run", "event_id", "station_id"]
 
 # Sort order of the tables (the last columns are only tie breakers)
