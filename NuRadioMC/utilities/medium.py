@@ -584,6 +584,8 @@ class greenland_3exp_density(medium_base.IceModelContinuousExpLayers):
             zs = [-80.5, -14.9]
         )
 
+greenland_3exp_layered = greenland_3exp_density
+
 class greenland_3exp_timing_2025(medium_base.IceModelContinuousExpLayers):
     """
     (3+1) layer refractive index model. Three layer model in ice plus one air layer.
