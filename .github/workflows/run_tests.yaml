@@ -250,6 +250,12 @@ jobs:
       run: |
         python NuRadioReco/test/framework/test_parameter_storage.py
 
+    - name: "Test parquet writer and reader"
+      if: always()
+      run: |
+        python NuRadioReco/test/io/test_event_writer_parquet.py
+        python NuRadioReco/examples/parquet_io_example.py
+
     - name: "Test calibration pulser example"
       if: always()
       run: |
