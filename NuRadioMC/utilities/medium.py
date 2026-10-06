@@ -569,7 +569,7 @@ class greenland_firn_layered(medium_base.IceModelExpLayers):
             layers=layers
         )
 
-class greenland_3exp_layered(medium_base.IceModelContinuousExpLayers):
+class greenland_3exp_density(medium_base.IceModelContinuousExpLayers):
     """
     (3+1) layer refractive index model. Three layer model in ice plus one air layer.
      
@@ -578,64 +578,26 @@ class greenland_3exp_layered(medium_base.IceModelContinuousExpLayers):
 
     def __init__(self):
         super().__init__(
-            nN = 1.77468,
-            delta_nN = 1.41573,
-            ls = [1 / 0.0387882, 1 / 0.0129175, 1 / 0.114553],
+            nN = 1.778,
+            delta_nN = 1.120,
+            ls = [28.606, 73.728, 8.848],
             zs = [-80.5, -14.9]
         )
 
+class greenland_3exp_timing_2025(medium_base.IceModelContinuousExpLayers):
+    """
+    (3+1) layer refractive index model. Three layer model in ice plus one air layer.
 
-class greenland_3exp_nils_layered(medium_base.IceModelExpLayers):
+    Values for below the ice obtained from a fit to absolute-timing data taken during the 2025 Summit field season. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
     """
-    New fit parameters for the (3+1) layer refractive index model. Three layer model in ice plus one air layer.
-     
-    Values for below the ice taken from https://github.com/philippwindischhofer/Reconal/blob/7204049c755a0678178821073fa73a476c49c491/defs.py#L72-L82. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
-    """
+
     def __init__(self):
-
-        layers = [
-            {
-                "z_min": 0.0,
-                "z_max": np.inf,
-                "n_ice": 1.00027,
-                "delta_n": 2.7e-4,
-                "z_0": -8000.0,
-                "region": "air",
-                "region_name": "Air"
-            },
-            {
-                "z_min": -14.9,
-                "z_max": 0.0,
-                "n_ice": 1.544,
-                "delta_n": 0.272,
-                "z_0": 15.88,
-                "region": "snow",
-                "region_name": "Snow"
-            },
-            {
-                "z_min": -80.5,
-                "z_max": -14.9,
-                "n_ice": 1.855,
-                "delta_n": 0.530255538,
-                "z_0": 62.281809455,
-                "region": "firn",
-                "region_name": "Firn"
-            },
-            {
-                "z_min": -3000.0,
-                "z_max": -80.5,
-                "n_ice": 1.778,
-                "delta_n": 1.06592622966,
-                "z_0": 29.343776516,
-                "region": "bubbly_ice",
-                "region_name": "Ice"
-            }
-        ]
-
         super().__init__(
-            layers=layers
+            nN = 1.778,
+            delta_nN = 1.0659,
+            ls = [29.3437, 62.2818, 15.88],
+            zs = [-80.5, -14.9]
         )
-
         
 class southpole_simple_layered(medium_base.IceModelExpLayers):
 
