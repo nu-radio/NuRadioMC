@@ -974,6 +974,24 @@
 
             <span class="c1">#self._results = []</span>
 
+<div class="viewcode-block" id="ray_tracing.get_C0">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_C0">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_C0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">""" Returns the C0 parameter of the solution</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        iS: int</span>
+<span class="sd">            Choose for which solution, counting starts at zero</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        C_0: float</span>
+<span class="sd">            float, defining the ray shape</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="n">iS</span><span class="p">][</span><span class="s1">'C0'</span><span class="p">]</span></div>
+
+
 <div class="viewcode-block" id="ray_tracing.get_solution_type">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_solution_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iS</span><span class="p">):</span>

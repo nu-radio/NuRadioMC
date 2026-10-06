@@ -674,76 +674,79 @@ ray tracing solutions in 3D for two arbitrary points x1 and x2</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.find_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.find_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_solutions</span></code></a>()</p></td>
 <td><p>Find all solutions between x1 and x2</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_attenuation" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_attenuation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_attenuation</span></code></a>(iS, frequency[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_C0" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_C0"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_C0</span></code></a>(iS)</p></td>
+<td><p>Returns the C0 parameter of the solution</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_attenuation" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_attenuation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_attenuation</span></code></a>(iS, frequency[, ...])</p></td>
 <td><p>Calculates the signal attenuation due to attenuation in the medium (ice)</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_config</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_config</span></code></a>()</p></td>
 <td><p>Function that returns the configuration currently used by the raytracer</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_focusing</span></code></a>(iS[, dz, limit, analytic])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_focusing</span></code></a>(iS[, dz, limit, analytic])</p></td>
 <td><p>Calculate the focusing effect in the medium</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fresnel_coefficients</span></code></a>(iS)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fresnel_coefficients</span></code></a>(iS)</p></td>
 <td><p>Calculates the fresnel coefficients for all interactions with the ice-air surface of solution iS</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_launch_vector</span></code></a>(iS)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_launch_vector</span></code></a>(iS)</p></td>
 <td><p>Calculates the launch vector (in 3D) of solution iS</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_raytracing_solutions</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_raytracing_solutions</span></code></a>()</p></td>
 <td><p>Function that returns the maximum number of raytracing solutions that can exist between each given pair of start and end points</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_solutions</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_solutions</span></code></a>()</p></td>
 <td><p>returns the number of solutions</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_parameters</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_parameters</span></code></a>()</p></td>
 <td><p>Returns a list with information about parameters to include in the output data structure that are specific to this raytracer</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(iS[, n_points])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(iS[, n_points])</p></td>
 <td><p>helper function that returns the 3D ray tracing path of solution iS</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_length</span></code></a>(iS[, analytic])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_length</span></code></a>(iS[, analytic])</p></td>
 <td><p>Calculates the path length of solution iS</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_properties_birefringence</span></code></a>(i_solution)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_properties_birefringence</span></code></a>(i_solution)</p></td>
 <td><p>Function to extract important information about the birefringent propagation along the path.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pulse_propagation_birefringence</span></code></a>(pulse, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pulse_propagation_birefringence</span></code></a>(pulse, ...)</p></td>
 <td><p>Function for the time trace propagation according to the polarization change due to birefringence.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_raytracing_output</span></code></a>(i_solution)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_raytracing_output</span></code></a>(i_solution)</p></td>
 <td><p>Get the output of the ray tracing for a specific solution</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_receive_vector</span></code></a>(iS)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_receive_vector</span></code></a>(iS)</p></td>
 <td><p>Calculates the receive vector (in 3D) of solution iS</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_reflection_angle</span></code></a>(iS)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_reflection_angle</span></code></a>(iS)</p></td>
 <td><p>Calculates the angle of reflection at the surface (in case of a reflected ray)</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_solution_type</span></code></a>(iS)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_solution_type</span></code></a>(iS)</p></td>
 <td><p>Returns the type of the solution</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_travel_time</span></code></a>(iS[, analytic])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_travel_time</span></code></a>(iS[, analytic])</p></td>
 <td><p>Calculates the travel time of solution iS</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_solution</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_solution</span></code></a>()</p></td>
 <td><p>checks if ray tracing solution exists</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a>()</p></td>
 <td><p>Resets the raytracing solutions back to None.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_config</span></code></a>(config)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_config</span></code></a>(config)</p></td>
 <td><p>Change the configuration file used by the raytracer</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_solution</span></code></a>(raytracing_results)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_solution</span></code></a>(raytracing_results)</p></td>
 <td><p>Read an already calculated raytracing solution from the input array</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point</span></code></a>(x1, x2[, autoswap])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point</span></code></a>(x1, x2[, autoswap])</p></td>
 <td><p>Set the start and end points of the raytracing</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point_no_swap</span></code></a>(x1, x2)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point_no_swap</span></code></a>(x1, x2)</p></td>
 <td><p>Set the start and end points of the raytracing without automatically swapping x1 and x2 if z2 &gt; z1.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_optional_function</span></code></a>(function_name, *args, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_optional_function</span></code></a>(function_name, *args, ...)</p></td>
 <td><p>Use optional function which may be different for each ray tracer.</p></td>
 </tr>
 </tbody>
@@ -824,76 +827,79 @@ If None, numba is used whenever it is available.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.find_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.find_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_solutions</span></code></a>()</p></td>
 <td><p>Find all solutions between x1 and x2</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_attenuation" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_attenuation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_attenuation</span></code></a>(iS, frequency[, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_C0" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_C0"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_C0</span></code></a>(iS)</p></td>
+<td><p>Returns the C0 parameter of the solution</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_attenuation" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_attenuation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_attenuation</span></code></a>(iS, frequency[, ...])</p></td>
 <td><p>Calculates the signal attenuation due to attenuation in the medium (ice)</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_config</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_config</span></code></a>()</p></td>
 <td><p>Function that returns the configuration currently used by the raytracer</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_focusing</span></code></a>(iS[, dz, limit, analytic])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_focusing</span></code></a>(iS[, dz, limit, analytic])</p></td>
 <td><p>Calculate the focusing effect in the medium</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fresnel_coefficients</span></code></a>(iS)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_fresnel_coefficients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fresnel_coefficients</span></code></a>(iS)</p></td>
 <td><p>Calculates the fresnel coefficients for all interactions with the ice-air surface of solution iS</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_launch_vector</span></code></a>(iS)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_launch_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_launch_vector</span></code></a>(iS)</p></td>
 <td><p>Calculates the launch vector (in 3D) of solution iS</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_raytracing_solutions</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_raytracing_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_raytracing_solutions</span></code></a>()</p></td>
 <td><p>Function that returns the maximum number of raytracing solutions that can exist between each given pair of start and end points</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_solutions</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_number_of_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_number_of_solutions</span></code></a>()</p></td>
 <td><p>returns the number of solutions</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_parameters</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_output_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_output_parameters</span></code></a>()</p></td>
 <td><p>Returns a list with information about parameters to include in the output data structure that are specific to this raytracer</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(iS[, n_points])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path</span></code></a>(iS[, n_points])</p></td>
 <td><p>helper function that returns the 3D ray tracing path of solution iS</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_length</span></code></a>(iS[, analytic])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_length</span></code></a>(iS[, analytic])</p></td>
 <td><p>Calculates the path length of solution iS</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_properties_birefringence</span></code></a>(i_solution)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_path_properties_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_path_properties_birefringence</span></code></a>(i_solution)</p></td>
 <td><p>Function to extract important information about the birefringent propagation along the path.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pulse_propagation_birefringence</span></code></a>(pulse, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_pulse_propagation_birefringence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pulse_propagation_birefringence</span></code></a>(pulse, ...)</p></td>
 <td><p>Function for the time trace propagation according to the polarization change due to birefringence.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_raytracing_output</span></code></a>(i_solution)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_raytracing_output"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_raytracing_output</span></code></a>(i_solution)</p></td>
 <td><p>Get the output of the ray tracing for a specific solution</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_receive_vector</span></code></a>(iS)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_receive_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_receive_vector</span></code></a>(iS)</p></td>
 <td><p>Calculates the receive vector (in 3D) of solution iS</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_reflection_angle</span></code></a>(iS)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_reflection_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_reflection_angle</span></code></a>(iS)</p></td>
 <td><p>Calculates the angle of reflection at the surface (in case of a reflected ray)</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_solution_type</span></code></a>(iS)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_solution_type</span></code></a>(iS)</p></td>
 <td><p>Returns the type of the solution</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_travel_time</span></code></a>(iS[, analytic])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_travel_time</span></code></a>(iS[, analytic])</p></td>
 <td><p>Calculates the travel time of solution iS</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_solution</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_solution</span></code></a>()</p></td>
 <td><p>checks if ray tracing solution exists</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a>()</p></td>
 <td><p>Resets the raytracing solutions back to None.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_config</span></code></a>(config)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_config</span></code></a>(config)</p></td>
 <td><p>Change the configuration file used by the raytracer</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_solution</span></code></a>(raytracing_results)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_solution</span></code></a>(raytracing_results)</p></td>
 <td><p>Read an already calculated raytracing solution from the input array</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point</span></code></a>(x1, x2[, autoswap])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point</span></code></a>(x1, x2[, autoswap])</p></td>
 <td><p>Set the start and end points of the raytracing</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point_no_swap</span></code></a>(x1, x2)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point_no_swap</span></code></a>(x1, x2)</p></td>
 <td><p>Set the start and end points of the raytracing without automatically swapping x1 and x2 if z2 &gt; z1.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_optional_function</span></code></a>(function_name, *args, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_optional_function</span></code></a>(function_name, *args, ...)</p></td>
 <td><p>Use optional function which may be different for each ray tracer.</p></td>
 </tr>
 </tbody>
@@ -981,6 +987,26 @@ ray tracing (in which case the existing solutions are kept), True otherwise.</p>
 <p>If solutions for the current start and end points already exist (i.e., the geometry
 did not change since the last ray tracing or the solutions were set with <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_solution</span></code></a>),
 they are kept and not recalculated. Call <a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a> first to force a recalculation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_C0">
+<span class="sig-name descname"><span class="pre">get_C0</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iS</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_C0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_C0" title="Link to this definition"></a></dt>
+<dd><p>Returns the C0 parameter of the solution</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>iS: int</strong></dt><dd><p>Choose for which solution, counting starts at zero</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>C_0: float</dt><dd><p>float, defining the ray shape</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
