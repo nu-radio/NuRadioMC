@@ -277,7 +277,18 @@ def compare_point_full(
                 foc_a = tracer_a.get_focusing(i_a)
                 type_a = tracer_a.get_solution_type(i_a)
                 c0_a = tracer_a.get_C0(i_a)
-                ra_a = tracer_a.get_reflection_angle(i_a)
+
+                if type_a == 3:
+                    ra_a = tracer_a.get_reflection_angle(i_a)
+                    fc_a = tracer_a.get_fresnel_coefficients(i_a)
+
+                    fresnel_t_a = np.abs(fc_a[0]["theta"])
+                    fresnel_p_a = np.abs(fc_a[0]["phi"])
+                else:
+                    ra_a = np.nan
+                    
+                    fresnel_t_a = np.nan
+                    fresnel_p_a = np.nan
 
                 entry["a"] = {
                     "travel_time_ns": safe_get(
@@ -322,11 +333,12 @@ def compare_point_full(
                         default = None,
                         warning=f"c0 failed (A, group {group})",
                     ),
-                    "reflection_angle": safe_get(
-                        lambda : ra_a/units.deg,
-                        default=None,
-                        warning=f"reflection angle failed (A, group {group})",
-                    )
+
+                    "r_angle":ra_a,
+                    "fresnel_t": fresnel_t_a,
+                    "fresnel_p": fresnel_p_a,
+
+
                 }
 
             # ==================================================
@@ -347,7 +359,17 @@ def compare_point_full(
                 foc_b = tracer_b.get_focusing(i_b)
                 type_b = tracer_b.get_solution_type(i_b)
                 c0_b = tracer_b.get_C0(i_b)
-                ra_b = tracer_b.get_reflection_angle(i_b)
+                if type_b == 3:
+                    ra_b = tracer_b.get_reflection_angle(i_b)
+                    fc_b = tracer_b.get_fresnel_coefficients(i_b)
+
+                    fresnel_t_b = np.abs(fc_b[0]["theta"])
+                    fresnel_p_b = np.abs(fc_b[0]["phi"])
+                else:
+                    ra_b = np.nan
+                    
+                    fresnel_t_b = np.nan
+                    fresnel_p_b = np.nan
 
                 entry["b"] = {
                     "travel_time_ns": safe_get(
@@ -392,17 +414,43 @@ def compare_point_full(
                         default = None,
                         warning=f"c0 failed (B, group {group})",
                     ),
-                    "reflection_angle": safe_get(
-                        lambda : ra_b / units.deg,
-                        default=None
-                    )
                     
+                    "r_angle":ra_b,
+                    "fresnel_t": fresnel_t_b,
+                    "fresnel_p": fresnel_p_b,
                 }
 
             # ==================================================
             # DIFFERENCES
             # ==================================================
             if entry["a"] is not None and entry["b"] is not None:
+                if (entry["a"]["type"] == 3 and entry["b"]["type"] == 3):
+                    r_angle_diff = safe_get(
+                        lambda: entry["b"]["r_angle"] - entry["a"]["r_angle"],
+                        default=np.nan,
+                    )
+
+                    fresnel_t_diff = safe_get(
+                        lambda: entry["b"]["fresnel_t"] - entry["a"]["fresnel_t"],
+                        default=np.nan,
+                    )
+
+                    fresnel_p_diff = safe_get(
+                        lambda: entry["b"]["fresnel_p"] - entry["a"]["fresnel_p"],
+                        default=np.nan,
+                    )
+                else:
+                    r_angle_diff = np.nan
+                    fresnel_t_diff = np.nan
+                    fresnel_p_diff = np.nan
+
+                '''if (entry["a"]["reflection_angle"] is not None) & (entry["b"]["reflection_angle"] is not None):
+                    r_angle_diff = safe_get(
+                        lambda : (( entry["a"]["reflection_angle"] - entry["b"]["reflection_angle"])),
+                        default=None,
+                    ),
+                else:
+                    r_angle_diff= None'''
 
                 entry["diff"] = {
                     "time_diff": (
@@ -432,21 +480,20 @@ def compare_point_full(
                     ),
                     "attenuation_diff": safe_get(
                         lambda : (entry["b"]["attenuation"]-entry["a"]["attenuation"]),
-                        default=None,
+                        default=np.nan,
                         warning=f"attenuation diff failed (group {group})",
                     ),
                     "focusing_diff": safe_get(
                         lambda : (entry["b"]["focusing"]-entry["a"]["focusing"]),
-                        default=None,
+                        default=np.nan,
                         warning=f"focusing diff failed (group {group})",
                     ),
-
-                    "r_angle_diff": safe_get(
-                        lambda : (( entry["a"]["reflection_angle"] - entry["b"]["reflection_angle"])),
-                        default=None,
-                    ),
-
+                    "r_angle_diff": r_angle_diff,
+                    "fresnel_t_diff": fresnel_t_diff,
+                    "fresnel_p_diff": fresnel_p_diff,
                 }
+
+
 
             out["solutions"][group] = entry
 
@@ -531,7 +578,10 @@ def flatten_full(results):
                 row["focusing_a"] = sol["a"]["focusing"]
                 row['type_a'] = sol["a"]["type"]
                 row['c0_a'] = sol["a"]["c0"]
-                row["reflection_angle_a"] = sol["a"]["reflection_angle"]
+                row["reflection_angle_a"] = sol["a"]["r_angle"]
+                row["fresnel_t_a"] = sol["a"]["fresnel_t"]
+                row["fresnel_p_a"] = sol["a"]["fresnel_p"]
+
 
             # -------------------------
             # module B
@@ -545,7 +595,9 @@ def flatten_full(results):
                 row["focusing_b"] = sol["b"]["focusing"]
                 row['type_b'] = sol["b"]["type"]
                 row['c0_b'] = sol["b"]["c0"]
-                row["reflection_angle_b"] = sol["b"]["reflection_angle"]
+                row["reflection_angle_b"] = sol["b"]["r_angle"]
+                row["fresnel_t_b"] = sol["b"]["fresnel_t"]
+                row["fresnel_p_b"] = sol["b"]["fresnel_p"]
 
             # -------------------------
             # differences
@@ -559,6 +611,8 @@ def flatten_full(results):
                 row["attenuation_diff"] = sol["diff"]["attenuation_diff"]
                 row["focusing_diff"] = sol["diff"]["focusing_diff"]
                 row['r_angle_diff'] = sol['diff']['r_angle_diff']
+                row["fresnel_t_diff"] = sol["diff"]["fresnel_t_diff"]
+                row["fresnel_p_diff"] = sol["diff"]["fresnel_p_diff"]
 
             # NEW: solution existence flags
             row["has_a"] = sol["a"] is not None
