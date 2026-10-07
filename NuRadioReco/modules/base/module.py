@@ -3,8 +3,19 @@ from timeit import default_timer as timer
 import NuRadioReco.framework.event
 import NuRadioReco.framework.base_station
 import NuRadioReco.detector.detector as detectors
+import atexit
 import inspect
+import logging
+import os
 import pickle
+from NuRadioReco.utilities.logging import LOGGING_STATUS
+
+logger = logging.getLogger('NuRadioReco.module')
+
+# Controls both recording and the printout at exit. Default from the environment variable NURADIO_TIMING (0 = off);
+# can be changed at runtime via `NuRadioReco.modules.base.module.ENABLE_TIMING = False`.
+ENABLE_TIMING = os.environ.get("NURADIO_TIMING", "1") not in ("", "0")
+_timed_runs = []  # all decorated run methods, used for the timing summary
 
 
 def setup_logger(name="NuRadioReco", level=None):
@@ -30,6 +41,40 @@ def setup_logger(name="NuRadioReco", level=None):
                              "This function will be removed in v2.4.0 .")
 
 
+_child_time = []  # stack: time spent in nested timed calls per active call, subtracted to get exclusive times
+_order = {}  # module name -> index of first execution
+_instances = {}  # id(module instance) -> instance, in order of first run() call
+
+
+def _add_time(run_method, instance, duration, calls):
+    # We use the module instance as key to time different module instances separately.
+    if instance not in run_method.time:
+        _order.setdefault(type(instance).__name__, len(_order))
+    run_method.time[instance] = run_method.time.get(instance, 0) + duration
+    run_method.calls[instance] = run_method.calls.get(instance, 0) + calls
+
+
+def _timed_generator(gen, run_method, instance):
+    """ Yields from `gen` and attributes the time spent producing each item (one call per item) to the module. """
+    while True:
+        _child_time.append(0.)
+        start = timer()
+        done = False
+        try:
+            item = next(gen)
+        except StopIteration:
+            done = True
+        finally:
+            duration = timer() - start
+            nested = _child_time.pop()
+            if _child_time:
+                _child_time[-1] += duration
+        _add_time(run_method, instance, duration - nested, 0 if done else 1)
+        if done:
+            return
+        yield item
+
+
 def register_run(level=None):
     """
     Decorator for run methods. This decorator registers the run methods. It allows to keep track of
@@ -38,6 +83,10 @@ def register_run(level=None):
     """
 
     def run_decorator(run):
+
+        # the signature is static, so inspect it only once (not per call)
+        parameters = inspect.signature(run).parameters
+        keys = [key for key in parameters.keys() if key != 'self']
 
         @wraps(run)
         def register_run_method(self, *args, **kwargs):
@@ -53,18 +102,17 @@ def register_run(level=None):
             evt = None
             station = None
 
-            signature = inspect.signature(run)
-            parameters = signature.parameters
+            _instances.setdefault(id(self), self)
+
             # convert args to kwargs to facilitate easier bookkeeping
-            keys = [key for key in parameters.keys() if key != 'self']
             all_kwargs = {key: value for key, value in zip(keys, args)}
-            all_kwargs.update(kwargs)  # this silently overwrites positional args with kwargs, but this is probably okay as we still raise an error later
+            # this silently overwrites positional args with kwargs, but this is probably okay as we still raise an error later
+            all_kwargs.update(kwargs)
 
             # include parameters with default values
-            for key,value in parameters.items():
-                if key not in all_kwargs.keys():
-                    if value.default is not inspect.Parameter.empty:
-                        all_kwargs[key] = value.default
+            for key, value in parameters.items():
+                if key not in all_kwargs and value.default is not inspect.Parameter.empty:
+                    all_kwargs[key] = value.default
 
             store_kwargs = {}
             for idx, (key, value) in enumerate(all_kwargs.items()):
@@ -75,8 +123,8 @@ def register_run(level=None):
                 elif isinstance(value, NuRadioReco.framework.base_station.BaseStation) and idx == 1:
                     station = value
                 elif isinstance(value, (detectors.detector_base.DetectorBase, detectors.rnog_detector.Detector)):
-                    pass # we don't try to store detectors
-                else: # we try to store other arguments IF they are pickleable
+                    pass  # we don't try to store detectors
+                else:  # we try to store other arguments IF they are pickleable
                     try:
                         pickle.dumps(value, protocol=4)
                         store_kwargs[key] = value
@@ -90,7 +138,10 @@ def register_run(level=None):
             else:
                 module_level = "reader"
 
-            start = timer()
+            timing = ENABLE_TIMING
+            if timing:
+                _child_time.append(0.)
+                start = timer()
 
             if module_level == "event":
                 evt._register_module_event(self, self.__class__.__name__, store_kwargs)
@@ -100,19 +151,83 @@ def register_run(level=None):
                 # not sure what to do... function returns generator, not sure how to access the event...
                 pass
 
-            res = run(self, *args, **kwargs)
+            try:
+                res = run(self, *args, **kwargs)
+            finally:
+                if timing:
+                    duration = timer() - start
+                    nested = _child_time.pop()
+                    if _child_time:
+                        _child_time[-1] += duration
 
-            end = timer()
-
-            if self not in register_run_method.time:
-                # keep track of timing of modules. We use the module instance as key to time different module instances separately.
-                register_run_method.time[self] = 0
-            register_run_method.time[self] += (end - start)
+            if timing:
+                is_generator = inspect.isgenerator(res)
+                _add_time(register_run_method, self, duration - nested, 0 if is_generator else 1)
+                if is_generator:
+                    res = _timed_generator(res, register_run_method, self)
 
             return res
 
         register_run_method.time = {}
+        register_run_method.calls = {}
+        _timed_runs.append(register_run_method)
 
         return register_run_method
 
     return run_decorator
+
+
+def end_all_modules():
+    """
+    Call `end()` of all module instances that have executed a decorated `run()`, in order of their first `run()` call.
+
+    Each instance is ended only once. Exceptions in an `end()` are logged and do not stop the remaining ones.
+    """
+    instances = list(_instances.values())
+    _instances.clear()
+    for instance in instances:
+        end = getattr(instance, "end", None)
+        if callable(end):
+            try:
+                end()
+            except Exception:
+                logger.exception(f"Calling end() of {type(instance).__name__} failed")
+
+
+def print_timing_summary():
+    """
+    Print the accumulated run time per module (class) in order of first execution.
+
+    Times are exclusive: time spent in nested module calls (e.g. a generator wrapping another one) is
+    attributed to the nested module only.
+
+    For reader modules (generators), the time spent producing each item is counted, with one call per item.
+    It is printed automatically at exit if ``ENABLE_TIMING`` is set (see top of file).
+    """
+    stats = {}
+    for run in _timed_runs:
+        for instance, total in run.time.items():
+            entry = stats.setdefault(type(instance).__name__, [0., 0])
+            entry[0] += total
+            entry[1] += run.calls[instance]
+
+    if not stats:
+        return
+
+    all_total = sum(t for t, _ in stats.values())
+    rows = [f"{name:<40} {calls:>8} {total:>10.3f} {1e3 * total / calls:>14.3f} {100 * total / all_total:>6.1f}"
+            for name, (total, calls) in sorted(stats.items(), key=lambda kv: _order[kv[0]])]
+    header = f"{'module':<40} {'calls':>8} {'total [s]':>10} {'per call [ms]':>14} {'%':>6}"
+    width = len(header)
+    lines = ["┌" + "─" * (width + 2) + "┐", f"│ {header} │", "├" + "─" * (width + 2) + "┤"]
+    lines += [f"│ {row} │" for row in rows]
+    lines.append("└" + "─" * (width + 2) + "┘")
+    logger.log(LOGGING_STATUS, "Module timing\n" + "\n".join("  " + line for line in lines))
+
+
+def _print_timing_summary_at_exit():
+    if ENABLE_TIMING:
+        print_timing_summary()
+
+
+atexit.register(_print_timing_summary_at_exit)
