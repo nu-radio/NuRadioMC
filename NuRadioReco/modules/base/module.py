@@ -55,24 +55,31 @@ def _add_time(run_method, instance, duration, calls):
 
 
 def _timed_generator(gen, run_method, instance):
-    """ Yields from `gen` and attributes the time spent producing each item (one call per item) to the module. """
+    """
+    Wrapper around run methods returning a generator. Passes yield after accounting for 
+    the time spent to produce the ``next`` item.
+
+    The `run()` of a reader returns a generator immediately; the actual work happens in `next()`, i.e. while the
+    caller loops over the events. Only the time inside `next()` is counted, not the caller's processing between items.
+    """
     while True:
-        _child_time.append(0.)
+        _child_time.append(0.)  # collects the time of timed modules called from within this `next()`
         start = timer()
         done = False
         try:
             item = next(gen)
         except StopIteration:
             done = True
-        finally:
+        finally:  # also runs if `gen` raises, which keeps the `_child_time` stack balanced
             duration = timer() - start
             nested = _child_time.pop()
-            if _child_time:
+            if _child_time:  # we are called from another timed module: report our time so it can subtract it
                 _child_time[-1] += duration
+        # exclusive time; the final `next()` raising StopIteration is timed but not counted as a call
         _add_time(run_method, instance, duration - nested, 0 if done else 1)
         if done:
             return
-        yield item
+        yield item  # paused here while the caller processes the item -> not timed
 
 
 def register_run(level=None):
