@@ -703,6 +703,121 @@ def get_kurtosis(trace):
     return kurtosis
 
 
+def _band_mask(freqs, band):
+    """ Returns boolean array (mask), takes frequency vector and lower and upper freqeuncy bound (tuple) """
+    return (freqs >= band[0]) & (freqs < band[1])
+
+
+def get_band_energy_ratio(freqs, spec, target_band, ref_band, normalize_bandwidth=True, log=False):
+    """
+    Ratio of the spectral energy in a target band to that in a reference band.
+
+    ``|spec|**2`` is an energy spectral density (see `NuRadioReco.utilities.fft`); the trace
+    length cancels in the ratio.
+
+    Parameters
+    ----------
+    freqs: array of floats
+        Frequencies of the (rfft) spectrum
+    spec: array of complex
+        One-sided frequency spectrum (1-d)
+    target_band, ref_band: tuple of floats
+        (f_min, f_max) of the bands; lower edge inclusive, upper edge exclusive
+    normalize_bandwidth: bool
+        If True, use the mean spectral density per band, i.e. a flat spectrum gives 1.
+        If False, use the integrated band energies, i.e. a flat spectrum gives
+        the ratio of the band widths.
+    log: bool
+        If True, return log10 of the ratio.
+
+    Returns
+    -------
+    ratio: float
+        NaN if a band contains no frequency bin; inf (NaN if also the target energy is zero)
+        if the reference energy is zero.
+    """
+    esd = np.abs(spec) ** 2
+    mask_target = _band_mask(freqs, target_band)
+    mask_ref = _band_mask(freqs, ref_band)
+    if not (mask_target.any() and mask_ref.any()):
+        logger.warning("Band %s or %s contains no frequency bin, returning NaN.", target_band, ref_band)
+        return np.nan
+
+    e_target = np.sum(esd[mask_target])
+    e_ref = np.sum(esd[mask_ref])
+    if normalize_bandwidth:
+        e_target = e_target / mask_target.sum()
+        e_ref = e_ref / mask_ref.sum()
+
+    with np.errstate(divide="ignore", invalid="ignore"):
+        ratio = e_target / e_ref
+        return np.log10(ratio) if log else ratio
+
+
+def get_spectral_energy_quantile_frequency(freqs, spec, quantile=0.5, band=None):
+    """
+    Frequency below which a given fraction of the spectral energy lies (0.5: median frequency).
+
+    The cumulative energy is linearly interpolated between frequency bins. The DC bin is excluded.
+
+    Parameters
+    ----------
+    freqs: array of floats
+        Frequencies of the (rfft) spectrum
+    spec: array of complex
+        One-sided frequency spectrum (1-d)
+    quantile: float
+        Fraction of the energy in (0, 1)
+    band: tuple of floats or None
+        (f_min, f_max) restricting the calculation to a band. Default: full spectrum
+
+    Returns
+    -------
+    frequency: float
+        NaN if the selected energy is zero or no bin is selected.
+    """
+    mask = freqs > 0
+    if band is not None:
+        mask &= _band_mask(freqs, band)
+    esd = np.abs(spec[mask]) ** 2
+    if not mask.any() or esd.sum() == 0:
+        return np.nan
+
+    cumulative = np.cumsum(esd) / esd.sum()
+    return np.interp(quantile, cumulative, freqs[mask])
+
+
+def get_spectral_centroid(freqs, spec, band=None):
+    """
+    Energy-weighted mean frequency, sum(f * |spec|**2) / sum(|spec|**2). The DC bin is excluded.
+
+    More sensitive to spectral tails than the median frequency
+    (`get_spectral_energy_quantile_frequency`).
+
+    Parameters
+    ----------
+    freqs: array of floats
+        Frequencies of the (rfft) spectrum
+    spec: array of complex
+        One-sided frequency spectrum (1-d)
+    band: tuple of floats or None
+        (f_min, f_max) restricting the calculation to a band. Default: full spectrum
+
+    Returns
+    -------
+    centroid: float
+        NaN if the selected energy is zero or no bin is selected.
+    """
+    mask = freqs > 0
+    if band is not None:
+        mask &= _band_mask(freqs, band)
+    esd = np.abs(spec[mask]) ** 2
+    if not mask.any() or esd.sum() == 0:
+        return np.nan
+
+    return np.sum(freqs[mask] * esd) / esd.sum()
+
+
 def get_teager_kaiser_energy(trace):
     """
     Uses the Teager-Kaiser Energy Operator (TKEO) on a trace.
