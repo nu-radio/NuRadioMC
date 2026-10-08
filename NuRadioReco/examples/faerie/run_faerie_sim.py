@@ -70,7 +70,7 @@ CLIP_THRESHOLDS_MV = {
     22: (-1468, +1032),
     23: (-1482, +1018),
 }
-TRIGGER_CHANNELS = [0, 1, 2, 3]
+TRIGGER_CHANNELS = [0] # [0, 1, 2, 3]
 TILE_OVERLAP = 200  # samples at 5 GHz (~40 ns)
 
 def RNO_G_HighLow_Thresh(lgRate_per_hz):
@@ -439,8 +439,7 @@ def _get_readout_to_trigger_transfer(ch_id, n_samples, det, station_id):
     return _readout_to_trigger_transfer[key]
 
 def forced_trigger_injection(event,station,detector,**kwargs):
-    ## run hardware response then add FT noise
-    rnogHardwareResponse.run(event, station, detector, sim_to_data=True)
+
     if _ft_noise_pool is None:
         print("noise pool is None... RETURN without adding noise")
         return
@@ -593,8 +592,10 @@ if __name__ == "__main__":
                        adc_max - args.pedestal_voltage * units.V)
 
     trigger_channels = TRIGGER_CHANNELS
-    num_channels_per_event = 24  # number of channels per event in the input file
+    num_channels_per_event = 1  # number of channels per event in the input file
 
+
+    ## Threshold (@3.76) is too low, causing the trigger to fire on noise. Use 4 sigma instead
     threshold_1Hz = RNO_G_HighLow_Thresh(0)
     print(f"Trigger threshold: {threshold_1Hz:.3f} sigma (1 Hz rate)")
     
@@ -714,9 +715,12 @@ if __name__ == "__main__":
                 elif args.add_noise and args.noise_type == "FT-injection":
                     efieldToVoltageConverter.run(event, station, det_rnog, channel_ids=np.arange(num_channels_per_event))
                     efieldToVoltageConverterPerEfield.run(event, station, det_rnog)
-                    forced_trigger_injection(event,station,det_rnog,
-                                             trigger_channels=trigger_channels,
-                                             num_channels_per_event=num_channels_per_event)
+                    
+                    ## run hardware response then add FT noise
+                    rnogHardwareResponse.run(event, station, detector, sim_to_data=True)
+                    # forced_trigger_injection(event,station,det_rnog,
+                    #                          trigger_channels=trigger_channels,
+                    #                          num_channels_per_event=num_channels_per_event)
                 else:
                     assert args.noise_type == "rayleigh", "Only 'rayleigh' and 'data-driven' noise is supported."
                     efieldToVoltageConverter.run(event, station, det_rnog, channel_ids=np.arange(num_channels_per_event))
