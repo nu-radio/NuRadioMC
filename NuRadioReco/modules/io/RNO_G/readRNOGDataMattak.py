@@ -221,8 +221,9 @@ class readRNOGData:
 
         select_runs: bool
             If True, use information in run_table to select runs (based on run_type, run_time, trigger_rate, ...).
-            If the run_table is not available no selection is performed (and the programm is not interrupted,
-            only an error message is raised). See parameters to configure run selection. (Default: False)
+            If the run_table is not available, fall back to the run info stored in the mattak dataset
+            (calibration run flag -> run_types, trigger rate -> max_trigger_rate; run_time_range is not applied).
+            See parameters to configure run selection. (Default: False)
 
         Other Parameters
         ----------------
@@ -324,14 +325,21 @@ class readRNOGData:
             self._time_low = None
             self._time_high = None
 
+        if select_runs and self.__run_table is None:
+            self.logger.warning(
+                "select_runs is set but no run table is available. Fall back to the run info stored in the "
+                "mattak datasets (calibration run flag, trigger rate); run_time_range is not applied.")
+
         if select_runs and self.__run_table is not None:
             self.logger.info("\n\tSelect runs with type: {}".format(", ".join(run_types)) +
                             f"\n\tSelect runs with max. trigger rate of {max_trigger_rate / units.Hz} Hz"
                             f"\n\tSelect runs which are between {self._time_low} - {self._time_high}")
 
         self._selectors = []
-        self.add_selectors(self._check_for_valid_information_in_event_info)
-        self.add_selectors(selectors, select_triggers)
+        self.add_selectors([
+            self._check_for_valid_information_in_event_info,
+            *(selectors or []),
+            *self._build_trigger_selectors(select_triggers)])
 
         # Read data
         self._time_begin = 0
@@ -378,7 +386,7 @@ class readRNOGData:
                 continue
 
             # filter runs/datasets based on
-            if select_runs and self.__run_table is not None and not self.__select_run(dataset):
+            if select_runs and not self.__select_run(dataset):
                 self.__skipped_runs += 1
                 continue
 
@@ -439,38 +447,92 @@ class readRNOGData:
         """ Return a mattak.Dataset.Dataset object for a given path """
         return mattak.Dataset.Dataset(station=0, run=0, data_path=path, verbose=self._verbose, **self._mattak_kwargs)
 
-    def add_selectors(self, selectors, select_triggers=None):
+    def add_selectors(self, selectors):
         """
         Add selectors (Callable(eventInfo) -> bool) to an internal list of selectors.
         They are used for event filtering.
 
         Parameters
         ----------
-        selectors: list of Callables
-            List of Callable(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
+        selectors: Callable or list of Callables
+            Callable(eventInfo) -> bool to pass to mattak.Dataset.iterate to select events.
             Example: trigger_selector = lambda eventInfo: eventInfo.triggerType == "FORCE"
-
-        select_triggers: str or list(str) (Default: None)
-            Names of triggers which should be selected. Convenience interface instead of passing a selector.
         """
-
-        # Initialize selectors for event filtering
         if selectors is None:
             selectors = []
-
-        if not isinstance(selectors, (list, np.ndarray)):
+        elif not isinstance(selectors, (list, tuple, np.ndarray)):
             selectors = [selectors]
 
-        if select_triggers is not None:
-            if isinstance(select_triggers, str):
-                selectors.append(lambda eventInfo: eventInfo.triggerType == select_triggers)
-            else:
-                for select_trigger in select_triggers:
-                    selectors.append(lambda eventInfo: eventInfo.triggerType == select_trigger)
-
         self.logger.info(f"Add {len(selectors)} selector(s)")
-        self._selectors += selectors
-        self.get_waveforms.cache_clear() # reset cached waveforms
+        self._selectors += list(selectors)
+        self.get_waveforms.cache_clear()  # reset cached waveforms
+
+    @staticmethod
+    def _build_trigger_selectors(select_triggers):
+        """
+        Build the selector which only keeps events with one of the given trigger types.
+
+        Parameters
+        ----------
+        select_triggers: str or list(str) or None
+            Names of triggers which should be selected (an event passes if it matches any of them).
+
+        Returns
+        -------
+        selectors: list of Callable(eventInfo) -> bool
+            Empty if select_triggers is None.
+        """
+        if select_triggers is None:
+            return []
+
+        if isinstance(select_triggers, str):
+            select_triggers = [select_triggers]
+
+        select_triggers = set(select_triggers)
+        return [lambda eventInfo: eventInfo.triggerType in select_triggers]
+
+    def __select_run_from_dataset(self, dataset):
+        """ Fallback of `__select_run` if no run table is available: use the info stored in the mattak dataset.
+
+        Only the run type (calibration or not) and the trigger rate can be checked, `run_time_range` is not applied.
+
+        Parameters
+        ----------
+        dataset: mattak.Dataset.Dataset
+
+        Returns
+        -------
+        select: bool
+            True to select the dataset, False to reject/skip it.
+        """
+        run, station = dataset.run, dataset.station
+
+        try:
+            is_calibration = dataset.is_calibration_run()
+        except ValueError as e:
+            self.logger.warning(f"Reject station {station} run {run} because the run type can not be determined ({e})")
+            return False
+        else:
+            if is_calibration and "calibration" not in self.__run_types:
+                self.logger.info(f"Reject station {station} run {run} because it is a calibration run")
+                return False
+
+            if not is_calibration and not any(run_type != "calibration" for run_type in self.__run_types):
+                self.logger.info(f"Reject station {station} run {run} because it is not a calibration run")
+                return False
+
+        if self.__max_trigger_rate:
+            trigger_rate = dataset.trigger_rate()
+            if trigger_rate is None:
+                self.logger.warning(f"Reject station {station} run {run} because the trigger rate can not be determined")
+                return False
+
+            if trigger_rate * units.Hz > self.__max_trigger_rate:
+                self.logger.info(
+                    f"Reject station {station} run {run} because trigger rate is to high ({trigger_rate:.2f} Hz)")
+                return False
+
+        return True
 
 
     def __select_run(self, dataset):
@@ -483,6 +545,9 @@ class readRNOGData:
         select: bool
             Return True to select an dataset, return False to reject/skip it.
         """
+
+        if self.__run_table is None:
+            return self.__select_run_from_dataset(dataset)
 
         # get first eventInfo
         dataset.setEntries(0)
