@@ -194,7 +194,7 @@ def run_pipeline(args):
     reconstructor.run(processed_event, detector)
     reconstructor.end()
 
-    if args.output_nur:
+    if args.output_nur is not None:
         writer = NuRadioReco.modules.io.eventWriter.eventWriter()
         writer.begin(args.output_nur)
         writer.run(processed_event)
