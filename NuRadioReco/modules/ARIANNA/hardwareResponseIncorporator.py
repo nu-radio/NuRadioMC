@@ -4,7 +4,6 @@ from NuRadioReco.modules.channelAddCableDelay import add_cable_delay
 from NuRadioReco.utilities import units, fft
 
 import numpy as np
-import time
 import logging
 
 
@@ -19,7 +18,6 @@ class hardwareResponseIncorporator:
         self.logger = logging.getLogger("NuRadioReco.ARIANNA.hardwareResponseIncorporator")
         self.__debug = False
         self.__time_delays = {}
-        self.__t = 0
         self.__mingainlin = None
         self.begin()
 
@@ -135,7 +133,6 @@ class hardwareResponseIncorporator:
             mode = 'phase_only'
             self.logger.warning('Please use option mode=''phase_only'' in the future, use of option phase_only will be phased out')
 
-        t = time.time()
 
         for channel in station.iter_channels():
             frequencies = channel.get_frequencies()
@@ -155,14 +152,8 @@ class hardwareResponseIncorporator:
             # (if efieldToVoltageConverterPerEfield was used).
             add_cable_delay(station, det, sim_to_data=False, logger=self.logger)
 
-        self.__t += time.time() - t
-
     def end(self):
-        from datetime import timedelta
-        self.logger.setLevel(logging.INFO)
-        dt = timedelta(seconds=self.__t)
-        self.logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass
 
     def __calculate_time_delays_cable(self):
         """

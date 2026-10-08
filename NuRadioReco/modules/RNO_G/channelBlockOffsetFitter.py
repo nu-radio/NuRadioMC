@@ -17,7 +17,6 @@ from collections import defaultdict
 import numpy as np
 import scipy.optimize
 import logging
-import time
 
 logger = logging.getLogger('NuRadioReco.RNO_G.channelBlockOffsetFitter')
 
@@ -45,7 +44,6 @@ class channelBlockOffsets:
         self._offset_inject = dict()
         self._max_frequency = max_frequency
         self._counter = defaultdict(int)
-        self._time = 0
 
     def add_offsets(self, event, station, offsets=1*units.mV, channel_ids=None):
         """
@@ -236,17 +234,13 @@ class channelBlockOffsets:
         --------
         remove_offsets : alias of this method without the (unused) `det` parameter
         """
-        start_time = time.perf_counter()
         self.remove_offsets(event, station, mode=mode, channel_ids=channel_ids, **kwargs)
-        end_time = time.perf_counter()
-        self._time += (end_time - start_time)
 
 
     def end(self):
         n_events = self._counter.pop("n_events", 0)
         if n_events > 0:
             msg = (f"Processed {n_events} events. "
-                f"This took {self._time:.2f} seconds ({(self._time / n_events) * 1e3:.2f} ms/event)."
                 f"Removed {np.sum(list(self._counter.values()))} large block offsets "
                 f"(>50% of Vrms) from {len(self._counter)} channels:")
             msg += "\n\t Channel ID: number of events in which large block offsets were removed"

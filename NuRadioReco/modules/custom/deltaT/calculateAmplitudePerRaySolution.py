@@ -3,7 +3,6 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.detector import antennapattern
-import time
 import logging
 from scipy import signal
 from NuRadioReco.utilities import fft
@@ -17,7 +16,6 @@ class calculateAmplitudePerRaySolution:
     """
 
     def __init__(self):
-        self.__t = 0
         self.__debug = None
         self.antenna_provider = None
         self.begin()
@@ -32,7 +30,6 @@ class calculateAmplitudePerRaySolution:
 
     @register_run()
     def run(self, evt, station, det):
-        t = time.time()
 
         # access simulated efield and high level parameters
         sim_station = station.get_sim_station()
@@ -85,10 +82,5 @@ class calculateAmplitudePerRaySolution:
                 max_amp_antenna_envelope[channel_id] = maximum_envelope
                 efield[efp.max_amp_antenna_envelope] = max_amp_antenna_envelope
 
-        self.__t += time.time() - t
-
     def end(self):
-        from datetime import timedelta
-        dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass
