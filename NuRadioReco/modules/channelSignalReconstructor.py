@@ -87,6 +87,14 @@ class channelSignalReconstructor:
             noise root mean square of a channel
         """
 
+        snr, noise_rms, _ = self._get_SNR(station_id, channel, det, stored_noise, rms_stage)
+        return snr, noise_rms
+
+    def _get_SNR(self, station_id, channel, det, stored_noise = False, rms_stage = None):
+        """
+        Same as `get_SNR` but additionally returns the maximum local peak to peak amplitude
+        of the trace (in the coincidence window), which is also needed for ``max_a_norm``.
+        """
         trace = channel.get_trace()
         times = channel.get_times() - channel.get_trace_start_time()
 
@@ -154,11 +162,11 @@ class channelSignalReconstructor:
         if coincidence_window_size_bins < 2:
             logger.warning(f"Coincidence window size of {coincidence_window_size_bins} samples is too small for channel {channel.get_id()}.")
 
-        noise_rms = trace_utilities.get_split_trace_noise_RMS(channel.get_trace(), segments=4, lowest=2)
+        noise_rms = trace_utilities.get_split_trace_noise_RMS(trace, segments=4, lowest=2)
+        max_p2p = np.amax(trace_utilities.peak_to_peak_amplitudes(trace, coincidence_window_size_bins))
         # only calculate when noise_rms is not zero (can happen in noiseless simulations)
         if noise_rms != 0:
-            snr['peak_2_peak_amplitude_split_noise_rms'] = (
-                np.amax(trace_utilities.peak_to_peak_amplitudes(channel.get_trace(), coincidence_window_size_bins)) / (2 * noise_rms))
+            snr['peak_2_peak_amplitude_split_noise_rms'] = max_p2p / (2 * noise_rms)
 
         if self.__debug:
             plt.figure()
@@ -168,7 +176,7 @@ class channelSignalReconstructor:
             plt.legend()
             plt.show()
 
-        return snr, noise_rms
+        return snr, noise_rms, max_p2p
 
 
     def get_max_a_norm(self, station):
@@ -224,41 +232,46 @@ class channelSignalReconstructor:
 
         t = time.time()
         max_amplitude_station = 0
+        max_a_norm = 0
         for channel in station.iter_channels():
             times = channel.get_times()
             trace = channel.get_trace()
             h = trace_utilities.get_hilbert_envelope(trace)
             max_amplitude = np.max(np.abs(trace))
+            max_envelope = h.max()
 
-            logger.info(f"Event {evt.get_run_number()}.{evt.get_id()}, station.channel "
-                        f"{station.get_id()}. {channel.get_id()}: max amp = "
-                        f"{max_amplitude:.6g} max amp env {h.max():.6g}")
+            logger.info("Event %s.%s, station.channel %s. %s: max amp = %.6g max amp env %.6g",
+                        evt.get_run_number(), evt.get_id(), station.get_id(), channel.get_id(),
+                        max_amplitude, max_envelope)
 
-            if logger.level >= logging.DEBUG:
+            if logger.isEnabledFor(logging.DEBUG):
                 logger.debug(", ".join([f"{x:.6g}" for x in trace]))
 
             channel[chp.signal_time] = times[np.argmax(h)]
             max_amplitude_station = max(max_amplitude_station, max_amplitude)
             channel[chp.maximum_amplitude] = max_amplitude
-            channel[chp.maximum_amplitude_envelope] = h.max()
+            channel[chp.maximum_amplitude_envelope] = max_envelope
             channel[chp.P2P_amplitude] = np.max(trace) - np.min(trace)
 
             # Use noise precalculated from forced triggers
-            signal_to_noise, noise_rms = self.get_SNR(
+            signal_to_noise, noise_rms, max_p2p = self._get_SNR(
                 station.get_id(), channel, det, stored_noise=stored_noise, rms_stage=rms_stage)
 
             channel[chp.SNR] = signal_to_noise
             channel[chp.noise_rms] = noise_rms
 
+            # as in get_max_a_norm, re-using the peak to peak amplitude from the SNR calculation
+            max_a_norm = max(max_a_norm, max_p2p / np.std(trace))
+
             if not snr_only:
                 # Calculate additional properties of the signal
-                channel[chp.impulsivity] = trace_utilities.get_impulsivity(trace)
+                channel[chp.impulsivity] = trace_utilities.get_impulsivity(trace, envelope=h)
                 channel[chp.root_power_ratio] = trace_utilities.get_root_power_ratio(trace, times, noise_rms)
                 channel[chp.entropy] = trace_utilities.get_entropy(trace)
                 channel[chp.kurtosis] = trace_utilities.get_kurtosis(trace)
 
         station[stnp.channels_max_amplitude] = max_amplitude_station
-        station[stnp.channels_max_amplitude_norm] = self.get_max_a_norm(station)
+        station[stnp.channels_max_amplitude_norm] = max_a_norm
         self.__t = time.time() - t
 
     def end(self):
