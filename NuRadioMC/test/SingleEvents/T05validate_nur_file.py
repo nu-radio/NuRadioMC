@@ -20,7 +20,7 @@ except:
 
 # relative tolerance for the channel/station parameters (e.g. calculated by the channelSignalReconstructor).
 # Tiny platform-dependent differences in the traces are amplified for low-amplitude channels.
-parameter_rtol = 1e-2
+parameter_rtol = 2e-3
 
 print("Testing the files {} and {} for equality".format(file1, file2))
 
