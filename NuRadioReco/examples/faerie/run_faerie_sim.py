@@ -70,7 +70,7 @@ CLIP_THRESHOLDS_MV = {
     22: (-1468, +1032),
     23: (-1482, +1018),
 }
-TRIGGER_CHANNELS = [0] # [0, 1, 2, 3]
+TRIGGER_CHANNELS = [0, 1, 2, 3]
 TILE_OVERLAP = 200  # samples at 5 GHz (~40 ns)
 
 def RNO_G_HighLow_Thresh(lgRate_per_hz):
@@ -592,7 +592,7 @@ if __name__ == "__main__":
                        adc_max - args.pedestal_voltage * units.V)
 
     trigger_channels = TRIGGER_CHANNELS
-    num_channels_per_event = 1  # number of channels per event in the input file
+    num_channels_per_event = 24 # number of channels per event in the input file
 
 
     ## Threshold (@3.76) is too low, causing the trigger to fire on noise. Use 4 sigma instead
