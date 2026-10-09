@@ -161,7 +161,7 @@
 | NuRadioReco/modules/channelBandPassFilter.py                                                             |      128 |       54 |     58% |37, 42, 47, 52, 57, 62, 136, 233, 236-292, 294, 299, 325, 331 |
 | NuRadioReco/modules/channelCWNotchFilter.py                                                              |      108 |       58 |     46% |35-40, 146, 153-156, 176-184, 202-210, 243-297 |
 | NuRadioReco/modules/channelGalacticNoiseAdder.py                                                         |      263 |       95 |     64% |36-41, 47, 146, 154, 161, 174-175, 180-181, 184-185, 189-205, 256-259, 263-266, 303-304, 307-309, 316-317, 338-353, 359, 379-381, 388-393, 414, 417, 438-439, 448-452, 467, 487, 531-563, 626-627, 635-667 |
-| NuRadioReco/modules/channelGenericNoiseAdder.py                                                          |      160 |       77 |     52% |46-65, 123-124, 127, 139-140, 145, 153-154, 160, 205-234, 289-305, 339, 347-349, 353, 358-359, 366, 378, 425, 444-459, 465 |
+| NuRadioReco/modules/channelGenericNoiseAdder.py                                                          |      185 |       93 |     50% |38-39, 51-70, 111-113, 115-118, 134-135, 138, 150-151, 156, 164-165, 171, 221-250, 292-305, 335-337, 339-342, 349, 357-359, 363, 368-369, 376, 388, 433, 452-467, 473 |
 | NuRadioReco/modules/channelIceThermalNoiseAdder.py                                                       |      139 |      117 |     16% |27, 32, 35, 47-60, 83-100, 129-212, 216-263 |
 | NuRadioReco/modules/channelLengthAdjuster.py                                                             |       38 |       22 |     42% | 52-77, 80 |
 | NuRadioReco/modules/channelReadoutWindowCutter.py                                                        |      114 |       27 |     76% |61-63, 76-77, 109-113, 125-132, 179-204, 250, 330, 334, 337-338 |
@@ -222,7 +222,7 @@
 | NuRadioReco/modules/measured\_noise/ARIANNA/\_\_init\_\_.py                                              |        0 |        0 |    100% |           |
 | NuRadioReco/modules/measured\_noise/ARIANNA/noiseImporterROOT.py                                         |       31 |       29 |      6% |      3-57 |
 | NuRadioReco/modules/measured\_noise/RNO\_G/\_\_init\_\_.py                                               |        0 |        0 |    100% |           |
-| NuRadioReco/modules/measured\_noise/RNO\_G/noiseImporter.py                                              |       98 |       92 |      6% |     8-219 |
+| NuRadioReco/modules/measured\_noise/RNO\_G/noiseImporter.py                                              |       98 |       92 |      6% |     8-229 |
 | NuRadioReco/modules/measured\_noise/\_\_init\_\_.py                                                      |        0 |        0 |    100% |           |
 | NuRadioReco/modules/measured\_noise/channelMeasuredNoiseAdder.py                                         |      122 |      108 |     11% |20-25, 89-120, 124-127, 141-190, 209-252, 260-276 |
 | NuRadioReco/modules/neutrinoDirectionReconstructor/\_\_init\_\_.py                                       |        0 |        0 |    100% |           |
@@ -280,7 +280,7 @@
 | NuRadioReco/utilities/trace\_utilities.py                                                                |      266 |      184 |     31% |40-41, 48-49, 55-56, 63-64, 71-72, 79-80, 127, 130-135, 143-144, 148-184, 187, 224-279, 315-339, 395-417, 493-500, 631-653, 720-723, 747-757, 787-856 |
 | NuRadioReco/utilities/units.py                                                                           |      166 |        0 |    100% |           |
 | NuRadioReco/utilities/version.py                                                                         |       27 |        5 |     81% |16, 25-27, 47 |
-| **TOTAL**                                                                                                | **31868** | **20156** | **37%** |           |
+| **TOTAL**                                                                                                | **31893** | **20172** | **37%** |           |
 
 
 ## Setup coverage badge
