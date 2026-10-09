@@ -679,9 +679,9 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.measured_noise.RNO_G.noiseImporter.noiseImporter.begin">
 <span class="sig-name descname"><span class="pre">begin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">noise_folders</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_station_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">station_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scramble_noise_file_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reader_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/measured_noise/RNO_G/noiseImporter.html#noiseImporter.begin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.measured_noise.RNO_G.noiseImporter.noiseImporter.begin" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
+<dd><dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
+<dd class="field-odd"><dl>
 <dt><strong>noise_folders: str or list(str)</strong></dt><dd><p>Folder(s) containing noise file(s). Search in any subfolder as well.</p>
 </dd>
 <dt><strong>file_pattern: str</strong></dt><dd><p>File pattern used to search for directories, (Default: “*”, other examples might be “combined”)</p>
@@ -701,7 +701,13 @@ Default is None which is 1-to-1 mapping</p>
 </dd>
 <dt><strong>random_seed: int</strong></dt><dd><p>Seed for the random number generator. (Default: None, no fixed seed).</p>
 </dd>
-<dt><strong>reader_kwargs: dict</strong></dt><dd><p>Optional arguements passed to readRNOGDataMattak</p>
+<dt><strong>reader_kwargs: dict</strong></dt><dd><p>Optional arguments passed to <a class="reference internal" href="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.html#NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData" title="NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData"><code class="xref py py-class docutils literal notranslate"><span class="pre">NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData</span></code></a></p>
+<p>By default, only forced triggers from runs marked as physics runs are selected,
+i.e. the following settings are used:</p>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;select_triggers&quot;:</span> <span class="pre">&quot;FORCE&quot;,</span>
+<span class="pre">&quot;select_runs&quot;:</span> <span class="pre">True,</span>
+<span class="pre">&quot;max_trigger_rate&quot;:</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">units.Hz,</span>
+<span class="pre">&quot;run_types&quot;:</span> <span class="pre">[&quot;physics&quot;]</span></code></p>
 </dd>
 </dl>
 </dd>

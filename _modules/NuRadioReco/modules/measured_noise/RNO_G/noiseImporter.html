@@ -704,7 +704,16 @@
 <span class="sd">            Seed for the random number generator. (Default: None, no fixed seed).</span>
 
 <span class="sd">        reader_kwargs: dict</span>
-<span class="sd">            Optional arguements passed to readRNOGDataMattak</span>
+<span class="sd">            Optional arguments passed to :class:`NuRadioReco.modules.io.RNO_G.readRNOGDataMattak.readRNOGData`</span>
+
+<span class="sd">            By default, only forced triggers from runs marked as physics runs are selected,</span>
+<span class="sd">            i.e. the following settings are used:</span>
+
+<span class="sd">            ``"select_triggers": "FORCE",</span>
+<span class="sd">            "select_runs": True,</span>
+<span class="sd">            "max_trigger_rate": 2 * units.Hz,</span>
+<span class="sd">            "run_types": ["physics"]``</span>
+
 <span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.RNOG.noiseImporter'</span><span class="p">)</span>
@@ -741,11 +750,12 @@
         <span class="k">if</span> <span class="n">scramble_noise_file_order</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__random_gen</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__noise_folders</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_noise_reader</span> <span class="o">=</span> <span class="n">readRNOGData</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_noise_reader</span> <span class="o">=</span> <span class="n">readRNOGData</span><span class="p">(</span><span class="n">log_level</span><span class="o">=</span><span class="n">log_level</span><span class="p">)</span>
 
         <span class="n">default_reader_kwargs</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">"selectors"</span><span class="p">:</span> <span class="p">[</span><span class="k">lambda</span> <span class="n">einfo</span><span class="p">:</span> <span class="n">einfo</span><span class="o">.</span><span class="n">triggerType</span> <span class="o">==</span> <span class="s2">"FORCE"</span><span class="p">],</span>
-            <span class="s2">"log_level"</span><span class="p">:</span> <span class="n">log_level</span><span class="p">,</span> <span class="s2">"select_runs"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"max_trigger_rate"</span><span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="p">,</span>
+            <span class="s2">"select_triggers"</span><span class="p">:</span> <span class="s2">"FORCE"</span><span class="p">,</span>
+            <span class="s2">"select_runs"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">"max_trigger_rate"</span><span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">Hz</span><span class="p">,</span>
             <span class="s2">"run_types"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"physics"</span><span class="p">]</span>
         <span class="p">}</span>
         <span class="n">default_reader_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">reader_kwargs</span><span class="p">)</span>

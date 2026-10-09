@@ -649,7 +649,9 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">integrate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.random</span><span class="w"> </span><span class="kn">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Philox</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">deprecated</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
 
 <div class="viewcode-block" id="channelGenericNoiseAdder">
@@ -660,7 +662,6 @@
 
 
 <span class="sd">    """</span>
-
 <div class="viewcode-block" id="channelGenericNoiseAdder.add_random_phases">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.add_random_phases">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">add_random_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">amps</span><span class="p">,</span> <span class="n">n_samples_time_domain</span><span class="p">):</span>
@@ -669,7 +670,6 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-
 <span class="sd">        amps: array of floats</span>
 <span class="sd">            Data that random phase is added to.</span>
 <span class="sd">        n_samples_time_domain: int</span>
@@ -683,10 +683,16 @@
 
         <span class="k">return</span> <span class="n">amps</span></div>
 
-
+    
 <div class="viewcode-block" id="channelGenericNoiseAdder.fftnoise_fullfft">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.fftnoise_fullfft">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">fftnoise_fullfft</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fftnoise_fullfft</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Deprecated"""</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"The 'fftnoise_fullfft' method will be deprecated in a future release"</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fftnoise_fullfft</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fftnoise_fullfft</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Adding random phase information to given amplitude spectrum.</span>
 
@@ -715,15 +721,14 @@
         <span class="k">if</span> <span class="n">fftcheck</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">' fftnoise: Non negligibe imagniary part of inverse FFT: </span><span class="si">{}</span><span class="s1"> '</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fftcheck</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">real</span></div>
-
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">ifft</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
 
 <div class="viewcode-block" id="channelGenericNoiseAdder.bandlimited_noise">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'perfect_white'</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                           <span class="n">time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">bandwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Generating noise of n_samples in a bandwidth [min_freq,max_freq].</span>
+<span class="sd">        Generate noise of n_samples in a bandwidth [min_freq, max_freq].</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -742,10 +747,8 @@
 <span class="sd">            desired sampling rate of data</span>
 <span class="sd">        amplitude: float</span>
 <span class="sd">            desired voltage of noise as V_rms (only roughly, since bandpass limited)</span>
-<span class="sd">        type: string</span>
-<span class="sd">            perfect_white: flat frequency spectrum</span>
-<span class="sd">            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution</span>
-<span class="sd">            # white: flat frequency spectrum with random jitter</span>
+<span class="sd">        type: string or None</span>
+<span class="sd">            * rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution</span>
 <span class="sd">        time_domain: bool (default True)</span>
 <span class="sd">            if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter</span>
 <span class="sd">            might be more performant as the noise is generated internally in the frequency domain.</span>
@@ -759,9 +762,17 @@
 <span class="sd">        *   Note that by design the max frequency is the Nyquist frequency, even if a bigger max_freq</span>
 <span class="sd">            is implemented (RL 17-Sept-2018)</span>
 
-<span class="sd">        *   Add 'multi_white' noise option on 20-Sept-2018 (RL)</span>
-
 <span class="sd">        """</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'perfect_white'</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"type='perfect_white' noise is deprecated and will be removed in a future version"</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"The default type='perfect_white' noise is deprecated and will become 'rayleigh' in a future version"</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="nb">type</span> <span class="o">=</span> <span class="s1">'perfect_white'</span>
+
         <span class="n">frequencies</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
 
         <span class="n">n_samples_freq</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frequencies</span><span class="p">)</span>
@@ -818,11 +829,15 @@
 
 <div class="viewcode-block" id="channelGenericNoiseAdder.precalculate_bandlimited_noise_parameters">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.precalculate_bandlimited_noise_parameters">[docs]</a>
+    <span class="nd">@deprecated</span><span class="p">(</span><span class="s2">"The method 'precalculate_bandlimited_noise_parameters' has been deprecated and will be removed in a future version."</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">precalculate_bandlimited_noise_parameters</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span> <span class="n">min_freq</span><span class="p">,</span> <span class="n">max_freq</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span>
             <span class="nb">type</span><span class="o">=</span><span class="s1">'perfect_white'</span><span class="p">,</span> <span class="n">bandwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Generating noise of n_samples in a bandwidth [min_freq,max_freq].</span>
+<span class="sd">        Precalculate parameters for bandlimited noise.</span>
+
+<span class="sd">        Precalculate some parameters to use to generate noise using the </span>
+<span class="sd">        `bandlimited_noise_from_precalculated_parameters`.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -844,7 +859,6 @@
 <span class="sd">        type: string</span>
 <span class="sd">            perfect_white: flat frequency spectrum</span>
 <span class="sd">            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution</span>
-<span class="sd">            # white: flat frequency spectrum with random jitter</span>
 <span class="sd">        time_domain: bool (default True)</span>
 <span class="sd">            if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter</span>
 <span class="sd">            might be more performant as the noise is generated internally in the frequency domain.</span>
@@ -858,8 +872,10 @@
 <span class="sd">        *   Note that by design the max frequency is the Nyquist frequency, even if a bigger max_freq</span>
 <span class="sd">            is implemented (RL 17-Sept-2018)</span>
 
-<span class="sd">        *   Add 'multi_white' noise option on 20-Sept-2018 (RL)</span>
-
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        bandlimited_noise_from_precalculated_parameters</span>
+<span class="sd">        bandlimited_noise: method to generate noise without pre-calculating parameters</span>
 <span class="sd">        """</span>
         <span class="n">frequencies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span>
 
@@ -894,6 +910,7 @@
                 <span class="s2">"n_samples_freq"</span><span class="p">:</span> <span class="n">n_samples_freq</span><span class="p">,</span>
                 <span class="s2">"selection"</span><span class="p">:</span> <span class="n">selection</span><span class="p">,</span>
                 <span class="s2">"nbinsactive"</span><span class="p">:</span> <span class="n">nbinsactive</span><span class="p">,</span>
+                <span class="s2">"amplitude"</span><span class="p">:</span> <span class="n">amplitude</span><span class="p">,</span>
                 <span class="s2">"sigscale"</span><span class="p">:</span> <span class="n">sigscale</span><span class="p">,</span>
                 <span class="s2">"fsigma"</span><span class="p">:</span> <span class="n">fsigma</span><span class="p">,</span>
                 <span class="s2">"sampling_rate"</span><span class="p">:</span> <span class="n">sampling_rate</span><span class="p">,</span>
@@ -902,49 +919,35 @@
                 <span class="p">}</span></div>
 
 
-
 <div class="viewcode-block" id="channelGenericNoiseAdder.bandlimited_noise_from_precalculated_parameters">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_precalculated_parameters">[docs]</a>
+    <span class="nd">@deprecated</span><span class="p">(</span><span class="s2">"The method 'bandlimited_noise_from_precalculated_parameters' has been deprecated and will be removed in a future version."</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise_from_precalculated_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'perfect_white'</span><span class="p">,</span>
                           <span class="n">time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Generating noise of n_samples in a bandwidth [min_freq,max_freq].</span>
+<span class="sd">        Generate noise using previously set parameters</span>
+<span class="sd">        </span>
+<span class="sd">        Generates noise using parameters pre-set using `precalculate_bandlimited_noise_parameters`.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 
-<span class="sd">        min_freq: float</span>
-<span class="sd">            Minimum frequency of passband for noise generation</span>
-<span class="sd">            min_freq = None: Only the DC component is removed. If the DC component should be included,</span>
-<span class="sd">            min_freq = 0 has to be specified</span>
-<span class="sd">        max_freq: float</span>
-<span class="sd">            Maximum frequency of passband for noise generation</span>
-<span class="sd">            If the maximum frequency is above the Nquist frequencey (0.5 * sampling rate), the Nquist frequency is used</span>
-<span class="sd">            max_freq = None: Frequencies up to Nyquist freq are used.</span>
-<span class="sd">        n_samples: int</span>
-<span class="sd">            number of samples in the time domain</span>
-<span class="sd">        sampling_rate: float</span>
-<span class="sd">            desired sampling rate of data</span>
-<span class="sd">        amplitude: float</span>
-<span class="sd">            desired voltage of noise as V_rms (only roughly, since bandpass limited)</span>
 <span class="sd">        type: string</span>
 <span class="sd">            perfect_white: flat frequency spectrum</span>
 <span class="sd">            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution</span>
-<span class="sd">            # white: flat frequency spectrum with random jitter</span>
 <span class="sd">        time_domain: bool (default True)</span>
 <span class="sd">            if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter</span>
 <span class="sd">            might be more performant as the noise is generated internally in the frequency domain.</span>
-<span class="sd">        bandwidth: float or None (default)</span>
-<span class="sd">            if this parameter is specified, the amplitude is interpreted as the amplitude for the bandwidth specified here</span>
-<span class="sd">            Otherwise the amplitude is interpreted for the bandwidth of min(max_freq, 0.5 * sampling rate) - min_freq</span>
-<span class="sd">            If `bandwidth` is larger then (min(max_freq, 0.5 * sampling rate) - min_freq) it has the same effect as `None`</span>
 
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
 <span class="sd">        *   Note that by design the max frequency is the Nyquist frequency, even if a bigger max_freq</span>
 <span class="sd">            is implemented (RL 17-Sept-2018)</span>
 
-<span class="sd">        *   Add 'multi_white' noise option on 20-Sept-2018 (RL)</span>
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        precalculate_bandlimited_noise_parameters</span>
+<span class="sd">        bandlimited_noise: method to generate noise without pre-calculating parameters</span>
 
 <span class="sd">        """</span>
 
@@ -953,15 +956,12 @@
             <span class="n">ampl</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"selection"</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"amplitude"</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"sigscale"</span><span class="p">]</span>
         <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'rayleigh'</span><span class="p">:</span>
             <span class="n">ampl</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"selection"</span><span class="p">]]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__random_generator</span><span class="o">.</span><span class="n">rayleigh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"fsigma"</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"nbinsactive"</span><span class="p">])</span>
-<span class="c1">#         elif type == 'white':</span>
-<span class="c1"># FIXME: amplitude normalization is not correct for 'white'</span>
-<span class="c1">#             ampl = np.random.rand(n_samples) * 0.05 * amplitude + amplitude * np.sqrt(2.*n_samples * 2)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"Other types of noise not yet implemented."</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"Other types of noise not yet implemented."</span><span class="p">)</span>
 
         <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_random_phases</span><span class="p">(</span><span class="n">ampl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"n_samples"</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"sampling_rate"</span><span class="p">]</span>
-        <span class="k">if</span><span class="p">(</span><span class="n">time_domain</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">time_domain</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">noise</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"sampling_rate"</span><span class="p">],</span> <span class="n">n</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">precalculated_parameters</span><span class="p">[</span><span class="s2">"n_samples"</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">noise</span></div>
@@ -970,10 +970,11 @@
 
 <div class="viewcode-block" id="channelGenericNoiseAdder.bandlimited_noise_from_spectrum">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.channelGenericNoiseAdder.html#NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder.bandlimited_noise_from_spectrum">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise_from_spectrum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">'perfect_white'</span><span class="p">,</span>
-                          <span class="n">time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">bandlimited_noise_from_spectrum</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time_domain</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
-<span class="sd">        Generating noise of n_samples in a bandwidth [min_freq,max_freq].</span>
+<span class="sd">        Generate noise of n_samples in a bandwidth [min_freq,max_freq].</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -982,7 +983,7 @@
 <span class="sd">        sampling_rate: float</span>
 <span class="sd">            desired sampling rate of data</span>
 <span class="sd">        spectrum: numpy.ndarray, function</span>
-<span class="sd">            disired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function</span>
+<span class="sd">            desired spectrum of the noise, either as a numpy.ndarray of length n_frequencies or a function</span>
 <span class="sd">            that takes the frequencies as an argument and returns the amplitudes. The overall normalization</span>
 <span class="sd">            of the spectrum is ignored if the paramter "amplitude" is set.</span>
 <span class="sd">        amplitude: float, optional</span>
@@ -991,12 +992,21 @@
 <span class="sd">        type: string</span>
 <span class="sd">            perfect_white: flat frequency spectrum</span>
 <span class="sd">            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution</span>
-<span class="sd">            # white: flat frequency spectrum with random jitter</span>
 <span class="sd">        time_domain: bool (default True)</span>
 <span class="sd">            if True returns noise in the time domain, if False it returns the noise in the frequency domain. The latter</span>
 <span class="sd">            might be more performant as the noise is generated internally in the frequency domain.</span>
 <span class="sd">        """</span>
-        <span class="n">frequencies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfftfreq</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s1">'perfect_white'</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"type='perfect_white' noise is deprecated and will be removed in a future version"</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">"The default type='perfect_white' noise is deprecated and will become 'rayleigh' in a future version"</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="nb">type</span> <span class="o">=</span> <span class="s1">'perfect_white'</span>
+
+        <span class="n">frequencies</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">sampling_rate</span><span class="p">)</span>
         <span class="n">selection</span> <span class="o">=</span> <span class="n">frequencies</span> <span class="o">&gt;</span> <span class="mi">0</span>
         <span class="n">n_samples_freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
 
@@ -1053,7 +1063,7 @@
             <span class="n">amplitude</span><span class="o">=</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">mV</span><span class="p">,</span>
             <span class="n">min_freq</span><span class="o">=</span><span class="mi">50</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span>
             <span class="n">max_freq</span><span class="o">=</span><span class="mi">2000</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span>
-            <span class="nb">type</span><span class="o">=</span><span class="s1">'perfect_white'</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">excluded_channels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">bandwidth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
@@ -1062,12 +1072,11 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
+<span class="sd">        event : Event</span>
 
-<span class="sd">        event</span>
+<span class="sd">        station : Station</span>
 
-<span class="sd">        station</span>
-
-<span class="sd">        detector</span>
+<span class="sd">        detector : Detector</span>
 
 <span class="sd">        amplitude: float or dict of floats</span>
 <span class="sd">            desired voltage of noise as V_rms for the specified bandwidth</span>
@@ -1078,8 +1087,7 @@
 <span class="sd">            Maximum frequency of passband for noise generation</span>
 <span class="sd">            If the maximum frequency is above the Nquist frequencey (0.5 * sampling rate), the Nquist frequency is used</span>
 <span class="sd">        type: string</span>
-<span class="sd">            perfect_white: flat frequency spectrum</span>
-<span class="sd">            rayleigh: Amplitude of each frequency bin is drawn from a Rayleigh distribution</span>
+<span class="sd">            * 'rayleigh': Amplitude of each frequency bin is drawn from a Rayleigh distribution</span>
 <span class="sd">        excluded_channels: list of ints</span>
 <span class="sd">            the channels ids of channels where no noise will be added, default is that no channel is excluded</span>
 <span class="sd">        bandwidth: float or None (default)</span>
