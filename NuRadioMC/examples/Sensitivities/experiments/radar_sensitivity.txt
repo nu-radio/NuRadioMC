@@ -1,0 +1,18 @@
+# Source: RADAR proposed from https://arxiv.org/pdf/1710.02883.pdf
+# Data type: Upper limit
+# Energy bins per decade: 2
+# Column values:
+# Log10 Energy [eV]
+# Flux [GeV cm^-2 s^-1 sr^-1]
+# Flux band minimum
+# Flux band maximum
+
+1.525E+01  0  6.870E-09  3.430E-07
+1.575E+01  0  9.797E-10  3.113E-08
+1.625E+01  0  4.728E-09  1.928E-07
+1.675E+01  0  6.359E-09  3.706E-07
+1.725E+01  0  9.128E-09  8.517E-07
+1.775E+01  0  1.619E-08  1.835E-06
+1.825E+01  0  2.995E-08  2.766E-06
+1.875E+01  0  5.562E-08  8.253E-06
+1.925E+01  0  1.072E-07  1.849E-05
