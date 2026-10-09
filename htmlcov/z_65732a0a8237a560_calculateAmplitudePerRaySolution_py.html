@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_0e9db2761cf78c5b_efieldGalacticNoiseAdder_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.16.1">coverage.py v7.16.1</a>,
-            created at 2026-10-06 08:18 +0000
+            created at 2026-10-09 11:09 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -137,7 +137,7 @@
     <p class="pln"><span class="n"><a id="t55" href="#t55">55</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t56" href="#t56">56</a></span><span class="t">                <span class="com"># get antenna pattern for current channel</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t57" href="#t57">57</a></span><span class="t">                <span class="nam">antenna_model</span> <span class="op">=</span> <span class="nam">det</span><span class="op">.</span><span class="nam">get_antenna_model</span><span class="op">(</span><span class="nam">sim_station_id</span><span class="op">,</span> <span class="nam">channel_id</span><span class="op">,</span> <span class="nam">zenith</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t58" href="#t58">58</a></span><span class="t">                <span class="nam">antenna_pattern</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">antenna_provider</span><span class="op">.</span><span class="nam">load_antenna_pattern</span><span class="op">(</span><span class="nam">antenna_model</span><span class="op">,</span> <span class="nam">interpolation_method</span><span class="op">=</span><span class="str">&#x27;complex&#x27;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t58" href="#t58">58</a></span><span class="t">                <span class="nam">antenna_pattern</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">antenna_provider</span><span class="op">.</span><span class="nam">load_antenna_pattern</span><span class="op">(</span><span class="nam">antenna_model</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t59" href="#t59">59</a></span><span class="t">                <span class="nam">ori</span> <span class="op">=</span> <span class="nam">det</span><span class="op">.</span><span class="nam">get_antenna_orientation</span><span class="op">(</span><span class="nam">sim_station_id</span><span class="op">,</span> <span class="nam">channel_id</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t60" href="#t60">60</a></span><span class="t">                <span class="nam">logger</span><span class="op">.</span><span class="nam">debug</span><span class="op">(</span><span class="str">&quot;zen {:.0f}, az {:.0f}&quot;</span><span class="op">.</span><span class="nam">format</span><span class="op">(</span><span class="nam">zenith</span> <span class="op">/</span> <span class="nam">units</span><span class="op">.</span><span class="nam">deg</span><span class="op">,</span> <span class="nam">azimuth</span> <span class="op">/</span> <span class="nam">units</span><span class="op">.</span><span class="nam">deg</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t61" href="#t61">61</a></span><span class="t">                <span class="nam">VEL</span> <span class="op">=</span> <span class="nam">antenna_pattern</span><span class="op">.</span><span class="nam">get_antenna_response_vectorized</span><span class="op">(</span><span class="nam">ff</span><span class="op">,</span> <span class="nam">zenith</span><span class="op">,</span> <span class="nam">azimuth</span><span class="op">,</span> <span class="op">*</span><span class="nam">ori</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -183,7 +183,7 @@
             <a class="nav" href="z_0e9db2761cf78c5b_efieldGalacticNoiseAdder_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.16.1">coverage.py v7.16.1</a>,
-            created at 2026-10-06 08:18 +0000
+            created at 2026-10-09 11:09 +0000
         </p>
     </div>
 </footer>
