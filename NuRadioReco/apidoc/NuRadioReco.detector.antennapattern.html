@@ -654,15 +654,17 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.interpolate_linear">
 <span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">interpolate_linear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'complex'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#interpolate_linear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.interpolate_linear" title="Link to this definition"></a></dt>
-<dd><p>helper function to linearly interpolate between two complex numbers</p>
+<dd><p>Linearly interpolate between two (arrays of) complex numbers</p>
+<p>All arguments may be scalars or arrays as long as they broadcast against each other.
+Where the two data points coincide (<code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">==</span> <span class="pre">x1</span></code>) <code class="docutils literal notranslate"><span class="pre">y0</span></code> is returned.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>x: float</strong></dt><dd><p>the requested position</p>
+<dt><strong>x: float or array of floats</strong></dt><dd><p>the requested position(s)</p>
 </dd>
-<dt><strong>x0, y0: float, complex float</strong></dt><dd><p>the first data point</p>
+<dt><strong>x0, y0: float or complex float (or arrays thereof)</strong></dt><dd><p>the first data point</p>
 </dd>
-<dt><strong>x1, y1: float, complex float</strong></dt><dd><p>the second data point</p>
+<dt><strong>x1, y1: float or complex float (or arrays thereof)</strong></dt><dd><p>the second data point</p>
 </dd>
 <dt><strong>interpolation_method: string</strong></dt><dd><p>specifies if interpolation is in</p>
 <ul class="simple">
@@ -674,7 +676,7 @@
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>y: complex float</dt><dd><p>the interpolated value</p>
+<dt>y: complex float or array of complex floats</dt><dd><p>the interpolated value(s)</p>
 </dd>
 </dl>
 </dd>
@@ -683,8 +685,71 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.interpolate_linear_vectorized">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">interpolate_linear_vectorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'complex'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#interpolate_linear_vectorized"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.interpolate_linear_vectorized" title="Link to this definition"></a></dt>
-<dd><p>Same as <a class="reference internal" href="#NuRadioReco.detector.antennapattern.interpolate_linear" title="NuRadioReco.detector.antennapattern.interpolate_linear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolate_linear</span></code></a> but all parameters can be vectors</p>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">interpolate_linear_vectorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'complex'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.antennapattern.interpolate_linear_vectorized" title="Link to this definition"></a></dt>
+<dd><p>Linearly interpolate between two (arrays of) complex numbers</p>
+<p>All arguments may be scalars or arrays as long as they broadcast against each other.
+Where the two data points coincide (<code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">==</span> <span class="pre">x1</span></code>) <code class="docutils literal notranslate"><span class="pre">y0</span></code> is returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x: float or array of floats</strong></dt><dd><p>the requested position(s)</p>
+</dd>
+<dt><strong>x0, y0: float or complex float (or arrays thereof)</strong></dt><dd><p>the first data point</p>
+</dd>
+<dt><strong>x1, y1: float or complex float (or arrays thereof)</strong></dt><dd><p>the second data point</p>
+</dd>
+<dt><strong>interpolation_method: string</strong></dt><dd><p>specifies if interpolation is in</p>
+<ul class="simple">
+<li><p>complex (default) i.e. real and imaginary part</p></li>
+<li><p>magnitude and phase</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>y: complex float or array of complex floats</dt><dd><p>the interpolated value(s)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.get_interpolation_weight">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">get_interpolation_weight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#get_interpolation_weight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.get_interpolation_weight" title="Link to this definition"></a></dt>
+<dd><p>Fraction of the way from <code class="docutils literal notranslate"><span class="pre">x0</span></code> to <code class="docutils literal notranslate"><span class="pre">x1</span></code> at which <code class="docutils literal notranslate"><span class="pre">x</span></code> lies, 0 for x0 == x1</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.interpolate_bilinear">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">interpolate_bilinear</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes_y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corners</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolation_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'complex'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#interpolate_bilinear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.interpolate_bilinear" title="Link to this definition"></a></dt>
+<dd><p>Interpolate within a 2-D grid cell from the values at its four corners</p>
+<p><code class="docutils literal notranslate"><span class="pre">corners[...,</span> <span class="pre">i,</span> <span class="pre">j]</span></code> is the value at <code class="docutils literal notranslate"><span class="pre">(nodes_x[i],</span> <span class="pre">nodes_y[j])</span></code>.</p>
+<p>The ‘complex’ interpolation is linear in the values, so the cell collapses into a single
+weighted sum of the four corners, which is ~3x faster than interpolating one axis after
+the other. The ‘magphase’ interpolation is not linear in the values and has to go axis
+by axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x, y: float</strong></dt><dd><p>the requested position within the cell</p>
+</dd>
+<dt><strong>nodes_x, nodes_y: array of floats</strong></dt><dd><p>the two bracketing nodes of either axis</p>
+</dd>
+<dt><strong>corners: array of complex floats</strong></dt><dd><p>the values at the four corners, shape <code class="docutils literal notranslate"><span class="pre">(...,</span> <span class="pre">2,</span> <span class="pre">2)</span></code></p>
+</dd>
+<dt><strong>interpolation_method: string</strong></dt><dd><p>see <a class="reference internal" href="#NuRadioReco.detector.antennapattern.interpolate_linear" title="NuRadioReco.detector.antennapattern.interpolate_linear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolate_linear</span></code></a></p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>values: array of complex floats</dt><dd><p>the interpolated values, shape <code class="docutils literal notranslate"><span class="pre">(...)</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1208,24 +1273,113 @@ downscaling factor is 4, resulting in a spacing of 2 degrees.</p>
 </div>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.get_onsky_rotation">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">get_onsky_rotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#get_onsky_rotation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.get_onsky_rotation" title="Link to this definition"></a></dt>
+<dd><p>Rotation matrix from the ground (x, y, z) into the on-sky (eR, eTheta, ePhi) system</p>
+<p>Equivalent to <code class="docutils literal notranslate"><span class="pre">radiotools.coordinatesystems.cstrafo</span></code> but constructs only the
+transformation needed here. The matrix is orthonormal, i.e. its transpose describes
+the inverse transformation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>zenith, azimuth: float</strong></dt><dd><p>direction defining the on-sky coordinate system</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>rotation: array of floats</dt><dd><p>the 3x3 rotation matrix</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.get_antenna_basis">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">get_antenna_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#get_antenna_basis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.get_antenna_basis" title="Link to this definition"></a></dt>
+<dd><p>Basis spanned by two (almost) perpendicular directions and their cross product</p>
+<p>The two directions are only required to be almost perpendicular, so the basis is
+not necessarily orthonormal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>theta1, phi1: float</strong></dt><dd><p>zenith and azimuth angle of the first direction (for antennas: the boresight)</p>
+</dd>
+<dt><strong>theta2, phi2: float</strong></dt><dd><p>zenith and azimuth angle of the second direction (for antennas: perpendicular
+to the boresight, e.g. the normal of the plane containing the tines of an LPDA)</p>
+</dd>
+<dt><strong>description: string</strong></dt><dd><p>what is being defined, used for the error message</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>basis: array of floats</dt><dd><p>the 3x3 matrix of the three basis vectors</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.make_perpendicular">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">make_perpendicular</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0017453292519943296</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#make_perpendicular"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.make_perpendicular" title="Link to this definition"></a></dt>
+<dd><p>Rotate the second direction into the plane perpendicular to the first</p>
+<p>Some antenna models store a rounded angle (89.9544 deg instead of 90 deg), which makes the
+basis spanned by the two directions non-orthogonal. The transformation between two such bases
+is not a rotation and rescales the vector effective length slightly. A deviation larger than
+<em class="xref py py-obj">tolerance</em> is a genuine geometry and is left untouched.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>theta1, phi1: float</strong></dt><dd><p>zenith and azimuth angle of the first direction</p>
+</dd>
+<dt><strong>theta2, phi2: float</strong></dt><dd><p>zenith and azimuth angle of the second direction, the one that is corrected</p>
+</dd>
+<dt><strong>description: string</strong></dt><dd><p>what is being corrected, used for the log message</p>
+</dd>
+<dt><strong>tolerance: float (default: 0.1 deg)</strong></dt><dd><p>largest deviation from perpendicular that is corrected</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>theta2, phi2: float</dt><dd><p>the corrected second direction</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPatternBase">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">AntennaPatternBase</span></span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#AntennaPatternBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPatternBase" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>base class of utility class that handles access and buffering to antenna pattern</p>
+<p>Base class of utility class that handles access and buffering to antenna pattern</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPatternBase.get_antenna_response_vectorized" title="NuRadioReco.detector.antennapattern.AntennaPatternBase.get_antenna_response_vectorized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code></a>(freq, ...)</p></td>
-<td><p>get the antenna response for a specific frequency, zenith and azimuth angle</p></td>
+<td><p>Get the antenna response for a specific frequency, zenith and azimuth angle.</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPatternBase.get_antenna_response_vectorized">
 <span class="sig-name descname"><span class="pre">get_antenna_response_vectorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_phi</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#AntennaPatternBase.get_antenna_response_vectorized"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPatternBase.get_antenna_response_vectorized" title="Link to this definition"></a></dt>
-<dd><p>get the antenna response for a specific frequency, zenith and azimuth angle</p>
-<p>All angles are specified in the NuRadio coordinate system. All units are in NuRadio default units</p>
+<dd><p>Get the antenna response for a specific frequency, zenith and azimuth angle.</p>
+<p>All angles are specified in the NuRadio coordinate system. All units are in NuRadio default units.</p>
+<p>This function does three things:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">_get_theta_and_phi</span></code>: transform the requested signal direction into the coordinate system
+of the antenna simulation, taking the orientation and rotation of the antenna into account</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_get_antenna_response_vectorized_raw</span></code>: interpolate the stored antenna pattern at that
+requested direction (properly transformed) and frequencies (in the native simulated coordinate system)</p></li>
+<li><p>rotate the interpolated vector effective length, so that its two components refer to the
+on-sky unit vectors of the NuRadio coordinate system</p></li>
+</ul>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1247,7 +1401,7 @@ downscaling factor is 4, resulting in a spacing of 2 degrees.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>VEL: dictonary of complex arrays</dt><dd><p>theta and phi component of the vector effective length, both components
+<dt>vel: dictonary of complex arrays</dt><dd><p>theta and phi component of the vector effective length, both components
 are complex floats or arrays of complex floats
 of the same length as the frequency input</p>
 </dd>
@@ -1285,11 +1439,22 @@ The class accesses the NuRadioReco pickle format file which contains the preproc
 <dt>H_theta: array of floats</dt><dd><p>the complex realized vector effective length of the eTheta polarization component</p>
 </dd>
 </dl>
+<p>The three angular/spectral axes are sampled on a regular (but not necessarily equally
+spaced) grid, i.e. the VEL is stored as a <code class="docutils literal notranslate"><span class="pre">(n_freqs,</span> <span class="pre">n_phi,</span> <span class="pre">n_theta)</span></code> cube.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>VEL</strong></dt><dd></dd>
+<dt><strong>VEL_phi</strong></dt><dd></dd>
+<dt><strong>VEL_theta</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPattern.get_antenna_response_vectorized" title="NuRadioReco.detector.antennapattern.AntennaPattern.get_antenna_response_vectorized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code></a>(freq, ...)</p></td>
-<td><p>get the antenna response for a specific frequency, zenith and azimuth angle</p></td>
+<td><p>Get the antenna response for a specific frequency, zenith and azimuth angle.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1311,20 +1476,51 @@ file could not be verified (via hash sum).</p>
 </dd>
 </dl>
 </dd>
+<dt class="field-even">Attributes<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>VEL</strong></dt><dd></dd>
+<dt><strong>VEL_phi</strong></dt><dd></dd>
+<dt><strong>VEL_theta</strong></dt><dd></dd>
+</dl>
+</dd>
 </dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPattern.get_antenna_response_vectorized" title="NuRadioReco.detector.antennapattern.AntennaPattern.get_antenna_response_vectorized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code></a>(freq, ...)</p></td>
-<td><p>get the antenna response for a specific frequency, zenith and azimuth angle</p></td>
+<td><p>Get the antenna response for a specific frequency, zenith and azimuth angle.</p></td>
 </tr>
 </tbody>
 </table>
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPattern.VEL">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">VEL</span></span><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPattern.VEL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPattern.VEL_theta">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">VEL_theta</span></span><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPattern.VEL_theta" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPattern.VEL_phi">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">VEL_phi</span></span><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPattern.VEL_phi" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPattern.get_antenna_response_vectorized">
 <span class="sig-name descname"><span class="pre">get_antenna_response_vectorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_phi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPattern.get_antenna_response_vectorized" title="Link to this definition"></a></dt>
-<dd><p>get the antenna response for a specific frequency, zenith and azimuth angle</p>
-<p>All angles are specified in the NuRadio coordinate system. All units are in NuRadio default units</p>
+<dd><p>Get the antenna response for a specific frequency, zenith and azimuth angle.</p>
+<p>All angles are specified in the NuRadio coordinate system. All units are in NuRadio default units.</p>
+<p>This function does three things:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">_get_theta_and_phi</span></code>: transform the requested signal direction into the coordinate system
+of the antenna simulation, taking the orientation and rotation of the antenna into account</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_get_antenna_response_vectorized_raw</span></code>: interpolate the stored antenna pattern at that
+requested direction (properly transformed) and frequencies (in the native simulated coordinate system)</p></li>
+<li><p>rotate the interpolated vector effective length, so that its two components refer to the
+on-sky unit vectors of the NuRadio coordinate system</p></li>
+</ul>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1346,7 +1542,7 @@ file could not be verified (via hash sum).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>VEL: dictonary of complex arrays</dt><dd><p>theta and phi component of the vector effective length, both components
+<dt>vel: dictonary of complex arrays</dt><dd><p>theta and phi component of the vector effective length, both components
 are complex floats or arrays of complex floats
 of the same length as the frequency input</p>
 </dd>
@@ -1366,14 +1562,10 @@ of the same length as the frequency input</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.get_antenna_response_vectorized" title="NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.get_antenna_response_vectorized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code></a>(freq, ...)</p></td>
-<td><p>get the antenna response for a specific frequency, zenith and azimuth angle</p></td>
+<td><p>Get the antenna response for a specific frequency, zenith and azimuth angle.</p></td>
 </tr>
-</tbody>
-</table>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><strong>parametric_phase</strong></p></td>
-<td></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.parametric_phase" title="NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.parametric_phase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parametric_phase</span></code></a>(freq[, phase_type])</p></td>
+<td><p>Phase of the analytic antenna models as a function of frequency</p></td>
 </tr>
 </tbody>
 </table>
@@ -1406,22 +1598,50 @@ Setting max_VEL=None, the default values are used:
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.get_antenna_response_vectorized" title="NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.get_antenna_response_vectorized"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_antenna_response_vectorized</span></code></a>(freq, ...)</p></td>
-<td><p>get the antenna response for a specific frequency, zenith and azimuth angle</p></td>
+<td><p>Get the antenna response for a specific frequency, zenith and azimuth angle.</p></td>
 </tr>
-</tbody>
-</table>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><strong>parametric_phase</strong></p></td>
-<td></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.parametric_phase" title="NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.parametric_phase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parametric_phase</span></code></a>(freq[, phase_type])</p></td>
+<td><p>Phase of the analytic antenna models as a function of frequency</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.parametric_phase">
+<span class="sig-name descname"><span class="pre">parametric_phase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'theoretical'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#AntennaPatternAnalytic.parametric_phase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.parametric_phase" title="Link to this definition"></a></dt>
+<dd><p>Phase of the analytic antenna models as a function of frequency</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>freq: array of floats</strong></dt><dd><p>frequencies at which to evaluate the phase</p>
+</dd>
+<dt><strong>phase_type: string</strong></dt><dd><p>one of ‘theoretical’, ‘frontlobe_lpda’, ‘side_lpda’, ‘back_lpda’,
+‘VPol_third_order’ or ‘HPol_third_order’</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>phase: array of floats</dt><dd><p>the phase in radians</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.get_antenna_response_vectorized">
 <span class="sig-name descname"><span class="pre">get_antenna_response_vectorized</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation_phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_phi</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.get_antenna_response_vectorized" title="Link to this definition"></a></dt>
-<dd><p>get the antenna response for a specific frequency, zenith and azimuth angle</p>
-<p>All angles are specified in the NuRadio coordinate system. All units are in NuRadio default units</p>
+<dd><p>Get the antenna response for a specific frequency, zenith and azimuth angle.</p>
+<p>All angles are specified in the NuRadio coordinate system. All units are in NuRadio default units.</p>
+<p>This function does three things:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">_get_theta_and_phi</span></code>: transform the requested signal direction into the coordinate system
+of the antenna simulation, taking the orientation and rotation of the antenna into account</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_get_antenna_response_vectorized_raw</span></code>: interpolate the stored antenna pattern at that
+requested direction (properly transformed) and frequencies (in the native simulated coordinate system)</p></li>
+<li><p>rotate the interpolated vector effective length, so that its two components refer to the
+on-sky unit vectors of the NuRadio coordinate system</p></li>
+</ul>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
@@ -1443,7 +1663,7 @@ Setting max_VEL=None, the default values are used:
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>VEL: dictonary of complex arrays</dt><dd><p>theta and phi component of the vector effective length, both components
+<dt>vel: dictonary of complex arrays</dt><dd><p>theta and phi component of the vector effective length, both components
 are complex floats or arrays of complex floats
 of the same length as the frequency input</p>
 </dd>
@@ -1452,11 +1672,6 @@ of the same length as the frequency input</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.parametric_phase">
-<span class="sig-name descname"><span class="pre">parametric_phase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'theoretical'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#AntennaPatternAnalytic.parametric_phase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPatternAnalytic.parametric_phase" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
@@ -1464,8 +1679,24 @@ of the same length as the frequency input</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.detector.antennapattern.</span></span><span class="sig-name descname"><span class="pre">AntennaPatternProvider</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/detector/antennapattern.html#AntennaPatternProvider"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.detector.antennapattern.AntennaPatternProvider" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Provider class for antenna pattern. The usage of antenna pattern through this class ensures
-that an antenna pattern is loaded only once into memory which takes a significant time and occupies a
-significant amount of memory.</p>
+that an antenna pattern is loaded only once into memory which takes a significant time and
+occupies a significant amount of memory.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPatternProvider.load_antenna_pattern" title="NuRadioReco.detector.antennapattern.AntennaPatternProvider.load_antenna_pattern"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_antenna_pattern</span></code></a>(name, **kwargs)</p></td>
+<td><p>loads an antenna pattern and returns the antenna pattern class</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>log_level: int</strong></dt><dd><p>the log level of the antenna pattern logger</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -1485,6 +1716,12 @@ significant amount of memory.</p>
 </dd>
 <dt><strong>**kwargs: dict</strong></dt><dd><p>key word arguments that are passed to the init function of the <a class="reference internal" href="#NuRadioReco.detector.antennapattern.AntennaPattern" title="NuRadioReco.detector.antennapattern.AntennaPattern"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AntennaPattern</span></code></a> class (see
 documentation of this class for further information)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>antenna_pattern</strong><span class="classifier">AntennaPattern or AntennaPatternAnalytic</span></dt><dd><p>Return the loaded antenna pattern object.</p>
 </dd>
 </dl>
 </dd>
