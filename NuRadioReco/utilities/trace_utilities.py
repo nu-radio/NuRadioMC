@@ -459,9 +459,7 @@ def get_split_trace_noise_RMS(trace, segments=4, lowest=2):
     noise_root_mean_square: float
         The mean of the lowest few segments' RMS values
     """
-    split_array = np.array_split(trace, segments)
-    split_array = np.array(split_array, dtype="object") #Objectify dtype to allow timetraces indivisible by amount of segments
-    rms_of_splits = [np.std(split) for split in split_array]
+    rms_of_splits = [np.std(split) for split in np.array_split(trace, segments)]
     ordered_rmss = np.sort(rms_of_splits)
     lowest_rmss = ordered_rmss[:lowest]
     noise_root_mean_square = np.mean(lowest_rmss)
@@ -566,7 +564,7 @@ def get_hilbert_envelope(trace):
     return envelope
 
 
-def get_impulsivity(trace):
+def get_impulsivity(trace, envelope=None):
     """
     Calculates the impulsivity of a signal (trace).
 
@@ -580,6 +578,8 @@ def get_impulsivity(trace):
     ----------
     trace: array of floats
         Trace of a waveform
+    envelope: array of floats, optional
+        Hilbert envelope of the trace, if already available (avoids recomputing it)
 
     Returns
     -------
@@ -587,18 +587,16 @@ def get_impulsivity(trace):
         Impulsivity of the signal (scaled between 0 and 1)
     """
 
-    envelope = get_hilbert_envelope(trace)
+    if envelope is None:
+        envelope = get_hilbert_envelope(trace)
     maxv = np.argmax(envelope)
-    envelope_indexes = np.arange(len(envelope)) ## just a list of indices the same length as the array
-    closeness = list(
-        np.abs(envelope_indexes - maxv)
-    )  ## create an array containing index distance to max voltage (lower the value, the closer it is)
-
-    sorted_envelope = np.array([x for _, x in sorted(zip(closeness, envelope))])
+    # sort by index distance to the maximum, ties are ordered by envelope value (low to high)
+    order = np.lexsort((envelope, np.abs(np.arange(len(envelope)) - maxv)))
+    sorted_envelope = envelope[order]
     cdf = np.cumsum(sorted_envelope**2)
     cdf = cdf / cdf[-1]
 
-    impulsivity = (np.mean(np.asarray([cdf])) * 2.0) - 1.0
+    impulsivity = np.mean(cdf) * 2.0 - 1.0
     if impulsivity < 0:
         impulsivity = 0.0
 
@@ -680,7 +678,9 @@ def get_entropy(trace, n_hist_bins = 50):
 
     # Step 3: Calculate Shannon Entropy
     # Using base = 2 for entropy in bits
-    entropy = scipy.stats.entropy(probabilities, base = 2)
+    # Same as scipy.stats.entropy, which is not used as its input handling costs ~20x more than the computation
+    nonzero = probabilities[probabilities > 0]
+    entropy = -np.sum(nonzero * np.log2(nonzero))
 
     return entropy
 
@@ -699,7 +699,11 @@ def get_kurtosis(trace):
     kurtosis: float
         Kurtosis of the signal (trace)
     """
-    kurtosis = scipy.stats.kurtosis(trace)
+    # Same as scipy.stats.kurtosis (Fisher, biased), which is not used as its input handling costs ~7x more than
+    # the computation
+    deviation = np.asarray(trace) - np.mean(trace)
+    m2 = np.mean(deviation ** 2)
+    kurtosis = np.mean(deviation ** 4) / m2 ** 2 - 3.0 if m2 > 0 else np.nan
     return kurtosis
 
 

@@ -18,6 +18,10 @@ except:
     precision = 7
 
 
+# relative tolerance for the channel/station parameters (e.g. calculated by the channelSignalReconstructor).
+# Tiny platform-dependent differences in the traces are amplified for low-amplitude channels.
+parameter_rtol = 2e-3
+
 print("Testing the files {} and {} for equality".format(file1, file2))
 
 def all_traces(file, return_trace_start_times=True):
@@ -41,6 +45,29 @@ def all_traces(file, return_trace_start_times=True):
     if return_trace_start_times:
         return all_traces, np.array(trace_start_times)
     return all_traces
+
+def all_parameters(file):
+    """ Returns a dict {(run, event, station, channel or None): {parameter name: value}} of all stored parameters """
+    reader = NuRadioReco.modules.io.eventReader.eventReader()
+    reader.begin(file)
+    parameters = {}
+    for event in reader.run():
+        for station in event.get_stations():
+            key = (event.get_run_number(), event.get_id(), station.get_id())
+            parameters[key + (None,)] = {str(k): v for k, v in station._parameters.items()}
+            for channel in station.iter_channels(sorted=True):
+                parameters[key + (channel.get_id(),)] = {str(k): v for k, v in channel._parameters.items()}
+    return parameters
+
+
+def assert_parameters_allclose(value1, value2, rtol, name):
+    if isinstance(value1, dict):
+        assert value1.keys() == value2.keys(), f"{name}: keys differ ({sorted(value1)} vs. {sorted(value2)})"
+        for key in value1:
+            assert_parameters_allclose(value1[key], value2[key], rtol, f"{name}/{key}")
+    else:
+        testing.assert_allclose(value1, value2, rtol=rtol, atol=0, err_msg=f"Parameter {name} differs")
+
 
 all_traces_1, trace_start_times_1 = all_traces(file1)
 all_traces_2, trace_start_times_2 = all_traces(file2)
@@ -66,6 +93,14 @@ start_time_decimal = min(precision, 3)
 testing.assert_almost_equal(
     trace_start_times_1, trace_start_times_2, decimal=start_time_decimal,
     err_msg=f"Trace start times are not equal (maximum difference: {max(np.abs(trace_start_times_1-trace_start_times_2))})")
+
+# check that all channel and station parameters agree
+parameters_1 = all_parameters(file1)
+parameters_2 = all_parameters(file2)
+assert parameters_1.keys() == parameters_2.keys(), "Files contain different events/stations/channels"
+for key in parameters_1:
+    assert_parameters_allclose(parameters_1[key], parameters_2[key], parameter_rtol, str(key))
+print(f"Channel and station parameters agree within rtol={parameter_rtol}")
 
 try:
     testing.assert_equal(all_traces_1, all_traces_2)
