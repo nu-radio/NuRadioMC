@@ -590,7 +590,7 @@ def get_impulsivity(trace, envelope=None):
     if envelope is None:
         envelope = get_hilbert_envelope(trace)
     maxv = np.argmax(envelope)
-    # sort by index distance to the maximum, ties are ordered by envelope value
+    # sort by index distance to the maximum, ties are ordered by envelope value (low to high)
     order = np.lexsort((envelope, np.abs(np.arange(len(envelope)) - maxv)))
     sorted_envelope = envelope[order]
     cdf = np.cumsum(sorted_envelope**2)
