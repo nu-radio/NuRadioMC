@@ -15,7 +15,7 @@ logger = logging.getLogger('NuRadioReco.module')
 # Controls both recording and the printout at exit. Default from the environment variable NURADIO_TIMING (0 = off);
 # can be changed at runtime via `NuRadioReco.modules.base.module.ENABLE_TIMING = False`.
 ENABLE_TIMING = os.environ.get("NURADIO_TIMING", "1") not in ("", "0")
-TIMING_MIN_PERCENT = float(os.environ.get("NURADIO_TIMING_MIN_PERCENT", "2"))  # modules below this share are merged
+TIMING_MIN_PERCENT = 2.  # modules below this share (in percent) of the total time are merged into "others"
 _timed_runs = []  # all decorated run methods, used for the timing summary
 
 
@@ -217,7 +217,7 @@ def print_timing_summary(min_percent=None):
     min_percent : float, optional
         Modules contributing less than this share (in percent) of the total time are merged into a single
         "others" row, which states the number of merged modules. Default: ``TIMING_MIN_PERCENT``
-        (environment variable NURADIO_TIMING_MIN_PERCENT, 2 if unset). Use 0 to list all modules.
+        (2). Use 0 to list all modules.
     """
     if min_percent is None:
         min_percent = TIMING_MIN_PERCENT
