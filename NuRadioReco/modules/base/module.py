@@ -15,6 +15,7 @@ logger = logging.getLogger('NuRadioReco.module')
 # Controls both recording and the printout at exit. Default from the environment variable NURADIO_TIMING (0 = off);
 # can be changed at runtime via `NuRadioReco.modules.base.module.ENABLE_TIMING = False`.
 ENABLE_TIMING = os.environ.get("NURADIO_TIMING", "1") not in ("", "0")
+TIMING_MIN_PERCENT = 2.  # modules below this share (in percent) of the total time are merged into "others"
 _timed_runs = []  # all decorated run methods, used for the timing summary
 
 
@@ -201,16 +202,26 @@ def end_all_modules():
                 logger.exception(f"Calling end() of {type(instance).__name__} failed")
 
 
-def print_timing_summary():
+def print_timing_summary(min_percent=None):
     """
-    Print the accumulated run time per module (class) in order of first execution.
+    Print the accumulated run time per module (class) in order of first execution, followed by a total line.
 
     Times are exclusive: time spent in nested module calls (e.g. a generator wrapping another one) is
     attributed to the nested module only.
 
     For reader modules (generators), the time spent producing each item is counted, with one call per item.
     It is printed automatically at exit if ``ENABLE_TIMING`` is set (see top of file).
+
+    Parameters
+    ----------
+    min_percent : float, optional
+        Modules contributing less than this share (in percent) of the total time are merged into a single
+        "others" row, which states the number of merged modules. Default: ``TIMING_MIN_PERCENT``
+        (2). Use 0 to list all modules.
     """
+    if min_percent is None:
+        min_percent = TIMING_MIN_PERCENT
+
     stats = {}
     for run in _timed_runs:
         for instance, total in run.time.items():
@@ -222,12 +233,30 @@ def print_timing_summary():
         return
 
     all_total = sum(t for t, _ in stats.values())
-    rows = [f"{name:<40} {calls:>8} {total:>10.3f} {1e3 * total / calls:>14.3f} {100 * total / all_total:>6.1f}"
-            for name, (total, calls) in sorted(stats.items(), key=lambda kv: _order[kv[0]])]
+    all_calls = sum(c for _, c in stats.values())
+
+    def percent(total):
+        return 100 * total / all_total if all_total > 0 else 0.
+
+    def row(name, calls, total, per_call=True):
+        per = f"{1e3 * total / calls:>14.3f}" if per_call and calls else f"{'-':>14}"
+        return f"{name:<40} {calls:>8} {total:>10.3f} {per} {percent(total):>6.1f}"
+
+    shown = [(name, v) for name, v in sorted(stats.items(), key=lambda kv: _order[kv[0]])
+             if percent(v[0]) >= min_percent]
+    hidden = [v for v in stats.values() if percent(v[0]) < min_percent]
+
+    rows = [row(name, calls, total) for name, (total, calls) in shown]
+    if hidden:
+        rows.append(row(f"others ({len(hidden)} modules < {min_percent:g}%)",
+                        sum(c for _, c in hidden), sum(t for t, _ in hidden), per_call=False))
+
     header = f"{'module':<40} {'calls':>8} {'total [s]':>10} {'per call [ms]':>14} {'%':>6}"
     width = len(header)
     lines = ["┌" + "─" * (width + 2) + "┐", f"│ {header} │", "├" + "─" * (width + 2) + "┤"]
-    lines += [f"│ {row} │" for row in rows]
+    lines += [f"│ {r} │" for r in rows]
+    lines.append("├" + "─" * (width + 2) + "┤")
+    lines.append(f"│ {row('total', all_calls, all_total, per_call=False)} │")
     lines.append("└" + "─" * (width + 2) + "┘")
     logger.log(LOGGING_STATUS, "Module timing\n" + "\n".join("  " + line for line in lines))
 
