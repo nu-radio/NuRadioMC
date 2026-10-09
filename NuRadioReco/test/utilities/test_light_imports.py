@@ -44,16 +44,6 @@ def test_light_imports():
         assert res.returncode == 0, f"{module} needs a heavy dependency:\n{res.stderr[-1000:]}"
 
 
-def test_light_modules_exist():
-    """All ``LIGHT_MODULES`` exist in ``NuRadioReco.utilities``."""
-    import pkgutil
-    import NuRadioReco.utilities
-
-    found = {m.name for m in pkgutil.iter_modules(NuRadioReco.utilities.__path__)}
-    stale = sorted(set(LIGHT_MODULES) - found)
-    assert not stale, f"Listed module(s) {stale} do not exist (anymore)"
-
-
 def test_deprecated_import_paths():
     """The deprecated import paths (with lazy imports) still resolve with all dependencies available."""
     code = ("import warnings\n"
@@ -67,6 +57,5 @@ def test_deprecated_import_paths():
 
 if __name__ == "__main__":
     test_light_imports()
-    test_light_modules_exist()
     test_deprecated_import_paths()
     print("OK")
