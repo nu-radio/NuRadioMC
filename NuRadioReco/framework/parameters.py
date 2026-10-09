@@ -95,6 +95,9 @@ class channelParameters(TypedEnum):
     impulsivity = 23, float  #: average of the CDF about the peak of the coherently summed waveform
     entropy = 24, float  #: Shannon entropy of a waveform
     kurtosis = 25, float  #: kurtosis of a waveform
+    spectral_energy_ratios = 26, list[float]  #: target/reference band energy ratios, one per target band. See `NuRadioReco.modules.channelFrequencyContentCalculator`
+    median_frequency = 27, float  #: frequency below which 50% of the spectral energy lies
+    spectral_centroid = 28, float  #: energy-weighted mean frequency
 
 class channelParametersRNOG(TypedEnum):
     # RNO-G specific channel parameters

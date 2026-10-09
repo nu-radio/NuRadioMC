@@ -261,6 +261,11 @@ jobs:
       run: |
         python NuRadioReco/test/utilities/test_light_imports.py
 
+    - name: "Test trace utilities"
+      if: always()
+      run: |
+        python NuRadioReco/test/utilities/test_trace_utilities.py
+
     - name: "Test calibration pulser example"
       if: always()
       run: |

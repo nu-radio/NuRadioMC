@@ -311,6 +311,21 @@ class ray_tracing(ray_tracing_base):
             self.__logger.warning(f"[x1 {self._x1}, x2 {self._x2}] {self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed!")
             #self._results = []
 
+    def get_C0(self, iS):
+        """ Returns the C0 parameter of the solution
+
+        Parameters
+        ----------
+        iS: int
+            Choose for which solution, counting starts at zero
+
+        Returns
+        -------
+        C_0: float
+            float, defining the ray shape
+        """
+        return self._results[iS]['C0']
+
     def get_solution_type(self, iS):
         """ Returns the type of the solution
 

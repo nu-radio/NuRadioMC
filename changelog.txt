@@ -25,6 +25,9 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - Added a table based file format (parquet) for derived/reconstructed parameters (no traces): `eventWriterParquet` writes
   one file per station and run (optionally sim station, sim channels and electric fields), `parquet_utilities.ParquetReader`
   reads them with polars. The schema is derived from the parameter types. Requires pyarrow and polars (`pip install -e .[parquet]`).
+- Added the module `channelFrequencyContentCalculator` and the `trace_utilities` functions `get_band_energy_ratio`,
+  `get_spectral_energy_quantile_frequency` and `get_spectral_centroid` to quantify the relative frequency content of waveforms
+  (target/reference band energy ratio, median frequency, spectral centroid).
 
 bugfixes:
 - `NuRadioReco.utilities` light modules (units, fft, logging, ice, ...) can now be imported without scipy/astropy/matplotlib/etc.:
