@@ -121,7 +121,7 @@ def make_tracer(
         ice,
         attenuation_model,
         n_frequencies_integration=n_freq,
-        n_reflections=n_reflections,
+        n_reflections=n_reflections, use_cpp = False
     )
 
 def make_grid(x_range, z_range, n_x, n_z, y=0.0):
@@ -275,7 +275,9 @@ def compare_point_full(
                 freqs = np.linspace(100*units.MHz, 700*units.MHz, 1)
                 att_a = tracer_a.get_attenuation(i_a,freqs)[0]
                 foc_a = tracer_a.get_focusing(i_a)
-                #ra_a = tracer_a.get_receive_angle(i_a)
+                type_a = tracer_a.get_solution_type(i_a)
+                c0_a = tracer_a.get_C0(i_a)
+                ra_a = tracer_a.get_reflection_angle(i_a)
 
                 entry["a"] = {
                     "travel_time_ns": safe_get(
@@ -309,6 +311,21 @@ def compare_point_full(
                         lambda : foc_a,
                         default=None,
                         warning=f"focusing failed (A, group {group})",
+                    ),
+                    "type":safe_get(
+                        lambda : type_a,
+                        default = None,
+                        warning=f"type failed (A, group {group})",
+                    ),
+                    "c0":safe_get(
+                        lambda : c0_a,
+                        default = None,
+                        warning=f"c0 failed (A, group {group})",
+                    ),
+                    "reflection_angle": safe_get(
+                        lambda : ra_a/units.deg,
+                        default=None,
+                        warning=f"reflection angle failed (A, group {group})",
                     )
                 }
 
@@ -328,7 +345,9 @@ def compare_point_full(
                 freqs = np.linspace(100*units.MHz, 700*units.MHz, 1)
                 att_b = tracer_b.get_attenuation(i_b,freqs)[0]
                 foc_b = tracer_b.get_focusing(i_b)
-                #ra_b = tracer_b.get_receive_angle(i_b)
+                type_b = tracer_b.get_solution_type(i_b)
+                c0_b = tracer_b.get_C0(i_b)
+                ra_b = tracer_b.get_reflection_angle(i_b)
 
                 entry["b"] = {
                     "travel_time_ns": safe_get(
@@ -362,6 +381,20 @@ def compare_point_full(
                         lambda : foc_b,
                         default=None,
                         warning=f"focusing failed (B, group {group})",
+                    ),
+                    "type":safe_get(
+                        lambda : type_b,
+                        default = None,
+                        warning=f"type failed (B, group {group})",
+                    ),
+                    "c0":safe_get(
+                        lambda : c0_b,
+                        default = None,
+                        warning=f"c0 failed (B, group {group})",
+                    ),
+                    "reflection_angle": safe_get(
+                        lambda : ra_b / units.deg,
+                        default=None
                     )
                     
                 }
@@ -406,7 +439,12 @@ def compare_point_full(
                         lambda : (entry["b"]["focusing"]-entry["a"]["focusing"]),
                         default=None,
                         warning=f"focusing diff failed (group {group})",
-                    )
+                    ),
+
+                    "r_angle_diff": safe_get(
+                        lambda : (( entry["a"]["reflection_angle"] - entry["b"]["reflection_angle"])),
+                        default=None,
+                    ),
 
                 }
 
@@ -491,6 +529,9 @@ def flatten_full(results):
                 row["receive_angle_a"] = sol["a"]["receive_angle"]
                 row["attenuation_a"] = sol["a"]["attenuation"]
                 row["focusing_a"] = sol["a"]["focusing"]
+                row['type_a'] = sol["a"]["type"]
+                row['c0_a'] = sol["a"]["c0"]
+                row["reflection_angle_a"] = sol["a"]["reflection_angle"]
 
             # -------------------------
             # module B
@@ -502,6 +543,9 @@ def flatten_full(results):
                 row["receive_angle_b"] = sol["b"]["receive_angle"]
                 row["attenuation_b"] = sol["b"]["attenuation"]
                 row["focusing_b"] = sol["b"]["focusing"]
+                row['type_b'] = sol["b"]["type"]
+                row['c0_b'] = sol["b"]["c0"]
+                row["reflection_angle_b"] = sol["b"]["reflection_angle"]
 
             # -------------------------
             # differences
@@ -514,6 +558,7 @@ def flatten_full(results):
                 row["solving_time_ratio"] = sol["diff"]["solving_time_ratio"]
                 row["attenuation_diff"] = sol["diff"]["attenuation_diff"]
                 row["focusing_diff"] = sol["diff"]["focusing_diff"]
+                row['r_angle_diff'] = sol['diff']['r_angle_diff']
 
             # NEW: solution existence flags
             row["has_a"] = sol["a"] is not None
