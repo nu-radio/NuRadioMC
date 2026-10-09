@@ -1,5 +1,4 @@
 import numpy as np
-import time
 import logging
 import copy
 import functools
@@ -29,7 +28,6 @@ class efieldToVoltageConverter():
     """
 
     def __init__(self, log_level=logging.NOTSET):
-        self.__t = 0
         self.__uncertainty = None
         self.__debug = None
         self.__pre_pulse_time = None
@@ -109,7 +107,6 @@ class efieldToVoltageConverter():
 
     @register_run()
     def run(self, evt, station, det, channel_ids=None):
-        t = time.time()
 
         # access simulated efield and high level parameters
         sim_station = station.get_sim_station()
@@ -350,14 +347,8 @@ class efieldToVoltageConverter():
             channel.set_trace_start_time(times_min)
             station.add_channel(channel)
 
-        self.__t += time.time() - t
-
     def end(self):
-        from datetime import timedelta
-        logger.setLevel(logging.INFO)
-        dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass
 
     def get_antenna_pattern_and_orientation(self, det, station, channel_id, zenith):
         """ Get the antenna pattern and orientation for a given channel and zenith angle.
