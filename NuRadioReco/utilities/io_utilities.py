@@ -14,6 +14,7 @@ import io
 from ._fastnumpyio import pack, unpack # these are essentially faster alternatives for np.load/save
 import logging
 import datetime
+import astropy.time
 
 logger = logging.getLogger('NuRadioReco.utilities.io_utilities')
 
@@ -116,8 +117,6 @@ def _astropy_to_dict(time):
     if time is None:
         return None
 
-    import astropy.time  # lazy: astropy is not needed to import this module
-
     if not isinstance(time, astropy.time.Time):
         logger.error(f'Input is not an astropy object: {time}')
         raise ValueError(f'Input is not an astropy object: {time}')
@@ -160,8 +159,6 @@ def _time_object_to_astropy(time_object):
     if isinstance(time_object, (int, float)) and time_object == 0:
         # 0 was an old default value for the event time. It was replaced by None.
         return None
-
-    import astropy.time  # lazy: astropy is not needed to import this module
 
     if isinstance(time_object, astropy.time.Time):
         # For backward compatibility, we also keep supporting station times stored as astropy.time objects
