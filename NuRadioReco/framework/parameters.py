@@ -94,6 +94,8 @@ class stationParametersRNOG(Enum):
     coherent_entropy = 3  #: Shannon entropy of the coherently summed waveform
     coherent_kurtosis = 4  #: kurtosis of the coherently summed waveform
 
+    digitizer = 100  #: the digitizer used by the station (derived from data format)
+
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
     polarization_angle = 2  #: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
