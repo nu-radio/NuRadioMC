@@ -370,6 +370,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html">NuRadioReco.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html#dependencies">Dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html">NuRadioReco.utilities.analytic_pulse module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.constants.html">NuRadioReco.utilities.constants module</a></li>
@@ -661,7 +662,7 @@
 <span class="sd">    Module for functions that modify traces, e.g., by filtering, delaying, etc.</span>
 <span class="sd">"""</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">signal_processing</span><span class="p">,</span> <span class="n">fft</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.stats</span>
@@ -685,6 +686,7 @@
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.get_efield_antenna_factor`.</span>
 <span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">signal_processing</span>  <span class="c1"># lazy: avoids circular import</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"get_efield_antenna_factor is moved to NuRadioReco.utilities.signal_processing.get_efield_antenna_factor"</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">get_efield_antenna_factor</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -696,6 +698,7 @@
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.get_channel_voltage_from_efield`.</span>
 <span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">signal_processing</span>  <span class="c1"># lazy: avoids circular import</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"get_channel_voltage_from_efield is moved to NuRadioReco.utilities.signal_processing.get_channel_voltage_from_efield"</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">get_channel_voltage_from_efield</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -706,6 +709,7 @@
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.upsampling_fir`.</span>
 <span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">signal_processing</span>  <span class="c1"># lazy: avoids circular import</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"upsampling_fir is moved to NuRadioReco.utilities.signal_processing.upsampling_fir"</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">upsampling_fir</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -717,6 +721,7 @@
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.butterworth_filter_trace`.</span>
 <span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">signal_processing</span>  <span class="c1"># lazy: avoids circular import</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"butterworth_filter_trace is moved to NuRadioReco.utilities.signal_processing.butterworth_filter_trace"</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">butterworth_filter_trace</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -728,6 +733,7 @@
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.apply_butterworth`.</span>
 <span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">signal_processing</span>  <span class="c1"># lazy: avoids circular import</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"apply_butterworth is moved to NuRadioReco.utilities.signal_processing.apply_butterworth"</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">apply_butterworth</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -739,6 +745,7 @@
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.delay_trace`.</span>
 <span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">signal_processing</span>  <span class="c1"># lazy: avoids circular import</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"delay_trace is moved to NuRadioReco.utilities.signal_processing.delay_trace"</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">signal_processing</span><span class="o">.</span><span class="n">delay_trace</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 

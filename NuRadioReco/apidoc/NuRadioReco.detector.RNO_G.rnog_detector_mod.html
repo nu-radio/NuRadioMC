@@ -373,6 +373,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="NuRadioReco.utilities.html">NuRadioReco.utilities package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="NuRadioReco.utilities.html#dependencies">Dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.utilities.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.analytic_pulse.html">NuRadioReco.utilities.analytic_pulse module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.constants.html">NuRadioReco.utilities.constants module</a></li>
@@ -675,14 +676,14 @@
 <dt><strong>database_connection</strong><span class="classifier">str (Default: ‘RNOG_public’)</span></dt><dd><p>Allows to specify database connection. Passed to mongo-db interface.</p>
 </dd>
 <dt><strong>log_level</strong><span class="classifier"><em class="xref py py-obj">logging.LOG_LEVEL</em> (Default: logging.NOTSET)</span></dt><dd><p>Overrides verbosity level of logger. Propagates through to Response class logger.
-Other options are: <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.WARNING" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.WARNING</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.DEBUG" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.DEBUG</span></code></a>, …</p>
+Other options are: <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.WARNING" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.WARNING</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.DEBUG" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">logging.DEBUG</span></code></a>, …</p>
 </dd>
 <dt><strong>over_write_handset_values</strong><span class="classifier">dict (Default: {})</span></dt><dd><p>Overwrite the default values for (channel) parameters which are not (yet) implemented in the database.
 You can not specify keys which already exist in the database. If the value is a dict it should be contain
 a value for each channel_id (key). (Default: None, the acutally default values for the parameters in question
 are defined below)</p>
 </dd>
-<dt><strong>database_time</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a> or <a class="reference external" href="https://docs.astropy.org/en/stable/api/astropy.time.Time.html#astropy.time.Time" title="(in Astropy v8.0)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropy.time.Time</span></code></a></span></dt><dd><p>Set database time which is used to select the primary measurement. By default (= None) the database time
+<dt><strong>database_time</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a> or <a class="reference external" href="https://docs.astropy.org/en/stable/api/astropy.time.Time.html#astropy.time.Time" title="(in Astropy v8.0)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">astropy.time.Time</span></code></a></span></dt><dd><p>Set database time which is used to select the primary measurement. By default (= None) the database time
 is set to now (time the code is running) to select the measurement which is now primary.</p>
 </dd>
 <dt><strong>always_query_entire_description</strong><span class="classifier">bool (Default: False)</span></dt><dd><p>If True, query the entire detector describtion all at once when calling Detector.update(…) (if necessary).
@@ -1278,7 +1279,7 @@ chain of the channel</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt>time: <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a></dt><dd><p>Detector time</p>
+<dt>time: <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a></dt><dd><p>Detector time</p>
 </dd>
 </dl>
 </dd>
