@@ -36,6 +36,9 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   stored in `AntennaPattern._vel`.
 
 bugfixes:
+- `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported
+  with only numpy, scipy and matplotlib: radiotools, astropy, the `NuRadioReco.detector`/`framework` packages etc. are imported lazily
+  and the version lookup in `__init__` is guarded.
 - The orientation stored in an antenna model is corrected when it is not exactly perpendicular, i.e. when the two
   directions are less than 0.1 deg off (RNOG_vpol_4inch_center_n1.73 and RNOG_vpol_v1_n1.73 store 89.9544 deg instead
   of 90 deg, all other models are exact). Otherwise the transformation between the simulated and the deployed antenna

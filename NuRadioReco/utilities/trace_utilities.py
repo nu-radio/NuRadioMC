@@ -15,7 +15,7 @@ See Also
     Module for functions that modify traces, e.g., by filtering, delaying, etc.
 """
 
-from NuRadioReco.utilities import units, signal_processing, fft
+from NuRadioReco.utilities import units, fft
 
 import numpy as np
 import scipy.stats
@@ -37,6 +37,7 @@ def get_efield_antenna_factor(*args, **kwargs):
     """
     **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.get_efield_antenna_factor`.
     """
+    from NuRadioReco.utilities import signal_processing  # lazy: avoids circular import
     warnings.warn("get_efield_antenna_factor is moved to NuRadioReco.utilities.signal_processing.get_efield_antenna_factor", DeprecationWarning)
     return signal_processing.get_efield_antenna_factor(*args, **kwargs)
 
@@ -45,6 +46,7 @@ def get_channel_voltage_from_efield(*args, **kwargs):
     """
     **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.get_channel_voltage_from_efield`.
     """
+    from NuRadioReco.utilities import signal_processing  # lazy: avoids circular import
     warnings.warn("get_channel_voltage_from_efield is moved to NuRadioReco.utilities.signal_processing.get_channel_voltage_from_efield", DeprecationWarning)
     return signal_processing.get_channel_voltage_from_efield(*args, **kwargs)
 
@@ -52,6 +54,7 @@ def upsampling_fir(*args, **kwargs):
     """
     **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.upsampling_fir`.
     """
+    from NuRadioReco.utilities import signal_processing  # lazy: avoids circular import
     warnings.warn("upsampling_fir is moved to NuRadioReco.utilities.signal_processing.upsampling_fir", DeprecationWarning)
     return signal_processing.upsampling_fir(*args, **kwargs)
 
@@ -60,6 +63,7 @@ def butterworth_filter_trace(*args, **kwargs):
     """
     **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.butterworth_filter_trace`.
     """
+    from NuRadioReco.utilities import signal_processing  # lazy: avoids circular import
     warnings.warn("butterworth_filter_trace is moved to NuRadioReco.utilities.signal_processing.butterworth_filter_trace", DeprecationWarning)
     return signal_processing.butterworth_filter_trace(*args, **kwargs)
 
@@ -68,6 +72,7 @@ def apply_butterworth(*args, **kwargs):
     """
     **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.apply_butterworth`.
     """
+    from NuRadioReco.utilities import signal_processing  # lazy: avoids circular import
     warnings.warn("apply_butterworth is moved to NuRadioReco.utilities.signal_processing.apply_butterworth", DeprecationWarning)
     return signal_processing.apply_butterworth(*args, **kwargs)
 
@@ -76,6 +81,7 @@ def delay_trace(*args, **kwargs):
     """
     **DeprecationWarning**: This function has moved to `NuRadioReco.utilities.signal_processing.delay_trace`.
     """
+    from NuRadioReco.utilities import signal_processing  # lazy: avoids circular import
     warnings.warn("delay_trace is moved to NuRadioReco.utilities.signal_processing.delay_trace", DeprecationWarning)
     return signal_processing.delay_trace(*args, **kwargs)
 
