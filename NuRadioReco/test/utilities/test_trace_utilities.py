@@ -30,11 +30,11 @@ TRACE_REFERENCE = {2048: {'split_noise_rms': 9.898692049030199,
         'root_power_ratio': 1.764072041408105}}
 
 
-def make_trace(n_samples, seed):
+def make_trace(n_samples, seed, rms=10, amp=40):
     rng = np.random.default_rng(seed)
     t = np.arange(n_samples) / 3.2
-    pulse = 40 * np.exp(-0.5 * ((t - 0.4 * n_samples / 3.2) / 3) ** 2) * np.sin(2 * np.pi * 0.25 * t)
-    return rng.normal(0, 10, n_samples) + pulse
+    pulse = amp * np.exp(-0.5 * ((t - rng.random() * n_samples / 3.2) / 3) ** 2) * np.sin(2 * np.pi * 0.25 * t)
+    return rng.normal(0, rms, n_samples) + pulse
 
 
 def compute_trace_values(n_samples):
