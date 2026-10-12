@@ -34,7 +34,7 @@ row per event. Station parameters are scalar columns, channel parameters are lis
 (see `NuRadioReco.utilities.parquet_utilities`). Parameters without a mappable type are dropped
 with a warning.
 
-Optionally (see `eventWriterParquet.begin`):
+Optionally (see `EventWriterParquet.begin`):
 
 * ``store_sim``: the parameters of the sim station are added as ``sim_<enum class>.<parameter>`` columns,
   and the sim channels are written to a second file ``station<id>_run<run number>[_<suffix>]_simchannel.parquet``
@@ -60,6 +60,7 @@ uncommitted changes.
 
 import logging
 import os
+from timeit import default_timer as timer
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -69,6 +70,7 @@ from NuRadioReco.framework import parameters
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import parquet_utilities as pu
 from NuRadioReco.utilities import version
+from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 logger = logging.getLogger("NuRadioReco.eventWriterParquet")
 
@@ -101,7 +103,11 @@ class _BatchedWriter:
         self.__batch_size = batch_size
         self.__writer = pq.ParquetWriter(path, schema)
         self.__buffer = self.__new_buffer()
-        self.__n_rows = 0
+        self.__n_rows = 0  # rows in the buffer
+
+        self.path = path
+        self.n_rows = 0  #: rows written so far (excluding the buffer)
+        self.write_time = 0.  #: seconds spent in `close` (last flush and closing the file)
 
     def add(self, row):
         """ Append a row (dict: column name -> value, all columns of the schema). """
@@ -119,20 +125,25 @@ class _BatchedWriter:
 
         arrays = [pa.array(self.__buffer[field.name], type=field.type) for field in self.__schema]
         self.__writer.write_table(pa.Table.from_arrays(arrays, schema=self.__schema))
+        logger.debug(f"Wrote {self.__n_rows} rows to {self.path}")
+
+        self.n_rows += self.__n_rows
         self.__buffer = self.__new_buffer()
         self.__n_rows = 0
 
     def close(self):
         """ Flush and close the file (the footer is only written on close). """
+        start = timer()
         self.flush()
         self.__writer.close()
+        self.write_time += timer() - start
 
     def __new_buffer(self):
         """ An empty buffer: column name -> list of values (one per row). """
         return {name: [] for name in self.__schema.names}
 
 
-class eventWriterParquet:
+class EventWriterParquet:
     """
     Writes the parameters of stations (and optionally sim stations and electric fields) to parquet files.
 
@@ -157,6 +168,12 @@ class eventWriterParquet:
         # (station id, run) -> number of files written so far (used to number the parts of revisited runs)
         self.__parts = {}
         self.__n_events = 0
+
+        # For the summary in `end`: kind -> [number of files, number of rows] of the closed files, and
+        # the time spent writing to disk (by the closed writers)
+        self.__written = {}
+        self.__write_time = 0.
+        self.__ended = False
 
         # Parameters which could not be converted (warn only once per column)
         self.__warned = set()
@@ -218,6 +235,9 @@ class eventWriterParquet:
         self.__runs = {}
         self.__parts = {}
         self.__n_events = 0
+        self.__written = {}
+        self.__write_time = 0.
+        self.__ended = False
 
         # `is None` (not `or`) so that an empty list can be passed to store no parameters of that kind
         self.__build_schemas(
@@ -265,9 +285,34 @@ class eventWriterParquet:
         self.__n_events += 1
 
     def end(self):
-        """ Flush remaining events and close all files. Returns the number of events written. """
+        """
+        Flush remaining events, close all files and log a summary (files, rows, time spent writing).
+
+        Returns the number of events written. A repeated call (e.g. by `end_all_modules`) does nothing.
+        """
+        if self.__ended:
+            return self.__n_events
+
         self.__close_files()
+        self.__ended = True
+
+        self.__log_summary()
         return self.__n_events
+
+    def __log_summary(self):
+        """ Log the number of files / rows written and the time spent writing. """
+        if not self.__written:
+            logger.log(LOGGING_STATUS, "EventWriterParquet: no files written.")
+            return
+
+        names = {"event": "events", "efield": "electric fields", "simchannel": "sim channels"}
+        written = ", ".join(
+            f"{rows} {names[kind]} ({files} file{'s' if files > 1 else ''})"
+            for kind, (files, rows) in self.__written.items())
+        logger.log(
+            LOGGING_STATUS,
+            f"EventWriterParquet: wrote {written} to {self.__output_dir}. "
+            f"Writing to disk took {self.__write_time:.2f}s.")
 
     def __build_schemas(self, station_enums, channel_enums, comment):
         """ Derive the (fixed) arrow schemas of all output files from the types of the enum members. """
@@ -427,9 +472,14 @@ class eventWriterParquet:
         """ Flush and close the open files of `station_id` (default: of all stations). """
         for station in list(self.__files) if station_id is None else [station_id]:
             self.__runs.pop(station)
-            for writer in self.__files.pop(station).values():
+            for kind, writer in self.__files.pop(station).items():
                 if writer is not None:
                     writer.close()
+                    self.__write_time += writer.write_time
+
+                    stats = self.__written.setdefault(kind, [0, 0])
+                    stats[0] += 1
+                    stats[1] += writer.n_rows
 
     def __get_value(self, obj, column, dtype):
         """ Returns the converted parameter of `obj` for `column` or None if not set / not convertible. """

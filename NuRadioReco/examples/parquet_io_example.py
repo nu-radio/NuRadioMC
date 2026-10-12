@@ -7,7 +7,7 @@ joining is fast and works with standard tools (here: polars).
 
 The script has two parts:
 
-1. Write: a small set of simulated events is written with `eventWriterParquet`
+1. Write: a small set of simulated events is written with `EventWriterParquet`
    (skipped if a directory with existing files is passed with ``--parquetdir``).
    In a real processing chain, the writer is used like the `eventWriter`: call `begin` once, `run` for
    every event and station (e.g. at the end of the processing loop), and `end` at the very end.
@@ -36,7 +36,7 @@ import NuRadioReco.framework.station
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.modules.io.eventWriterParquet import eventWriterParquet
+from NuRadioReco.modules.io.eventWriterParquet import EventWriterParquet
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.parquet_utilities import ParquetReader
 
@@ -87,10 +87,10 @@ def make_event(rng, run, event_id, station_id, n_channels=4):
 
 
 def write_example_data(output_dir):
-    """ Write 2 stations x 2 runs x 25 events with `eventWriterParquet`. """
+    """ Write 2 stations x 2 runs x 25 events with `EventWriterParquet`. """
     rng = np.random.default_rng(42)
 
-    writer = eventWriterParquet()
+    writer = EventWriterParquet()
     writer.begin(
         output_dir,  # directory: the file names are station<id>_run<run>[_<suffix>].parquet
         suffix="example",  # optional
