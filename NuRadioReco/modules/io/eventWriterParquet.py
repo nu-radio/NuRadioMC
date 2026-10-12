@@ -457,7 +457,7 @@ class EventWriterParquet:
 
         self.__files[station_id] = files
         self.__runs[station_id] = run_number
-        logger.info(f"Writing station {station_id}, run {run_number} to {os.path.join(self.__output_dir, name)}*.parquet")
+        logger.debug(f"Writing station {station_id}, run {run_number} to {os.path.join(self.__output_dir, name)}*.parquet")
 
     def __open_file(self, filename, schema):
         """ Open `filename` in the output directory (fails if it exists and `overwrite` is not set). """
