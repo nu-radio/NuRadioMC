@@ -87,12 +87,6 @@ class dataProviderRNOG:
         self.channelGlitchDetector.begin()
         self.channelCableDelayAdder.begin()
 
-    def end(self):
-        """ Call the end method of the modules """
-        self.reader.end()
-        self.channelGlitchDetector.end()
-        self.channelBlockOffsetFitter.end()
-
     @register_run()
     def run(self):
         """ Run the modules

@@ -44,6 +44,7 @@ def setup_logger(name="NuRadioReco", level=None):
 
 _child_time = []  # stack: time spent in nested timed calls per active call, subtracted to get exclusive times
 _order = {}  # module name -> index of first execution
+_events = set()  # (run number, event id) of all events seen by event/station modules
 _instances = {}  # id(module instance) -> instance, in order of first run() call
 
 
@@ -139,6 +140,9 @@ def register_run(level=None):
                     except (TypeError, AttributeError):  # object couldn't be pickled - we store the error instead
                         store_kwargs[key] = TypeError(f"Argument of type {type(value)} could not be serialized")
 
+            if evt is not None:
+                _events.add((evt.get_run_number(), evt.get_id()))
+
             if station is not None:
                 module_level = "station"
             elif evt is not None:
@@ -210,6 +214,8 @@ def print_timing_summary(min_percent=None):
     attributed to the nested module only.
 
     For reader modules (generators), the time spent producing each item is counted, with one call per item.
+    The "per call" entry of the total row is the total time divided by the number of distinct events
+    (run number, event id) seen by event/station modules.
     It is printed automatically at exit if ``ENABLE_TIMING`` is set (see top of file).
 
     Parameters
@@ -238,8 +244,9 @@ def print_timing_summary(min_percent=None):
     def percent(total):
         return 100 * total / all_total if all_total > 0 else 0.
 
-    def row(name, calls, total, per_call=True):
-        per = f"{1e3 * total / calls:>14.3f}" if per_call and calls else f"{'-':>14}"
+    def row(name, calls, total, per_call=True, n_per=None):
+        n_per = calls if n_per is None else n_per
+        per = f"{1e3 * total / n_per:>14.3f}" if per_call and n_per else f"{'-':>14}"
         return f"{name:<40} {calls:>8} {total:>10.3f} {per} {percent(total):>6.1f}"
 
     shown = [(name, v) for name, v in sorted(stats.items(), key=lambda kv: _order[kv[0]])
@@ -256,7 +263,7 @@ def print_timing_summary(min_percent=None):
     lines = ["┌" + "─" * (width + 2) + "┐", f"│ {header} │", "├" + "─" * (width + 2) + "┤"]
     lines += [f"│ {r} │" for r in rows]
     lines.append("├" + "─" * (width + 2) + "┤")
-    lines.append(f"│ {row('total', all_calls, all_total, per_call=False)} │")
+    lines.append(f"│ {row('total (per event)', all_calls, all_total, n_per=len(_events))} │")
     lines.append("└" + "─" * (width + 2) + "┘")
     logger.log(LOGGING_STATUS, "Module timing\n" + "\n".join("  " + line for line in lines))
 
@@ -266,4 +273,6 @@ def _print_timing_summary_at_exit():
         print_timing_summary()
 
 
+# atexit runs in reverse order of registration: modules are ended first, then the timing summary is printed
 atexit.register(_print_timing_summary_at_exit)
+atexit.register(end_all_modules)

@@ -130,4 +130,4 @@ for evt in readCoREASStation.run(detector=det):
                 'SimChannels': True,
                 'SimElectricFields': True
             })
-nevents = eventWriter.end()
+eventWriter.close()
