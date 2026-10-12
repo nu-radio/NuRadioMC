@@ -474,6 +474,10 @@ Last updated: 2018
 
 RNOG_vpol_4inch_center_n1.73
 -----------------------------
+.. warning::
+    This model has negative group delays which are unphysical. This has been corrected in newer models.
+    This model should only be used for reproducing old results.
+
 xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
 The antenna is placed in the center (x, y) of the borehole. An extra cubic interpolation is performed in frequencies (5 MHz step).
 
@@ -483,6 +487,10 @@ Last updated: 2020
 
 RNOG_vpol_4inch_half_n1.73
 ---------------------------
+.. warning::
+    This model has negative group delays which are unphysical. This has been corrected in newer models.
+    This model should only be used for reproducing old results.
+
 xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
 The antenna is halfway displaced from the center towards phi = 0. An extra cubic interpolation is performed in frequencies (5 MHz step).
 
@@ -492,6 +500,10 @@ Last updated: 2020
 
 RNOG_vpol_4inch_wall_n1.73
 ---------------------------
+.. warning::
+    This model has negative group delays which are unphysical. This has been corrected in newer models.
+    This model should only be used for reproducing old results.
+
 xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
 The antenna placed against the wall towards phi = 0. An extra cubic interpolation is performed in frequencies (5 MHz step).
 
