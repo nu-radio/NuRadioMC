@@ -94,7 +94,7 @@ def _to_python(value):
 
 def column_schema(enum_classes, prefix="", exclude=()):
     """
-    Build ``{column name: arrow type}`` for all members of the enum classes.
+    Build ``{column name: (enum member, arrow type)}`` for all members of the enum classes.
 
     Column names are ``<prefix><enum class name>.<member name>``. Members whose type can not be mapped
     (see `to_arrow_type`) are dropped with a warning.
@@ -118,7 +118,7 @@ def column_schema(enum_classes, prefix="", exclude=()):
                 logger.warning(f"Parameter {name} has the type {member.dtype}, which can not be stored in parquet. Dropping it.")
                 continue
 
-            columns[prefix + name] = arrow_type
+            columns[prefix + name] = (member, arrow_type)
 
     return columns
 
