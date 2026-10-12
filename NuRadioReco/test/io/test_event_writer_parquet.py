@@ -1,4 +1,5 @@
 import collections
+import logging
 import pathlib
 import tempfile
 
@@ -16,7 +17,7 @@ import NuRadioReco.framework.station
 from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import stationParameters as stnp
-from NuRadioReco.modules.io.eventWriterParquet import eventWriterParquet
+from NuRadioReco.modules.io.eventWriterParquet import EventWriterParquet
 from NuRadioReco.utilities.parquet_utilities import ParquetReader
 
 
@@ -40,7 +41,7 @@ def _make_event(run, event_id, channel_ids=(0, 1, 2), station_id=11):
 
 
 def test_write_read(tmp_path):
-    writer = eventWriterParquet()
+    writer = EventWriterParquet()
     writer.begin(str(tmp_path), suffix="out", batch_size=2, comment="my comment")
     for run, event_id in [(1, 1), (1, 2), (1, 3), (2, 1), (1, 4)]:  # run 1 is revisited
         evt, station = _make_event(run, event_id)
@@ -69,7 +70,7 @@ def test_write_read(tmp_path):
 
 
 def test_multiple_stations(tmp_path):
-    writer = eventWriterParquet()
+    writer = EventWriterParquet()
     writer.begin(str(tmp_path))
     for event_id in [1, 2]:
         for station_id in [1, 12]:
@@ -81,7 +82,7 @@ def test_multiple_stations(tmp_path):
 
 def test_overwrite(tmp_path):
     def write(**kwargs):
-        writer = eventWriterParquet()
+        writer = EventWriterParquet()
         writer.begin(str(tmp_path), **kwargs)
         writer.run(*_make_event(1, 1))
         writer.end()
@@ -113,7 +114,7 @@ def test_sim_and_efields(tmp_path):
     efield[efp.zenith] = 0.3
     station.add_electric_field(efield)
 
-    writer = eventWriterParquet()
+    writer = EventWriterParquet()
     writer.begin(str(tmp_path), store_sim=True, store_efields=True)
     writer.run(evt, station)
     writer.end()
@@ -140,7 +141,7 @@ def test_sim_and_efields(tmp_path):
 
 
 def test_no_channel_parameters(tmp_path):
-    writer = eventWriterParquet()
+    writer = EventWriterParquet()
     writer.begin(str(tmp_path), store_channels=False)
     writer.run(*_make_event(1, 1))
     writer.end()
@@ -151,7 +152,7 @@ def test_no_channel_parameters(tmp_path):
 
 
 def test_reader(tmp_path):
-    writer = eventWriterParquet()
+    writer = EventWriterParquet()
     writer.begin(str(tmp_path / "sub"), store_sim=True, store_efields=True)
     for run in [1, 2]:
         for station_id in [11, 12]:
@@ -188,7 +189,7 @@ def test_reader(tmp_path):
 
 
 def test_interleaved_stations_and_runs(tmp_path):
-    writer = eventWriterParquet()
+    writer = EventWriterParquet()
     writer.begin(str(tmp_path))
     # Station 11 and 12 are in different runs and alternate: no file must be closed early
     for event_id, (run_11, run_12) in enumerate([(5, 3), (5, 3), (5, 3), (6, 3)]):
@@ -203,7 +204,7 @@ def test_interleaved_stations_and_runs(tmp_path):
 
 
 def test_reader_missing_side_files(tmp_path):
-    writer = eventWriterParquet()
+    writer = EventWriterParquet()
     writer.begin(str(tmp_path), store_efields=True)  # no sim channel files
     writer.run(*_make_event(1, 1))
     writer.end()
@@ -217,7 +218,7 @@ def test_reader_missing_side_files(tmp_path):
 
 
 def test_reader_sorted(tmp_path):
-    writer = eventWriterParquet()
+    writer = EventWriterParquet()
     writer.begin(str(tmp_path), store_sim=True, store_efields=True)
     for station_id, run, event_id in [(12, 2, 3), (11, 2, 2), (12, 1, 5), (11, 2, 1), (11, 1, 9)]:  # unsorted on purpose
         evt, station = _make_event(run, event_id, station_id=station_id)
@@ -253,7 +254,7 @@ def test_reader_sorted(tmp_path):
 
 
 def test_reader_events_and_related_tables(tmp_path):
-    writer = eventWriterParquet()
+    writer = EventWriterParquet()
     writer.begin(str(tmp_path), store_sim=True, store_efields=True)
     for station_id, run, event_id in [(11, 1, 1), (11, 1, 2), (11, 2, 3), (12, 1, 4)]:
         evt, station = _make_event(run, event_id, station_id=station_id)
@@ -280,6 +281,36 @@ def test_reader_events_and_related_tables(tmp_path):
     # a (collected) DataFrame works as well, a single table can be requested
     related = reader.related_tables(events.collect().filter(pl.col("event_id") == 4), sim_channels=False)
     assert sorted(related) == ["efield"] and related["efield"].collect()["station_id"].to_list() == [12]
+
+
+def test_end_summary(tmp_path):
+    messages = []
+
+    class Handler(logging.Handler):
+        def emit(self, record):
+            messages.append(record.getMessage())
+
+    logger = logging.getLogger("NuRadioReco.eventWriterParquet")
+    handler = Handler()
+    logger.addHandler(handler)
+    try:
+        writer = EventWriterParquet()
+        writer.begin(str(tmp_path), batch_size=2, store_efields=True)
+        for event_id in range(3):
+            evt, station = _make_event(1, event_id)
+            station.add_electric_field(NuRadioReco.framework.electric_field.ElectricField([0]))
+            station.add_electric_field(NuRadioReco.framework.electric_field.ElectricField([1]))
+            writer.run(evt, station)
+
+        assert writer.end() == 3
+        assert writer.end() == 3  # a second call (e.g. by end_all_modules) does nothing
+    finally:
+        logger.removeHandler(handler)
+
+    summaries = [message for message in messages if message.startswith("EventWriterParquet: wrote")]
+    assert len(summaries) == 1
+    assert "3 events (1 file)" in summaries[0] and "6 electric fields (1 file)" in summaries[0]
+    assert "Writing to disk took" in summaries[0]
 
 
 if __name__ == "__main__":
