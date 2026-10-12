@@ -30,8 +30,12 @@ class eventReader:
     def run(self):
         return self.__fin.get_events()
 
-    def end(self):
+    def close(self):
+        """ Close all input files. Safe to call multiple times. """
         self.__fin.close_files()
+
+    def end(self):
+        self.close()
 
     def get_header(self):
         """
