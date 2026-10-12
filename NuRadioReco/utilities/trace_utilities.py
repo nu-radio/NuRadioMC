@@ -424,13 +424,13 @@ def peak_to_peak_amplitudes(trace, coincidence_window_size):
     Parameters
     ----------
     trace: array of floats
-        Array containing the trace
+        Array containing the trace (or a 2D array of traces, one per row)
     coincidence_window_size: int
         Length along which to calculate minimum
 
     Returns
     -------
-    amplitudes: array of floats (same length as the input trace)
+    amplitudes: array of floats (same shape as the input trace)
         Local peak to peak amplitudes
     """
     amplitudes = scipy.ndimage.maximum_filter1d(trace, coincidence_window_size) - scipy.ndimage.minimum_filter1d(trace, coincidence_window_size)
@@ -448,7 +448,7 @@ def get_split_trace_noise_RMS(trace, segments=4, lowest=2):
     Parameters
     ----------
     trace: array of floats
-        Array containing the trace
+        Array containing the trace (or a 2D array of traces, one per row)
     segments: int
         Amount of segments to cut the trace int
     lowest: int
@@ -456,13 +456,12 @@ def get_split_trace_noise_RMS(trace, segments=4, lowest=2):
 
     Returns
     -------
-    noise_root_mean_square: float
-        The mean of the lowest few segments' RMS values
+    noise_root_mean_square: float or array of floats
+        The mean of the lowest few segments' RMS values (one value per row for 2D input)
     """
-    rms_of_splits = [np.std(split) for split in np.array_split(trace, segments)]
-    ordered_rmss = np.sort(rms_of_splits)
-    lowest_rmss = ordered_rmss[:lowest]
-    noise_root_mean_square = np.mean(lowest_rmss)
+    rms_of_splits = np.array([np.std(split, axis=-1) for split in np.array_split(trace, segments, axis=-1)])
+    ordered_rmss = np.sort(rms_of_splits, axis=0)
+    noise_root_mean_square = np.mean(ordered_rmss[:lowest], axis=0)
 
     return noise_root_mean_square
 
@@ -510,38 +509,30 @@ def get_root_power_ratio(trace, times, noise_rms):
     Parameters
     ----------
     trace: array of floats
-        Trace of a waveform
+        Trace of a waveform (or a 2D array of traces, one per row, with a common sampling rate)
     times: array of floats
-        Times of a waveform
-    noise_rms: float
-        noise root mean square (RMS)
+        Times of a waveform (1D, shared by all rows for 2D input)
+    noise_rms: float or array of floats
+        noise root mean square (RMS) (one value per row for 2D input)
 
     Returns
     -------
-    root_power_ratio: float
-        Root Power Ratio (RPR) value
+    root_power_ratio: float or array of floats
+        Root Power Ratio (RPR) value (inf where the noise RMS is zero)
     """
 
-    # Calculating RPR (Root Power Ratio)
-    if noise_rms == 0:
-        root_power_ratio = np.inf
-    else:
-        channel_wf = trace ** 2
+    # Calculate the smoothing window size based on sampling rate
+    dt = times[1] - times[0]
+    sum_win = 25  # Smoothing window in ns
+    sum_win_idx = int(np.round(sum_win / dt))  # Convert window size to sample points
 
-        # Calculate the smoothing window size based on sampling rate
-        dt = times[1] - times[0]
-        sum_win = 25  # Smoothing window in ns
-        sum_win_idx = int(np.round(sum_win / dt))  # Convert window size to sample points
+    smoothed_root_power = np.sqrt(scipy.ndimage.uniform_filter1d(trace ** 2, size=sum_win_idx, axis=-1, mode='constant'))
+    max_val = np.max(smoothed_root_power, axis=-1)
 
-        channel_wf = np.sqrt(scipy.ndimage.uniform_filter1d(channel_wf, size=sum_win_idx, mode='constant'))
+    with np.errstate(divide='ignore', invalid='ignore'):
+        root_power_ratio = np.where(noise_rms == 0, np.inf, max_val / noise_rms)
 
-        # Find the maximum value of the smoothed waveform
-        max_bin = np.argmax(channel_wf)
-        max_val = channel_wf[max_bin]
-
-        root_power_ratio = max_val / noise_rms
-
-    return root_power_ratio
+    return root_power_ratio[()]  # [()] turns a 0-d array into a scalar
 
 
 def get_hilbert_envelope(trace):
@@ -568,6 +559,7 @@ def get_impulsivity(trace, envelope=None):
     """
     Calculates the impulsivity of a signal (trace).
 
+    The impulsivity is a measure of how impulsive a signal is.
     This function computes the impulsivity of a trace by first performing the Hilbert Transform
     to obtain an analytic signal (Hilbert envelope) and then determining the
     cumulative distribution function (CDF) of the square of the sorted envelope values i.e. power values based on their
@@ -577,28 +569,30 @@ def get_impulsivity(trace, envelope=None):
     Parameters
     ----------
     trace: array of floats
-        Trace of a waveform
+        Trace of a waveform (or a 2D array of traces, one per row)
     envelope: array of floats, optional
         Hilbert envelope of the trace, if already available (avoids recomputing it)
 
     Returns
     -------
-    impulsivity: float
-        Impulsivity of the signal (scaled between 0 and 1)
+    impulsivity: float or array of floats
+        Impulsivity of the signal (scaled between 0 and 1) (one value per row for 2D input)
     """
 
     if envelope is None:
         envelope = get_hilbert_envelope(trace)
-    maxv = np.argmax(envelope)
-    # sort by index distance to the maximum, ties are ordered by envelope value (low to high)
-    order = np.lexsort((envelope, np.abs(np.arange(len(envelope)) - maxv)))
-    sorted_envelope = envelope[order]
-    cdf = np.cumsum(sorted_envelope**2)
-    cdf = cdf / cdf[-1]
+    maxv = np.argmax(envelope, axis=-1, keepdims=True)
+    distance_to_max = np.abs(np.arange(envelope.shape[-1]) - maxv)
+    # sort by index distance to the maximum, ties are ordered by envelope value (low to high):
+    # the envelope scaled to [0, 0.5] only shifts the (integer) distance by less than 1
+    # (a single argsort is ~4x faster than a lexsort)
+    sort_key = distance_to_max + envelope / (2 * np.max(envelope, axis=-1, keepdims=True))
+    order = np.argsort(sort_key, axis=-1)
+    sorted_envelope = np.take_along_axis(envelope, order, axis=-1)
+    cdf = np.cumsum(sorted_envelope ** 2, axis=-1)
+    cdf = cdf / cdf[..., -1:]
 
-    impulsivity = np.mean(cdf) * 2.0 - 1.0
-    if impulsivity < 0:
-        impulsivity = 0.0
+    impulsivity = np.maximum(np.mean(cdf, axis=-1) * 2.0 - 1.0, 0.0)
 
     return impulsivity
 
@@ -692,19 +686,20 @@ def get_kurtosis(trace):
     Parameters
     ----------
     trace: array of floats
-        Trace of a waveform
+        Trace of a waveform (or a 2D array of traces, one per row)
 
     Returns
     -------
-    kurtosis: float
-        Kurtosis of the signal (trace)
+    kurtosis: float or array of floats
+        Kurtosis of the signal (trace) (one value per row for 2D input)
     """
     # Same as scipy.stats.kurtosis (Fisher, biased), which is not used as its input handling costs ~7x more than
     # the computation
-    deviation = np.asarray(trace) - np.mean(trace)
-    m2 = np.mean(deviation ** 2)
-    kurtosis = np.mean(deviation ** 4) / m2 ** 2 - 3.0 if m2 > 0 else np.nan
-    return kurtosis
+    deviation = trace - np.mean(trace, axis=-1, keepdims=True)
+    m2 = np.mean(deviation ** 2, axis=-1)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        kurtosis = np.where(m2 > 0, np.mean(deviation ** 4, axis=-1) / m2 ** 2 - 3.0, np.nan)
+    return kurtosis[()]  # [()] turns a 0-d array into a scalar
 
 
 def get_teager_kaiser_energy(trace):
