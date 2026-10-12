@@ -343,7 +343,6 @@ class readRNOGData:
 
         # Read data
         self._time_begin = 0
-        self._time_run = 0
         self._event_idx = -1 # only for logging
         self.__counter = 0
         self.__skipped = 0
@@ -894,13 +893,11 @@ class readRNOGData:
                     calibrated=self._read_calibrated_data, selectors=self._select_events,
                     max_entries_in_mem=self._max_in_mem):
 
-                t0 = time.time()
                 evt = self._get_event(evtinfo, wf)
 
                 # TODO: find a better way to do this. Also do we want to store a string, this enum lives in mattak ...
                 evt.get_station().set_parameter(stpRNOG.digitizer, dataset.digitizer)
 
-                self._time_run += time.time() - t0
                 yield evt
 
 
@@ -919,7 +916,6 @@ class readRNOGData:
         """
 
         self.logger.debug(f"Processing event number {event_index} out of total {self._n_events_total}")
-        t0 = time.time()
 
         dataset = self.__get_dataset_for_event(event_index)
         event_info = dataset.eventInfo()  # returns a single eventInfo
@@ -932,7 +928,6 @@ class readRNOGData:
 
         evt = self._get_event(event_info, waveforms)
 
-        self._time_run += time.time() - t0
         self.__counter += 1
 
         return evt
@@ -955,7 +950,6 @@ class readRNOGData:
         """
 
         self.logger.debug(f"Getting event {event_id}")
-        t0 = time.time()
 
         event_infos = self.get_events_information(keys=["eventNumber", "run"])
         event_idx_ids = np.array([[index, ele["eventNumber"], ele["run"]] for index, ele in event_infos.items()])
@@ -984,7 +978,6 @@ class readRNOGData:
 
         evt = self._get_event(event_info, waveforms)
 
-        self._time_run += time.time() - t0
         self.__counter += 1
 
         return evt
@@ -994,14 +987,11 @@ class readRNOGData:
             self.logger.info(
                 f"\n\tRead {self.__counter} events ({self.__skipped} events are skipped (filtered), {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
-                f"\n\tTime to read all events       : {self._time_run:.4f}s"
-                f"\n\tTime to per event             : {self._time_run / self.__counter:.4f}s"
                 f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
         else:
             self.logger.warning(
                 f"\n\tRead {self.__counter} events   (skipped {self.__skipped} events, {self.__invalid} invalid events)"
-                f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
-                f"\n\tTime to read all events       : {self._time_run:.2f}s")
+                f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s")
 
         if self._blockoffsetfitter is not None:
             self._blockoffsetfitter.end()
