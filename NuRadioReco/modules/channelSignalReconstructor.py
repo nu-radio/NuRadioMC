@@ -154,7 +154,7 @@ class channelSignalReconstructor:
         # (where the noise is zero, calculating an snr is not useful and all snrs are set to infinity)
         no_noise = (noise_rms == 0) | (noise_int == 0)
         if np.any(no_noise):
-            logger.info("RMS of noise is zero, calculating an snr is not useful. All snrs are set to infinity.")
+            logger.warning("RMS of noise is zero, calculating an snr is not useful. All snrs are set to infinity.")
         with np.errstate(divide='ignore', invalid='ignore'):
             signal_power = np.sum(np.square(traces), axis=-1, where=signal_window_mask) - noise_int
             integrated_power = np.sqrt(np.maximum(signal_power, 0) / noise_int)
@@ -296,7 +296,7 @@ class channelSignalReconstructor:
                 kurtosis = trace_utilities.get_kurtosis(traces)
 
             for i, channel in enumerate(channels):
-                logger.info("Event %s.%s, station.channel %s. %s: max amp = %.6g max amp env %.6g",
+                logger.debug("Event %s.%s, station.channel %s. %s: max amp = %.6g max amp env %.6g",
                             evt.get_run_number(), evt.get_id(), station.get_id(), channel.get_id(),
                             max_amplitudes[i], max_envelopes[i])
 
