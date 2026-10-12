@@ -28,8 +28,13 @@ tables::
 Files
 -----
 One file ``station<id>_run<run number>[_<suffix>].parquet`` is written per station and run, with one
-row per event. Station parameters are scalar columns, channel parameters are list columns aligned with the
-``channel_ids`` column (null entry if a channel lacks the parameter). Column names are
+row per event. With ``group_runs`` a block of consecutive runs is written to one file
+``station<id>_run<first>-<last>[_<suffix>].parquet``.
+
+Each station parameter is one column with the type of the parameter (scalar, list or map, e.g.
+``nu_vertex`` is a ``list<double>``). Each channel parameter is a list column with one entry per
+channel, aligned with the ``channel_ids`` column (null entry if a channel lacks the parameter), so a
+list (map) valued channel parameter becomes a list of lists (maps). Column names are
 ``<enum class>.<parameter>``; the schema is derived from the types of the parameter enums
 (see `NuRadioReco.utilities.parquet_utilities`). Parameters without a mappable type are dropped
 with a warning.
@@ -48,8 +53,8 @@ The columns ``run``, ``event_id`` and ``station_id`` link these files to the mai
 Batching
 --------
 Events are buffered per file and written as one row group per ``batch_size`` events. Only the files
-of the current run of each station are kept open: they are flushed and closed once that station
-gets an event of a different run.
+of the current run (block) of each station are kept open: they are flushed and closed once that station
+gets an event of a different run (block).
 
 Metadata
 --------
@@ -85,10 +90,21 @@ _EXPLICIT_STATION_PARAMETERS = ["stationParameters.station_time"]
 _SIM_PREFIX = "sim_"
 
 
+# Columns which link the files (the key of an event)
+_KEY_FIELDS = [pa.field("run", pa.int64()), pa.field("event_id", pa.int64()), pa.field("station_id", pa.int64())]
+
+
+def _warn_once(warned, column, dtype, error):
+    """ Warn about a value of `column` which does not match its declared type (once per column). """
+    if column not in warned:
+        logger.warning(f"Parameter {column} does not match its declared type {dtype}, writing null instead: {error}")
+        warned.add(column)
+
+
 class _BatchedWriter:
     """ Buffers rows (dicts: column name -> value) and writes them as one row group per `batch_size` rows. """
 
-    def __init__(self, path, schema, batch_size):
+    def __init__(self, path, schema, batch_size, warned):
         """
         Parameters
         ----------
@@ -98,15 +114,16 @@ class _BatchedWriter:
             Schema of the file, defines the columns of the rows passed to `add`.
         batch_size : int
             Number of rows after which the buffer is written as one row group.
+        warned : set
+            Columns with a type mismatch which were already warned about (shared between the files).
         """
         self.__schema = schema
         self.__batch_size = batch_size
+        self.__warned = warned
         self.__writer = pq.ParquetWriter(path, schema)
         self.__buffer = self.__new_buffer()
         self.__n_rows = 0  # rows in the buffer
 
-        self.path = path
-        self.n_rows = 0  #: rows written so far (excluding the buffer)
         self.write_time = 0.  #: seconds spent in `close` (last flush and closing the file)
 
     def add(self, row):
@@ -123,11 +140,9 @@ class _BatchedWriter:
         if self.__n_rows == 0:
             return
 
-        arrays = [pa.array(self.__buffer[field.name], type=field.type) for field in self.__schema]
+        arrays = [self.__to_array(field) for field in self.__schema]
         self.__writer.write_table(pa.Table.from_arrays(arrays, schema=self.__schema))
-        logger.debug(f"Wrote {self.__n_rows} rows to {self.path}")
 
-        self.n_rows += self.__n_rows
         self.__buffer = self.__new_buffer()
         self.__n_rows = 0
 
@@ -137,6 +152,27 @@ class _BatchedWriter:
         self.flush()
         self.__writer.close()
         self.write_time += timer() - start
+
+    def __to_array(self, field):
+        """
+        The buffered values of `field` as arrow array. Only if the conversion fails (a value does not match
+        the declared type), the values are checked one by one and the mismatching ones are written as null.
+        """
+        values = self.__buffer[field.name]
+        try:
+            return pa.array(values, type=field.type)
+        except (pa.ArrowException, TypeError, ValueError) as e:
+            _warn_once(self.__warned, field.name, field.type, e)
+            return pa.array([self.__checked(value, field.type) for value in values], type=field.type)
+
+    @staticmethod
+    def __checked(value, dtype):
+        """ `value` if it matches `dtype`, else None. """
+        try:
+            pa.scalar(value, type=dtype)
+            return value
+        except (pa.ArrowException, TypeError, ValueError):
+            return None
 
     def __new_buffer(self):
         """ An empty buffer: column name -> list of values (one per row). """
@@ -160,20 +196,19 @@ class EventWriterParquet:
         self.__store_sim = False
         self.__store_efields = False
         self.__batch_size = None
+        self.__group_runs = None
 
-        # station id -> {"event" / "efield" / "simchannel": _BatchedWriter or None} for the current run of the station
+        # station id -> {"event" / "efield" / "simchannel": _BatchedWriter or None} for the current run (block) of the station
         self.__files = {}
-        # station id -> run number of its open files
-        self.__runs = {}
-        # (station id, run) -> number of files written so far (used to number the parts of revisited runs)
+        # station id -> first run of the block of its open files
+        self.__blocks = {}
+        # (station id, first run of the block) -> number of files written so far (numbers the parts of revisited blocks)
         self.__parts = {}
         self.__n_events = 0
 
-        # For the summary in `end`: kind -> [number of files, number of rows] of the closed files, and
-        # the time spent writing to disk (by the closed writers)
-        self.__written = {}
+        # For the summary in `end`
+        self.__n_files = 0
         self.__write_time = 0.
-        self.__ended = False
 
         # Parameters which could not be converted (warn only once per column)
         self.__warned = set()
@@ -186,9 +221,9 @@ class EventWriterParquet:
         self.__channel_columns = {}
         self.__efield_columns = {}
 
-    def begin(self, output_dir, suffix="", batch_size=10000, station_enums=None, channel_enums=None,
-              store_channels=True, store_sim=False, store_efields=False, overwrite=False, comment="",
-              log_level=logging.NOTSET):
+    def begin(self, output_dir, suffix="", batch_size=10000, group_runs=None,
+              station_enums=None, channel_enums=None, store_channels=True, store_sim=False, store_efields=False,
+              overwrite=False, comment="", log_level=logging.NOTSET):
         """
         Parameters
         ----------
@@ -198,7 +233,10 @@ class EventWriterParquet:
             Optional suffix of the file names: ``station<id>_run<run number>_<suffix>.parquet``.
         batch_size : int, default=10000
             Maximum number of events (electric fields for the efield file) buffered before they are
-            written as one row group. The files of a station are also flushed and closed when it gets a new run.
+            written as one row group.
+        group_runs : int, optional
+            Write blocks of `group_runs` consecutive run numbers to the same file, e.g. 100: runs 100 to 199 go to
+            ``station<id>_run000100-000199[_<suffix>].parquet``. Default: one file per run.
         station_enums : list of TypedEnum, optional
             Parameter enums stored as station columns. Default: ``stationParameters``.
             Add experiment specific ones, e.g. ``parameters.stationParametersRNOG``.
@@ -215,7 +253,7 @@ class EventWriterParquet:
             Write the electric fields of the station (and of the sim station if `store_sim`) to a second file.
         overwrite : bool, default=False
             If False, a `FileExistsError` is raised when a file to be written already exists
-            (checked when the file is opened, i.e. at the first event of a station and run).
+            (checked when the file is opened, i.e. at the first event of a station and run / block).
             If True, existing files are overwritten.
         comment : str, default=""
             Free text stored in the file metadata (key ``comment``).
@@ -231,13 +269,16 @@ class EventWriterParquet:
         self.__store_sim = store_sim
         self.__store_efields = store_efields
         self.__batch_size = batch_size
+        if group_runs is not None and group_runs < 1:
+            raise ValueError(f"group_runs has to be a positive integer, got {group_runs}.")
+
+        self.__group_runs = group_runs
         self.__files = {}
-        self.__runs = {}
+        self.__blocks = {}
         self.__parts = {}
         self.__n_events = 0
-        self.__written = {}
+        self.__n_files = 0
         self.__write_time = 0.
-        self.__ended = False
 
         # `is None` (not `or`) so that an empty list can be passed to store no parameters of that kind
         self.__build_schemas(
@@ -258,11 +299,12 @@ class EventWriterParquet:
         run_number = evt.get_run_number()
         station_id = station.get_id()
 
-        # A new run of a station closes its files of the previous run (this bounds the number of open files)
-        if self.__runs.get(station_id, run_number) != run_number:
+        # A new run (block) of a station closes its files of the previous one (this bounds the number of open files)
+        first_run, last_run = self.__run_block(run_number)
+        if self.__blocks.get(station_id, first_run) != first_run:
             self.__close_files(station_id)
         if station_id not in self.__files:
-            self.__open_files(station_id, run_number)
+            self.__open_files(station_id, first_run, last_run)
         files = self.__files[station_id]
 
         keys = {"run": run_number, "event_id": evt.get_id(), "station_id": station_id}
@@ -284,35 +326,27 @@ class EventWriterParquet:
 
         self.__n_events += 1
 
+    def __run_block(self, run_number):
+        """ The first and last run of the file of `run_number` (see `group_runs`). """
+        if self.__group_runs is None:
+            return run_number, run_number
+
+        first_run = run_number - run_number % self.__group_runs
+        return first_run, first_run + self.__group_runs - 1
+
     def end(self):
         """
-        Flush remaining events, close all files and log a summary (files, rows, time spent writing).
-
-        Returns the number of events written. A repeated call (e.g. by `end_all_modules`) does nothing.
+        Flush remaining events, close all files and log a summary. Returns the number of events written.
+        A repeated call (e.g. by `end_all_modules`) finds no open file and logs nothing.
         """
-        if self.__ended:
-            return self.__n_events
+        if self.__files:
+            self.__close_files()
+            logger.log(
+                LOGGING_STATUS,
+                f"EventWriterParquet: wrote {self.__n_events} events to {self.__n_files} files in {self.__output_dir} "
+                f"(writing to disk: {self.__write_time:.2f}s).")
 
-        self.__close_files()
-        self.__ended = True
-
-        self.__log_summary()
         return self.__n_events
-
-    def __log_summary(self):
-        """ Log the number of files / rows written and the time spent writing. """
-        if not self.__written:
-            logger.log(LOGGING_STATUS, "EventWriterParquet: no files written.")
-            return
-
-        names = {"event": "events", "efield": "electric fields", "simchannel": "sim channels"}
-        written = ", ".join(
-            f"{rows} {names[kind]} ({files} file{'s' if files > 1 else ''})"
-            for kind, (files, rows) in self.__written.items())
-        logger.log(
-            LOGGING_STATUS,
-            f"EventWriterParquet: wrote {written} to {self.__output_dir}. "
-            f"Writing to disk took {self.__write_time:.2f}s.")
 
     def __build_schemas(self, station_enums, channel_enums, comment):
         """ Derive the (fixed) arrow schemas of all output files from the types of the enum members. """
@@ -320,22 +354,19 @@ class EventWriterParquet:
         self.__channel_columns = pu.column_schema(channel_enums)
         self.__efield_columns = pu.column_schema([parameters.electricFieldParameters])
 
-        fields = [
-            pa.field("run", pa.int64()),
-            pa.field("event_id", pa.int64()),
-            pa.field("station_id", pa.int64()),
+        fields = _KEY_FIELDS + [
             pa.field("station_time_jd1", pa.float64()),  # astropy jd1 + jd2 (UTC): ns precision, as in .nur
             pa.field("station_time_jd2", pa.float64()),
             pa.field("channel_ids", pa.list_(pa.int64())),
         ]
-        fields += [pa.field(name, dtype) for name, dtype in self.__station_columns.items()]
+        fields += [pa.field(name, dtype) for name, (_, dtype) in self.__station_columns.items()]
 
         # Channel parameters are lists with one entry per channel
         if self.__store_channels:
-            fields += [pa.field(name, pa.list_(dtype)) for name, dtype in self.__channel_columns.items()]
+            fields += [pa.field(name, pa.list_(dtype)) for name, (_, dtype) in self.__channel_columns.items()]
 
         if self.__store_sim:
-            fields += [pa.field(_SIM_PREFIX + name, dtype) for name, dtype in self.__station_columns.items()]
+            fields += [pa.field(_SIM_PREFIX + name, dtype) for name, (_, dtype) in self.__station_columns.items()]
 
         # Stored as key-value metadata in the footer of every file
         metadata = {
@@ -346,10 +377,7 @@ class EventWriterParquet:
         self.__schema = pa.schema(fields, metadata=metadata)
 
         # Electric fields: one row per electric field, linked to the main file by (run, event_id, station_id)
-        efield_fields = [
-            pa.field("run", pa.int64()),
-            pa.field("event_id", pa.int64()),
-            pa.field("station_id", pa.int64()),
+        efield_fields = _KEY_FIELDS + [
             pa.field("source", pa.string()),  # "station" or "sim_station"
             pa.field("channel_ids", pa.list_(pa.int64())),
             pa.field("shower_id", pa.int64()),
@@ -357,20 +385,17 @@ class EventWriterParquet:
             pa.field("position", pa.list_(pa.float64())),
             pa.field("trace_start_time", pa.float64()),
         ]
-        efield_fields += [pa.field(name, dtype) for name, dtype in self.__efield_columns.items()]
+        efield_fields += [pa.field(name, dtype) for name, (_, dtype) in self.__efield_columns.items()]
         self.__efield_schema = pa.schema(efield_fields, metadata=metadata)
 
         # Sim channels: one row per (channel, shower, ray tracing solution)
-        sim_channel_fields = [
-            pa.field("run", pa.int64()),
-            pa.field("event_id", pa.int64()),
-            pa.field("station_id", pa.int64()),
+        sim_channel_fields = _KEY_FIELDS + [
             pa.field("channel_id", pa.int64()),
             pa.field("shower_id", pa.int64()),
             pa.field("ray_tracing_id", pa.int64()),
             pa.field("trace_start_time", pa.float64()),
         ]
-        sim_channel_fields += [pa.field(name, dtype) for name, dtype in self.__channel_columns.items()]
+        sim_channel_fields += [pa.field(name, dtype) for name, (_, dtype) in self.__channel_columns.items()]
         self.__sim_channel_schema = pa.schema(sim_channel_fields, metadata=metadata)
 
     def __get_event_row(self, keys, station, sim_station):
@@ -384,25 +409,22 @@ class EventWriterParquet:
         row["station_time_jd2"] = None if time is None else float(time.jd2)
 
         # Station parameters: one scalar (or nested) value per column
-        for name, dtype in self.__station_columns.items():
-            row[name] = self.__get_value(station, name, dtype)
+        for name, (key, dtype) in self.__station_columns.items():
+            row[name] = self.__get_value(station, key, name, dtype)
 
         # Channel parameters: one list per column, aligned with `channel_ids`
         channels = list(station.iter_channels(sorted=True))
         row["channel_ids"] = [channel.get_id() for channel in channels]
         if self.__store_channels:
-            for name, dtype in self.__channel_columns.items():
-                row[name] = [self.__get_value(channel, name, dtype) for channel in channels]
+            for name, (key, dtype) in self.__channel_columns.items():
+                row[name] = [self.__get_value(channel, key, name, dtype) for channel in channels]
 
+        # Sim station parameters (null without sim station)
         if self.__store_sim:
-            self.__add_sim_columns(row, sim_station)
+            for name, (key, dtype) in self.__station_columns.items():
+                row[_SIM_PREFIX + name] = None if sim_station is None else self.__get_value(sim_station, key, name, dtype)
 
         return row
-
-    def __add_sim_columns(self, row, sim_station):
-        """ Add the sim station parameters to `row` (null without sim station). """
-        for name, dtype in self.__station_columns.items():
-            row[_SIM_PREFIX + name] = None if sim_station is None else self.__get_value(sim_station, name, dtype)
 
     @staticmethod
     def __sim_channel_sort_key(sim_channel):
@@ -417,8 +439,8 @@ class EventWriterParquet:
         row["ray_tracing_id"] = sim_channel.get_ray_tracing_solution_id()
         row["trace_start_time"] = sim_channel.get_trace_start_time()
 
-        for name, dtype in self.__channel_columns.items():
-            row[name] = self.__get_value(sim_channel, name, dtype)
+        for name, (key, dtype) in self.__channel_columns.items():
+            row[name] = self.__get_value(sim_channel, key, name, dtype)
 
         return row
 
@@ -432,18 +454,20 @@ class EventWriterParquet:
         row["position"] = [float(x) for x in efield.get_position()]
         row["trace_start_time"] = efield.get_trace_start_time()
 
-        for name, dtype in self.__efield_columns.items():
-            row[name] = self.__get_value(efield, name, dtype)
+        for name, (key, dtype) in self.__efield_columns.items():
+            row[name] = self.__get_value(efield, key, name, dtype)
 
         return row
 
-    def __open_files(self, station_id, run_number):
-        """ Open the new file(s) for (station, run) with empty buffers. """
-        # Revisiting a run (after its files were closed) must not overwrite the earlier file
-        part = self.__parts.get((station_id, run_number), 0)
-        self.__parts[(station_id, run_number)] = part + 1
+    def __open_files(self, station_id, first_run, last_run):
+        """ Open the new file(s) for (station, run block) with empty buffers. """
+        # Revisiting a run (block) after its files were closed must not overwrite the earlier file
+        part = self.__parts.get((station_id, first_run), 0)
+        self.__parts[(station_id, first_run)] = part + 1
 
-        name = f"station{station_id:02d}_run{run_number:06d}"
+        name = f"station{station_id:02d}_run{first_run:06d}"
+        if last_run != first_run:
+            name += f"-{last_run:06d}"
         if self.__suffix:
             name += f"_{self.__suffix}"
         if part:
@@ -456,8 +480,9 @@ class EventWriterParquet:
             files["simchannel"] = self.__open_file(f"{name}_simchannel.parquet", self.__sim_channel_schema)
 
         self.__files[station_id] = files
-        self.__runs[station_id] = run_number
-        logger.debug(f"Writing station {station_id}, run {run_number} to {os.path.join(self.__output_dir, name)}*.parquet")
+        self.__blocks[station_id] = first_run
+        self.__n_files += sum(writer is not None for writer in files.values())
+        logger.debug(f"Writing station {station_id}, runs {first_run}-{last_run} to {os.path.join(self.__output_dir, name)}*.parquet")
 
     def __open_file(self, filename, schema):
         """ Open `filename` in the output directory (fails if it exists and `overwrite` is not set). """
@@ -466,41 +491,27 @@ class EventWriterParquet:
             raise FileExistsError(f"{path} already exists. Use `overwrite=True` in `begin` to overwrite it.")
 
         os.makedirs(self.__output_dir, exist_ok=True)
-        return _BatchedWriter(path, schema, self.__batch_size)
+        return _BatchedWriter(path, schema, self.__batch_size, self.__warned)
 
     def __close_files(self, station_id=None):
         """ Flush and close the open files of `station_id` (default: of all stations). """
         for station in list(self.__files) if station_id is None else [station_id]:
-            self.__runs.pop(station)
-            for kind, writer in self.__files.pop(station).items():
+            self.__blocks.pop(station)
+            for writer in self.__files.pop(station).values():
                 if writer is not None:
                     writer.close()
                     self.__write_time += writer.write_time
 
-                    stats = self.__written.setdefault(kind, [0, 0])
-                    stats[0] += 1
-                    stats[1] += writer.n_rows
-
-    def __get_value(self, obj, column, dtype):
-        """ Returns the converted parameter of `obj` for `column` or None if not set / not convertible. """
-        key = self.__get_key(column)
+    def __get_value(self, obj, key, column, dtype):
+        """
+        The parameter `key` of `obj` converted for arrow, or None if not set / not convertible. Whether it matches
+        `dtype` is only checked when the batch is written (see `_BatchedWriter`).
+        """
         if not obj.has_parameter(key):
             return None
 
         try:
-            value = pu.to_arrow_value(obj.get_parameter(key, copy=False), dtype)
-            pa.scalar(value, type=dtype)  # validate now rather than when flushing the batch
-        except (pa.ArrowException, TypeError, ValueError, AttributeError) as e:
-            # A mismatch with the declared type should not abort the whole run
-            if column not in self.__warned:
-                logger.warning(f"Parameter {column} does not match its declared type {dtype}, writing null instead: {e}")
-                self.__warned.add(column)
+            return pu.to_arrow_value(obj.get_parameter(key, copy=False), dtype)
+        except (TypeError, ValueError, AttributeError) as e:  # e.g. not a dict for a map type
+            _warn_once(self.__warned, column, dtype, e)
             return None
-
-        return value
-
-    @staticmethod
-    def __get_key(column):
-        """ Map a column name ``[sim_]<enum class>.<member>`` back to the enum member. """
-        class_name, member_name = column.removeprefix(_SIM_PREFIX).split(".", 1)
-        return getattr(getattr(parameters, class_name), member_name)

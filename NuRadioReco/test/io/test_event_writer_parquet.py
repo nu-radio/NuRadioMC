@@ -283,6 +283,100 @@ def test_reader_events_and_related_tables(tmp_path):
     assert sorted(related) == ["efield"] and related["efield"].collect()["station_id"].to_list() == [12]
 
 
+def _write_runs(writer, events_per_run, store_efields=False):
+    """ Write `events_per_run` (run -> number of events) in ascending order. """
+    for run, n_events in events_per_run.items():
+        for event_id in range(n_events):
+            evt, station = _make_event(run, event_id)
+            if store_efields:
+                station.add_electric_field(NuRadioReco.framework.electric_field.ElectricField([0]))
+            writer.run(evt, station)
+
+    return writer.end()
+
+
+def _names(path):
+    return sorted(p.name for p in path.glob("*.parquet"))
+
+
+def test_group_runs(tmp_path):
+    writer = EventWriterParquet()
+    writer.begin(str(tmp_path), group_runs=10, store_efields=True)
+    assert _write_runs(writer, {3: 2, 9: 1, 10: 2, 25: 1}, store_efields=True) == 6
+
+    assert _names(tmp_path) == [
+        "station11_run000000-000009.parquet", "station11_run000000-000009_efield.parquet",
+        "station11_run000010-000019.parquet", "station11_run000010-000019_efield.parquet",
+        "station11_run000020-000029.parquet", "station11_run000020-000029_efield.parquet"]
+    assert pl.read_parquet(tmp_path / "station11_run000000-000009.parquet")["run"].to_list() == [3, 3, 9]
+
+    # Existing files are found as without grouping (the name is fixed when the file is opened)
+    writer.begin(str(tmp_path), group_runs=10)
+    try:
+        _write_runs(writer, {5: 1})
+        raise AssertionError("no FileExistsError")
+    except FileExistsError:
+        pass
+
+
+def test_reader_run_ranges(tmp_path):
+    writer = EventWriterParquet()
+    writer.begin(str(tmp_path), group_runs=2, store_efields=True)
+    _write_runs(writer, {1: 2, 2: 2, 3: 3, 4: 2, 5: 1}, store_efields=True)
+    assert _names(tmp_path)[::2] == [
+        "station11_run000000-000001.parquet", "station11_run000002-000003.parquet", "station11_run000004-000005.parquet"]
+
+    reader = ParquetReader(str(tmp_path), efields=True)
+    assert reader.read().height == 10
+
+    # Run 2 is in a file with run 3: only its rows are returned (also of the electric fields)
+    reader = ParquetReader(str(tmp_path), runs=[2, 4], efields=True)
+    assert len(reader.files["event"]) == 2
+    tables = {kind: table.collect() for kind, table in reader.tables().items()}
+    assert tables["event"]["run"].to_list() == [2, 2, 4, 4]
+    assert tables["efield"]["run"].to_list() == [2, 2, 4, 4]
+
+    events = reader.events().filter(pl.col("run") == 4)
+    related = reader.related_tables(events)
+    assert related["efield"].collect()["run"].to_list() == [4, 4]
+
+
+def test_reader_list_of_paths(tmp_path):
+    for sub in ["a", "b"]:
+        writer = EventWriterParquet()
+        writer.begin(str(tmp_path / sub), suffix="s")
+        _write_runs(writer, {1 if sub == "a" else 2: 2})
+
+    assert ParquetReader([str(tmp_path / "a")]).read().height == 2
+    assert ParquetReader([str(tmp_path / "a"), str(tmp_path / "b")]).read().height == 4
+    assert ParquetReader([str(tmp_path / "b" / "station11_run000002_s.parquet")]).read().height == 2
+    assert ParquetReader(tmp_path / "b").read().height == 2  # a single path-like
+
+    # Entries can be patterns too; an entry without match is an error
+    assert ParquetReader([str(tmp_path / "*" / "*run000001*.parquet"), str(tmp_path / "b")]).read().height == 4
+    try:
+        ParquetReader([str(tmp_path / "a"), str(tmp_path / "c")])
+        raise AssertionError("no FileNotFoundError")
+    except FileNotFoundError:
+        pass
+
+
+def test_type_mismatch(tmp_path):
+    writer = EventWriterParquet()
+    writer.begin(str(tmp_path), batch_size=3)
+    for event_id in range(3):
+        evt, station = _make_event(1, event_id)
+        if event_id == 1:
+            station[stnp.nu_energy] = "not a float"  # only this value is written as null
+            station[stnp.viewing_angles] = [1, 2]  # not a dict: fails already in the conversion
+        writer.run(evt, station)
+    writer.end()
+
+    df = pl.read_parquet(tmp_path / "station11_run000001.parquet")
+    assert df["stationParameters.nu_energy"].to_list() == [0., None, 2e18]
+    assert df["stationParameters.viewing_angles"].null_count() == 1
+
+
 def test_end_summary(tmp_path):
     messages = []
 
@@ -309,8 +403,7 @@ def test_end_summary(tmp_path):
 
     summaries = [message for message in messages if message.startswith("EventWriterParquet: wrote")]
     assert len(summaries) == 1
-    assert "3 events (1 file)" in summaries[0] and "6 electric fields (1 file)" in summaries[0]
-    assert "Writing to disk took" in summaries[0]
+    assert "wrote 3 events to 2 files" in summaries[0] and "writing to disk" in summaries[0]
 
 
 if __name__ == "__main__":
