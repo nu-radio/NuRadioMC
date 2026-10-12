@@ -380,7 +380,8 @@ class readRNOGData:
 
             try:
                 dataset = self.__get_dataset(dir_file)
-            except (ReferenceError, KeyError) as e:
+            except (ReferenceError, KeyError, OSError) as e:
+                self.__skipped_runs += 1
                 self.logger.error(f"The following exeption was raised reading in the run: {dir_file}. Skip that run ...:\n", exc_info=e)
                 continue
 
