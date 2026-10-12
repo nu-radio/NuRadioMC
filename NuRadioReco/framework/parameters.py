@@ -111,6 +111,7 @@ class stationParametersRNOG(TypedEnum):
     coherent_impulsivity = 2, float  #: impulsivity of the coherently summed waveform
     coherent_entropy = 3, float  #: Shannon entropy of the coherently summed waveform
     coherent_kurtosis = 4, float  #: kurtosis of the coherently summed waveform
+    coherent_time_lags = 5, dict[int, float]  #: time lags (in units of time, not samples) by which each channel was shifted (rolled) to align with the reference channel for the coherent sum, dict with channel id as key
 
     digitizer = 100, int  #: the digitizer used by the station (derived from data format)
 

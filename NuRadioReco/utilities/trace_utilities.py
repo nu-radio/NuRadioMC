@@ -603,7 +603,7 @@ def get_impulsivity(trace, envelope=None):
     return impulsivity
 
 
-def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
+def get_coherent_sum(trace_set, ref_trace, use_envelope = False, lag_range = None, return_lags = False):
     """
     Generates the coherently-summed waveform (CSW) of a sets of traces.
 
@@ -619,11 +619,19 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
         Trace of the reference channel
     use_envelope: bool
         See if users would like to find the correlation between envelopes or just normal traces (default: False)
+    lag_range: tuple of (int, int) or None
+        ``(min, max)`` of the allowed lags in **samples** (not time, inclusive).
+        If None (default), all lags are allowed.
+    return_lags: bool
+        If True, also return the lags (default: False)
 
     Returns
     -------
     sum_trace: 1-D array of floats
         CSW of the set of traces
+    lags: 1-D array of int
+        Only if ``return_lags``: lag (in samples) by which each trace of ``trace_set`` was rolled
+        (``np.roll(trace, lag)``) to align with the reference trace.
     """
     # Normalize: subtract mean, divide by std (z-score)
     def process(trace):
@@ -642,11 +650,21 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False):
 
     lag_array = scipy.signal.correlation_lags(n_samples, n_samples, mode='full')
 
+    lag_min, lag_max = lag_range or (-np.inf, np.inf)
+    lag_mask = (lag_array >= lag_min) & (lag_array <= lag_max)
+    if not np.any(lag_mask):
+        raise ValueError(f"lag_range {lag_range} (in samples) contains no valid lag.")
+
+    lags = np.zeros(len(trace_set), dtype=int)
     for i, trace in enumerate(trace_set):
         corr = scipy.signal.correlate(ref_processed, traces_processed[i], mode='full') / n_samples
-        best_lag = lag_array[np.argmax(corr)]
+        best_lag = lag_array[lag_mask][np.argmax(corr[lag_mask])]
         aligned_trace = np.roll(trace, best_lag)
         sum_trace += aligned_trace
+        lags[i] = best_lag
+
+    if return_lags:
+        return sum_trace, lags
 
     return sum_trace
 

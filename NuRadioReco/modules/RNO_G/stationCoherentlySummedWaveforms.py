@@ -31,7 +31,7 @@ class stationCoherentlySummedWaveforms:
         """(Unused)"""
         pass
 
-    def begin(self, coincidence_window_size=6 * units.ns, pad_length=500, channel_ids=[0, 1, 2, 3]):
+    def begin(self, coincidence_window_size=6 * units.ns, pad_length=500, channel_ids=[0, 1, 2, 3], time_lag_range=None):
         """
         Parameters
         ----------
@@ -43,10 +43,15 @@ class stationCoherentlySummedWaveforms:
 
         channel_ids: array of int (default: [0, 1, 2, 3])
             Channels for which to calculate the variables
+
+        time_lag_range: tuple of (float, float) or None (default: None)
+            ``(min, max)`` of the allowed time lags for the cross correlation, in units of time
+            (e.g. ``(-50 * units.ns, 50 * units.ns)``). If None, the full trace is used.
         """
         self.__coincidence_window_size = coincidence_window_size
         self.__pad_length = pad_length
         self.__channel_ids = channel_ids
+        self.__time_lag_range = time_lag_range
 
 
     @register_run()
@@ -66,13 +71,24 @@ class stationCoherentlySummedWaveforms:
 
         ref_ch = station.get_channel(ref_ch_id)
         ref_trace = ref_ch.get_trace()
-        trace_set = [ch.get_trace() for ch in station.iter_channels(use_channels = self.__channel_ids) if ch.get_id() != ref_ch.get_id()]
+        channels = [ch for ch in station.iter_channels(use_channels = self.__channel_ids) if ch.get_id() != ref_ch.get_id()]
+        trace_set = [ch.get_trace() for ch in channels]
+        sampling_rate = ref_ch.get_sampling_rate()
 
-        coincidence_window_size_bins_ref = int(round(self.__coincidence_window_size * ref_ch.get_sampling_rate()))
+        coincidence_window_size_bins_ref = int(round(self.__coincidence_window_size * sampling_rate))
         if coincidence_window_size_bins_ref < 2:
             logger.warning(f"Coincidence window size of {coincidence_window_size_bins_ref} samples is too small for channel {ref_ch.get_id()}.")
 
-        sum_trace = trace_utilities.get_coherent_sum(trace_set, ref_trace, use_envelope)
+        lag_range_samples = None
+        if self.__time_lag_range is not None:
+            t_min, t_max = self.__time_lag_range
+            lag_range_samples = (int(round(t_min * sampling_rate)), int(round(t_max * sampling_rate)))
+
+        sum_trace, lags_samples = trace_utilities.get_coherent_sum(
+            trace_set, ref_trace, use_envelope, lag_range=lag_range_samples, return_lags=True)
+
+        time_lags = {ref_ch.get_id(): 0.}
+        time_lags.update({ch.get_id(): lag / sampling_rate for ch, lag in zip(channels, lags_samples)})
         rms = trace_utilities.get_split_trace_noise_RMS(sum_trace, segments=4, lowest=2)
         snr = trace_utilities.get_signal_to_noise_ratio(sum_trace, rms, window_size=coincidence_window_size_bins_ref)
         impulsivity = trace_utilities.get_impulsivity(sum_trace)
@@ -83,6 +99,7 @@ class stationCoherentlySummedWaveforms:
         station.set_parameter(stpRNOG.coherent_impulsivity, impulsivity)
         station.set_parameter(stpRNOG.coherent_entropy, entropy)
         station.set_parameter(stpRNOG.coherent_kurtosis, kurtosis)
+        station.set_parameter(stpRNOG.coherent_time_lags, time_lags)
 
     def end(self):
         """(Unused)"""
