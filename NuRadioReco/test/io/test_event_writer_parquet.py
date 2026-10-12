@@ -1,4 +1,7 @@
 import collections
+import pathlib
+import tempfile
+
 import astropy.time
 import numpy as np
 import polars as pl
@@ -277,3 +280,13 @@ def test_reader_events_and_related_tables(tmp_path):
     # a (collected) DataFrame works as well, a single table can be requested
     related = reader.related_tables(events.collect().filter(pl.col("event_id") == 4), sim_channels=False)
     assert sorted(related) == ["efield"] and related["efield"].collect()["station_id"].to_list() == [12]
+
+
+if __name__ == "__main__":
+    # Run without pytest (as in the CI): every test gets its own temporary directory
+    for name, test in list(globals().items()):
+        if name.startswith("test_") and callable(test):
+            with tempfile.TemporaryDirectory() as directory:
+                test(pathlib.Path(directory))
+
+            print(f"{name}: passed")
