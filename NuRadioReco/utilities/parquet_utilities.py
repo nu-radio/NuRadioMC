@@ -9,7 +9,8 @@ unknown classes) are dropped with a warning, nothing is pickled.
 `ParquetReader` reads the files written by `NuRadioReco.modules.io.eventWriterParquet` with polars:
 
 * The input is a root directory (searched recursively) or a glob pattern.
-* Stations and runs are selected via the file names, so unselected files are never opened.
+* Stations and runs are selected via the file names (which contain the range of runs of a file),
+  so unselected files are never opened.
 * The electric field and sim channel files can be read in addition.
 * `ParquetReader.read` / `ParquetReader.scan` return the event table left-joined with the requested
   table (eager / lazy), `ParquetReader.tables` returns the tables separately.
@@ -153,16 +154,17 @@ _SORT_KEYS = {
     "efield": ["station_id", "run", "event_id", "source", "channel_ids", "ray_tracing_id", "shower_id"],
     "simchannel": ["station_id", "run", "event_id", "channel_id", "ray_tracing_id", "shower_id"],
 }
-# station<id>_run<run>[_<suffix>][_efield|_simchannel].parquet (groups: station, run, kind). The suffix is
-# matched lazily so that a trailing ``_efield`` / ``_simchannel`` is not swallowed by it.
-_FILE_PATTERN = re.compile(r"^station(\d+)_run(\d+)(?:_.*?)??(?:_(efield|simchannel))?\.parquet$")
+# station<id>_run<run>[-<last run>][_<suffix>][_efield|_simchannel].parquet (groups: station, first run, last run, kind).
+# The suffix is matched lazily so that a trailing ``_efield`` / ``_simchannel`` is not swallowed by it.
+_FILE_PATTERN = re.compile(r"^station(\d+)_run(\d+)(?:-(\d+))?(?:_.*?)??(?:_(efield|simchannel))?\.parquet$")
 
 
 class ParquetReader:
     """
     Reads the files written by `NuRadioReco.modules.io.eventWriterParquet` with polars.
 
-    Files are selected by the station and run in their name, so unselected files are never opened.
+    Files are selected by the station and run(s) in their name, so unselected files are never opened.
+    If a file holds several runs, only the rows of the selected runs are read from it.
     Note that polars returns parquet maps as ``list[struct{key, value}]``.
 
     Examples
@@ -175,9 +177,11 @@ class ParquetReader:
         """
         Parameters
         ----------
-        path : str
-            Root directory (searched recursively for ``*.parquet``) or a glob pattern (``**`` allowed),
+        path : str or list of str
+            A root directory (searched recursively for ``*.parquet``), a file or a glob pattern (``**`` allowed),
             e.g. ``"out/station11_run*.parquet"`` or ``"data/**/station*_run0001*.parquet"``.
+            A list combines several of these, e.g. ``["out/a", "out/b/station11_run0001*.parquet"]``.
+            Only the event files are collected, the electric field and sim channel files are found next to them.
         stations : int or list of int, optional
             Station ids to read. Default: all.
         runs : int or list of int, optional
@@ -198,7 +202,7 @@ class ParquetReader:
         ImportError
             If polars is not installed.
         FileNotFoundError
-            If no event file matches `path`, `stations` and `runs`.
+            If no event file matches `path`, `stations` and `runs`, or an entry of a list `path` matches nothing.
         """
         try:
             import polars
@@ -213,27 +217,30 @@ class ParquetReader:
         self.__stations = self.__as_set(stations)
         self.__runs = self.__as_set(runs)
 
-        # A directory is searched recursively, anything else is used as glob pattern
-        pattern = os.path.join(path, "**", "*.parquet") if os.path.isdir(path) else path
         self.__files = {kind: [] for kind in self.__kinds}
-        self.__event_ids = {}  # event file -> (station id, run)
-        for file in sorted(glob.glob(pattern, recursive=True)):
+        self.__event_ids = {}  # event file -> (station id, first run, last run)
+        for file in self.__find_files(path):
             match = _FILE_PATTERN.match(os.path.basename(file))
             if match is None:
                 logger.warning(
                     f"Skipping {file}: the file name does not match the pattern "
-                    "station<id>_run<run>[_<suffix>][_efield|_simchannel].parquet")
+                    "station<id>_run<run>[-<last run>][_<suffix>][_efield|_simchannel].parquet")
                 continue
 
             # Station and run are taken from the name: unselected files are never opened.
             # Only event files are collected here, the side files are found next to them.
-            station, run, kind = int(match.group(1)), int(match.group(2)), match.group(3) or "event"
-            if kind == "event" and self.__selected(station, self.__stations) and self.__selected(run, self.__runs):
+            station, first, kind = int(match.group(1)), int(match.group(2)), match.group(4) or "event"
+            last = int(match.group(3) or first)
+            if kind == "event" and self.__selected(station, self.__stations) and self.__has_run(first, last, self.__runs):
                 self.__files["event"].append(file)
-                self.__event_ids[file] = (station, run)
+                self.__event_ids[file] = (station, first, last)
 
         if not self.__files["event"]:
             raise FileNotFoundError(f"No matching parquet files found for {path}")
+
+        # Files with several runs can hold runs which are not selected
+        self.__filter_runs = self.__runs is not None and any(
+            first != last for _, first, last in self.__event_ids.values())
 
         for kind in self.__kinds[1:]:
             self.__files[kind] = self.__find_side_files(kind, self.__files["event"])
@@ -293,8 +300,10 @@ class ParquetReader:
         keys = events.lazy().select(_KEYS).unique()
 
         # Only the files of the stations and runs which occur in the selection are needed
-        selected = {tuple(row) for row in keys.select("station_id", "run").unique().collect().rows()}
-        event_files = [file for file, ids in self.__event_ids.items() if ids in selected]
+        selected = keys.select("station_id", "run").unique().collect().rows()
+        event_files = [
+            file for file, (station, first, last) in self.__event_ids.items()
+            if any(s == station and first <= run <= last for s, run in selected)]
 
         tables = {}
         for kind in (["efield"] if efields else []) + (["simchannel"] if sim_channels else []):
@@ -346,7 +355,29 @@ class ParquetReader:
         pl = self.__pl
         # "diagonal_relaxed": tolerate files written with different parameter sets
         table = pl.concat([pl.scan_parquet(file) for file in files], how="diagonal_relaxed")
+        if self.__filter_runs:
+            table = table.filter(pl.col("run").is_in(sorted(self.__runs)))
+
         return table.sort(_SORT_KEYS[kind]) if sort else table
+
+    @staticmethod
+    def __find_files(path):
+        """
+        The parquet files of `path`: a string or each entry of a list is a directory (searched recursively),
+        a file or a glob pattern. Raises `FileNotFoundError` if an entry of a list matches nothing.
+        """
+        entries = [path] if isinstance(path, (str, os.PathLike)) else list(path)
+
+        files = set()
+        for entry in map(os.fspath, entries):
+            pattern = os.path.join(entry, "**", "*.parquet") if os.path.isdir(entry) else entry
+            matches = glob.glob(pattern, recursive=True)
+            if not matches and len(entries) > 1:
+                raise FileNotFoundError(f"{entry} matches no file.")
+
+            files.update(matches)
+
+        return sorted(files)
 
     @staticmethod
     def __find_side_files(kind, event_files):
@@ -371,6 +402,11 @@ class ParquetReader:
             return None
 
         return {int(values)} if isinstance(values, (int, float)) else {int(value) for value in values}
+
+    @staticmethod
+    def __has_run(first, last, selection):
+        """ True if one of the runs `first` to `last` is in the `selection` (None selects everything). """
+        return selection is None or any(first <= run <= last for run in selection)
 
     @staticmethod
     def __selected(value, selection):
