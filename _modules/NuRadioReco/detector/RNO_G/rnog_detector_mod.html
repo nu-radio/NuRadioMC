@@ -891,7 +891,8 @@
         <span class="n">sampling_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampling_frequency</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">)</span>
 
         <span class="c1"># number of samples a trace would have with a length at least that of the time delay</span>
-        <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time_delay</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="c1"># also make sure that we have at least three frequency bins to avoid a degenerate frequency axis</span>
+        <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time_delay</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">sampling_rate</span><span class="p">)</span> <span class="o">+</span> <span class="mi">3</span>
         <span class="n">freqs</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freqs</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">)</span>
 
         <span class="c1"># pseudo data</span>
