@@ -6,6 +6,8 @@ import NuRadioReco.modules.RNO_G.channelBlockOffsetFitter
 
 import NuRadioReco.modules.channelAddCableDelay
 
+from NuRadioReco.framework.parameters import stationParametersRNOG as stpRNOG
+
 import logging
 logger = logging.getLogger('NuRadioReco.RNO_G.dataProviderRNOG')
 
@@ -105,10 +107,11 @@ class dataProviderRNOG:
 
             # This will throw an error if the event has more than one station
             station = event.get_station()
-            
-            # Detector object is not used in the channelBlockOffsetFitter and channelGlitchDetector, so we set it to None to avoid confusion.
-            self.channelBlockOffsetFitter.run(event, station, det=None)
-            self.channelGlitchDetector.run(event, station, det=None)
+
+            if station.get_parameter(stpRNOG.digitizer) == 1:  # RADIANT = 1, DIDAQ = 2
+                # Detector object is not used in the channelBlockOffsetFitter and channelGlitchDetector, so we set it to None to avoid confusion.
+                self.channelBlockOffsetFitter.run(event, station, det=None)
+                self.channelGlitchDetector.run(event, station, det=None)
 
             # channelCableDelayAdder needs the detector object to retrieve the cable delays. 
             # If the detector object is not set, we skip this step and do not add/subtract cable delays.
