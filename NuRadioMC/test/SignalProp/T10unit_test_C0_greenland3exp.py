@@ -13,7 +13,7 @@ import json
 logger = logging.getLogger("NuRadioMC.T10unit_test_C0_greenland3exp")
 logger.setLevel(logging.INFO)
 
-ice = medium.greenland_3exp_layered()
+ice = medium.greenland_3exp_density()
 
 """
 this unit test compares the numerical and analytic calculation of path length and travel time for the Summit Station site using the 3 layer exponential model.
