@@ -78,7 +78,7 @@ if __name__ == '__main__':
             writer.begin(f)
             for event in evt_list:
                 writer.run(event)
-            writer.end()
+            writer.close()
 
         dt =  time.time() - t0
         dt_write = dt / (args.n * len(evt_list))
