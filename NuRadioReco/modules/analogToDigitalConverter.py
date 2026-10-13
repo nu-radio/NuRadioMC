@@ -5,7 +5,6 @@ import scipy.interpolate
 import scipy.signal
 
 import numpy as np
-import time
 
 import logging
 logger = logging.getLogger('NuRadioReco.analogToDigitalConverter')
@@ -408,7 +407,6 @@ class analogToDigitalConverter:
             The baseline voltage to be added to the trace before digitisation.
         """
 
-        t = time.time()
 
         for channel in station.iter_channels():
             digital_trace, adc_sampling_frequency = self.get_digital_trace(
@@ -422,8 +420,6 @@ class analogToDigitalConverter:
             )
 
             channel.set_trace(digital_trace, adc_sampling_frequency)
-
-        self.__t += time.time() - t
 
     def end(self):
         pass

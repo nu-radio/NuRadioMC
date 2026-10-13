@@ -11,7 +11,6 @@ import numpy as np
 import logging
 import math
 import copy
-import time
 
 
 class stationHitFilter:
@@ -192,7 +191,6 @@ class stationHitFilter:
         self.logger.setLevel(log_level)
         self.__counting_dict = defaultdict(int)
         self.__is_wanted_trigger_type = None
-        self.__total_run_time = 0
 
 
     def set_up(self, set_of_traces, set_of_times, noise_RMS):
@@ -285,7 +283,6 @@ class stationHitFilter:
         self.is_passed_hit_filter(): bool
             Event passed the Hit Filter or not
         """
-        t0 = time.time()
         trigger_type = evt.get_station().get_first_trigger().get_name()
 
         # Only run the module on selected trigger type
@@ -314,14 +311,12 @@ class stationHitFilter:
         self.__counting_dict[f"{trigger_type}_passed"] += int(self.is_passed_hit_filter())
         self.__counting_dict["total"] += 1
 
-        self.__total_run_time += time.time() - t0
         return self.is_passed_hit_filter()
 
 
     def end(self):
         event_count = self.__counting_dict.pop("total")
-        counts = (f"Processed Total: {event_count} events. Total run time: {self.__total_run_time:.2f} s, "
-            f"Time per event: {self.__total_run_time / event_count * 1000:.2f} ms")
+        counts = f"Processed Total: {event_count} events."
 
         trigger_types = np.unique([key.strip("_passed") for key in self.__counting_dict.keys()])
         for trigger_type in trigger_types:

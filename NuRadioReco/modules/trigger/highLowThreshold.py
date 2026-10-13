@@ -4,7 +4,6 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.trigger import HighLowTrigger
 from NuRadioReco.modules.analogToDigitalConverter import analogToDigitalConverter
 import numpy as np
-import time
 import logging
 
 logger = logging.getLogger('NuRadioReco.HighLowTriggerSimulator')
@@ -150,7 +149,6 @@ class triggerSimulator:
     """
 
     def __init__(self):
-        self.__t = 0
         self.begin()
 
     def begin(self, log_level=logging.NOTSET):
@@ -236,7 +234,6 @@ class triggerSimulator:
         has_triggered: bool
             True if the trigger condition was met
         """
-        t = time.time()
 
         if use_digitization:
             adcConverter = analogToDigitalConverter()
@@ -330,15 +327,11 @@ class triggerSimulator:
 
         station.set_trigger(trigger)
 
-        self.__t += time.time() - t
 
         return has_triggered
 
     def end(self):
-        from datetime import timedelta
-        dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass
 
 
 def _get_threshold_channel(threshold, channel_id):
