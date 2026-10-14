@@ -235,7 +235,13 @@ class channelSignalReconstructor:
         maxaval = 0
         for channels in self._group_channels(station):
             traces = np.stack([channel.get_trace() for channel in channels])
-            normalized_traces = traces / np.std(traces, axis=-1, keepdims=True)
+            # skip empty traces (e.g. channels without signal in noiseless simulations), their normalized
+            # trace would be NaN and a single NaN would mask the maximum of the whole group
+            stds = np.std(traces, axis=-1, keepdims=True)
+            has_signal = stds[:, 0] > 0
+            if not np.any(has_signal):
+                continue
+            normalized_traces = traces[has_signal] / stds[has_signal]
             coincidence_window_size_bins = int(round(self.__coincidence_window_size * channels[0].get_sampling_rate()))
             if coincidence_window_size_bins < 2:
                 logger.warning(f"Coincidence window size of {coincidence_window_size_bins} samples is too small for channels with sampling rate {channels[0].get_sampling_rate()}.")
@@ -286,7 +292,11 @@ class channelSignalReconstructor:
 
             max_amplitude_station = max(max_amplitude_station, np.max(max_amplitudes))
             # as in get_max_a_norm, re-using the peak to peak amplitude from the SNR calculation
-            max_a_norm = max(max_a_norm, np.max(max_p2p / np.std(traces, axis=-1)))
+            # (empty traces are skipped, as a single NaN would mask the maximum of the whole group)
+            stds = np.std(traces, axis=-1)
+            has_signal = stds > 0
+            if np.any(has_signal):
+                max_a_norm = max(max_a_norm, np.max(max_p2p[has_signal] / stds[has_signal]))
 
             if not snr_only:
                 # Calculate additional properties of the signal
