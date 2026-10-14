@@ -1,0 +1,12 @@
+# Source: IceCube NuMu 9.5 years 
+# Data type: Measurement 
+# Column values:
+# Log10 Energy [GeV]
+# Log10 Flux [GeV cm^-2 s^-1 sr^-1]
+# Log10 Flux down
+# Log10 Flux up
+
+4.64588  -7.69107  -7.87555  -7.55490
+5.44266  -7.95022  -8.06881  -7.85359
+6.25755  -8.51245  -8.82870  -8.29283
+7.29276  -8.40264  -8.70842  -8.40264 
