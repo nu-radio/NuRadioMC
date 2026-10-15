@@ -6,7 +6,10 @@ whenever the user requests the antenna model for the first time.
 
 For developers:
 If you add a new antenna model please add the sha1sum = hashlib.sha1() to ``NuRadioReco/detector/antenna_models_hash.json``
-and send one of the core maintainers the antenna model so that they can put it on our central server.
+as ``[sha1sum, comment]`` and send one of the core maintainers the antenna model so that they can put it on our central server.
+The comment (may be empty) is logged whenever the model is loaded: at error level if it contains "error",
+at warning level if it contains "warning" (case-insensitive), otherwise at info level.
+The comment field was added in version 3.2; entries with only the sha1sum (as a plain string) are still supported.
 
 Implementation of Antenna Models
 ================================
@@ -472,55 +475,6 @@ Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
 
 Last updated: 2018
 
-RNOG_vpol_4inch_center_n1.73
------------------------------
-.. warning::
-    This model has negative group delays which are unphysical. This has been corrected in newer models.
-    This model should only be used for reproducing old results.
-
-xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
-The antenna is placed in the center (x, y) of the borehole. An extra cubic interpolation is performed in frequencies (5 MHz step).
-
-Theta range [0, 90] Phi range [0, 360] Freq range [0, 4200]MHz
-
-Last updated: 2020
-
-RNOG_vpol_4inch_half_n1.73
----------------------------
-.. warning::
-    This model has negative group delays which are unphysical. This has been corrected in newer models.
-    This model should only be used for reproducing old results.
-
-xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
-The antenna is halfway displaced from the center towards phi = 0. An extra cubic interpolation is performed in frequencies (5 MHz step).
-
-Theta range [0, 90] Phi range [0, 360] Freq range [0, 4200]MHz
-
-Last updated: 2020
-
-RNOG_vpol_4inch_wall_n1.73
----------------------------
-.. warning::
-    This model has negative group delays which are unphysical. This has been corrected in newer models.
-    This model should only be used for reproducing old results.
-
-xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
-The antenna placed against the wall towards phi = 0. An extra cubic interpolation is performed in frequencies (5 MHz step).
-
-Theta range [0, 90] Phi range [0, 360] Freq range [0, 4200]MHz
-
-Last updated: 2020
-
-RNOG_vpol_v3_5inch_center_n1.74
--------------------------------
-XFdtd simulations for the RNO-G VPol in an 11.2 inch diameter borehole with index of refraction of ice n=1.74. The antenna is placed in the center (x, y) of the borehole.
-
-Theta range [0, 180] Phi range [0, 360] Freq range [0, 1000]MHz. No power feed-through cable included.
-
-Note: Simulation ran with Theta range [0, 90] and Phi range [0, 90] due to simulation size constraints and was extended to range noted above using symmetry.
-
-Last updated: 2025
-
 RNOG_hpol_v4_8inch_center_n1.74
 -------------------------------
 XFdtd simulations for the RNO-G HPol in an 11.2 inch diameter borehole with index of refraction of ice n=1.74. The antenna is placed in the center (x, y) of the borehole.
@@ -530,24 +484,6 @@ Theta range [0, 180] Phi range [0, 360] Freq range [0, 1000]MHz. No power feed-t
 Note: Simulation ran with Theta range [0, 90] and Phi range [0, 90] due to simulation size constraints and was extended to range noted above using symmetry.
 
 Last updated: 2025
-
-RNOG_quadslot_v1_n1.74
------------------------
-XFdtd simulations for the RNOG Hpol.
-Simulations are done in air, frequencies are rescaled with n=1.74. An extra cubic interpolation is performed in frequencies (5 MHz step).
-
-Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
-
-Last updated: 2020
-
-RNOG_quadslot_v2_n1.74
------------------------
-XFdtd simulations for the RNOG Hpol.
-Simulations are done in air, frequencies are rescaled with n=1.74. An extra cubic interpolation is performed in frequencies (5 MHz step).
-
-Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
-
-Last updated: 2020
 
 RNOG_quadslot_v2_rescaled_fineFreq
 -----------------------------------
@@ -560,17 +496,6 @@ Simulations are done in air, frequencies are rescaled with n=1.74.
 Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
 
 Last updated: 2020
-
-SKALA_InfFirn
---------------
-Log-periodic antenna for SKA-low, called SKALA-2.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0, 90]; Phi range [0, 360]; Freq range [50, 350]MHz
-
-For more information, see: https://ieeexplore.ieee.org/abstract/document/7297231/authors#authors
-
-Last updated: 2021
 
 SmallBlackSpider_ground2_measured
 ---------------------------------
@@ -608,20 +533,11 @@ Added: 2025
 Additional Models
 ==================
 
-RNOG_vpol_v1_n1.4
-------------------
-
-RNOG_vpol_v1_n1.73
--------------------
-
 fourslot_InfFirn
 -----------------
 
 greenland_vpol_InfFirn
 -----------------------
-
-trislot_RNOG
--------------
 
 dipole_ARA_bicone_infinitefirn
 -------------------------------
@@ -634,3 +550,130 @@ XFDTD_Vpol_CrossFeed_150mmHole_n1.78
 
 XFDTD_Vpol_CrossFeed_150mmHole_n1.78_InfFirn
 ---------------------------------------------
+
+Outdated Antenna Models
+=======================
+
+The following antenna models are outdated (as of 2026-10-15) and should only be used for reproducing old results.
+A warning is logged whenever one of them is loaded.
+
+.. raw:: html
+
+   <details>
+   <summary><b>Show outdated antenna models</b></summary>
+
+.. _RNOG_vpol_4inch_center_n1.73:
+
+.. rubric:: RNOG_vpol_4inch_center_n1.73
+
+.. warning::
+    This model has negative group delays which are unphysical. This has been corrected in newer models.
+    This model should only be used for reproducing old results.
+
+xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
+The antenna is placed in the center (x, y) of the borehole. An extra cubic interpolation is performed in frequencies (5 MHz step).
+
+Theta range [0, 90] Phi range [0, 360] Freq range [0, 4200]MHz
+
+Last updated: 2020
+
+.. _RNOG_vpol_4inch_half_n1.73:
+
+.. rubric:: RNOG_vpol_4inch_half_n1.73
+
+.. warning::
+    This model has negative group delays which are unphysical. This has been corrected in newer models.
+    This model should only be used for reproducing old results.
+
+xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
+The antenna is halfway displaced from the center towards phi = 0. An extra cubic interpolation is performed in frequencies (5 MHz step).
+
+Theta range [0, 90] Phi range [0, 360] Freq range [0, 4200]MHz
+
+Last updated: 2020
+
+.. _RNOG_vpol_4inch_wall_n1.73:
+
+.. rubric:: RNOG_vpol_4inch_wall_n1.73
+
+.. warning::
+    This model has negative group delays which are unphysical. This has been corrected in newer models.
+    This model should only be used for reproducing old results.
+
+xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
+The antenna placed against the wall towards phi = 0. An extra cubic interpolation is performed in frequencies (5 MHz step).
+
+Theta range [0, 90] Phi range [0, 360] Freq range [0, 4200]MHz
+
+Last updated: 2020
+
+.. _RNOG_vpol_v1_n1.4:
+
+.. rubric:: RNOG_vpol_v1_n1.4
+
+
+.. _RNOG_vpol_v1_n1.73:
+
+.. rubric:: RNOG_vpol_v1_n1.73
+
+
+.. _RNOG_vpol_v2_5inch_center_n1.75:
+
+.. rubric:: RNOG_vpol_v2_5inch_center_n1.75
+
+
+.. _RNOG_vpol_v3_5inch_center_n1.74:
+
+.. rubric:: RNOG_vpol_v3_5inch_center_n1.74
+
+XFdtd simulations for the RNO-G VPol in an 11.2 inch diameter borehole with index of refraction of ice n=1.74. The antenna is placed in the center (x, y) of the borehole.
+
+Theta range [0, 180] Phi range [0, 360] Freq range [0, 1000]MHz. No power feed-through cable included.
+
+Note: Simulation ran with Theta range [0, 90] and Phi range [0, 90] due to simulation size constraints and was extended to range noted above using symmetry.
+
+Last updated: 2025
+
+.. _RNOG_quadslot_v1_n1.74:
+
+.. rubric:: RNOG_quadslot_v1_n1.74
+
+XFdtd simulations for the RNOG Hpol.
+Simulations are done in air, frequencies are rescaled with n=1.74. An extra cubic interpolation is performed in frequencies (5 MHz step).
+
+Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
+
+Last updated: 2020
+
+.. _RNOG_quadslot_v2_n1.74:
+
+.. rubric:: RNOG_quadslot_v2_n1.74
+
+XFdtd simulations for the RNOG Hpol.
+Simulations are done in air, frequencies are rescaled with n=1.74. An extra cubic interpolation is performed in frequencies (5 MHz step).
+
+Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
+
+Last updated: 2020
+
+.. _trislot_RNOG:
+
+.. rubric:: trislot_RNOG
+
+
+.. _SKALA_InfFirn:
+
+.. rubric:: SKALA_InfFirn
+
+Log-periodic antenna for SKA-low, called SKALA-2.
+The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+
+Theta range [0, 90]; Phi range [0, 360]; Freq range [50, 350]MHz
+
+For more information, see: https://ieeexplore.ieee.org/abstract/document/7297231/authors#authors
+
+Last updated: 2021
+
+.. raw:: html
+
+   </details>
