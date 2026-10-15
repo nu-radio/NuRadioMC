@@ -1247,10 +1247,12 @@ class Database(object):
         -------
 
         station_data: dict(dict(list))
-            Returns for each station (key = station.id) a dictionary with three entries:
-            "modification_timestamps", "station_commission_timestamps", "station_decommission_timestamps"
-            each containing a list of timestamps. The former combines the latter two + channel (de)comission
-            timestamps.
+            Returns for each station (key = station.id) a dictionary with six entries:
+            "modification_timestamps", "station_commission_timestamps", "station_decommission_timestamps",
+            "channel_modification_timestamps", "calibration_modification_timestamps"
+            each containing a list of timestamps. "modification_timestamps" combines all the others.
+            "channel_modification_details" maps each channel modification timestamp to a list of
+            `(channel_id, "commissioned" | "decommissioned")` tuples describing which channel(s) changed.
         """
         # get distinct set of stations:
         if isinstance(station_ids, int):
@@ -1265,11 +1267,32 @@ class Database(object):
             station_times_comm = self.db[self.__station_collection].distinct("commission_time", {"id": station_id})
             station_times_decomm = self.db[self.__station_collection].distinct("decommission_time", {"id": station_id})
 
-            # get set of (de)commission times for channels
-            channel_times_comm = self.db[self.__station_collection].distinct("channels.commission_time", {"id": station_id})
-            channel_times_decomm = self.db[self.__station_collection].distinct("channels.decommission_time", {"id": station_id})
+            # get set of (de)commission times for channels, keeping track of which channel(s)
+            # changed at each timestamp
+            channel_docs = self.db[self.__station_collection].aggregate([
+                {"$match": {"id": station_id}},
+                {"$unwind": "$channels"},
+                {"$project": {
+                    "_id": 0,
+                    "channel_id": "$channels.id",
+                    "commission_time": "$channels.commission_time",
+                    "decommission_time": "$channels.decommission_time",
+                }},
+            ])
 
-            # # get set of (de)commission times for calibrations
+            channel_modification_details = {}
+            for doc in channel_docs:
+                channel_modification_details.setdefault(doc["commission_time"], []).append(
+                    (doc["channel_id"], "commissioned"))
+                channel_modification_details.setdefault(doc["decommission_time"], []).append(
+                    (doc["channel_id"], "decommissioned"))
+
+            for changes in channel_modification_details.values():
+                changes.sort()
+
+            channel_times_comm_decomm = list(channel_modification_details.keys())
+
+            # get set of (de)commission times for calibrations
             available_ids = self.db[self.__gain_calibration_collection].distinct("id")
             for id in available_ids:
                 if not id.startswith("sta"):
@@ -1286,16 +1309,25 @@ class Database(object):
 
             mod_set = np.unique(
                 station_times_comm + station_times_decomm +
-                channel_times_comm + channel_times_decomm +
+                channel_times_comm_decomm +
                 calibration_times_comm + calibration_times_decomm).tolist()
+
             mod_set.sort()
             station_times_comm.sort()
             station_times_decomm.sort()
 
+            channel_mod_set = sorted(channel_times_comm_decomm)
+
+            calibration_mod_set = np.unique(calibration_times_comm + calibration_times_decomm).tolist()
+            calibration_mod_set.sort()
+
             station_data = {
                 "modification_timestamps": mod_set,
                 "station_commission_timestamps": station_times_comm,
-                "station_decommission_timestamps": station_times_decomm
+                "station_decommission_timestamps": station_times_decomm,
+                "channel_modification_timestamps": channel_mod_set,
+                "channel_modification_details": channel_modification_details,
+                "calibration_modification_timestamps": calibration_mod_set,
             }
 
             # store timestamps, which can be used with np.digitize
