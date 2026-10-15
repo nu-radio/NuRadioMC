@@ -49,630 +49,713 @@ Overview of available Antenna Models
 ====================================
 
 The following antenna models are available in NuRadioReco.
-The headings are the unique identifiers of the antenna model that need to specified as  ``antenna_type`` in the detector description.
+The model names are the unique identifiers that need to be specified as ``antenna_type`` in the detector description.
 
 Inf means usually an infinite medium, firn has a refractive index n = 1.3-1.4. Since this is a bit imprecise
 we changed the naming to the actual refractive index.
 
-bicone_v8_InfAir
------------------
-WIPL-D simulation of ARA Bicone antenna.
-This antenna has been used by ARIANNA at the South Pole.
-The antenna is embedded in an infinite medium with an index of refraction of n = 1.0.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+The models are grouped by antenna family. Unless stated otherwise, the Phi range is [0, 360] deg.
+Outdated models are listed in a collapsed block at the end of their family section (click to expand);
+they should only be used for reproducing old results and a warning is logged whenever one of them is loaded.
 
-Theta range [-90,90] Phi range [0,360] Freq range [5,1000]MHz
+Neutrino detector antennas
+==========================
 
-Last updated: 2018
+ARA bicone: bicone_v8
+---------------------
 
-bicone_v8_InfFirn
-------------------
+WIPL-D simulations of the ARA bicone antenna, which has been used by ARIANNA at the South Pole.
+The antenna is embedded in an infinite medium. The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
 
-bicone_v8_inf_n1.32
---------------------
-WIPL-D simulation of ARA Bicone antenna.
-This antenna has been used by ARIANNA at the South Pole.
-The antenna is embedded in an infinite medium with an index of refraction of n = 1.32.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+.. list-table::
+   :header-rows: 1
+   :widths: 30 46 8 8 8
 
-Theta range [-90,90] Phi range [0,360] Freq range [5,1000]MHz
+   * - Model
+     - Description
+     - Theta [deg]
+     - Freq [MHz]
+     - Updated
+   * - .. _bicone_v8_InfAir:
 
-Last updated: 2018
+       ``bicone_v8_InfAir``
+     - Infinite air (n = 1.0).
+     - [-90, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _bicone_v8_InfFirn:
 
-bicone_v8_inf_n1.4
--------------------
-WIPL-D simulation of ARA Bicone antenna.
-This antenna has been used by ARIANNA at the South Pole.
-The antenna is embedded in an infinite medium with an index of refraction of n = 1.4.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+       ``bicone_v8_InfFirn``
+     - Identical to ``bicone_v8_inf_n1.32`` (same file hash).
+     - [-90, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _bicone_v8_inf_n1.32:
 
-Theta range [-90,90] Phi range [0,360] Freq range [5,1000]MHz
+       ``bicone_v8_inf_n1.32``
+     - n = 1.32
+     - [-90, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _bicone_v8_inf_n1.4:
 
-Last updated: 2018
+       ``bicone_v8_inf_n1.4``
+     - n = 1.4
+     - [-90, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _bicone_v8_inf_n1.78:
 
-bicone_v8_inf_n1.78
---------------------
-WIPL-D simulation of ARA Bicone antenna.
-This antenna has been used by ARIANNA at the South Pole.
-The antenna is embedded in an infinite medium with an index of refraction of n = 1.78.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+       ``bicone_v8_inf_n1.78``
+     - n = 1.78
+     - [-90, 90]
+     - [5, 1000]
+     - 2018
 
-Theta range [-90,90] Phi range [0,360] Freq range [5,1000]MHz
-
-Last updated: 2018
-
-createLPDA_100MHz_InfFirn
---------------------------
-.. warning::
-    This model has the wrong sign for the eTheta component;
-    this has been corrected in the :ref:`createLPDA_100MHz_v2_InfFirn <NuRadioReco/pages/detector/antennamodels:createLPDA_100MHz_v2_InfFirn>` model,
-    which therefore supersedes this version.
-
-WIPL-D simulation of 100 MHz LPDA from create.
-This antenna is used by ARIANNA.
-The antenna is embedded in an infinite medium with an index of refraction of n = 1.3.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [-90,90] Phi range [0,360] Freq range [5,1000]MHz assumed
-
-Last updated: 2018
-
-createLPDA_100MHz_v2_InfFirn
-----------------------------
-WIPL-D simulation of 100 MHz LPDA from create. The ``v2`` version differs
-only by a relative minus sign in the ``eTheta`` component; in the older version
-the wrong sign was used.
-This antenna is used by ARIANNA.
-The antenna is embedded in an infinite medium with an index of refraction of n = 1.3.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [-90,90] Phi range [0,360] Freq range [5,1000] MHz assumed
-
-Last updated: 2025
-
-createLPDA_100MHz_InfFirn_n1.4
+Create LPDA: createLPDA_100MHz
 ------------------------------
+
+WIPL-D simulations of the 100 MHz LPDA from Create, used by ARIANNA. The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+For the ``*_RG`` models the simulation geometry is inverted, i.e., the medium of the antenna is firn and the ground is air.
+
 .. warning::
-    This model has the wrong sign for the eTheta component;
-    this has been corrected in the :ref:`createLPDA_100MHz_v2_InfFirn_n1.4 <NuRadioReco/pages/detector/antennamodels:createLPDA_100MHz_v2_InfFirn_n1.4>` model,
-    which therefore supersedes this version.
+    ``createLPDA_100MHz_InfFirn`` and ``createLPDA_100MHz_InfFirn_n1.4`` use the wrong sign for the eTheta component.
+    This is corrected in the ``v2`` versions, which therefore supersede them.
 
-Same as createLPDA_100MHz_InfFirn but antenna embedded in infinite firn with index of n = 1.4.
+.. list-table::
+   :header-rows: 1
+   :widths: 30 46 8 8 8
 
-Theta range [-90,90] Phi range [0,360] Freq range [5,1000]MHz
+   * - Model
+     - Description
+     - Theta [deg]
+     - Freq [MHz]
+     - Updated
+   * - .. _createLPDA_100MHz_InfAir:
 
-Last updated: 2018
+       ``createLPDA_100MHz_InfAir``
+     - Infinite air (n = 1).
+     - [-90, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_InfFirn:
 
-createLPDA_100MHz_v2_InfFirn_n1.4
----------------------------------
-Same as createLPDA_100MHz_v2_InfFirn but antenna embedded in infinite firn with index of n = 1.4.
-The ``v2`` version differs only by a relative minus sign in the ``eTheta`` component;
-in the older version the wrong sign was used.
+       ``createLPDA_100MHz_InfFirn``
+     - **Wrong sign of the eTheta component**, superseded by ``createLPDA_100MHz_v2_InfFirn``. Infinite medium, n = 1.3.
+     - [-90, 90]
+     - [5, 1000] (assumed)
+     - 2018
+   * - .. _createLPDA_100MHz_v2_InfFirn:
 
-Theta range [-90,90] Phi range [0,360] Freq range [5,1000]MHz
+       ``createLPDA_100MHz_v2_InfFirn``
+     - Infinite medium, n = 1.3.
+     - [-90, 90]
+     - [5, 1000] (assumed)
+     - 2025
+   * - .. _createLPDA_100MHz_InfFirn_n1.4:
 
-Last updated: 2025
+       ``createLPDA_100MHz_InfFirn_n1.4``
+     - **Wrong sign of the eTheta component**, superseded by ``createLPDA_100MHz_v2_InfFirn_n1.4``. Infinite firn, n = 1.4.
+     - [-90, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_v2_InfFirn_n1.4:
 
-createLPDA_100MHz_z1cm_InFirn_RG
----------------------------------
-WIPL-D simulation of 100 MHz LPDA from create.
-This antenna is used by ARIANNA.
-lowest/largest tine 1cm above air (this is because in the simulation the geometry is inverted, the ground is air and the medium of the antenna is firn).
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+       ``createLPDA_100MHz_v2_InfFirn_n1.4``
+     - Infinite firn, n = 1.4.
+     - [-90, 90]
+     - [5, 1000]
+     - 2025
+   * - .. _createLPDA_100MHz_z1cm_InFirn_RG:
 
-Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
+       ``createLPDA_100MHz_z1cm_InFirn_RG``
+     - Lowest/largest tine 1 cm above air.
+     - [0, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_z1cm_InFirn_BoresightToBoundary:
 
-Last updated: 2018
+       ``createLPDA_100MHz_z1cm_InFirn_BoresightToBoundary``
+     - Smallest/highest tine 1 cm below air.
+     - [0, 90]
+     - [20, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_z10cm_InFirn_RG:
 
-createLPDA_100MHz_z1cm_InFirn_BoresightToBoundary
---------------------------------------------------
-WIPL-D simulation of 100 MHz LPDA from create.
-This antenna is used by ARIANNA.
-smallest/highest tine 1cm below air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+       ``createLPDA_100MHz_z10cm_InFirn_RG``
+     - Lowest/largest tine 10 cm above air.
+     - [0, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_z1m_InFirn_RG:
 
-Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
+       ``createLPDA_100MHz_z1m_InFirn_RG``
+     - Lowest/largest tine 1 m above air.
+     - [0, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_z1m_InFirn_RG_v2:
 
-Last updated: 2018
+       ``createLPDA_100MHz_z1m_InFirn_RG_v2``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _createLPDA_100MHz_z2m_InFirn_RG:
 
-createLPDA_100MHz_z10cm_InFirn_RG
-----------------------------------
-WIPL-D simulation of 100 MHz LPDA from create.
-This antenna is used by ARIANNA.
-lowest/largest tine 10cm above air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+       ``createLPDA_100MHz_z2m_InFirn_RG``
+     - Largest tine 2 m above air.
+     - [0, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_z2m_InFirn_Backlobe_NoRG:
 
-Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
+       ``createLPDA_100MHz_z2m_InFirn_Backlobe_NoRG``
+     - Largest tine 2 m above air.
+     - [0, 90]
+     - [200, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_z3m_InFirn_BoresightToBoundary:
 
-Last updated: 2018
+       ``createLPDA_100MHz_z3m_InFirn_BoresightToBoundary``
+     - Largest tine 3 m below air; nose 1.58 m below air.
+     - [0, 90]
+     - [20, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_z3mAndLPDALen_InFirn_BoresightToBoundary:
 
-createLPDA_100MHz_z1m_InFirn_RG
---------------------------------
-WIPL-D simulation of 100 MHz LPDA from create.
-This antenna is used by ARIANNA.
-lowest/largest tine 1m above air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+       ``createLPDA_100MHz_z3mAndLPDALen_InFirn_BoresightToBoundary``
+     - Nose 3.2 m below air.
+     - [0, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_z5m_InFirn_RG:
 
-Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
+       ``createLPDA_100MHz_z5m_InFirn_RG``
+     - Largest tine 5 m above air.
+     - [0, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_z10m_InFirn_RG:
 
-Last updated: 2018
+       ``createLPDA_100MHz_z10m_InFirn_RG``
+     - Largest tine 10 m above air.
+     - [0, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_z100m_InFirn_RG:
 
-createLPDA_100MHz_z2m_InFirn_RG
---------------------------------
-WIPL-D simulation of 100 MHz LPDA from create.
-This antenna is used by ARIANNA. Largest tine 2m above air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+       ``createLPDA_100MHz_z100m_InFirn_RG``
+     - Largest tine 100 m above air.
+     - [0, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_z200m_InFirn_RG:
 
-Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
+       ``createLPDA_100MHz_z200m_InFirn_RG``
+     - Largest tine 200 m above air.
+     - [0, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_z1cm_InAir_RG:
 
-Last updated: 2018
+       ``createLPDA_100MHz_z1cm_InAir_RG``
+     - Lowest/largest tine 1 cm above firn.
+     - [0, 90]
+     - [5, 1000]
+     - 2018
+   * - .. _createLPDA_100MHz_z3m_InAir_RG:
 
-createLPDA_100MHz_z2m_InFirn_Backlobe_NoRG
--------------------------------------------
-WIPL-D simulation of 100 MHz LPDA from create.
-This antenna is used by ARIANNA. Largest tine 2m above air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+       ``createLPDA_100MHz_z3m_InAir_RG``
+     - Lowest/largest tine 3 m above firn.
+     - [0, 90]
+     - [5, 1000]
+     - 2018
 
-Theta range [0,90] Phi range [0,360] Freq range [200,1000]MHz
+KU dipole: dip7cm
+-----------------
 
-Last updated: 2018
+WIPL-D simulations of the 52 cm long KU dipole, used by ARIANNA. The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
 
-createLPDA_100MHz_z3m_InAir_RG
--------------------------------
-WIPL-D simulation of 100 MHz LPDA from create.
-This antenna is used by ARIANNA. lowest/largest tine 3m above firn.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+.. list-table::
+   :header-rows: 1
+   :widths: 30 46 8 8 8
 
-Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
+   * - Model
+     - Description
+     - Theta [deg]
+     - Freq [MHz]
+     - Updated
+   * - .. _dip7cm_z260mm_InFirn_RG:
 
-Last updated: 2018
+       ``dip7cm_z260mm_InFirn_RG``
+     - Dipole center 260 mm in firn.
+     - [0, 90]
+     - [20, 1000]
+     - 2018
+   * - .. _dip7cm_z2m_InFirn_RG:
 
-createLPDA_100MHz_z3m_InFirn_BoresightToBoundary
--------------------------------------------------
-WIPL-D simulation of 100 MHz LPDA from create.
-This antenna is used by ARIANNA.
-Largest tine 3m below air; nose 1.58m below air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+       ``dip7cm_z2m_InFirn_RG``
+     - Dipole center 2 m in firn.
+     - [0, 90]
+     - [20, 1000]
+     - 2018
+   * - .. _dip7cm_z5m_InFirn_RG:
 
-Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
+       ``dip7cm_z5m_InFirn_RG``
+     - Dipole center 5 m above air.
+     - [0, 90]
+     - [20, 1000]
+     - 2018
+   * - .. _dip7cm_z10m_InFirn_RG:
 
-Last updated: 2018
+       ``dip7cm_z10m_InFirn_RG``
+     - Dipole center 10 m above air.
+     - [0, 90]
+     - [20, 1000]
+     - 2018
+   * - .. _dip7cm_z100m_InFirn_RG:
 
-createLPDA_100MHz_z3mAndLPDALen_InFirn_BoresightToBoundary
------------------------------------------------------------
-WIPL-D simulation of 100 MHz LPDA from create.
-This antenna is used by ARIANNA. Nose 3.2m below air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+       ``dip7cm_z100m_InFirn_RG``
+     - Dipole center 100 m below surface.
+     - [0, 90]
+     - [20, 1000]
+     - 2018
+   * - .. _dip7cm_z200m_InFirn_RG:
 
-Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
+       ``dip7cm_z200m_InFirn_RG``
+     - Dipole center 200 m below surface.
+     - [0, 90]
+     - [20, 1000]
+     - 2018
+   * - .. _dip7cm_z270mm_InAir:
 
-Last updated: 2018
+       ``dip7cm_z270mm_InAir``
+     - Dipole center 270 mm deep, in infinite air (n = 1).
+     - [0, 90]
+     - [20, 1000]
+     - 2018
+   * - .. _dip7cm_z1m_InAir:
 
-createLPDA_100MHz_z5m_InFirn_RG
---------------------------------
-WIPL-D simulation of 100 MHz LPDA from create. This antenna is used by ARIANNA.
-Largest tine 5m above air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+       ``dip7cm_z1m_InAir``
+     - Dipole center 1 m above firn.
+     - [0, 90]
+     - [20, 1000]
+     - 2018
 
-Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
-
-Last updated: 2018
-
-createLPDA_100MHz_z10m_InFirn_RG
----------------------------------
-WIPL-D simulation of 100 MHz LPDA from create.
-This antenna is used by ARIANNA.
-Largest tine 10m above air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
-
-Last updated: 2018
-
-createLPDA_100MHz_z100m_InFirn_RG
-----------------------------------
-WIPL-D simulation of 100 MHz LPDA from create.
-This antenna is used by ARIANNA. Largest tine 100m above air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
-
-Last updated: 2018
-
-createLPDA_100MHz_z200m_InFirn_RG
-----------------------------------
-WIPL-D simulation of 100 MHz LPDA from create.
-This antenna is used by ARIANNA. Largest tine 200m above air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
-
-Last updated: 2018
-
-createLPDA_100MHz_InfAir
--------------------------
-Same as createLPDA_100MHz_InfFirn but antenna embedded in infinite air (i.e. n = 1).
-
-Theta range [-90,90] Phi range [0,360] Freq range [5,1000]MHz
-
-Last updated: 2018
-
-createLPDA_100MHz_z1cm_InAir_RG
---------------------------------
-WIPL-D simulation of 100 MHz LPDA from create.
-This antenna is used by ARIANNA.
-lowest/largest tine 1cm above firn (this is because in the simulation the geometry is inverted, the ground is air and the medium of the antenna is firn).
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [5,1000]MHz
-
-Last updated: 2018
-
-createLPDA_100MHz_z1m_InFirn_RG_v2
------------------------------------
-
-dip7cm_hpol_infFirn
---------------------
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA.
-Horizontally orientated dipole antenna in infinite firn media(n=1.3 assumed).
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-dip7cm_z260mm_InFirn_RG
-------------------------
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA. dipole center 260cm in firn.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-dip7cm_z1m_InFirn_RG
+RNO-G VPol: RNOG_vpol
 ---------------------
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA. dipole center 1m in firn.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
 
-Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-dip7cm_z2m_InFirn_RG
----------------------
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA. dipole center 2m in firn.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-dip7cm_z3m_InFirn_RG_NearHorizontalHD
---------------------------------------
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA. dipole center 3m in firn.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,0.5] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-dip7cm_z5m_InFirn_RG
----------------------
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA. dipole center 5m above air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-dip7cm_z10m_InFirn_RG
-----------------------
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA. dipole center 10m above air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-dip7cm_z200m_InFirn_RG
------------------------
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA.
-Dipole center 200m below surface.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-dip7cm_z100m_InFirn_RG
------------------------
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA. dipole center 100m below surface.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-
-dip7cm_infAir_s12
-------------------
-WIPL-D simulation of KU dipole 52cm long. This antenna is used by ARIANNA.
-Vertically orientated dipole in infinite air (n=1).
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [=90,90] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-dip7cm_z270mm_InAir
---------------------
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA. dipole center 270mm deep, in infinite air (n=1).
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-dip7cm_z1m_InAir
------------------
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA. dipole center 1m above firn.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-dip7cm_z1m_InAir_RG_NearHorizontalHD
--------------------------------------
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA. dipole center 1m above air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,1] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-dip7cm_z1m_InAir_RG_NearHorizontalHD2
---------------------------------------
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA. dipole center 1m above air.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,0.5] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-dip7cm_z2m_InAir
------------------
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA. dipole center 2m above firn.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-dip7cm_z5m_InAir
------------------
-
-WIPL-D simulation of KU dipole 52cm long.
-This antenna is used by ARIANNA. dipole center 5m above firn.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-
-Theta range [0,90] Phi range [0,360] Freq range [20,1000]MHz
-
-Last updated: 2018
-
-RNOG_hpol_v4_8inch_center_n1.74
--------------------------------
-XFdtd simulations for the RNO-G HPol in an 11.2 inch diameter borehole with index of refraction of ice n=1.74. The antenna is placed in the center (x, y) of the borehole.
-
-Theta range [0, 180] Phi range [0, 360] Freq range [0, 1000]MHz. No power feed-through cable included.
-
-Note: Simulation ran with Theta range [0, 90] and Phi range [0, 90] due to simulation size constraints and was extended to range noted above using symmetry.
-
-Last updated: 2025
-
-RNOG_quadslot_v2_rescaled_fineFreq
------------------------------------
-
-RNOG_quadslot_v3_air_rescaled_to_n1.74
----------------------------------------
-XFdtd simulations in for the RNO-G Hpol.
-Simulations are done in air, frequencies are rescaled with n=1.74.
-
-Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
-
-Last updated: 2020
-
-SmallBlackSpider_ground2_measured
----------------------------------
-The Small Black Spider LPDA of the AERA detector at the Pierre Auger Observatory.
-The antenna model is based on an extensive in-situ measurement campaign which is documented in this paper: 10.1088/1748-0221/12/10/T10005
-Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. Therefore, the 
-vector effective length is in the order of 5-10m.
-If you use this model in a paper, please cite: http://dx.doi.org/10.1088/1748-0221/7/10/P10011 and http://dx.doi.org/10.1016/j.nima.2011.01.049
-Added: 2025
-
-Butterfly_ground2
------------------
-The Butterfly antenna of the AERA detector at the Pierre Auger Observatory. The antenna model is based on simulations.
-Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. 
-If you use this model in a paper, please cite: http://dx.doi.org/10.1088/1748-0221/7/10/P10011 and http://dx.doi.org/10.1016/j.nima.2011.01.049
-Added: 2025
-
-Butterfly_ground2_East
-----------------------
-The East arm of the Butterfly antenna of the AERA detector at the Pierre Auger Observatory.
-The antenna model is based on an extensive in-situ measurement campaign which is documented in this PhD thesis: http://doi.org/10.18154/RWTH-2018-225398
-Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. 
-If you use this model in a paper, please cite: http://dx.doi.org/10.1088/1748-0221/7/10/P10011 and http://dx.doi.org/10.1016/j.nima.2011.01.049
-Added: 2025
-
-Butterfly_ground2_North
------------------------
-The North arm of the Butterfly antenna of the AERA detector at the Pierre Auger Observatory.
-The antenna model is based on an extensive in-situ measurement campaign which is documented in this PhD thesis: http://doi.org/10.18154/RWTH-2018-225398
-Please note that the model contains the low-noise amplifier (LNA) which is integrated into the antenna terminals. 
-If you use this model in a paper, please cite: http://dx.doi.org/10.1088/1748-0221/7/10/P10011 and http://dx.doi.org/10.1016/j.nima.2011.01.049
-Added: 2025
-
-
-Additional Models
-==================
-
-fourslot_InfFirn
------------------
-
-greenland_vpol_InfFirn
------------------------
-
-dipole_ARA_bicone_infinitefirn
--------------------------------
-
-XFDTD_Hpol_150mmHole_n1.78
----------------------------
-
-XFDTD_Vpol_CrossFeed_150mmHole_n1.78
--------------------------------------
-
-XFDTD_Vpol_CrossFeed_150mmHole_n1.78_InfFirn
----------------------------------------------
-
-Outdated Antenna Models
-=======================
-
-The following antenna models are outdated (as of 2026-10-15) and should only be used for reproducing old results.
-A warning is logged whenever one of them is loaded.
+XFdtd simulations of the RNO-G VPol antenna in a borehole.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 46 8 8 8
+
+   * - Model
+     - Description
+     - Theta [deg]
+     - Freq [MHz]
+     - Updated
+   * - .. _RNOG_vpol_v3_5inch_center_IGLU_n1.74:
+
+       ``RNOG_vpol_v3_5inch_center_IGLU_n1.74``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _RNOG_vpol_v4_5inch_center_n1.490:
+
+       ``RNOG_vpol_v4_5inch_center_n1.490``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _RNOG_vpol_v4_5inch_center_n1.584:
+
+       ``RNOG_vpol_v4_5inch_center_n1.584``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _RNOG_vpol_v4_5inch_center_n1.656:
+
+       ``RNOG_vpol_v4_5inch_center_n1.656``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _RNOG_vpol_v4_5inch_center_n1.711:
+
+       ``RNOG_vpol_v4_5inch_center_n1.711``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _RNOG_vpol_v4_5inch_center_n1.728:
+
+       ``RNOG_vpol_v4_5inch_center_n1.728``
+     - *No description yet.*
+     - 
+     - 
+     - 
 
 .. raw:: html
 
    <details>
-   <summary><b>Show outdated antenna models</b></summary>
+   <summary><b>Show outdated models</b> (as of 2026-10-15)</summary>
 
-.. _RNOG_vpol_4inch_center_n1.73:
+.. list-table::
+   :header-rows: 1
+   :widths: 30 46 8 8 8
 
-.. rubric:: RNOG_vpol_4inch_center_n1.73
+   * - Model
+     - Description
+     - Theta [deg]
+     - Freq [MHz]
+     - Updated
+   * - .. _RNOG_vpol_4inch_center_n1.73:
 
-.. warning::
-    This model has negative group delays which are unphysical. This has been corrected in newer models.
-    This model should only be used for reproducing old results.
+       ``RNOG_vpol_4inch_center_n1.73``
+     - 5.75 inch borehole, n = 1.73, antenna in the center (x, y) of the borehole. Extra cubic interpolation in frequency (5 MHz step). **Negative group delays, which are unphysical.**
+     - [0, 90]
+     - [0, 4200]
+     - 2020
+   * - .. _RNOG_vpol_4inch_half_n1.73:
 
-xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
-The antenna is placed in the center (x, y) of the borehole. An extra cubic interpolation is performed in frequencies (5 MHz step).
+       ``RNOG_vpol_4inch_half_n1.73``
+     - 5.75 inch borehole, n = 1.73, antenna halfway displaced from the center towards phi = 0. Extra cubic interpolation in frequency (5 MHz step). **Negative group delays, which are unphysical.**
+     - [0, 90]
+     - [0, 4200]
+     - 2020
+   * - .. _RNOG_vpol_4inch_wall_n1.73:
 
-Theta range [0, 90] Phi range [0, 360] Freq range [0, 4200]MHz
+       ``RNOG_vpol_4inch_wall_n1.73``
+     - 5.75 inch borehole, n = 1.73, antenna placed against the wall towards phi = 0. Extra cubic interpolation in frequency (5 MHz step). **Negative group delays, which are unphysical.**
+     - [0, 90]
+     - [0, 4200]
+     - 2020
+   * - .. _RNOG_vpol_v1_n1.4:
 
-Last updated: 2020
+       ``RNOG_vpol_v1_n1.4``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _RNOG_vpol_v1_n1.73:
 
-.. _RNOG_vpol_4inch_half_n1.73:
+       ``RNOG_vpol_v1_n1.73``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _RNOG_vpol_v2_5inch_center_n1.75:
 
-.. rubric:: RNOG_vpol_4inch_half_n1.73
+       ``RNOG_vpol_v2_5inch_center_n1.75``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _RNOG_vpol_v3_5inch_center_n1.74:
 
-.. warning::
-    This model has negative group delays which are unphysical. This has been corrected in newer models.
-    This model should only be used for reproducing old results.
+       ``RNOG_vpol_v3_5inch_center_n1.74``
+     - 11.2 inch diameter borehole, n = 1.74, antenna in the center (x, y) of the borehole. No power feed-through cable included. Simulated for Theta [0, 90] and Phi [0, 90] due to simulation size constraints and extended using symmetry.
+     - [0, 180]
+     - [0, 1000]
+     - 2025
 
-xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
-The antenna is halfway displaced from the center towards phi = 0. An extra cubic interpolation is performed in frequencies (5 MHz step).
+.. raw:: html
 
-Theta range [0, 90] Phi range [0, 360] Freq range [0, 4200]MHz
+   </details>
 
-Last updated: 2020
+RNO-G HPol: RNOG_hpol, RNOG_quadslot, trislot_RNOG
+--------------------------------------------------
 
-.. _RNOG_vpol_4inch_wall_n1.73:
+XFdtd simulations of the RNO-G HPol antenna.
 
-.. rubric:: RNOG_vpol_4inch_wall_n1.73
+.. list-table::
+   :header-rows: 1
+   :widths: 30 46 8 8 8
 
-.. warning::
-    This model has negative group delays which are unphysical. This has been corrected in newer models.
-    This model should only be used for reproducing old results.
+   * - Model
+     - Description
+     - Theta [deg]
+     - Freq [MHz]
+     - Updated
+   * - .. _RNOG_hpol_v4_8inch_center_n1.74:
 
-xF simulations for the RNOG Vpol in a 5.75 inch borehole with index of refraction of ice n=1.73.
-The antenna placed against the wall towards phi = 0. An extra cubic interpolation is performed in frequencies (5 MHz step).
+       ``RNOG_hpol_v4_8inch_center_n1.74``
+     - 11.2 inch diameter borehole, n = 1.74, antenna in the center (x, y) of the borehole. No power feed-through cable included. Simulated for Theta [0, 90] and Phi [0, 90] due to simulation size constraints and extended using symmetry.
+     - [0, 180]
+     - [0, 1000]
+     - 2025
+   * - .. _RNOG_hpol_v4_8inch_center_IGLU_n1.74:
 
-Theta range [0, 90] Phi range [0, 360] Freq range [0, 4200]MHz
+       ``RNOG_hpol_v4_8inch_center_IGLU_n1.74``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _RNOG_hpol_v5_8inch_center_n1.728:
 
-Last updated: 2020
+       ``RNOG_hpol_v5_8inch_center_n1.728``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _RNOG_quadslot_v2_rescaled_fineFreq:
 
-.. _RNOG_vpol_v1_n1.4:
+       ``RNOG_quadslot_v2_rescaled_fineFreq``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _RNOG_quadslot_v3_air_rescaled_to_n1.74:
 
-.. rubric:: RNOG_vpol_v1_n1.4
+       ``RNOG_quadslot_v3_air_rescaled_to_n1.74``
+     - Simulated in air, frequencies rescaled with n = 1.74.
+     - [-180, 180]
+     - [57, 574]
+     - 2020
 
+.. raw:: html
 
-.. _RNOG_vpol_v1_n1.73:
+   <details>
+   <summary><b>Show outdated models</b> (as of 2026-10-15)</summary>
 
-.. rubric:: RNOG_vpol_v1_n1.73
+.. list-table::
+   :header-rows: 1
+   :widths: 30 46 8 8 8
 
+   * - Model
+     - Description
+     - Theta [deg]
+     - Freq [MHz]
+     - Updated
+   * - .. _RNOG_quadslot_v1_n1.74:
 
-.. _RNOG_vpol_v2_5inch_center_n1.75:
+       ``RNOG_quadslot_v1_n1.74``
+     - Simulated in air, frequencies rescaled with n = 1.74. Extra cubic interpolation in frequency (5 MHz step).
+     - [-180, 180]
+     - [57, 574]
+     - 2020
+   * - .. _RNOG_quadslot_v2_n1.74:
 
-.. rubric:: RNOG_vpol_v2_5inch_center_n1.75
+       ``RNOG_quadslot_v2_n1.74``
+     - Simulated in air, frequencies rescaled with n = 1.74. Extra cubic interpolation in frequency (5 MHz step).
+     - [-180, 180]
+     - [57, 574]
+     - 2020
+   * - .. _trislot_RNOG:
 
+       ``trislot_RNOG``
+     - *No description yet.*
+     - 
+     - 
+     - 
 
-.. _RNOG_vpol_v3_5inch_center_n1.74:
+.. raw:: html
 
-.. rubric:: RNOG_vpol_v3_5inch_center_n1.74
+   </details>
 
-XFdtd simulations for the RNO-G VPol in an 11.2 inch diameter borehole with index of refraction of ice n=1.74. The antenna is placed in the center (x, y) of the borehole.
+ARA: XFDTD
+----------
 
-Theta range [0, 180] Phi range [0, 360] Freq range [0, 1000]MHz. No power feed-through cable included.
+*No description yet.*
 
-Note: Simulation ran with Theta range [0, 90] and Phi range [0, 90] due to simulation size constraints and was extended to range noted above using symmetry.
+.. list-table::
+   :header-rows: 1
+   :widths: 30 46 8 8 8
 
-Last updated: 2025
+   * - Model
+     - Description
+     - Theta [deg]
+     - Freq [MHz]
+     - Updated
+   * - .. _XFDTD_Hpol_150mmHole_n1.78:
 
-.. _RNOG_quadslot_v1_n1.74:
+       ``XFDTD_Hpol_150mmHole_n1.78``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _XFDTD_Vpol_CrossFeed_150mmHole_n1.78:
 
-.. rubric:: RNOG_quadslot_v1_n1.74
+       ``XFDTD_Vpol_CrossFeed_150mmHole_n1.78``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _XFDTD_Vpol_CrossFeed_150mmHole_n1.78_InfFirn:
 
-XFdtd simulations for the RNOG Hpol.
-Simulations are done in air, frequencies are rescaled with n=1.74. An extra cubic interpolation is performed in frequencies (5 MHz step).
+       ``XFDTD_Vpol_CrossFeed_150mmHole_n1.78_InfFirn``
+     - *No description yet.*
+     - 
+     - 
+     - 
 
-Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
+Other
+-----
 
-Last updated: 2020
+*No description yet.*
 
-.. _RNOG_quadslot_v2_n1.74:
+.. list-table::
+   :header-rows: 1
+   :widths: 30 46 8 8 8
 
-.. rubric:: RNOG_quadslot_v2_n1.74
+   * - Model
+     - Description
+     - Theta [deg]
+     - Freq [MHz]
+     - Updated
+   * - .. _fourslot_InfFirn:
 
-XFdtd simulations for the RNOG Hpol.
-Simulations are done in air, frequencies are rescaled with n=1.74. An extra cubic interpolation is performed in frequencies (5 MHz step).
+       ``fourslot_InfFirn``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _greenland_vpol_InfFirn:
 
-Theta range [-180, 180] Phi range [0, 360] Freq range [57, 574]MHz
+       ``greenland_vpol_InfFirn``
+     - *No description yet.*
+     - 
+     - 
+     - 
 
-Last updated: 2020
+Air-shower array antennas
+=========================
 
-.. _trislot_RNOG:
+AERA: Butterfly and SmallBlackSpider
+------------------------------------
 
-.. rubric:: trislot_RNOG
+Antennas of the AERA detector at the Pierre Auger Observatory. The models contain the low-noise amplifier (LNA),
+which is integrated into the antenna terminals. If you use these models in a paper, please cite: http://dx.doi.org/10.1088/1748-0221/7/10/P10011 and http://dx.doi.org/10.1016/j.nima.2011.01.049
 
+.. list-table::
+   :header-rows: 1
+   :widths: 30 46 8 8 8
 
-.. _SKALA_InfFirn:
+   * - Model
+     - Description
+     - Theta [deg]
+     - Freq [MHz]
+     - Updated
+   * - .. _Butterfly_ground2:
 
-.. rubric:: SKALA_InfFirn
+       ``Butterfly_ground2``
+     - The Butterfly antenna, based on simulations.
+     - 
+     - 
+     - 2025 (added)
+   * - .. _Butterfly_ground2_East:
 
-Log-periodic antenna for SKA-low, called SKALA-2.
-The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
+       ``Butterfly_ground2_East``
+     - The East arm of the Butterfly antenna. Based on an in-situ measurement campaign (PhD thesis: http://doi.org/10.18154/RWTH-2018-225398).
+     - 
+     - 
+     - 2025 (added)
+   * - .. _Butterfly_ground2_North:
 
-Theta range [0, 90]; Phi range [0, 360]; Freq range [50, 350]MHz
+       ``Butterfly_ground2_North``
+     - The North arm of the Butterfly antenna. Based on an in-situ measurement campaign (PhD thesis: http://doi.org/10.18154/RWTH-2018-225398).
+     - 
+     - 
+     - 2025 (added)
+   * - .. _SmallBlackSpider_ground2_measured:
 
-For more information, see: https://ieeexplore.ieee.org/abstract/document/7297231/authors#authors
+       ``SmallBlackSpider_ground2_measured``
+     - The Small Black Spider LPDA, based on an in-situ measurement campaign (10.1088/1748-0221/12/10/T10005). Because of the LNA, the vector effective length is of the order of 5-10 m.
+     - 
+     - 
+     - 2025 (added)
 
-Last updated: 2021
+LOFAR: LOFAR_LBA
+----------------
+
+LOFAR low-band antenna. ``LOFAR_LBA_X`` and ``LOFAR_LBA_Y`` are used in ``NuRadioReco/detector/LOFAR/LOFAR.json``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 46 8 8 8
+
+   * - Model
+     - Description
+     - Theta [deg]
+     - Freq [MHz]
+     - Updated
+   * - .. _LOFAR_LBA:
+
+       ``LOFAR_LBA``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _LOFAR_LBA_X:
+
+       ``LOFAR_LBA_X``
+     - *No description yet.*
+     - 
+     - 
+     - 
+   * - .. _LOFAR_LBA_Y:
+
+       ``LOFAR_LBA_Y``
+     - *No description yet.*
+     - 
+     - 
+     - 
+
+SKA-Low: SKALA
+--------------
+
+Log-periodic antennas for SKA-Low.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 46 8 8 8
+
+   * - Model
+     - Description
+     - Theta [deg]
+     - Freq [MHz]
+     - Updated
+   * - .. _SKALA_v4_Xpol:
+
+       ``SKALA_v4_Xpol``
+     - Embedded element simulation (FEKO) of the SKALA4 antenna, east-west orientation (see ``NuRadioReco.detector.antennapattern.preprocess_FEKO_mat``).
+     - 
+     - [50, 350]
+     - 
+   * - .. _SKALA_v4_Ypol:
+
+       ``SKALA_v4_Ypol``
+     - Same as ``SKALA_v4_Xpol`` but north-south orientation.
+     - 
+     - [50, 350]
+     - 
+
+.. raw:: html
+
+   <details>
+   <summary><b>Show outdated models</b> (as of 2026-10-15)</summary>
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 46 8 8 8
+
+   * - Model
+     - Description
+     - Theta [deg]
+     - Freq [MHz]
+     - Updated
+   * - .. _SKALA_InfFirn:
+
+       ``SKALA_InfFirn``
+     - SKALA-2. The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided. See https://ieeexplore.ieee.org/abstract/document/7297231
+     - [0, 90]
+     - [50, 350]
+     - 2021
 
 .. raw:: html
 
