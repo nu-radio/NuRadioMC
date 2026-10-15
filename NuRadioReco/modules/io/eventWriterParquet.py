@@ -37,7 +37,8 @@ channel, aligned with the ``channel_ids`` column (null entry if a channel lacks 
 list (map) valued channel parameter becomes a list of lists (maps). Column names are
 ``<enum class>.<parameter>``; the schema is derived from the types of the parameter enums
 (see `NuRadioReco.utilities.parquet_utilities`). Parameters without a mappable type are dropped
-with a warning.
+with a warning. The column ``trigger`` holds the name of the first (earliest) trigger of the station
+(null if no trigger fired).
 
 Optionally (see `EventWriterParquet.begin`):
 
@@ -357,6 +358,7 @@ class EventWriterParquet:
         fields = _KEY_FIELDS + [
             pa.field("station_time_jd1", pa.float64()),  # astropy jd1 + jd2 (UTC): ns precision, as in .nur
             pa.field("station_time_jd2", pa.float64()),
+            pa.field("trigger", pa.string()),  # name of the first (earliest) trigger, null if none fired
             pa.field("channel_ids", pa.list_(pa.int64())),
         ]
         fields += [pa.field(name, dtype) for name, (_, dtype) in self.__station_columns.items()]
@@ -407,6 +409,9 @@ class EventWriterParquet:
         time = time.utc if time is not None else None  # .utc returns a copy
         row["station_time_jd1"] = None if time is None else float(time.jd1)
         row["station_time_jd2"] = None if time is None else float(time.jd2)
+
+        trigger = station.get_first_trigger()
+        row["trigger"] = None if trigger is None else str(trigger.get_name())
 
         # Station parameters: one scalar (or nested) value per column
         for name, (key, dtype) in self.__station_columns.items():
