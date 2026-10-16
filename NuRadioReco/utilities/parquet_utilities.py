@@ -531,7 +531,10 @@ class ParquetReader:
 
 
 def _print_columns(args):
-    """ The ``columns`` command: summary (stderr), then the columns as list or table (stdout). """
+    """ The ``columns`` command: summary (stderr), then the columns as list or table (stdout), optionally the triggers. """
+    if args.triggers and args.table != "event":
+        raise ValueError("--triggers needs the event table (the trigger is a column of the event files).")
+
     reader = ParquetReader(args.path, stations=args.stations, runs=args.runs, sort=False,
                            efields=args.table == "efield", sim_channels=args.table == "simchannel")
     result = reader.columns(
@@ -547,7 +550,8 @@ def _print_columns(args):
 
     rows = [[name] + ([str(dtype)] if args.types else []) for name, dtype in result.items()]
     if args.stats:
-        # Lists are flattened, NaN / inf are counted separately. Maps and strings have no statistics.
+        # Lists are flattened, NaN / inf are counted separately. Other types (strings, maps, structs) only get
+        # the number of (non-null) values; maps are read as lists of key-value structs, i.e. their entries are counted.
         # All statistics are computed in one query (one pass over the data), named "<column>|<statistic>".
         exprs = []
         for name, dtype in result.items():
@@ -561,9 +565,11 @@ def _print_columns(args):
                     valid.count().alias(f"{name}|n"), (~expr.is_finite()).sum().alias(f"{name}|nan/inf"),
                     valid.min().alias(f"{name}|min"), valid.max().alias(f"{name}|max"),
                     valid.mean().alias(f"{name}|mean"), valid.std().alias(f"{name}|std")]
+            else:
+                exprs.append(expr.count().alias(f"{name}|n"))
 
         statistics = table.select(exprs).collect().row(0, named=True) if exprs else {}
-        # Columns without statistics (maps, strings) get "-"
+        # Missing statistics (e.g. min of a string column) are printed as "-"
         rows = [row + [_format(statistics.get(f"{row[0]}|{stat}")) for stat in _STATISTICS] for row in rows]
 
     if args.stats or args.types:
@@ -571,6 +577,24 @@ def _print_columns(args):
         _print_table(header, rows, n_text_columns=2 if args.types else 1)
     else:  # plain list (e.g. for grep)
         print(*(row[0] for row in rows), sep="\n")
+
+    if args.triggers:
+        _print_triggers(table)
+
+
+def _print_triggers(table):
+    """ Number and fraction of the events per trigger (the name of the first trigger of the station). """
+    if "trigger" not in table.collect_schema().names():
+        raise ValueError("The files have no column 'trigger' (written by an older version of the writer).")
+
+    counts = table.group_by("trigger").len().sort("len", descending=True).collect()
+    n_events = counts["len"].sum()
+    rows = [
+        ["(none)" if name is None else name, str(count), f"{100 * count / n_events:.1f}%"]
+        for name, count in counts.rows()]
+
+    print()
+    _print_table(["trigger", "events", "fraction"], rows)
 
 
 _STATISTICS = ["n", "nan/inf", "min", "max", "mean", "std"]
@@ -729,7 +753,10 @@ def main():
     columns.add_argument("--all", action="store_true", help="Also list columns without any (non-null) value.")
     columns.add_argument("--types", action="store_true", help="Also print the data types.")
     columns.add_argument("--stats", action="store_true",
-                         help="Also print the number of (finite) values, of NaN / inf, min, max, mean and std (reads the data, lists are flattened).")
+                         help="Also print the number of (finite) values, of NaN / inf, min, max, mean and std (reads the data, lists are "
+                              "flattened). Strings, maps (entries) and structs only get the number of values.")
+    columns.add_argument("--triggers", action="store_true",
+                         help="Also print the number and fraction of events per (first) trigger.")
 
     hist = commands.add_parser("hist", parents=[common], help="Plot the histogram of a column.")
     hist.add_argument("column", help="Column name, the parameter class can be omitted (e.g. coherent_snr).")
