@@ -116,40 +116,6 @@ class stationParametersRNOG(TypedEnum):
     digitizer = 100, int  #: the digitizer used by the station (derived from data format)
 
 
-
-class electricFieldParameters(TypedEnum):
-    ray_path_type = 1, str  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
-    polarization_angle = 2, float  #: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
-    polarization_angle_expectation = 3, float  #: expected polarization based on shower geometry. Defined analogous to polarization_angle
-    signal_energy_fluence = 4, float  #: Energy/area in the radio signal
-    cr_spectrum_slope = 5, float  #: Slope of the radio signal's spectrum as reconstructed by the voltageToAnalyticEfieldConverter
-    zenith = 7, float  #: zenith angle of the signal. Note that refraction at the air/ice boundary is not taken into account
-    azimuth = 8, float  #: azimuth angle of the signal. Note that refraction at the air/ice boundary is not taken into account
-    signal_time = 9, float
-    nu_vertex_distance = 10, float  #: the distance along the ray path from the vertex to the channel
-    nu_viewing_angle = 11, float  #: the angle between shower axis and launch vector
-    max_amp_antenna = 12, dict[int, float]  #: the maximum amplitude of the signal after convolution with the antenna response pattern, dict with channelid as key
-    max_amp_antenna_envelope = 13, dict[int, float]  #: the maximum amplitude of the signal envelope after convolution with the antenna response pattern, dict with channelid as key
-    reflection_coefficient_theta = 14, complex  #: for reflected rays: the complex Fresnel reflection coefficient of the eTheta component
-    reflection_coefficient_phi = 15, complex  #: for reflected rays: the complex Fresnel reflection coefficient of the ePhi component
-    cr_spectrum_quadratic_term = 16, float  #: result of the second order correction to the spectrum fitted by the voltageToAnalyticEfieldConverter
-    energy_fluence_ratios = 17, dict[str, float]   #: Ratios of the energy fluences in different passbands
-    nu_vertex_propagation_time = 18, float  #: the time it takes for the signal to propagate from the vertex to the channel
-    raytracing_solution = 19, dict[str, float]  #: the ray tracing solution (the dictionary returned by `get_raytracing_output(i_solution)`)
-    launch_vector = 20, np.ndarray  #: the launch vector of the ray from which this efield originates (only available for in-ice simulations)
-
-
-class ARIANNAParameters(TypedEnum):  #: this class stores parameters specific to the ARIANNA data taking
-    seq_start_time = 1, Any  #: the start time of a sequence
-    seq_stop_time = 2, Any  #: the stop time of a sequence
-    seq_num = 3, int  #: the sequence number of the current event
-    comm_period = 4, Any  #: length of data taking window
-    comm_duration = 5, Any  #: maximum diration of communication window
-    trigger_thresholds = 6, Any  #: trigger thresholds converted to voltage
-    l1_supression_value = 7, Any  #: This provieds the L1 supression value for given event
-    internal_clock_time = 8, Any  #: time since last trigger with ms precision
-
-
 class electricFieldParameters(TypedEnum):
     ray_path_type = 1, str  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
     polarization_angle = 2, float  #: electric field polarization in onsky-coordinates. 0 corresponds to polarization in e_theta, 90deg is polarization in e_phi
