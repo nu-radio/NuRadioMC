@@ -60,8 +60,8 @@ gets an event of a different run (block).
 Metadata
 --------
 The file metadata (read with ``pyarrow.parquet.read_schema(file).metadata``) contains the keys
-``nuradio_version``, ``nuradio_commit`` and ``comment``. The commit hash does not capture
-uncommitted changes.
+``nuradio_version``, ``nuradio_commit``, ``comment`` and the keys passed with ``metadata``.
+The commit hash does not capture uncommitted changes.
 """
 
 import logging
@@ -224,7 +224,7 @@ class EventWriterParquet:
 
     def begin(self, output_dir, suffix="", batch_size=10000, group_runs=None,
               station_enums=None, channel_enums=None, store_channels=True, store_sim=False, store_efields=False,
-              overwrite=False, comment="", log_level=logging.NOTSET):
+              overwrite=False, comment="", metadata=None, log_level=logging.NOTSET):
         """
         Parameters
         ----------
@@ -260,6 +260,8 @@ class EventWriterParquet:
             If True, existing files are overwritten.
         comment : str, default=""
             Free text stored in the file metadata (key ``comment``).
+        metadata : dict of str, optional
+            Additional key-value pairs (strings) stored in the file metadata, e.g. a processing configuration.
         log_level : int, default=logging.NOTSET
             Use this to override the logging level for this module.
         """
@@ -291,7 +293,7 @@ class EventWriterParquet:
         self.__build_schemas(
             DEFAULT_STATION_ENUMS if station_enums is None else station_enums,
             DEFAULT_CHANNEL_ENUMS if channel_enums is None else channel_enums,
-            comment)
+            comment, metadata or {})
 
     @register_run()
     def run(self, evt, station):
@@ -361,7 +363,7 @@ class EventWriterParquet:
 
         return self.__n_events
 
-    def __build_schemas(self, station_enums, channel_enums, comment):
+    def __build_schemas(self, station_enums, channel_enums, comment, extra_metadata):
         """ Derive the (fixed) arrow schemas of all output files from the types of the enum members. """
         self.__station_columns = pu.column_schema(station_enums, exclude=_EXPLICIT_STATION_PARAMETERS)
         self.__channel_columns = pu.column_schema(channel_enums)
@@ -388,6 +390,10 @@ class EventWriterParquet:
             "nuradio_commit": version.get_NuRadioMC_commit_hash(),
             "comment": comment,
         }
+        reserved = set(metadata) & set(extra_metadata)
+        if reserved:
+            raise ValueError(f"The metadata keys {reserved} are reserved.")
+        metadata.update(extra_metadata)
         self.__schema = pa.schema(fields, metadata=metadata)
 
         # Electric fields: one row per electric field, linked to the main file by (run, event_id, station_id)
