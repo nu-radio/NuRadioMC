@@ -28,8 +28,8 @@ tables::
 Files
 -----
 One file ``station<id>_run<run number>[_<suffix>].parquet`` is written per station and run, with one
-row per event. With ``group_runs`` a block of consecutive runs is written to one file
-``station<id>_run<first>-<last>[_<suffix>].parquet``.
+row per event. With ``group_runs`` a block of consecutive runs (or an explicit run range) is written to
+one file ``station<id>_run<first>-<last>[_<suffix>].parquet``.
 
 Each station parameter is one column with the type of the parameter (scalar, list or map, e.g.
 ``nu_vertex`` is a ``list<double>``). Each channel parameter is a list column with one entry per
@@ -235,9 +235,11 @@ class EventWriterParquet:
         batch_size : int, default=10000
             Maximum number of events (electric fields for the efield file) buffered before they are
             written as one row group.
-        group_runs : int, optional
+        group_runs : int or tuple of (int, int), optional
             Write blocks of `group_runs` consecutive run numbers to the same file, e.g. 100: runs 100 to 199 go to
-            ``station<id>_run000100-000199[_<suffix>].parquet``. Default: one file per run.
+            ``station<id>_run000100-000199[_<suffix>].parquet``. A tuple ``(first, last)`` writes all runs (which
+            have to be within this range) to one file ``station<id>_run<first>-<last>[_<suffix>].parquet``,
+            e.g. the range of the runs passed to the reader. Default: one file per run.
         station_enums : list of TypedEnum, optional
             Parameter enums stored as station columns. Default: ``stationParameters``.
             Add experiment specific ones, e.g. ``parameters.stationParametersRNOG``.
@@ -270,7 +272,11 @@ class EventWriterParquet:
         self.__store_sim = store_sim
         self.__store_efields = store_efields
         self.__batch_size = batch_size
-        if group_runs is not None and group_runs < 1:
+        if isinstance(group_runs, (tuple, list)):
+            if len(group_runs) != 2 or group_runs[0] > group_runs[1]:
+                raise ValueError(f"group_runs has to be a (first, last) run range, got {group_runs}.")
+            group_runs = (int(group_runs[0]), int(group_runs[1]))
+        elif group_runs is not None and group_runs < 1:
             raise ValueError(f"group_runs has to be a positive integer, got {group_runs}.")
 
         self.__group_runs = group_runs
@@ -331,6 +337,12 @@ class EventWriterParquet:
         """ The first and last run of the file of `run_number` (see `group_runs`). """
         if self.__group_runs is None:
             return run_number, run_number
+
+        if isinstance(self.__group_runs, tuple):
+            first_run, last_run = self.__group_runs
+            if not first_run <= run_number <= last_run:
+                raise ValueError(f"Run {run_number} is outside of the run range {self.__group_runs} (see `group_runs`).")
+            return first_run, last_run
 
         first_run = run_number - run_number % self.__group_runs
         return first_run, first_run + self.__group_runs - 1
