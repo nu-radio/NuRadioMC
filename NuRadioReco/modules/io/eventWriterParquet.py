@@ -60,10 +60,13 @@ gets an event of a different run (block).
 Metadata
 --------
 The file metadata (read with ``pyarrow.parquet.read_schema(file).metadata``) contains the keys
-``nuradio_version``, ``nuradio_commit``, ``comment`` and the keys passed with ``metadata``.
-The commit hash does not capture uncommitted changes.
+``nuradio_version``, ``nuradio_commit``, ``comment``, ``module_sequence`` and the keys passed with
+``metadata``. The commit hash does not capture uncommitted changes. ``module_sequence`` is a json list of
+the names of the modules (with a decorated ``run``) which processed the first event of the file before
+this writer, in order of execution (readers do not register themselves and are not included).
 """
 
+import json
 import logging
 import os
 from timeit import default_timer as timer
@@ -313,7 +316,8 @@ class EventWriterParquet:
         if self.__blocks.get(station_id, first_run) != first_run:
             self.__close_files(station_id)
         if station_id not in self.__files:
-            self.__open_files(station_id, first_run, last_run)
+            module_sequence = [name for name, instance, _ in evt.iter_modules(station_id) if instance is not self]
+            self.__open_files(station_id, first_run, last_run, module_sequence)
         files = self.__files[station_id]
 
         keys = {"run": run_number, "event_id": evt.get_id(), "station_id": station_id}
@@ -390,7 +394,7 @@ class EventWriterParquet:
             "nuradio_commit": version.get_NuRadioMC_commit_hash(),
             "comment": comment,
         }
-        reserved = set(metadata) & set(extra_metadata)
+        reserved = (set(metadata) | {"module_sequence"}) & set(extra_metadata)
         if reserved:
             raise ValueError(f"The metadata keys {reserved} are reserved.")
         metadata.update(extra_metadata)
@@ -482,8 +486,9 @@ class EventWriterParquet:
 
         return row
 
-    def __open_files(self, station_id, first_run, last_run):
+    def __open_files(self, station_id, first_run, last_run, module_sequence):
         """ Open the new file(s) for (station, run block) with empty buffers. """
+        metadata = {"module_sequence": json.dumps(module_sequence)}
         # Revisiting a run (block) after its files were closed must not overwrite the earlier file
         part = self.__parts.get((station_id, first_run), 0)
         self.__parts[(station_id, first_run)] = part + 1
@@ -496,24 +501,29 @@ class EventWriterParquet:
         if part:
             name += f"_part{part:02d}"
 
-        files = {"event": self.__open_file(f"{name}.parquet", self.__schema), "efield": None, "simchannel": None}
+        files = {"event": self.__open_file(f"{name}.parquet", self.__schema, metadata),
+                 "efield": None, "simchannel": None}
         if self.__store_efields:
-            files["efield"] = self.__open_file(f"{name}_efield.parquet", self.__efield_schema)
+            files["efield"] = self.__open_file(f"{name}_efield.parquet", self.__efield_schema, metadata)
         if self.__store_sim:
-            files["simchannel"] = self.__open_file(f"{name}_simchannel.parquet", self.__sim_channel_schema)
+            files["simchannel"] = self.__open_file(f"{name}_simchannel.parquet", self.__sim_channel_schema, metadata)
 
         self.__files[station_id] = files
         self.__blocks[station_id] = first_run
         self.__n_files += sum(writer is not None for writer in files.values())
         logger.debug(f"Writing station {station_id}, runs {first_run}-{last_run} to {os.path.join(self.__output_dir, name)}*.parquet")
 
-    def __open_file(self, filename, schema):
-        """ Open `filename` in the output directory (fails if it exists and `overwrite` is not set). """
+    def __open_file(self, filename, schema, metadata):
+        """
+        Open `filename` in the output directory (fails if it exists and `overwrite` is not set).
+        `metadata` is added to the metadata of `schema` (file specific keys).
+        """
         path = os.path.join(self.__output_dir, filename)
         if os.path.exists(path) and not self.__overwrite:
             raise FileExistsError(f"{path} already exists. Use `overwrite=True` in `begin` to overwrite it.")
 
         os.makedirs(self.__output_dir, exist_ok=True)
+        schema = schema.with_metadata(schema.metadata | {key.encode(): value.encode() for key, value in metadata.items()})
         return _BatchedWriter(path, schema, self.__batch_size, self.__warned)
 
     def __close_files(self, station_id=None):
