@@ -31,7 +31,8 @@ class stationCoherentlySummedWaveforms:
         """(Unused)"""
         pass
 
-    def begin(self, coincidence_window_size=6 * units.ns, pad_length=500, channel_ids=[0, 1, 2, 3], time_lag_range=None):
+    def begin(self, coincidence_window_size=6 * units.ns, pad_length=500, channel_ids=[0, 1, 2, 3], time_lag_range=None,
+              ref_time_window=None, crop_to_overlap=False):
         """
         Parameters
         ----------
@@ -47,11 +48,25 @@ class stationCoherentlySummedWaveforms:
         time_lag_range: tuple of (float, float) or None (default: None)
             ``(min, max)`` of the allowed time lags for the cross correlation, in units of time
             (e.g. ``(-50 * units.ns, 50 * units.ns)``). If None, the full trace is used.
+
+        ref_time_window: tuple of (float, float) or None (default: None)
+            ``(start, stop)`` time window of the reference channel used for the cross correlation,
+            in units of time and relative to the trace start of the reference channel (i.e., ``(0, 100 * units.ns)``
+            are the first 100 ns of the trace). Only this part of the reference trace contributes to the
+            correlation. If None, the full reference trace is used.
+
+        crop_to_overlap: bool (default: False)
+            If False, traces are aligned with circular shifts (``np.roll``), i.e., samples shifted out
+            at one end re-enter at the other (the cross correlation itself uses zero padding).
+            If True, traces are shifted with zero filling and the coherent sum is cropped to the
+            samples covered by all channels. See `NuRadioReco.utilities.trace_utilities.get_coherent_sum`.
         """
         self.__coincidence_window_size = coincidence_window_size
         self.__pad_length = pad_length
         self.__channel_ids = channel_ids
         self.__time_lag_range = time_lag_range
+        self.__ref_time_window = ref_time_window
+        self.__crop_to_overlap = crop_to_overlap
 
 
     @register_run()
@@ -84,11 +99,23 @@ class stationCoherentlySummedWaveforms:
             t_min, t_max = self.__time_lag_range
             lag_range_samples = (int(round(t_min * sampling_rate)), int(round(t_max * sampling_rate)))
 
-        sum_trace, lags_samples = trace_utilities.get_coherent_sum(
-            trace_set, ref_trace, use_envelope, lag_range=lag_range_samples, return_lags=True)
+        ref_window_samples = None
+        if self.__ref_time_window is not None:
+            ref_times = ref_ch.get_times() - ref_ch.get_trace_start_time()
+            idxs = np.nonzero((ref_times >= self.__ref_time_window[0]) & (ref_times < self.__ref_time_window[1]))[0]
+            if not len(idxs):
+                raise ValueError(
+                    f"ref_time_window {self.__ref_time_window} does not overlap with the trace of "
+                    f"channel {ref_ch.get_id()} ({ref_times[0]:.1f} - {ref_times[-1]:.1f} ns).")
+            ref_window_samples = (idxs[0], idxs[-1] + 1)
+
+        sum_trace, lags_samples, correlations = trace_utilities.get_coherent_sum(
+            trace_set, ref_trace, use_envelope, lag_range=lag_range_samples, ref_window=ref_window_samples,
+            crop_to_overlap=self.__crop_to_overlap, return_lags=True, return_correlations=True)
 
         time_lags = {ref_ch.get_id(): 0.}
         time_lags.update({ch.get_id(): lag / sampling_rate for ch, lag in zip(channels, lags_samples)})
+        coherent_correlations = {ch.get_id(): float(corr) for ch, corr in zip(channels, correlations)}
         rms = trace_utilities.get_split_trace_noise_RMS(sum_trace, segments=4, lowest=2)
         snr = trace_utilities.get_signal_to_noise_ratio(sum_trace, rms, window_size=coincidence_window_size_bins_ref)
         impulsivity = trace_utilities.get_impulsivity(sum_trace)
@@ -100,6 +127,7 @@ class stationCoherentlySummedWaveforms:
         station.set_parameter(stpRNOG.coherent_entropy, entropy)
         station.set_parameter(stpRNOG.coherent_kurtosis, kurtosis)
         station.set_parameter(stpRNOG.coherent_time_lags, time_lags)
+        station.set_parameter(stpRNOG.coherent_correlations, coherent_correlations)
 
     def end(self):
         """(Unused)"""

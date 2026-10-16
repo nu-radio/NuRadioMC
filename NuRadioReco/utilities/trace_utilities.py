@@ -603,13 +603,20 @@ def get_impulsivity(trace, envelope=None):
     return impulsivity
 
 
-def get_coherent_sum(trace_set, ref_trace, use_envelope = False, lag_range = None, return_lags = False):
+def get_coherent_sum(trace_set, ref_trace, use_envelope = False, lag_range = None, ref_window = None,
+                     crop_to_overlap = False, return_lags = False, return_correlations = False):
     """
     Generates the coherently-summed waveform (CSW) of a sets of traces.
 
     This function finds the correlation between each trace from a set and the reference trace,
-    then rolls all traces to align with the reference trace,
+    then shifts all traces to align with the reference trace,
     and then add them up to get the CSW.
+
+    The cross correlation is linear, i.e., the traces are zero-padded (``scipy.signal.correlate``
+    with ``mode='full'``): at a lag ``L`` only the ``N - |L|`` overlapping samples contribute.
+    The summation, however, uses circular shifts (``np.roll``) by default: the first/last ``|L|``
+    samples of an aligned trace are wrapped around from the other end of the trace and do not
+    correspond to the alignment found by the correlation. Use ``crop_to_overlap=True`` to avoid this.
 
     Parameters
     ----------
@@ -622,17 +629,49 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False, lag_range = Non
     lag_range: tuple of (int, int) or None
         ``(min, max)`` of the allowed lags in **samples** (not time, inclusive).
         If None (default), all lags are allowed.
+    ref_window: tuple of (int, int) or None
+        ``(start, stop)`` sample indices (half-open) of the reference trace used for the
+        cross correlation. The processed reference trace is set to zero outside this window,
+        i.e., only this part of the reference contributes to the correlation.
+        If None (default), the full reference trace is used.
+    crop_to_overlap: bool
+        If False (default), traces are rolled (circular shift, see above) and the CSW has the
+        same length as the input traces. If True, traces are shifted with zero filling (consistent
+        with the correlation) and the CSW is cropped to the samples covered by all traces, i.e.,
+        to the reference-trace sample indices ``[max(0, max(lags)), N + min(0, min(lags)))``.
+        If this range has an odd length, its last sample is dropped (traces in NuRadioReco must have
+        an even number of samples). The length of the CSW then depends on the lags.
     return_lags: bool
         If True, also return the lags (default: False)
+    return_correlations: bool
+        If True, also return the correlation coefficients (default: False)
 
     Returns
     -------
     sum_trace: 1-D array of floats
-        CSW of the set of traces
+        CSW of the set of traces (cropped if ``crop_to_overlap``)
     lags: 1-D array of int
-        Only if ``return_lags``: lag (in samples) by which each trace of ``trace_set`` was rolled
-        (``np.roll(trace, lag)``) to align with the reference trace.
+        Only if ``return_lags``: lag (in samples) by which each trace of ``trace_set`` was shifted
+        to align with the reference trace (``np.roll(trace, lag)`` without ``crop_to_overlap``).
+    correlations: 1-D array of floats
+        Only if ``return_correlations``: Pearson-like correlation coefficient (in [-1, 1]) at the
+        selected lag, computed between the (processed) reference trace within ``ref_window`` and
+        the overlapping part of the shifted (not rolled) trace.
+
+    Notes
+    -----
+    The returned objects are ``sum_trace``, then ``lags``, then ``correlations``
+    (the latter two only if requested).
     """
+    def shift(trace, lag):
+        # Shift by ``lag`` samples, filling with zeros (no wrap-around)
+        shifted = np.zeros_like(trace)
+        if lag >= 0:
+            shifted[lag:] = trace[:len(trace) - lag]
+        else:
+            shifted[:lag] = trace[-lag:]
+        return shifted
+
     # Normalize: subtract mean, divide by std (z-score)
     def process(trace):
         if use_envelope:
@@ -641,6 +680,14 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False, lag_range = Non
 
     n_samples = len(ref_trace)
     ref_processed = process(ref_trace)
+
+    window_mask = np.ones(n_samples, dtype=bool)
+    if ref_window is not None:
+        window_mask[:] = False
+        window_mask[slice(*ref_window)] = True
+        if not np.any(window_mask):
+            raise ValueError(f"ref_window {ref_window} (in samples) contains no sample.")
+        ref_processed = np.where(window_mask, ref_processed, 0)
 
     # Process all traces
     trace_set = np.stack(trace_set)  # Make sure it's 2D
@@ -656,17 +703,33 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False, lag_range = Non
         raise ValueError(f"lag_range {lag_range} (in samples) contains no valid lag.")
 
     lags = np.zeros(len(trace_set), dtype=int)
+    correlations = np.zeros(len(trace_set))
     for i, trace in enumerate(trace_set):
         corr = scipy.signal.correlate(ref_processed, traces_processed[i], mode='full') / n_samples
         best_lag = lag_array[lag_mask][np.argmax(corr[lag_mask])]
-        aligned_trace = np.roll(trace, best_lag)
-        sum_trace += aligned_trace
+        if crop_to_overlap:
+            sum_trace += shift(trace, best_lag)
+        else:
+            sum_trace += np.roll(trace, best_lag)
         lags[i] = best_lag
 
-    if return_lags:
-        return sum_trace, lags
+        if return_correlations:
+            # Normalize over the overlap (zero-filled shift, as in the correlation)
+            shifted = shift(traces_processed[i], best_lag)
+            shifted[~window_mask] = 0
+            norm = np.sqrt(np.sum(ref_processed ** 2) * np.sum(shifted ** 2))
+            correlations[i] = np.sum(ref_processed * shifted) / norm if norm > 0 else 0.
 
-    return sum_trace
+    if crop_to_overlap:
+        start, stop = max(0, lags.max()), n_samples + min(0, lags.min())
+        stop -= (stop - start) % 2  # keep an even number of samples (required by BaseTrace)
+        if start >= stop:
+            raise ValueError(f"No sample is covered by all traces (lags: {lags} samples).")
+        sum_trace = sum_trace[start:stop]
+
+    # return only sum-trace or sum_trace + extras
+    extras = [x for x, ret in ((lags, return_lags), (correlations, return_correlations)) if ret]
+    return (sum_trace, *extras) if extras else sum_trace
 
 
 def get_entropy(trace, n_hist_bins = 50):

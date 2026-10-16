@@ -112,6 +112,7 @@ class stationParametersRNOG(TypedEnum):
     coherent_entropy = 3, float  #: Shannon entropy of the coherently summed waveform
     coherent_kurtosis = 4, float  #: kurtosis of the coherently summed waveform
     coherent_time_lags = 5, dict[int, float]  #: time lags (in units of time, not samples) by which each channel was shifted (rolled) to align with the reference channel for the coherent sum, dict with channel id as key
+    coherent_correlations = 6, dict[int, float]  #: correlation coefficients (in [-1, 1]) between each channel and the reference channel at the selected time lag, dict with channel id as key
 
     digitizer = 100, int  #: the digitizer used by the station (derived from data format)
 
