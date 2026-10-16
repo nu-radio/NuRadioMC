@@ -377,6 +377,27 @@ def test_type_mismatch(tmp_path):
     assert df["stationParameters.viewing_angles"].null_count() == 1
 
 
+def test_trigger(tmp_path):
+    import NuRadioReco.framework.trigger
+
+    writer = EventWriterParquet()
+    writer.begin(str(tmp_path))
+    for event_id in range(2):
+        evt, station = _make_event(1, event_id)
+        if event_id == 1:
+            # Not the first set trigger, but the earliest one is stored
+            for name, time in [("late", 20.), ("early", 10.)]:
+                trigger = NuRadioReco.framework.trigger.Trigger(name, trigger_type=f"{name}_type")
+                trigger.set_triggered(True)
+                trigger.set_trigger_time(time)
+                station.set_trigger(trigger)
+        writer.run(evt, station)
+    writer.end()
+
+    df = pl.read_parquet(tmp_path / "station11_run000001.parquet")
+    assert df["trigger"].to_list() == [None, "early"]
+
+
 def test_end_summary(tmp_path):
     messages = []
 
