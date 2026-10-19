@@ -42,6 +42,7 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - Added the module `channelFrequencyContentCalculator` and the `trace_utilities` functions `get_band_energy_ratio`,
   `get_spectral_energy_quantile_frequency` and `get_spectral_centroid` to quantify the relative frequency content of waveforms
   (target/reference band energy ratio, median frequency, spectral centroid).
+- The channelResampler resamples all channels with the same number of samples and sampling rate together as one 2D array (faster).
 
 bugfixes:
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported
