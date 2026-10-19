@@ -11,6 +11,8 @@ unknown classes) are dropped with a warning, nothing is pickled.
 * The input is a root directory (searched recursively) or a glob pattern.
 * Stations and runs are selected via the file names (which contain the range of runs of a file),
   so unselected files are never opened.
+* Events must be unique across the selected files: several processings of the same runs (e.g. different file name
+  suffixes in one directory) raise an error, select one of them with a glob pattern.
 * The electric field and sim channel files can be read in addition.
 * `ParquetReader.read` / `ParquetReader.scan` return the event table left-joined with the requested
   table (eager / lazy), `ParquetReader.tables` returns the tables separately.
@@ -37,6 +39,8 @@ try:  # optional: only the reader needs polars (the writer imports this module a
     import polars as pl
 except ImportError:
     pl = None
+
+from NuRadioReco.utilities import units
 
 logger = logging.getLogger("NuRadioReco.parquet_utilities")
 
@@ -176,6 +180,7 @@ class ParquetReader:
 
     Files are selected by the station and run(s) in their name, so unselected files are never opened.
     If a file holds several runs, only the rows of the selected runs are read from it.
+    Each event (``run``, ``event_id``, ``station_id``) must occur only once in the selected files (see ``check_unique``).
     Note that polars returns parquet maps as ``list[struct{key, value}]``.
 
     Examples
@@ -184,7 +189,8 @@ class ParquetReader:
     >>> df = reader.read()  # events joined with their electric fields
     """
 
-    def __init__(self, path, stations=None, runs=None, sim_channels=False, efields=False, sort=True):
+    def __init__(self, path, stations=None, runs=None, sim_channels=False, efields=False, sort=True,
+                 check_unique=True):
         """
         Parameters
         ----------
@@ -207,6 +213,11 @@ class ParquetReader:
             guaranteed by polars. Order: ``station_id, run, event_id``, for the electric fields and sim channels
             followed by their channel id(s) and ray tracing id (and tie breakers: ``source`` and ``shower_id``).
             This needs the whole table in memory: disable it for very large data sets if the order does not matter.
+        check_unique : bool, default=True
+            Check that each event (``run``, ``event_id``, ``station_id``) occurs only once in the selected event files,
+            e.g. to catch overlapping files or several processing variants of the same runs. Done once, when the
+            first table is requested (`events`, `tables`, `scan`, `read`), not by `columns`. Reads only these three
+            columns (~20 ms for 360k events).
 
         Raises
         ------
@@ -252,6 +263,8 @@ class ParquetReader:
 
         for kind in self.__kinds[1:]:
             self.__files[kind] = self.__find_side_files(kind, self.__files["event"])
+
+        self.__check_pending = check_unique  # see `__check_unique`
 
     @property
     def files(self):
@@ -309,7 +322,13 @@ class ParquetReader:
 
         Use this to select events first (e.g. ``reader.events().filter(...)``) and get the corresponding
         electric fields / sim channels afterwards with `related_tables`.
+
+        Raises
+        ------
+        ValueError
+            If ``check_unique`` (see `__init__`) and an event occurs more than once.
         """
+        self.__check_unique()
         return self.__scan_table("event", self.__files["event"], self.__sort)
 
     def tables(self):
@@ -321,7 +340,13 @@ class ParquetReader:
         dict of polars.LazyFrame
             Keys are ``event`` and, if requested, ``efield`` and ``simchannel``.
             The tables are linked by the columns ``run``, ``event_id`` and ``station_id``.
+
+        Raises
+        ------
+        ValueError
+            If ``check_unique`` (see `__init__`) and an event occurs more than once.
         """
+        self.__check_unique()
         return {
             kind: self.__scan_table(kind, files, self.__sort)
             for kind, files in self.__files.items() if files
@@ -432,14 +457,84 @@ class ParquetReader:
         """ Like `scan` but returns the collected `polars.DataFrame`. """
         return self.scan().collect()
 
-    def __scan_table(self, kind, files, sort):
-        """ Lazily concatenate the files of one table (sorted if `sort`). """
+    def __scan_table(self, kind, files, sort, file_column=None):
+        """ Lazily concatenate the files of one table (sorted if `sort`, with the file path as `file_column` if given). """
         # "diagonal": tolerate files written with different parameter sets but not dtyoes of common columns
-        table = pl.concat([pl.scan_parquet(file) for file in files], how="diagonal")
+        table = pl.concat(
+            [pl.scan_parquet(file, include_file_paths=file_column) for file in files], how="diagonal")
         if self.__filter_runs:
             table = table.filter(pl.col("run").is_in(sorted(self.__runs)))
 
         return table.sort(_SORT_KEYS[kind]) if sort else table
+
+    def __check_unique(self):
+        """
+        Raise a `ValueError` if an event occurs more than once in the event files (reads only the key columns).
+        Runs only once (if ``check_unique``), eagerly when the first lazy table is built, not when it is collected.
+        """
+        if not self.__check_pending:
+            return
+
+        # Only the key columns are read (projection pushdown)
+        table = self.__scan_table("event", self.__files["event"], sort=False, file_column="file")
+        duplicates = (
+            table.group_by(_KEYS).agg(pl.len(), pl.col("file").unique().sort())
+            .filter(pl.col("len") > 1).sort(_SORT_KEYS["event"]).collect())
+
+        if len(duplicates):
+            # Usually whole files overlap: list the (sets of) files which share events
+            files = duplicates.group_by("file").len().sort("len", descending=True)
+            overlaps = "\n".join(f"  {n} events in: {', '.join(names)}" for names, n in files.head(5).rows())
+            raise ValueError(
+                f"{len(duplicates)} events (run, event_id, station_id) occur more than once, "
+                f"e.g. {duplicates.row(0)[:3]}:\n{overlaps}\n"
+                "Select the files with a more specific path / glob pattern (or pass check_unique=False).")
+
+        self.__check_pending = False  # only after passing: a failed check raises again on the next call
+
+    @staticmethod
+    def calpulsers(events, select=None, time_range=None):
+        """
+        Flag (and optionally select or remove) possible calpulser events.
+
+        Calpulsers fire shortly after the PPS (full second): an event is flagged if its station time,
+        modulo one second, lies within `time_range`. Other events which trigger in this window are
+        flagged as well (false positives).
+
+        Parameters
+        ----------
+        events : polars.LazyFrame or polars.DataFrame
+            Event table with the column ``station_time_jd2``, e.g. ``reader.events()``.
+        select : bool, optional
+            None: only add the boolean column ``is_calpulser``. True: keep only the calpulsers.
+            False: remove them. Events without station time (``is_calpulser`` null) are removed by both filters.
+        time_range : tuple of float, optional
+            Time window after the full second (in NuRadio units, bounds included).
+            Default: ``(1 * units.microsecond, 5 * units.microsecond)``.
+
+        Returns
+        -------
+        polars.LazyFrame or polars.DataFrame
+            `events` with the column ``is_calpulser`` (same type as `events`).
+
+        Examples
+        --------
+        >>> events = ParquetReader.calpulsers(reader.events(), select=False)  # remove the calpulsers
+        """
+        if time_range is None:
+            time_range = (1 * units.microsecond, 5 * units.microsecond)
+        elif len(time_range) != 2 or not 0 <= time_range[0] < time_range[1] <= units.second:
+            raise ValueError(
+                f"time_range must be (start, stop) with 0 <= start < stop <= 1 s (in NuRadio units), got {time_range}.")
+
+        # jd1 is a whole number of days (whole seconds): the time within the second follows from jd2 alone (~0.01 ns precision)
+        time_in_second = (pl.col("station_time_jd2") * units.day) % units.second
+        events = events.with_columns(is_calpulser=time_in_second.is_between(*time_range))
+
+        if select is None:
+            return events
+
+        return events.filter(pl.col("is_calpulser") if select else ~pl.col("is_calpulser"))
 
     @staticmethod
     def __non_null_columns(files, names):

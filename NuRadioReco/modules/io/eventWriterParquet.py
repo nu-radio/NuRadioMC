@@ -60,10 +60,15 @@ gets an event of a different run (block).
 Metadata
 --------
 The file metadata (read with ``pyarrow.parquet.read_schema(file).metadata``) contains the keys
+<<<<<<< HEAD
 ``nuradio_version``, ``nuradio_commit``, ``comment``, ``module_sequence`` and the keys passed with
 ``metadata``. The commit hash does not capture uncommitted changes. ``module_sequence`` is a json list of
 the names of the modules (with a decorated ``run``) which processed the first event of the file before
 this writer, in order of execution (readers do not register themselves and are not included).
+=======
+``nuradio_version``, ``nuradio_commit``, ``comment`` and the keys passed with ``metadata``.
+The commit hash does not capture uncommitted changes.
+>>>>>>> parquet-io
 """
 
 import json
