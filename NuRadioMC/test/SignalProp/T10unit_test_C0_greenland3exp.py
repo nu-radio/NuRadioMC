@@ -51,10 +51,6 @@ for iX, x in enumerate(points):
         for iS in range(r.get_number_of_solutions()):
             results_C0s_cpp[iX, iS] = r.get_results()[iS]['C0']
 
-# with open("reference_C0_MooresBay.pkl", "wb") as fout:
-#     pickle.dump(results_C0s_cpp, fout)
-#results_C0s_cpp_ref = io_utilities.read_pickle("reference_C0_greenland3exp.pkl", encoding='latin1')
-
 with open("reference_C0_greenland3exp.json", "r") as fin:
     results_C0s_cpp_ref = np.array(json.load(fin))  # Convert list back to NumPy array
     
