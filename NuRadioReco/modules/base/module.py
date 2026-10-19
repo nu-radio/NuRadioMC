@@ -263,7 +263,7 @@ def print_timing_summary(min_percent=None):
     lines = ["┌" + "─" * (width + 2) + "┐", f"│ {header} │", "├" + "─" * (width + 2) + "┤"]
     lines += [f"│ {r} │" for r in rows]
     lines.append("├" + "─" * (width + 2) + "┤")
-    lines.append(f"│ {row('total (per event)', all_calls, all_total, n_per=len(_events))} │")
+    lines.append(f"│ {row('total (per event)', '', all_total, n_per=len(_events))} │")
     lines.append("└" + "─" * (width + 2) + "┘")
     logger.log(LOGGING_STATUS, "Module timing\n" + "\n".join("  " + line for line in lines))
 
