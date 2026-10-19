@@ -80,6 +80,7 @@ class ray_tracing(ray_tracing_base):
                 * self._config['propagation']['attenuate_ice'] = True
                 * self._config['propagation']['focusing_limit'] = 2
                 * self._config['propagation']['focusing'] = False
+                * self._config['propagation']['focusing_analytic'] = False
                 * self._config['propagation']['birefringence'] = False
 
         detector: detector object
@@ -1029,7 +1030,9 @@ class ray_tracing(ray_tracing_base):
             The reflection case specifies if the ray starts upward or downward (1: upward, 2: downward) (only relevant if bottom reflection > 0).
         """
         if self._config['propagation']['focusing']:
-            focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
+            focusing = self.get_focusing(
+                i_solution, limit=float(self._config['propagation']['focusing_limit']),
+                analytic=self._config['propagation'].get('focusing_analytic', False))
         else:
             focusing = 1
 
@@ -1104,7 +1107,9 @@ class ray_tracing(ray_tracing_base):
 
         # apply the focusing effect
         if self._config['propagation']['focusing']:
-            focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
+            focusing = self.get_focusing(
+                i_solution, limit=float(self._config['propagation']['focusing_limit']),
+                analytic=self._config['propagation'].get('focusing_analytic', False))
             spec[1:] *= focusing
 
         # apply the birefringence effect

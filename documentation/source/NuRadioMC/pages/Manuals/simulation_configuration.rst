@@ -155,6 +155,8 @@ The available options for weight mode are:
           # equally spaced over the complete frequency range.
           focusing: False  # if True apply the focusing effect.
           focusing_limit: 2  # the maximum amplification factor of the focusing correction
+          focusing_analytic: False  # if True, calculate the focusing factor analytically
+          # instead of numerically (by ray tracing to a receiver displaced by 1 cm)
           n_reflections: 0  # the maximum number of reflections off a reflective layer 
           # at the bottom of the ice layer
 

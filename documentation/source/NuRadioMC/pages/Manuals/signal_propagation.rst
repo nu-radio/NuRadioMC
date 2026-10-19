@@ -12,6 +12,7 @@ The configuration of the raytracing and propagation effects are specified in the
 * n_freq: [int] the number of frequencies where the attenuation length is calculated for. The remaining frequencies will be determined from a linear interpolation between the reference frequencies. The reference frequencies are equally spaced over the complete frequency range.
 * focusing: [boolean] whether the focusing effect should be applied.
 * focusing_limit: [float] the maximum amplification factor of the focusing correction
+* focusing_analytic: [boolean] whether the focusing factor is calculated analytically instead of numerically (by ray tracing to a receiver displaced by 1 cm). The numerical solution depends on the precision of the ray tracing solution and can differ by up to ~1e-3 between platforms. Only used by the analytic ray tracer.
 * n_reflections: [int] the maximum number of reflections off a reflective layer at the bottom of the ice layer
 
 Below you find the **default settings** of the **config file**.
@@ -26,6 +27,7 @@ Below you find the **default settings** of the **config file**.
       n_freq: 25
       focusing: False
       focusing_limit: 2
+      focusing_analytic: False
       n_reflections: 0
       birefringence: False
 

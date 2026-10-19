@@ -20,7 +20,12 @@ except:
 
 # relative tolerance for the channel/station parameters (e.g. calculated by the channelSignalReconstructor).
 # Tiny platform-dependent differences in the traces are amplified for low-amplitude channels.
-parameter_rtol = 2e-3
+# Simulations with the numerical focusing factor (which varies by up to ~1e-3 between platforms) or
+# comparisons of different simulation paths need a looser tolerance, which can be passed as 4th argument.
+try:
+    parameter_rtol = float(sys.argv[4])
+except:
+    parameter_rtol = 2e-3
 
 print("Testing the files {} and {} for equality".format(file1, file2))
 
@@ -60,13 +65,17 @@ def all_parameters(file):
     return parameters
 
 
-def assert_parameters_allclose(value1, value2, rtol, name):
+def compare_parameters(value1, value2, rtol, name):
+    """ Returns a list of error messages for all (nested) parameter values which differ """
     if isinstance(value1, dict):
-        assert value1.keys() == value2.keys(), f"{name}: keys differ ({sorted(value1)} vs. {sorted(value2)})"
-        for key in value1:
-            assert_parameters_allclose(value1[key], value2[key], rtol, f"{name}/{key}")
-    else:
+        if value1.keys() != value2.keys():
+            return [f"{name}: keys differ ({sorted(value1)} vs. {sorted(value2)})"]
+        return [error for key in value1 for error in compare_parameters(value1[key], value2[key], rtol, f"{name}/{key}")]
+    try:
         testing.assert_allclose(value1, value2, rtol=rtol, atol=0, err_msg=f"Parameter {name} differs")
+    except AssertionError as e:
+        return [str(e)]
+    return []
 
 
 all_traces_1, trace_start_times_1 = all_traces(file1)
@@ -98,8 +107,13 @@ testing.assert_almost_equal(
 parameters_1 = all_parameters(file1)
 parameters_2 = all_parameters(file2)
 assert parameters_1.keys() == parameters_2.keys(), "Files contain different events/stations/channels"
+# collect all differences (instead of stopping at the first one) to see the full picture in a single run
+errors = []
 for key in parameters_1:
-    assert_parameters_allclose(parameters_1[key], parameters_2[key], parameter_rtol, str(key))
+    errors += compare_parameters(parameters_1[key], parameters_2[key], parameter_rtol, str(key))
+if errors:
+    print("\n".join(errors))
+    raise AssertionError(f"{len(errors)} channel/station parameter(s) differ by more than rtol={parameter_rtol}")
 print(f"Channel and station parameters agree within rtol={parameter_rtol}")
 
 try:

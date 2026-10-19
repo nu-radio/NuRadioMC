@@ -20,6 +20,8 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - Likelihood-based reconstruction modules, including minimization and matched filter classes. Specialized reconstruction modules for electric fields and
   in-ice neutrino showers are implemeted. See https://arxiv.org/abs/2510.21925 and documentation for details.
 - Improve time_logger functionality - yielding significant reduction in simulation time (25-40%). Smaller improvements to logging.
+- Added the config option `propagation/focusing_analytic` to calculate the focusing factor analytically. The default numerical calculation
+  depends on the precision of the ray tracing solution and differs by up to ~1e-3 between platforms.
 
 bugfixes:
 - Fixing bug in the simulation of non-trigger channels when an event is splitted into multiple events based on the signal arrival time.

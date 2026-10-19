@@ -28,6 +28,7 @@ propagation:
   n_freq: 25  # the number of frequencies where the attenuation length is calculated for. The remaining frequencies will be determined from a linear interpolation between the reference frequencies. The reference frequencies are equally spaced over the complet frequency range.
   focusing: False  # if True apply the focusing effect.
   focusing_limit: 2  # the maximum amplification factor of the focusing correction
+  focusing_analytic: False  # if True, calculate the focusing factor analytically instead of numerically (by ray tracing to a receiver displaced by 1 cm). Only used by the analytic ray tracer, which falls back to the numerical solution where the analytic one is not valid (horizontal rays).
   n_reflections: 0  # the maximum number of reflections off a reflective layer at the bottom of the ice layer
   birefringence: False  # if True apply birefringence effects
   birefringence_propagation: 'analytical'  # can also be 'numerical' - Does not have to be set, default value is 'analytical'
