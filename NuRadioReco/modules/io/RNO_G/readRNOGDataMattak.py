@@ -5,6 +5,7 @@ import time
 import astropy.time
 import math
 from functools import lru_cache
+from collections import Counter
 from inspect import signature
 
 from NuRadioReco.modules.base.module import register_run
@@ -360,6 +361,7 @@ class readRNOGData:
         self.logger.info(f"Parse through / read-in {len(dirs_files)} directory(ies) / file(s).")
 
         self.__skipped_runs = 0
+        self.__skipped_runs_reasons = Counter()
         self.__n_runs = 0
 
         # Set verbose for mattak
@@ -382,6 +384,7 @@ class readRNOGData:
                 dataset = self.__get_dataset(dir_file)
             except (ReferenceError, KeyError, OSError) as e:
                 self.__skipped_runs += 1
+                self.__skipped_runs_reasons["read error"] += 1
                 self.logger.error(f"The following exeption was raised reading in the run: {dir_file}. Skip that run ...:\n", exc_info=e)
                 continue
 
@@ -511,25 +514,30 @@ class readRNOGData:
             is_calibration = dataset.is_calibration_run()
         except ValueError as e:
             self.logger.warning(f"Reject station {station} run {run} because the run type can not be determined ({e})")
+            self.__skipped_runs_reasons["unknown run type"] += 1
             return False
         else:
             if is_calibration and "calibration" not in self.__run_types:
-                self.logger.info(f"Reject station {station} run {run} because it is a calibration run")
+                self.logger.debug(f"Reject station {station} run {run} because it is a calibration run")
+                self.__skipped_runs_reasons["run type"] += 1
                 return False
 
             if not is_calibration and not any(run_type != "calibration" for run_type in self.__run_types):
-                self.logger.info(f"Reject station {station} run {run} because it is not a calibration run")
+                self.logger.debug(f"Reject station {station} run {run} because it is not a calibration run")
+                self.__skipped_runs_reasons["run type"] += 1
                 return False
 
         if self.__max_trigger_rate:
             trigger_rate = dataset.trigger_rate()
             if trigger_rate is None:
                 self.logger.warning(f"Reject station {station} run {run} because the trigger rate can not be determined")
+                self.__skipped_runs_reasons["unknown trigger rate"] += 1
                 return False
 
             if trigger_rate * units.Hz > self.__max_trigger_rate:
-                self.logger.info(
+                self.logger.debug(
                     f"Reject station {station} run {run} because trigger rate is to high ({trigger_rate:.2f} Hz)")
+                self.__skipped_runs_reasons["trigger rate"] += 1
                 return False
 
         return True
@@ -560,6 +568,7 @@ class readRNOGData:
 
         if not len(run_info):
             self.logger.error(f"Run {run_id:d} (station {station_id:d}) not in run table. Reject...")
+            self.__skipped_runs_reasons["not in run table"] += 1
             return False
 
         # "time_start/end" is stored in the isot format. datetime is much faster than astropy (~85ns vs 55 mus).
@@ -568,23 +577,27 @@ class readRNOGData:
         if self._time_low is not None:
             time_end = astropy.time.Time(run_info["time_end"].values[0])
             if time_end < self._time_low:
-                self.logger.info(f"Reject station {station_id} run {run_id} because run ended before {self._time_low}")
+                self.logger.debug(f"Reject station {station_id} run {run_id} because run ended before {self._time_low}")
+                self.__skipped_runs_reasons["run time"] += 1
                 return False
 
         if self._time_high is not None:
             time_start = astropy.time.Time(run_info["time_start"].values[0])
             if time_start > self._time_high:
-                self.logger.info(f"Reject station {station_id} run {run_id} because run started time after {self._time_high}")
+                self.logger.debug(f"Reject station {station_id} run {run_id} because run started time after {self._time_high}")
+                self.__skipped_runs_reasons["run time"] += 1
                 return False
 
         run_type = run_info["run_type"].values[0]
         if run_type not in self.__run_types:
-            self.logger.info(f"Reject station {station_id} run {run_id} because of run type {run_type}")
+            self.logger.debug(f"Reject station {station_id} run {run_id} because of run type {run_type}")
+            self.__skipped_runs_reasons["run type"] += 1
             return False
 
         trigger_rate = run_info["trigger_rate"].values[0] * units.Hz
         if self.__max_trigger_rate and trigger_rate > self.__max_trigger_rate:
-            self.logger.info(f"Reject station {station_id} run {run_id} because trigger rate is to high ({trigger_rate / units.Hz:.2f} Hz)")
+            self.logger.debug(f"Reject station {station_id} run {run_id} because trigger rate is to high ({trigger_rate / units.Hz:.2f} Hz)")
+            self.__skipped_runs_reasons["trigger rate"] += 1
             return False
 
         return True
@@ -988,7 +1001,9 @@ class readRNOGData:
             self.logger.info(
                 f"\n\tRead {self.__counter} events ({self.__skipped} events are skipped (filtered), {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
-                f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs.")
+                f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs"
+                + (" (" + ", ".join(f"{reason}: {n}" for reason, n in self.__skipped_runs_reasons.most_common()) + ")"
+                   if self.__skipped_runs_reasons else "") + ".")
         else:
             self.logger.warning(
                 f"\n\tRead {self.__counter} events   (skipped {self.__skipped} events, {self.__invalid} invalid events)"
