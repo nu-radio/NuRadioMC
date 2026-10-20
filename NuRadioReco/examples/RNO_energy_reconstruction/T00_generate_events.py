@@ -22,10 +22,16 @@ args = parser.parse_args()
 
 #substitute the interested station position
 
-# Station absolute position
-station_x = -1572.81617365 * units.m  
-station_y =  729.37223865 * units.m  
-station_z =  -3.78323115 * units.m  
+# # Station absolute position
+# station_x = -1572.81617365 * units.m  
+# station_y =  729.37223865 * units.m  
+# station_z =  -3.78323115 * units.m  
+
+station_x = 0 * units.m  
+station_y =  0 * units.m  
+station_z =  0 * units.m  
+
+
 
 # Generate event list for 1000 events at 10^19 eV
 n_events = args.Number_of_events

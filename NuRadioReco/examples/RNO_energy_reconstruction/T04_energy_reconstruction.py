@@ -13,26 +13,25 @@ from astropy.time import Time
 Detector = RNO_G_detector.ModDetector(
     select_stations=11,
     always_query_entire_description=True,
-    signal_chain_measurement_name="calibrated_impulse_response_v0"
+    signal_chain_measurement_name=None,
+    database_time=Time("2024-11-01T00:00:00")
 )
-# Set detector time to now
-Detector.update(time=Time("2023-08-01"))
+Detector.update(time=Time("2023-08-01T00:00:00"))
+
+
 for chennel_id in Detector.get_channel_ids(11):
     delay = Detector.get_cable_delay(11, chennel_id)
-    print(f"Channel {chennel_id} has a cable delay of {delay:.2f} ns")
+    print(f"Channel {chennel_id} has a cable delay of {delay*1e9:.2f} ns")
     Detector.add_manual_time_delay(11, chennel_id, delay, weight=-1)
-
 
 station_id = 11
 print("Original station position:", Detector.get_absolute_position(station_id))
 Detector.modify_station_description(
     station_id=station_id,
-    keys=["station_position", "position"],   # ✅ correct nested path
+    keys=["station_position", "position"], 
     value=[0.0, 0.0, 0.0]
 )
 print("Modified station position:", Detector.get_absolute_position(station_id))
-
-
 
 
 parser = argparse.ArgumentParser('Use the reconstructed vertex position and electric field to determine the shower energy.')
