@@ -13,7 +13,7 @@ The script has two parts:
    every event and station (e.g. at the end of the processing loop), and `end` at the very end.
 2. Read: `ParquetReader` finds the files, selects stations and runs, and returns polars frames.
 
-Requires pyarrow and polars: ``pip install -e .[parquet]``.
+Requires pyarrow and polars >= 2: ``pip install -e .[parquet]``.
 
 Usage::
 
@@ -21,7 +21,6 @@ Usage::
     python parquet_io_example.py --parquetdir out/     # read the files in out/ (e.g. written by your processing)
 """
 import argparse
-import inspect
 import tempfile
 
 import numpy as np
@@ -39,9 +38,6 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.modules.io.eventWriterParquet import EventWriterParquet
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.parquet_utilities import ParquetReader
-
-# Newer polars versions warn if `explode` is called without `empty_as_null` (older ones do not know it)
-EXPLODE_KWARGS = {"empty_as_null": True} if "empty_as_null" in inspect.signature(pl.LazyFrame.explode).parameters else {}
 
 
 def make_event(rng, run, event_id, station_id, n_channels=4):
@@ -130,20 +126,17 @@ def read_example(path):
     print(df.head(3))
 
     # 3. Channel parameters are list columns aligned with the column `channel_ids`.
-    #    Maps (e.g. the SNR, a dict in the parameter storage) are read by polars as list of {key, value}.
+    #    Maps (e.g. the SNR, a dict in the parameter storage) are read by polars as `pl.Map`.
     channels = events.select("event_id", "channel_ids", "channelParameters.noise_rms", "channelParameters.SNR")
     print("\nChannel parameters (one entry per channel):")
     print(channels.head(1).collect())
 
-    # `explode` creates one row per list entry; `unnest` turns the {key, value} structs into columns.
+    # `explode` creates one row per list entry; `map.get` returns the value of one key.
     per_channel = (
         events.select("run", "event_id", "channel_ids", "channelParameters.SNR")
-        .explode("channel_ids", "channelParameters.SNR", **EXPLODE_KWARGS)  # one row per channel
-        .explode("channelParameters.SNR", **EXPLODE_KWARGS)  # one row per map entry
-        .unnest("channelParameters.SNR")
-        .filter(pl.col("key") == "peak_amplitude")
-        .rename({"channel_ids": "channel_id", "value": "SNR_peak_amplitude"})
-        .drop("key")
+        .explode("channel_ids", "channelParameters.SNR", empty_as_null=True)  # one row per channel
+        .select("run", "event_id", pl.col("channel_ids").alias("channel_id"),
+                pl.col("channelParameters.SNR").map.get("peak_amplitude").alias("SNR_peak_amplitude"))
     )
     print("\nOne row per channel and event:")
     print(per_channel.head(3).collect())
