@@ -14,10 +14,6 @@ import os
 from NuRadioReco.detector.RNO_G import rnog_detector_mod as RNO_G_detector
 from astropy.time import Time
 
-# Detector= RNO_G_detector.Detector(select_stations=11)
-# # Set detector time to now
-# Detector.update(time=Time.now())
-
 
 Detector = RNO_G_detector.ModDetector(
     select_stations=11,
@@ -86,7 +82,7 @@ event_reader.begin([args.input_file])
 channel_resampler = NuRadioReco.modules.channelResampler.channelResampler()
 event_writer = NuRadioReco.modules.io.eventWriter.eventWriter()
 event_writer.begin(args.output_file)
-noise_adder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()          
+# noise_adder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()  #only used if not added before
 # det = NuRadioReco.detector.generic_detector.GenericDetector(
 #     json_filename=args.detector_file,
 #     antenna_by_depth=False
@@ -128,16 +124,12 @@ vertex_reconstructor.begin(
     z_coordinates_2d=np.arange(-600, -10, 10),
     debug_folder='plots/Vertex_reco_with_normal_trace_20'
 )
-#run={}               #list of events to run the reconstruction on. Here we just run it on the first event, but feel free to change this.
-
 for i_event, event in enumerate(event_reader.run()):
-    if i_event == 20:       #just run on the first 10 events to save time, but feel free to change this
-        break
     print('Event {}, ID={}, Run={}'.format(i_event, event.get_id(), event.get_run_number()))
     station = event.get_station(11)
     station.set_is_neutrino()
     channel_resampler.run(event, station, Detector, sampling_rate=sampling_rate)
-    noise_adder.run(event, station, Detector, amplitude=noise_level, type='rayleigh')
+    # noise_adder.run(event, station, Detector, amplitude=noise_level, type='rayleigh')
     vertex_reconstructor.run(
         event,
         station,

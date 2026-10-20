@@ -9,6 +9,7 @@ import argparse
 
 from NuRadioReco.detector.RNO_G import rnog_detector_mod as RNO_G_detector
 from astropy.time import Time
+
 Detector = RNO_G_detector.ModDetector(
     select_stations=11,
     always_query_entire_description=True,

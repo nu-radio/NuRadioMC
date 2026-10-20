@@ -28,7 +28,9 @@ class channelPulseFinderSimulator:
             signal_window_limits=None,
             pulse_width=50 * units.ns,
             signal_window_uncertainty=0,
-            random_seed=None
+            random_seed=None,
+            require_region_in_trace=True,  #  new option, drop pulses the recorded trace does not contain
+            max_region_outside=20 * units.ns  #  how far a window may stick out of the recorded trace
     ):
         """
         Set up module configuration
@@ -59,6 +61,14 @@ class channelPulseFinderSimulator:
         random_seed: float or None
             If signal_window_uncertainty > 0, this parameter can be used to
             set a seed for the random number generator.
+        require_region_in_trace: bool
+            The pulses are searched in the simChannels, whose time range can differ
+            from the recorded channel. If True (default), a pulse window that lies
+            outside the recorded trace (by more than max_region_outside) is not
+            reported, because the data cannot contain that pulse.
+        max_region_outside: float
+            How far a signal window may extend beyond the recorded trace
+            (default 20 ns of the 100 ns window).
         """
         self.__min_snr = min_snr
         if signal_window_limits is None:
@@ -71,6 +81,8 @@ class channelPulseFinderSimulator:
         self.__noise_level = noise_level
         self.__signal_window_uncertainty = signal_window_uncertainty
         self.__random = numpy.random.Generator(numpy.random.Philox(random_seed))
+        self.__require_region_in_trace = require_region_in_trace  #  store the new option
+        self.__max_region_outside = max_region_outside  #  store the new option
 
     @register_run()
     def run(
@@ -99,18 +111,23 @@ class channelPulseFinderSimulator:
                     size=int(self.__pulse_width * sim_channel_sum.get_sampling_rate())
                 )
 
+                rejected_windows = []  #  windows outside the trace, still masked so they are not found again
                 for i in range(100):
                     signal_window, pulse_time, snr = self.__get_signal_window(
                         sim_channel_sum.get_times(),
                         channel_maxima,
                         channel_minima,
                         sim_channel_sum.get_trace(),
-                        signal_windows
+                        signal_windows + rejected_windows  #  also mask the rejected windows
                     )
 
                     if signal_window is None:
                         break
                     else:
+                        channel_times = channel.get_times()  #  time range of the RECORDED trace
+                        if self.__require_region_in_trace and (signal_window[0] < channel_times[0] - self.__max_region_outside or signal_window[1] > channel_times[-1] + self.__max_region_outside):  #  pulse not in the recorded trace
+                            rejected_windows.append(signal_window)  #  reject it but keep it masked
+                            continue  #  and look for the next pulse
                         signal_windows.append(signal_window)
                         pulse_times.append(pulse_time)
                         snrs.append(snr)

@@ -109,7 +109,7 @@ class channelTimeOffsetCalculator:
             channel = station.get_channel(channel_id)
             channel_time_ranges[i_channel, 0] = channel.get_trace_start_time()
             channel_time_ranges[i_channel, 1] = channel.get_times()[-1]
-            raytracer.set_start_and_end_point(vertex_position, det.get_relative_position(station.get_id(), channel_id))
+            raytracer.set_start_and_end_point(vertex_position, det.get_relative_position(station.get_id(), channel_id) + det.get_absolute_position(station.get_id()))  # absolute antenna position, station need not be at the origin
             raytracer.find_solutions()
             for i_solution, solution in enumerate(raytracer.get_results()):
                 propagation_times[i_channel, solution['type'] - 1] = raytracer.get_travel_time(i_solution)
