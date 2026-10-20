@@ -22,7 +22,8 @@ unknown classes) are dropped with a warning, nothing is pickled.
   (``nuradio-parquet`` if installed, else ``python -m NuRadioReco.utilities.parquet_utilities``):
   ``nuradio-parquet columns <path> [--class channelParameters] [--match snr]`` and
   ``nuradio-parquet hist <column> <path> [--channels 0 1] [--key peak_amplitude] [-o hist.png]``
-* Polars is optional (only needed by the reader). It returns parquet maps as ``list[struct{key, value}]``.
+* Polars (>= 2) is optional (only needed by the reader). It returns parquet maps as ``pl.Map`` (polars < 2 returned
+  them as ``list[struct{key, value}]``), e.g. ``pl.col("channelParameters.SNR").list.eval(pl.element().map.get("peak_amplitude"))``.
 """
 import glob
 import logging
@@ -39,6 +40,8 @@ try:  # optional: only the reader needs polars (the writer imports this module a
     import polars as pl
 except ImportError:
     pl = None
+
+_MIN_POLARS_MAJOR = 2  # the reader relies on parquet maps being read as `pl.Map` (new in polars 2)
 
 from NuRadioReco.utilities import units
 
@@ -181,7 +184,7 @@ class ParquetReader:
     Files are selected by the station and run(s) in their name, so unselected files are never opened.
     If a file holds several runs, only the rows of the selected runs are read from it.
     Each event (``run``, ``event_id``, ``station_id``) must occur only once in the selected files (see ``check_unique``).
-    Note that polars returns parquet maps as ``list[struct{key, value}]``.
+    Requires polars >= 2, which returns parquet maps as ``pl.Map``.
 
     Examples
     --------
@@ -222,14 +225,15 @@ class ParquetReader:
         Raises
         ------
         ImportError
-            If polars is not installed.
+            If polars is not installed or older than version 2.
         FileNotFoundError
             If no event file matches `path`, `stations` and `runs`, or an entry of a list `path` matches nothing.
         """
-        if pl is None:
+        if pl is None or int(pl.__version__.split(".")[0]) < _MIN_POLARS_MAJOR:
+            found = "not installed" if pl is None else f"found {pl.__version__}"
             raise ImportError(
-                "ParquetReader requires polars. Install it with `pip install polars` "
-                "or `pip install -e .[parquet]`.")
+                f"ParquetReader requires polars >= {_MIN_POLARS_MAJOR} ({found}). Install it with "
+                f"`pip install 'polars>={_MIN_POLARS_MAJOR}'` or `pip install -e .[parquet]`.")
 
         self.__sort = sort
         self.__kinds = ["event"] + (["efield"] if efields else []) + (["simchannel"] if sim_channels else [])
@@ -646,12 +650,14 @@ def _print_columns(args):
     rows = [[name] + ([str(dtype)] if args.types else []) for name, dtype in result.items()]
     if args.stats:
         # Lists are flattened, NaN / inf are counted separately. Other types (strings, maps, structs) only get
-        # the number of (non-null) values; maps are read as lists of key-value structs, i.e. their entries are counted.
+        # the number of (non-null) values; for maps, their entries are counted.
         # All statistics are computed in one query (one pass over the data), named "<column>|<statistic>".
         exprs = []
         for name, dtype in result.items():
             expr = pl.col(name)
-            while isinstance(dtype, pl.List):  # e.g. channel parameters: one value per channel
+            while isinstance(dtype, (pl.List, pl.Map)):  # e.g. channel parameters: one value per channel
+                if isinstance(dtype, pl.Map):  # -> list of {key, value} structs: one per entry
+                    expr, dtype = expr.map.entries(), pl.List(pl.Struct({"key": dtype.key, "value": dtype.value}))
                 expr, dtype = expr.explode(empty_as_null=False), dtype.inner
             if dtype.is_numeric() or dtype == pl.Boolean:
                 expr = expr.cast(pl.Float64)
@@ -758,12 +764,11 @@ def _histogram_values(reader, kind, column, channels=None, key=None):
     while isinstance(dtype, pl.List):
         frame, dtype = frame.explode("value", empty_as_null=False), dtype.inner
 
-    if isinstance(dtype, pl.Struct):  # map: list of {key, value}, exploded to one row per entry
+    if isinstance(dtype, pl.Map):  # the value of one key (maps without it give null)
         if key is None:
-            keys = frame.select(pl.col("value").struct.field("key").unique().sort()).collect().to_series()
-            raise ValueError(f"{name} is a map, choose a key with --key: {keys.drop_nulls().to_list()}")
-        frame = frame.filter(pl.col("value").struct.field("key") == key)
-        frame = frame.with_columns(pl.col("value").struct.field("value"))
+            keys = frame.select(pl.col("value").map.keys().explode(empty_as_null=False).unique().sort()).collect()
+            raise ValueError(f"{name} is a map, choose a key with --key: {keys.to_series().drop_nulls().to_list()}")
+        frame = frame.with_columns(pl.col("value").map.get(pl.lit(key).cast(dtype.key)))  # --key is a string
     elif key is not None:
         raise ValueError(f"--key only applies to maps, {name} has the type {dtype}.")
 
