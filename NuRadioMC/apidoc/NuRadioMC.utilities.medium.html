@@ -4178,8 +4178,8 @@ ice model used for RadioPropa.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_layered">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">greenland_3exp_layered</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_3exp_layered"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_layered" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_density">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">greenland_3exp_density</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_3exp_density"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_density" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelContinuousExpLayers</span></code></a></p>
 <p>(3+1) layer refractive index model. Three layer model in ice plus one air layer.</p>
 <p>Values for below the ice obtained from a fit to ice core density data. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.</p>
@@ -4187,7 +4187,7 @@ ice model used for RadioPropa.</p>
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>delta_n</strong></dt><dd></dd>
-<dt><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_layers_array" title="NuRadioMC.utilities.medium.greenland_3exp_layered.get_layers_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layers_array</span></code></a></dt><dd><p>Get layer parameters as NumPy arrays.</p>
+<dt><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_layers_array" title="NuRadioMC.utilities.medium.greenland_3exp_density.get_layers_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layers_array</span></code></a></dt><dd><p>Get layer parameters as NumPy arrays.</p>
 </dd>
 <dt><strong>n_ice</strong></dt><dd></dd>
 <dt><strong>z_0</strong></dt><dd></dd>
@@ -4198,25 +4198,25 @@ ice model used for RadioPropa.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.add_reflective_bottom" title="NuRadioMC.utilities.medium.greenland_3exp_layered.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.add_reflective_bottom" title="NuRadioMC.utilities.medium.greenland_3exp_density.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
 <td><p>function which adds a reflective bottom to your ice model</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_layered.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_density.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
 <td><p>Returns average refractive index between two points.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_layered.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_density.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>Returns gradient of refractive index at position(s).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_layered.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_density.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
 <td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes that define the medium in radiopropa.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_layered.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_density.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>Compute the refractive index at a given position.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_layer_name" title="NuRadioMC.utilities.medium.greenland_3exp_layered.get_layer_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer_name</span></code></a>(z)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_layer_name" title="NuRadioMC.utilities.medium.greenland_3exp_density.get_layer_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer_name</span></code></a>(z)</p></td>
 <td><p>Return the name of the layer at a given depth.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_layered.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_density.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
 <td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
 </tr>
 </tbody>
@@ -4239,7 +4239,7 @@ ice model used for RadioPropa.</p>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt><strong>delta_n</strong></dt><dd></dd>
-<dt><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_layers_array" title="NuRadioMC.utilities.medium.greenland_3exp_layered.get_layers_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layers_array</span></code></a></dt><dd><p>Get layer parameters as NumPy arrays.</p>
+<dt><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_layers_array" title="NuRadioMC.utilities.medium.greenland_3exp_density.get_layers_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layers_array</span></code></a></dt><dd><p>Get layer parameters as NumPy arrays.</p>
 </dd>
 <dt><strong>n_ice</strong></dt><dd></dd>
 <dt><strong>z_0</strong></dt><dd></dd>
@@ -4250,25 +4250,25 @@ ice model used for RadioPropa.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.add_reflective_bottom" title="NuRadioMC.utilities.medium.greenland_3exp_layered.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.add_reflective_bottom" title="NuRadioMC.utilities.medium.greenland_3exp_density.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
 <td><p>function which adds a reflective bottom to your ice model</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_layered.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_density.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
 <td><p>Returns average refractive index between two points.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_layered.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_density.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>Returns gradient of refractive index at position(s).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_layered.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_density.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
 <td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes that define the medium in radiopropa.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_layered.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_density.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>Compute the refractive index at a given position.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_layer_name" title="NuRadioMC.utilities.medium.greenland_3exp_layered.get_layer_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer_name</span></code></a>(z)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_layer_name" title="NuRadioMC.utilities.medium.greenland_3exp_density.get_layer_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer_name</span></code></a>(z)</p></td>
 <td><p>Return the name of the layer at a given depth.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_layered.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_density.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_density.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
 <td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
 </tr>
 </tbody>
@@ -4281,8 +4281,8 @@ ice model used for RadioPropa.</p>
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_layered.add_reflective_bottom">
-<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.add_reflective_bottom" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_density.add_reflective_bottom">
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_density.add_reflective_bottom" title="Link to this definition"></a></dt>
 <dd><p>function which adds a reflective bottom to your ice model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -4299,13 +4299,13 @@ ice model used for RadioPropa.</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_layered.delta_n">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">delta_n</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.delta_n" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_density.delta_n">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">delta_n</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_density.delta_n" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_layered.get_average_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_average_index_of_refraction" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_density.get_average_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_average_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>Returns average refractive index between two points.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -4323,13 +4323,13 @@ ice model used for RadioPropa.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_layered.get_description">
-<span class="sig-name descname"><span class="pre">get_description</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_description" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_density.get_description">
+<span class="sig-name descname"><span class="pre">get_description</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_description" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_layered.get_gradient_of_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_gradient_of_index_of_refraction" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_density.get_gradient_of_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_gradient_of_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>Returns gradient of refractive index at position(s).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -4348,8 +4348,8 @@ ice model used for RadioPropa.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_layered.get_ice_model_radiopropa">
-<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_ice_model_radiopropa" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_density.get_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_ice_model_radiopropa" title="Link to this definition"></a></dt>
 <dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes
 that define the medium in radiopropa. If no specific model is set by the user it returns
 the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
@@ -4367,8 +4367,8 @@ ice model in case they need it, without losing the access to the default model.<
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_layered.get_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_index_of_refraction" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_density.get_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>Compute the refractive index at a given position.</p>
 <p>According to n(z) = n_ice - delta_n * exp(z / z_0), using the layer parameters corresponding to a given z.</p>
 <dl class="field-list">
@@ -4401,8 +4401,8 @@ for a single position or an array for multiple positions.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_layered.get_layer_name">
-<span class="sig-name descname"><span class="pre">get_layer_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_layer_name" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_density.get_layer_name">
+<span class="sig-name descname"><span class="pre">get_layer_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_layer_name" title="Link to this definition"></a></dt>
 <dd><p>Return the name of the layer at a given depth.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -4427,8 +4427,8 @@ for a single position or an array for multiple positions.</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_layered.get_layers_array">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_layers_array</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.get_layers_array" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_density.get_layers_array">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_layers_array</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_density.get_layers_array" title="Link to this definition"></a></dt>
 <dd><p>Get layer parameters as NumPy arrays.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -4441,13 +4441,13 @@ for a single position or an array for multiple positions.</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_layered.n_ice">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_ice</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.n_ice" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_density.n_ice">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_ice</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_density.n_ice" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_layered.set_ice_model_radiopropa">
-<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.set_ice_model_radiopropa" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_density.set_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_density.set_ice_model_radiopropa" title="Link to this definition"></a></dt>
 <dd><p>If radiopropa is installed, this function can be used
 to set a specific RadioPropaIceWrapper object as the
 ice model used for RadioPropa.</p>
@@ -4463,28 +4463,28 @@ ice model used for RadioPropa.</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_layered.z_0">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">z_0</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.z_0" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_density.z_0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">z_0</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_density.z_0" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_layered.z_air_boundary">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">z_air_boundary</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_layered.z_air_boundary" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_density.z_air_boundary">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">z_air_boundary</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_density.z_air_boundary" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_nils_layered">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">greenland_3exp_nils_layered</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_3exp_nils_layered"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelExpLayers" title="NuRadioMC.utilities.medium_base.IceModelExpLayers"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelExpLayers</span></code></a></p>
-<p>New fit parameters for the (3+1) layer refractive index model. Three layer model in ice plus one air layer.</p>
-<p>Values for below the ice taken from <a class="reference external" href="https://github.com/philippwindischhofer/Reconal/blob/7204049c755a0678178821073fa73a476c49c491/defs.py#L72-L82">https://github.com/philippwindischhofer/Reconal/blob/7204049c755a0678178821073fa73a476c49c491/defs.py#L72-L82</a>. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.</p>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_timing_2025">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioMC.utilities.medium.</span></span><span class="sig-name descname"><span class="pre">greenland_3exp_timing_2025</span></span><a class="reference internal" href="../../_modules/NuRadioMC/utilities/medium.html#greenland_3exp_timing_2025"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers" title="NuRadioMC.utilities.medium_base.IceModelContinuousExpLayers"><code class="xref py py-class docutils literal notranslate"><span class="pre">IceModelContinuousExpLayers</span></code></a></p>
+<p>(3+1) layer refractive index model. Three layer model in ice plus one air layer.</p>
+<p>Values for below the ice obtained from a fit to absolute-timing data taken during the 2025 Summit field season. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>delta_n</strong></dt><dd></dd>
-<dt><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_layers_array" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_layers_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layers_array</span></code></a></dt><dd><p>Get layer parameters as NumPy arrays.</p>
+<dt><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_layers_array" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_layers_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layers_array</span></code></a></dt><dd><p>Get layer parameters as NumPy arrays.</p>
 </dd>
 <dt><strong>n_ice</strong></dt><dd></dd>
 <dt><strong>z_0</strong></dt><dd></dd>
@@ -4495,26 +4495,33 @@ ice model used for RadioPropa.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.add_reflective_bottom" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.add_reflective_bottom" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
 <td><p>function which adds a reflective bottom to your ice model</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
 <td><p>Returns average refractive index between two points.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>Returns gradient of refractive index at position(s).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
 <td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes that define the medium in radiopropa.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>Compute the refractive index at a given position.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_layer_name" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_layer_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer_name</span></code></a>(z)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_layer_name" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_layer_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer_name</span></code></a>(z)</p></td>
 <td><p>Return the name of the layer at a given depth.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
 <td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_description</strong></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -4529,7 +4536,7 @@ ice model used for RadioPropa.</p>
 <dt class="field-even">Attributes<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt><strong>delta_n</strong></dt><dd></dd>
-<dt><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_layers_array" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_layers_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layers_array</span></code></a></dt><dd><p>Get layer parameters as NumPy arrays.</p>
+<dt><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_layers_array" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_layers_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layers_array</span></code></a></dt><dd><p>Get layer parameters as NumPy arrays.</p>
 </dd>
 <dt><strong>n_ice</strong></dt><dd></dd>
 <dt><strong>z_0</strong></dt><dd></dd>
@@ -4540,32 +4547,39 @@ ice model used for RadioPropa.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.add_reflective_bottom" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.add_reflective_bottom" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.add_reflective_bottom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_reflective_bottom</span></code></a>(refl_z, refl_coef, ...)</p></td>
 <td><p>function which adds a reflective bottom to your ice model</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_average_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_average_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_average_index_of_refraction</span></code></a>(position1, ...)</p></td>
 <td><p>Returns average refractive index between two points.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_gradient_of_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_gradient_of_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_gradient_of_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>Returns gradient of refractive index at position(s).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_ice_model_radiopropa</span></code></a>()</p></td>
 <td><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes that define the medium in radiopropa.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_index_of_refraction" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_index_of_refraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_index_of_refraction</span></code></a>(position)</p></td>
 <td><p>Compute the refractive index at a given position.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_layer_name" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_layer_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer_name</span></code></a>(z)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_layer_name" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_layer_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_layer_name</span></code></a>(z)</p></td>
 <td><p>Return the name of the layer at a given depth.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.set_ice_model_radiopropa" title="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.set_ice_model_radiopropa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_ice_model_radiopropa</span></code></a>(ice_model_radiopropa)</p></td>
 <td><p>If radiopropa is installed, this function can be used to set a specific RadioPropaIceWrapper object as the ice model used for RadioPropa.</p></td>
 </tr>
 </tbody>
 </table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_description</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.add_reflective_bottom">
-<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.add_reflective_bottom" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.add_reflective_bottom">
+<span class="sig-name descname"><span class="pre">add_reflective_bottom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refl_z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_coef</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refl_phase_shift</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.add_reflective_bottom" title="Link to this definition"></a></dt>
 <dd><p>function which adds a reflective bottom to your ice model</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -4582,13 +4596,13 @@ ice model used for RadioPropa.</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.delta_n">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">delta_n</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.delta_n" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.delta_n">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">delta_n</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.delta_n" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_average_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_average_index_of_refraction" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_average_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_average_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">position2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_average_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>Returns average refractive index between two points.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -4606,8 +4620,13 @@ ice model used for RadioPropa.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_gradient_of_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_gradient_of_index_of_refraction" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_description">
+<span class="sig-name descname"><span class="pre">get_description</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_description" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_gradient_of_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_gradient_of_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_gradient_of_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>Returns gradient of refractive index at position(s).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -4626,8 +4645,8 @@ ice model used for RadioPropa.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_ice_model_radiopropa">
-<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_ice_model_radiopropa" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">get_ice_model_radiopropa</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_ice_model_radiopropa" title="Link to this definition"></a></dt>
 <dd><p>Returns an object holding the radiopropa scalarfield and necessary radiopropa moduldes
 that define the medium in radiopropa. If no specific model is set by the user it returns
 the default implemented model using the ‘_compute_default_ice_model_radiopropa’ function.</p>
@@ -4645,8 +4664,8 @@ ice model in case they need it, without losing the access to the default model.<
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_index_of_refraction">
-<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_index_of_refraction" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_index_of_refraction">
+<span class="sig-name descname"><span class="pre">get_index_of_refraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_index_of_refraction" title="Link to this definition"></a></dt>
 <dd><p>Compute the refractive index at a given position.</p>
 <p>According to n(z) = n_ice - delta_n * exp(z / z_0), using the layer parameters corresponding to a given z.</p>
 <dl class="field-list">
@@ -4679,8 +4698,8 @@ for a single position or an array for multiple positions.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_layer_name">
-<span class="sig-name descname"><span class="pre">get_layer_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_layer_name" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_layer_name">
+<span class="sig-name descname"><span class="pre">get_layer_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_layer_name" title="Link to this definition"></a></dt>
 <dd><p>Return the name of the layer at a given depth.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -4705,8 +4724,8 @@ for a single position or an array for multiple positions.</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_layers_array">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_layers_array</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.get_layers_array" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_layers_array">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_layers_array</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.get_layers_array" title="Link to this definition"></a></dt>
 <dd><p>Get layer parameters as NumPy arrays.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -4719,13 +4738,13 @@ for a single position or an array for multiple positions.</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.n_ice">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_ice</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.n_ice" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.n_ice">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">n_ice</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.n_ice" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.set_ice_model_radiopropa">
-<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.set_ice_model_radiopropa" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.set_ice_model_radiopropa">
+<span class="sig-name descname"><span class="pre">set_ice_model_radiopropa</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ice_model_radiopropa</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.set_ice_model_radiopropa" title="Link to this definition"></a></dt>
 <dd><p>If radiopropa is installed, this function can be used
 to set a specific RadioPropaIceWrapper object as the
 ice model used for RadioPropa.</p>
@@ -4741,13 +4760,13 @@ ice model used for RadioPropa.</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.z_0">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">z_0</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.z_0" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.z_0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">z_0</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.z_0" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_nils_layered.z_air_boundary">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">z_air_boundary</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_nils_layered.z_air_boundary" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="NuRadioMC.utilities.medium.greenland_3exp_timing_2025.z_air_boundary">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">z_air_boundary</span></span><a class="headerlink" href="#NuRadioMC.utilities.medium.greenland_3exp_timing_2025.z_air_boundary" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>

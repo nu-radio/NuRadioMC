@@ -1279,9 +1279,9 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="greenland_3exp_layered">
-<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_3exp_layered">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">greenland_3exp_layered</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelContinuousExpLayers</span><span class="p">):</span>
+<div class="viewcode-block" id="greenland_3exp_density">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_3exp_density">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">greenland_3exp_density</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelContinuousExpLayers</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    (3+1) layer refractive index model. Three layer model in ice plus one air layer.</span>
 <span class="sd">     </span>
@@ -1290,67 +1290,29 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">nN</span> <span class="o">=</span> <span class="mf">1.77468</span><span class="p">,</span>
-            <span class="n">delta_nN</span> <span class="o">=</span> <span class="mf">1.41573</span><span class="p">,</span>
-            <span class="n">ls</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span> <span class="o">/</span> <span class="mf">0.0387882</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mf">0.0129175</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mf">0.114553</span><span class="p">],</span>
+            <span class="n">nN</span> <span class="o">=</span> <span class="mf">1.778</span><span class="p">,</span>
+            <span class="n">delta_nN</span> <span class="o">=</span> <span class="mf">1.120</span><span class="p">,</span>
+            <span class="n">ls</span> <span class="o">=</span> <span class="p">[</span><span class="mf">28.606</span><span class="p">,</span> <span class="mf">73.728</span><span class="p">,</span> <span class="mf">8.848</span><span class="p">],</span>
             <span class="n">zs</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">80.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">14.9</span><span class="p">]</span>
         <span class="p">)</span></div>
 
 
-
-<div class="viewcode-block" id="greenland_3exp_nils_layered">
-<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_3exp_nils_layered">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">greenland_3exp_nils_layered</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelExpLayers</span><span class="p">):</span>
+<div class="viewcode-block" id="greenland_3exp_timing_2025">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium.html#NuRadioMC.utilities.medium.greenland_3exp_timing_2025">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">greenland_3exp_timing_2025</span><span class="p">(</span><span class="n">medium_base</span><span class="o">.</span><span class="n">IceModelContinuousExpLayers</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
-<span class="sd">    New fit parameters for the (3+1) layer refractive index model. Three layer model in ice plus one air layer.</span>
-<span class="sd">     </span>
-<span class="sd">    Values for below the ice taken from https://github.com/philippwindischhofer/Reconal/blob/7204049c755a0678178821073fa73a476c49c491/defs.py#L72-L82. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.</span>
+<span class="sd">    (3+1) layer refractive index model. Three layer model in ice plus one air layer.</span>
+
+<span class="sd">    Values for below the ice obtained from a fit to absolute-timing data taken during the 2025 Summit field season. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.</span>
 <span class="sd">    """</span>
+
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
-        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">{</span>
-                <span class="s2">"z_min"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">"z_max"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
-                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.00027</span><span class="p">,</span>
-                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">2.7e-4</span><span class="p">,</span>
-                <span class="s2">"z_0"</span><span class="p">:</span> <span class="o">-</span><span class="mf">8000.0</span><span class="p">,</span>
-                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"air"</span><span class="p">,</span>
-                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Air"</span>
-            <span class="p">},</span>
-            <span class="p">{</span>
-                <span class="s2">"z_min"</span><span class="p">:</span> <span class="o">-</span><span class="mf">14.9</span><span class="p">,</span>
-                <span class="s2">"z_max"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.544</span><span class="p">,</span>
-                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">0.272</span><span class="p">,</span>
-                <span class="s2">"z_0"</span><span class="p">:</span> <span class="mf">15.88</span><span class="p">,</span>
-                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"snow"</span><span class="p">,</span>
-                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Snow"</span>
-            <span class="p">},</span>
-            <span class="p">{</span>
-                <span class="s2">"z_min"</span><span class="p">:</span> <span class="o">-</span><span class="mf">80.5</span><span class="p">,</span>
-                <span class="s2">"z_max"</span><span class="p">:</span> <span class="o">-</span><span class="mf">14.9</span><span class="p">,</span>
-                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.855</span><span class="p">,</span>
-                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">0.530255538</span><span class="p">,</span>
-                <span class="s2">"z_0"</span><span class="p">:</span> <span class="mf">62.281809455</span><span class="p">,</span>
-                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"firn"</span><span class="p">,</span>
-                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Firn"</span>
-            <span class="p">},</span>
-            <span class="p">{</span>
-                <span class="s2">"z_min"</span><span class="p">:</span> <span class="o">-</span><span class="mf">3000.0</span><span class="p">,</span>
-                <span class="s2">"z_max"</span><span class="p">:</span> <span class="o">-</span><span class="mf">80.5</span><span class="p">,</span>
-                <span class="s2">"n_ice"</span><span class="p">:</span> <span class="mf">1.778</span><span class="p">,</span>
-                <span class="s2">"delta_n"</span><span class="p">:</span> <span class="mf">1.06592622966</span><span class="p">,</span>
-                <span class="s2">"z_0"</span><span class="p">:</span> <span class="mf">29.343776516</span><span class="p">,</span>
-                <span class="s2">"region"</span><span class="p">:</span> <span class="s2">"bubbly_ice"</span><span class="p">,</span>
-                <span class="s2">"region_name"</span><span class="p">:</span> <span class="s2">"Ice"</span>
-            <span class="p">}</span>
-        <span class="p">]</span>
-
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">layers</span><span class="o">=</span><span class="n">layers</span>
+            <span class="n">nN</span> <span class="o">=</span> <span class="mf">1.778</span><span class="p">,</span>
+            <span class="n">delta_nN</span> <span class="o">=</span> <span class="mf">1.0659</span><span class="p">,</span>
+            <span class="n">ls</span> <span class="o">=</span> <span class="p">[</span><span class="mf">29.3437</span><span class="p">,</span> <span class="mf">62.2818</span><span class="p">,</span> <span class="mf">15.88</span><span class="p">],</span>
+            <span class="n">zs</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">80.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">14.9</span><span class="p">]</span>
         <span class="p">)</span></div>
-
 
         
 <div class="viewcode-block" id="southpole_simple_layered">
