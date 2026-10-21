@@ -277,7 +277,16 @@ def compare_point_full(
                 foc_a = tracer_a.get_focusing(i_a)
                 type_a = tracer_a.get_solution_type(i_a)
                 c0_a = tracer_a.get_C0(i_a)
-                ra_a = tracer_a.get_reflection_angle(i_a)
+                #ra_a = tracer_a.get_reflection_angle(i_a)
+
+                if type_a == 3:  # Replace with your actual solution-type check
+                    ra_a = safe_get(
+                        lambda: tracer_a.get_reflection_angle(i_a),
+                        default=None,
+                        warning=f"reflection angle failed (A, group {group})",
+                    )
+                else:
+                    ra_a = None
 
                 entry["a"] = {
                     "travel_time_ns": safe_get(
@@ -322,10 +331,8 @@ def compare_point_full(
                         default = None,
                         warning=f"c0 failed (A, group {group})",
                     ),
-                    "reflection_angle": safe_get(
-                        lambda : ra_a/units.deg,
-                        default=None,
-                        warning=f"reflection angle failed (A, group {group})",
+                    "reflection_angle": (
+                        ra_a / units.deg if ra_a is not None else None
                     )
                 }
 
@@ -347,7 +354,16 @@ def compare_point_full(
                 foc_b = tracer_b.get_focusing(i_b)
                 type_b = tracer_b.get_solution_type(i_b)
                 c0_b = tracer_b.get_C0(i_b)
-                ra_b = tracer_b.get_reflection_angle(i_b)
+                #ra_b = tracer_b.get_reflection_angle(i_b)
+
+                if type_b == 3:  # Replace with your actual solution-type check
+                    ra_b = safe_get(
+                        lambda: tracer_b.get_reflection_angle(i_b),
+                        default=None,
+                        warning=f"reflection angle failed (B, group {group})",
+                    )
+                else:
+                    ra_b = None
 
                 entry["b"] = {
                     "travel_time_ns": safe_get(
@@ -392,9 +408,8 @@ def compare_point_full(
                         default = None,
                         warning=f"c0 failed (B, group {group})",
                     ),
-                    "reflection_angle": safe_get(
-                        lambda : ra_b / units.deg,
-                        default=None
+                    "reflection_angle": (
+                        ra_b / units.deg if ra_b is not None else None
                     )
                     
                 }
@@ -403,6 +418,13 @@ def compare_point_full(
             # DIFFERENCES
             # ==================================================
             if entry["a"] is not None and entry["b"] is not None:
+
+                if (entry["a"]["type"] == 3) and (entry["b"]["type"] == 3):
+                    r_angle_diff = safe_get(
+                        lambda : (( entry["a"]["reflection_angle"] - entry["b"]["reflection_angle"])),
+                        default=None)
+                else:
+                    r_angle_diff = None
 
                 entry["diff"] = {
                     "time_diff": (
@@ -441,10 +463,8 @@ def compare_point_full(
                         warning=f"focusing diff failed (group {group})",
                     ),
 
-                    "r_angle_diff": safe_get(
-                        lambda : (( entry["a"]["reflection_angle"] - entry["b"]["reflection_angle"])),
-                        default=None,
-                    ),
+                    "r_angle_diff": r_angle_diff
+
 
                 }
 
