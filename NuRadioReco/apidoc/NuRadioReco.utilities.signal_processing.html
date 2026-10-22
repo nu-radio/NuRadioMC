@@ -911,7 +911,7 @@ after delaying (rolling) the trace.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.signal_processing.get_electric_field_from_temperature">
-<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.signal_processing.</span></span><span class="sig-name descname"><span class="pre">get_electric_field_from_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solid_angle</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/signal_processing.html#get_electric_field_from_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.signal_processing.get_electric_field_from_temperature" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.signal_processing.</span></span><span class="sig-name descname"><span class="pre">get_electric_field_from_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_temperature</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solid_angle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/signal_processing.html#get_electric_field_from_temperature"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.signal_processing.get_electric_field_from_temperature" title="Link to this definition"></a></dt>
 <dd><p>Calculate the electric field amplitude from the radiance of a radio signal.</p>
 <p>The radiance is calculated using the Rayleigh-Jeans law per frequency bin, by adjusting
 the value with the frequency spacing. After this, the electric field amplitude per bin
@@ -924,6 +924,8 @@ is calculated using the radiance and the vacuum permittivity.</p>
 <dt><strong>noise_temperature: float</strong></dt><dd><p>The noise temperature to use in the Rayleigh-Jeans law</p>
 </dd>
 <dt><strong>solid_angle: float</strong></dt><dd><p>The solid angle over which the radiance is integrated</p>
+</dd>
+<dt><strong>n: float (default: 1)</strong></dt><dd><p>The refractive index of the medium</p>
 </dd>
 </dl>
 </dd>

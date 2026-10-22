@@ -1175,7 +1175,7 @@
 
 <div class="viewcode-block" id="get_electric_field_from_temperature">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html#NuRadioReco.utilities.signal_processing.get_electric_field_from_temperature">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_electric_field_from_temperature</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">noise_temperature</span><span class="p">,</span> <span class="n">solid_angle</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_electric_field_from_temperature</span><span class="p">(</span><span class="n">frequencies</span><span class="p">,</span> <span class="n">noise_temperature</span><span class="p">,</span> <span class="n">solid_angle</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Calculate the electric field amplitude from the radiance of a radio signal.</span>
 
@@ -1191,20 +1191,22 @@
 <span class="sd">        The noise temperature to use in the Rayleigh-Jeans law</span>
 <span class="sd">    solid_angle: float</span>
 <span class="sd">        The solid angle over which the radiance is integrated</span>
+<span class="sd">    n: float (default: 1)</span>
+<span class="sd">        The refractive index of the medium</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    efield_amplitude: array of floats</span>
 <span class="sd">        The electric field amplitude at each frequency</span>
 <span class="sd">    """</span>
-    <span class="n">c_vac</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">c</span>  <span class="c1"># already in NuRadioReco units</span>
+    <span class="n">c_med</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">c</span> <span class="o">/</span> <span class="n">n</span>  <span class="c1"># already in NuRadioReco units</span>
 
     <span class="c1"># Calculate frequency spacing</span>
     <span class="n">d_f</span> <span class="o">=</span> <span class="n">frequencies</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">frequencies</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="c1"># Calculate spectral radiance of radio signal using Rayleigh-Jeans law</span>
     <span class="n">spectral_radiance</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="mf">2.0</span> <span class="o">*</span> <span class="n">constants</span><span class="o">.</span><span class="n">k_B</span> <span class="o">*</span> <span class="n">frequencies</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">noise_temperature</span> <span class="o">/</span> <span class="n">c_vac</span><span class="o">**</span><span class="mi">2</span>
+        <span class="mf">2.0</span> <span class="o">*</span> <span class="n">constants</span><span class="o">.</span><span class="n">k_B</span> <span class="o">*</span> <span class="n">frequencies</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">noise_temperature</span> <span class="o">/</span> <span class="n">c_med</span><span class="o">**</span><span class="mi">2</span>
     <span class="p">)</span>
     <span class="n">spectral_radiance</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">spectral_radiance</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -1212,8 +1214,8 @@
     <span class="n">radiance_per_bin</span> <span class="o">=</span> <span class="n">spectral_radiance</span> <span class="o">*</span> <span class="n">d_f</span> <span class="o">*</span> <span class="n">solid_angle</span>
 
     <span class="c1"># calculate electric field per energy bin from the radiance per bin</span>
-    <span class="c1"># 1 / (c_vac * epsilon_0) = Z_0 the vaccum impedance, d_f term due to our fft definition</span>
-    <span class="n">efield_amplitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">radiance_per_bin</span> <span class="o">/</span> <span class="p">(</span><span class="n">c_vac</span> <span class="o">*</span> <span class="n">constants</span><span class="o">.</span><span class="n">epsilon_0</span><span class="p">))</span> <span class="o">/</span> <span class="n">d_f</span>
+    <span class="c1"># wave impedance in the medium: Z = Z_0 / n = 1 / (n * c_vac * epsilon_0), d_f term due to our fft definition</span>
+    <span class="n">efield_amplitude</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">radiance_per_bin</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">constants</span><span class="o">.</span><span class="n">c</span> <span class="o">*</span> <span class="n">constants</span><span class="o">.</span><span class="n">epsilon_0</span><span class="p">))</span> <span class="o">/</span> <span class="n">d_f</span>
 
     <span class="k">return</span> <span class="n">efield_amplitude</span></div>
 
