@@ -14,23 +14,38 @@ import re
 import subprocess
 import sys
 
-FLAKE8_ARGS = ["--max-line-length=127"]
+# Explicit output formats: user configs (e.g. diff.noprefix, flake8 format=) must not change what is parsed
+FLAKE8_ARGS = ["--max-line-length=127", "--format=default"]
+GIT_DIFF_ARGS = ["-U0", "--no-color", "--no-ext-diff", "--src-prefix=a/", "--dst-prefix=b/"]
+
+
+def fail(message):
+    """ Exit with an error: unexpected output must block the commit, not pass silently. """
+    print(f"flake8-changed-lines: {message}")
+    sys.exit(1)
 
 
 def changed_lines():
     """ Return {file: set of changed line numbers} (new file version). """
     from_ref, to_ref = os.environ.get("PRE_COMMIT_FROM_REF"), os.environ.get("PRE_COMMIT_TO_REF")
     refs = [f"{from_ref}...{to_ref}"] if from_ref and to_ref else ["--cached"]
-    diff = subprocess.check_output(["git", "diff", "-U0", "--no-color"] + refs).decode()
+    diff = subprocess.check_output(["git", "diff"] + GIT_DIFF_ARGS + refs).decode()
 
     lines = collections.defaultdict(set)
     filename = None
     for line in diff.splitlines():
         if line.startswith("+++ "):
-            filename = line[len("+++ b/"):] if line.startswith("+++ b/") else None
+            if line == "+++ /dev/null":  # deleted file
+                filename = None
+            elif line.startswith("+++ b/"):
+                filename = line[len("+++ b/"):]
+            else:  # e.g. a quoted path with special characters
+                fail(f"can not parse the diff line {line!r}")
         elif line.startswith("@@") and filename:
-            start, count = re.match(r"@@ -\S+ \+(\d+)(?:,(\d+))? @@", line).groups()
-            start, count = int(start), int(count or 1)
+            match = re.match(r"@@ -\S+ \+(\d+)(?:,(\d+))? @@", line)
+            if match is None:
+                fail(f"can not parse the diff line {line!r}")
+            start, count = int(match.group(1)), int(match.group(2) or 1)
             # +1: blank-line errors (E30x) are reported at the statement after the inserted lines
             lines[filename].update(range(start, start + count + 1))
 
@@ -52,7 +67,9 @@ def main(filenames):
     violations = []
     for line in result.stdout.splitlines():  # <file>:<line>:<column>: <code> <message>
         match = re.match(r"(.+?):(\d+):\d+: ", line)
-        if match and int(match.group(2)) in lines[match.group(1)]:
+        if match is None:
+            fail(f"can not parse the flake8 output line {line!r}")
+        if int(match.group(2)) in lines[match.group(1)]:
             violations.append(line)
 
     if violations:
