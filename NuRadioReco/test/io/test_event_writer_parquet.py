@@ -18,6 +18,7 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.modules.io.eventWriterParquet import EventWriterParquet
+from NuRadioReco.utilities import units
 from NuRadioReco.utilities.parquet_utilities import ParquetReader
 
 
@@ -361,6 +362,53 @@ def test_reader_list_of_paths(tmp_path):
         raise AssertionError("no FileNotFoundError")
     except FileNotFoundError:
         pass
+
+
+def test_reader_duplicate_events(tmp_path):
+    # Two processings of the same runs in one directory
+    for suffix in ["a", "b"]:
+        writer = EventWriterParquet()
+        writer.begin(str(tmp_path), suffix=suffix)
+        _write_runs(writer, {1: 2, 2: 1})
+
+    reader = ParquetReader(str(tmp_path))
+    assert reader.columns()  # does not read the data: no check
+    for method in [reader.events, reader.tables, reader.read]:
+        try:
+            method()
+            raise AssertionError("no ValueError for duplicated events")
+        except ValueError as e:
+            assert "3 events" in str(e) and "_a.parquet" in str(e) and "_b.parquet" in str(e)
+
+    assert ParquetReader(str(tmp_path / "*_a.parquet")).read().height == 3
+    assert ParquetReader(str(tmp_path), runs=2, check_unique=False).read().height == 2
+
+
+def test_calpulsers(tmp_path):
+    writer = EventWriterParquet()
+    writer.begin(str(tmp_path))
+    # 2 us after the full second (calpulser), 0.5 s and 10 us after it
+    for event_id, fraction in enumerate(["000002", "500000", "000010"]):
+        evt, station = _make_event(1, event_id)
+        station.set_station_time(astropy.time.Time(f"2024-01-01T12:00:01.{fraction}", format="isot"))
+        writer.run(evt, station)
+    writer.end()
+
+    events = ParquetReader(str(tmp_path)).events()
+    flagged = ParquetReader.calpulsers(events).collect()
+    assert flagged["is_calpulser"].to_list() == [True, False, False]
+    assert ParquetReader.calpulsers(events, select=True).collect()["event_id"].to_list() == [0]
+    assert ParquetReader.calpulsers(events, select=False).collect()["event_id"].to_list() == [1, 2]
+
+    wide = ParquetReader.calpulsers(events.collect(), time_range=(0, 20 * units.microsecond))  # DataFrame works too
+    assert wide["is_calpulser"].to_list() == [True, False, True]
+
+    for time_range in [(1,), (5 * units.microsecond, 1 * units.microsecond), (0, 2 * units.second)]:
+        try:
+            ParquetReader.calpulsers(events, time_range=time_range)
+            raise AssertionError(f"no ValueError for time_range={time_range}")
+        except ValueError:
+            pass
 
 
 def test_type_mismatch(tmp_path):
