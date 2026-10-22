@@ -20,7 +20,7 @@
 			"ant_position_z": -50.0,
 			"ant_rotation_phi": 90.0,
 			"ant_rotation_theta": 90.0,
-			"ant_type": "bicone_v8",
+			"ant_type": "bicone_v8_InfFirn",
 			"cab_id": "17-09",
 			"cab_length": 5.0,
 			"cab_reference_measurement": null,

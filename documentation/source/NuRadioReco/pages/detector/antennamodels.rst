@@ -51,6 +51,13 @@ Overview of available Antenna Models
 The following antenna models are available in NuRadioReco.
 The model names are the unique identifiers that need to be specified as ``ant_type`` in the detector description.
 
+.. warning::
+    Before v3.2, the detector appended ``_InfAir`` or ``_InfFirn`` to ``ant_type`` depending on the antenna
+    depth (``antenna_by_depth``). Since v3.2 this is no longer done: ``ant_type`` must be the full model name
+    as listed below (e.g., ``createLPDA_100MHz_v2_InfFirn`` instead of ``createLPDA_100MHz``).
+
+Inf means usually an infinite medium, firn has a refractive index n = 1.3-1.4. Since this is a bit imprecise
+we changed the naming to the actual refractive index.
 Naming conventions:
 
 * ``_InfAir`` / ``_InfFirn``: the antenna is embedded in an *infinite* homogeneous medium (no boundary).

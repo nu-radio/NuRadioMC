@@ -65,7 +65,7 @@ if __name__ == "__main__":
     #                     help='path to detectordescription')
     args = parser.parse_args()
 
-    det = detector.Detector("detector_db.json", source='json',antenna_by_depth=False)
+    det = detector.Detector("detector_db.json", source='json')
     det.update(datetime(2018, 12, 30, 22, 30, 22))
     pos_SP1 = det.get_absolute_position(51)
 
