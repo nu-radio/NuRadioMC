@@ -1,0 +1,16 @@
+# Source: ANITA I-IV limit https://arxiv.org/abs/1902.04005 Phys. Rev. D 99, 122001 (2019) 
+# Data type: Upper limit
+# Energy bins per decade: 1
+# Column values:
+# Energy [eV]
+# Flux [cm^-2 s^-1 sr^-1]
+# Flux band minimum
+# Flux band maximum
+
+1.000E+18  3.1098E+04  0 0
+3.162E+18  3.7069E+03  0 0
+1.000E+19  6.0475E+02  0 0
+3.162E+19  2.5019E+02  0 0
+1.000E+20  1.4476E+02  0 0
+3.162E+20  1.5519E+02  0 0
+1.000E+21  2.0658E+02  0 0
