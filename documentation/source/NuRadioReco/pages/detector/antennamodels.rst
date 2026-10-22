@@ -49,7 +49,7 @@ Overview of available Antenna Models
 ====================================
 
 The following antenna models are available in NuRadioReco.
-The model names are the unique identifiers that need to be specified as ``antenna_type`` in the detector description.
+The model names are the unique identifiers that need to be specified as ``ant_type`` in the detector description.
 
 .. warning::
     Before v3.2, the detector appended ``_InfAir`` or ``_InfFirn`` to ``ant_type`` depending on the antenna
@@ -58,6 +58,16 @@ The model names are the unique identifiers that need to be specified as ``antenn
 
 Inf means usually an infinite medium, firn has a refractive index n = 1.3-1.4. Since this is a bit imprecise
 we changed the naming to the actual refractive index.
+Naming conventions:
+
+* ``_InfAir`` / ``_InfFirn``: the antenna is embedded in an *infinite* homogeneous medium (no boundary).
+  "Firn" has a refractive index of n = 1.3-1.4; since this is imprecise, newer models state the actual refractive
+  index instead (e.g., ``_inf_n1.4``).
+* ``_z<d>_InAir`` / ``_z<d>_InFirn``: the antenna is *in* air/firn at a distance ``d`` from the air-firn boundary
+  (the reference point on the antenna is given in the model descriptions), which is included in the simulation. Unlike the infinite-medium models, these models are documented with a theta
+  range of [0, 90] deg only.
+* The meaning of the additional suffixes ``_RG``, ``_NoRG``, ``_Backlobe`` and ``_BoresightToBoundary`` is
+  currently not documented.
 
 The models are grouped by antenna family. Unless stated otherwise, the Phi range is [0, 360] deg.
 Outdated models are listed in a collapsed block at the end of their family section (click to expand);
@@ -121,7 +131,8 @@ Create LPDA: createLPDA_100MHz
 ------------------------------
 
 WIPL-D simulations of the 100 MHz LPDA from Create, used by ARIANNA. The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-For the ``*_RG`` models the simulation geometry is inverted, i.e., the medium of the antenna is firn and the ground is air.
+For the ``*_InFirn_RG`` models the simulation geometry is inverted, i.e., the medium of the antenna is firn and the ground is air
+(hence "above air" in their descriptions).
 
 .. warning::
     ``createLPDA_100MHz_InfFirn`` and ``createLPDA_100MHz_InfFirn_n1.4`` use the wrong sign for the eTheta component.
