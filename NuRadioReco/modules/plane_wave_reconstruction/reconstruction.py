@@ -311,10 +311,10 @@ class PlaneWaveReconstructor():
     def begin(self):
         """Begin the plane wave reconstructor"""
         if self.tt_map_path is not None:
-            from travel_time_maps import load_map
+            from NuRadioReco.modules.plane_wave_reconstruction.travel_time_maps import load_map
             self.tt_map = load_map(self.tt_map_path)
         else:
-            from travel_time_maps import map_from_dict
+            from NuRadioReco.modules.plane_wave_reconstruction.travel_time_maps import map_from_dict
             self.tt_map = map_from_dict( _build_travel_time_map(self.detector, self.ice_model, self.station, self.channels) )
 
     
