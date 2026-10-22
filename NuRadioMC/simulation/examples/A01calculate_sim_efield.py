@@ -24,7 +24,7 @@ propagation module to use (e.g. the analytic ray tracer).
 
 
 # initialize the detector description (from the json file)
-kwargs = dict(json_filename=os.path.join(os.path.dirname(__file__), 'surface_station_1GHz.json'), antenna_by_depth=False)
+kwargs = dict(json_filename=os.path.join(os.path.dirname(__file__), 'surface_station_1GHz.json'))
 det = detector.Detector(**kwargs)
 det.update(datetime.now())
 

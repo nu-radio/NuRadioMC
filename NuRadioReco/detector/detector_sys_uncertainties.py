@@ -10,7 +10,7 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector_base.DetectorBase):
     """
 
     def __init__(self, source='json', json_filename='ARIANNA/arianna_detector_db.json',
-                 dictionary=None, assume_inf=True, antenna_by_depth=True):
+                 dictionary=None, assume_inf=None, antenna_by_depth=None):
         """
         Initialize the stations detector properties.
 
@@ -26,12 +26,10 @@ class DetectorSysUncertainties(NuRadioReco.detector.detector_base.DetectorBase):
             the path to the json detector description file (if first checks a path relative to this directory, then a
             path relative to the current working directory of the user)
             default value is 'ARIANNA/arianna_detector_db.json'
-        assume_inf : Bool
-            Default to True, if true forces antenna madels to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
-        antenna_by_depth: bool (default True)
-            if True the antenna model is determined automatically depending on the depth of the antenna. This is done by
-            appending e.g. '_InfFirn' to the antenna model name.
-            if False, the antenna model as specified in the database is used.
+        assume_inf : None
+            Removed in v3.2. See :class:`NuRadioReco.detector.detector_base.DetectorBase`.
+        antenna_by_depth : None
+            Removed in v3.2. See :class:`NuRadioReco.detector.detector_base.DetectorBase`.
         """
         self = NuRadioReco.detector.detector.Detector(json_filename, source, dictionary, assume_inf, antenna_by_depth)
         self._antenna_orientation_override = {}

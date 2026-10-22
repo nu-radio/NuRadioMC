@@ -24,6 +24,19 @@ except ImportError: # users with astropy < 4.2 may not have pyerfa installed
 import NuRadioReco.utilities.metaclasses
 
 logger = logging.getLogger('NuRadioReco.detector')
+
+
+def check_removed_arguments(assume_inf=None, antenna_by_depth=None):
+    """ Raises for ``antenna_by_depth=True`` and warns for any other explicit value of the arguments removed in v3.2. """
+    if antenna_by_depth:
+        raise ValueError(
+            "`antenna_by_depth` was removed in v3.2: the antenna model is no longer derived from the antenna depth. "
+            "Specify the full antenna model name (e.g., 'createLPDA_100MHz_v2_InfFirn') as `ant_type` in the "
+            "detector description and remove this argument.")
+
+    for name, value in [("assume_inf", assume_inf), ("antenna_by_depth", antenna_by_depth)]:
+        if value is not None:
+            logger.warning(f"`{name}` was removed in v3.2 and has no effect. Please remove this argument.")
 warnings.filterwarnings('ignore', category=ErfaWarning)
 
 # load site coordinates / elevation from json
@@ -143,7 +156,7 @@ class DetectorBase(object):
     """
 
     def __init__(self, source='json', json_filename='ARIANNA/arianna_detector_db.json',
-                 dictionary=None, assume_inf=True, antenna_by_depth=True):
+                 dictionary=None, assume_inf=None, antenna_by_depth=None):
         """
         Initialize the stations detector properties.
 
@@ -164,12 +177,12 @@ class DetectorBase(object):
             the path to the json detector description file (if first checks a path relative to this directory, then a
             path relative to the current working directory of the user)
             default value is 'ARIANNA/arianna_detector_db.json'
-        assume_inf : Bool
-            Default to True, if true forces antenna models to have infinite boundary conditions, otherwise the antenna madel will be determined by the station geometry.
-        antenna_by_depth: bool (default True)
-            if True the antenna model is determined automatically depending on the depth of the antenna. This is done by
-            appending e.g. '_InfFirn' to the antenna model name.
-            if False, the antenna model as specified in the database is used.
+        assume_inf : None
+            Removed in v3.2, has no effect (a warning is logged if set).
+        antenna_by_depth : None
+            Removed in v3.2: the antenna model is never derived from the antenna depth (e.g., by appending
+            '_InfFirn'); ``ant_type`` has to be the full antenna model name. Raises an error if True and logs
+            a warning if False.
         create_new: bool (default: None)
             Set to ``True`` to force the creation of a new detector object. By default, the __init__ will only create a new
             object if none already exists.
@@ -214,46 +227,7 @@ class DetectorBase(object):
 
         self.__current_time = None
 
-        self.__assume_inf = assume_inf
-        if antenna_by_depth:
-            logger.info("the correct antenna model will be determined automatically based on the depth of the antenna")
-        self._antenna_by_depth = antenna_by_depth
-
-    @property
-    def assume_inf(self):
-        """
-        Getter function for the `assume_inf` attribute
-        """
-        return self.__assume_inf
-
-    @assume_inf.setter
-    def assume_inf(self, value):
-        """
-        Setter function for the `assume_inf` attribute. Checks whether new value is boolean before assigning
-        the value to the attribute.
-        """
-        if isinstance(value, bool):
-            self.__assume_inf = value
-        else:
-            raise ValueError(f"Value for assume_inf should be boolean, not {type(value)}")
-
-    @property
-    def antenna_by_depth(self):
-        """
-        Getter function for the `antenna_by_depth` attribute
-        """
-        return self._antenna_by_depth
-
-    @antenna_by_depth.setter
-    def antenna_by_depth(self, value):
-        """
-        Setter function for the `antenna_by_depth` attribute. Checks whether new value is boolean before assigning
-        the value to the attribute.
-        """
-        if isinstance(value, bool):
-            self._antenna_by_depth = value
-        else:
-            raise ValueError(f"Value for antenna_by_depth should be boolean, not {type(value)}")
+        check_removed_arguments(assume_inf, antenna_by_depth)
 
     def __query_channel(self, station_id, channel_id):
         Channel = Query()
@@ -957,9 +931,7 @@ class DetectorBase(object):
 
     def get_antenna_model(self, station_id, channel_id, zenith=None):
         """
-        determines the correct antenna model from antenna type, position and orientation of antenna
-
-        so far only infinite firn and infinite air cases are differentiated
+        Returns the antenna model, i.e., the antenna type (``ant_type``) of the channel.
 
         Parameters
         ----------
@@ -968,34 +940,13 @@ class DetectorBase(object):
         channel_id: int
             the channel id
         zenith: float or None (default)
-            the zenith angle of the incoming signal direction
+            Not used. Only defined to keep the interface in parity with other detector classes.
 
-        Returns string
+        Returns
+        -------
+        antenna_model: str
         """
-        antenna_type = self.get_antenna_type(station_id, channel_id)
-        antenna_relative_position = self.get_relative_position(station_id, channel_id)
-
-        if self._antenna_by_depth:
-            if zenith is not None and (antenna_type == 'createLPDA_100MHz'):
-                if antenna_relative_position[2] > 0:
-                    antenna_model = "{}_InfAir".format(antenna_type)
-                    if (not self.__assume_inf) and zenith < 90 * units.deg:
-                        antenna_model = "{}_z1cm_InAir_RG".format(antenna_type)
-                else:  # antenna in firn
-                    antenna_model = "{}_InfFirn".format(antenna_type)
-                    if (not self.__assume_inf) and zenith > 90 * units.deg:  # signal comes from below
-                        antenna_model = "{}_z1cm_InFirn_RG".format(antenna_type)
-                        # we need to add further distinction here
-            elif not antenna_type.startswith('analytic'):
-                if antenna_relative_position[2] > 0:
-                    antenna_model = "{}_InfAir".format(antenna_type)
-                else:
-                    antenna_model = "{}_InfFirn".format(antenna_type)
-            else:
-                antenna_model = antenna_type
-        else:
-            antenna_model = antenna_type
-        return antenna_model
+        return self.get_antenna_type(station_id, channel_id)
 
     def get_channel_group_id(self, station_id, channel_id):
         """

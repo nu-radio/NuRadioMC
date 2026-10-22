@@ -42,11 +42,6 @@ def _find_reference_entry(station_dict):
     return False
 
 
-def _if_not_None(value, default):
-    """ Return `value` if `value is not None`, otherwise return `default` """
-    return value if value is not None else default
-
-
 def Detector(*args, **kwargs):
         """
         This function returns a detector class object.
@@ -72,8 +67,8 @@ def Detector(*args, **kwargs):
                 - json_filename = args[0] only when source == "json")
                 - source = args[1]
                 - dictionary = args[2]
-                - assume_inf = args[3]
-                - antenna_by_depth = args[4]
+                - assume_inf = args[3] (removed in v3.2, see `DetectorBase`)
+                - antenna_by_depth = args[4] (removed in v3.2, see `DetectorBase`)
 
         kwargs: Optional arguments (arguments with keyword)
             Keyword arguments passed to detector object. The argument "source" is used to select the
@@ -85,6 +80,41 @@ def Detector(*args, **kwargs):
 
         det: NuRadioReco.detector.* (see options above)
             Detector class object
+
+        Examples
+        --------
+
+        A json detector description (paths are checked relative to ``NuRadioReco/detector`` first,
+        then to the current working directory) without a reference station returns a ``DetectorBase``:
+
+        .. code-block::
+
+            import datetime
+            from NuRadioReco.detector import detector
+
+            det_base = detector.Detector(json_filename="RNO_G/RNO_season_2023.json")
+            det_base.update(datetime.datetime(2023, 8, 1))
+
+        A json detector description with a reference station / channel returns a ``GenericDetector``:
+
+        .. code-block::
+
+            det_generic = detector.Detector(json_filename="RNO_G/RNO_single_station.json")
+
+        A detector description passed as dictionary (with the same structure as the json files):
+
+        .. code-block::
+
+            det_dict = detector.Detector(source="dictionary", dictionary={"stations": {...}, "channels": {...}})
+
+        The RNO-G detector (``NuRadioReco.detector.RNO_G.rnog_detector.Detector``), either queried
+        from the database or read from an exported detector file:
+
+        .. code-block::
+
+            det_rnog_db = detector.Detector(source="rnog_mongo", select_stations=13)
+            det_rnog_file = detector.Detector(source="rnog", detector_file="path/to/detector_file.json.xz")
+            det_rnog_file.update(datetime.datetime(2023, 8, 1))
         """
 
         # Interprete positional arguments (args) for backwards compatibility
@@ -108,14 +138,13 @@ def Detector(*args, **kwargs):
         if len(args) >= 5:
             antenna_by_depth = args[4]
         else:
-            # None because the default argument for GenericDetector and DetectorBase are different
             antenna_by_depth = kwargs.pop("antenna_by_depth", None)
+
+        detector_base.check_removed_arguments(assume_inf, antenna_by_depth)
 
         if source == "sql":
             return detector_base.DetectorBase(
-                json_filename=None, source=source, dictionary=dictionary,
-                assume_inf=_if_not_None(assume_inf, True),
-                antenna_by_depth=_if_not_None(antenna_by_depth, True))
+                json_filename=None, source=source, dictionary=dictionary)
 
         elif source == "rnog_mongo" or source == "rnog" or source == "mongo":
             return rnog_detector.Detector(*args, **kwargs)
@@ -170,15 +199,11 @@ def Detector(*args, **kwargs):
                                 f'{kwargs["default_station"]}) -> Using generic detector')
 
             return generic_detector.GenericDetector(
-                json_filename=filename, source=source, dictionary=dictionary,
-                assume_inf=_if_not_None(assume_inf, True),
-                antenna_by_depth=_if_not_None(antenna_by_depth, False), **kwargs)
+                json_filename=filename, source=source, dictionary=dictionary, **kwargs)
         else:
             # Keys might be present (but should be None). Keys are deprecated, keep them for backwards compatibility
             for key in ["default_station", "default_channel", "default_device"]:
                 kwargs.pop(key, "None")
 
             return detector_base.DetectorBase(
-                json_filename=filename, source=source, dictionary=dictionary,
-                assume_inf=_if_not_None(assume_inf, True),
-                antenna_by_depth=_if_not_None(antenna_by_depth, True), **kwargs)
+                json_filename=filename, source=source, dictionary=dictionary, **kwargs)

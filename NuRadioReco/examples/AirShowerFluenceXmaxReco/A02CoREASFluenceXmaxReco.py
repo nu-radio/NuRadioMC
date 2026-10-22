@@ -68,8 +68,7 @@ for i in [0,1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,2
                                 os.path.join(path, f"SIM0000{i:02d}.hdf5"))
 
 # Initialize detector
-det = detector.Detector(json_filename="grid_array_SKALA_InfFirn.json",
-                        assume_inf=False, antenna_by_depth=False)
+det = detector.Detector(json_filename="grid_array_SKALA_InfFirn.json")
 det.update(time.Time("2023-01-01T00:00:00", format='isot', scale='utc'))
 
 

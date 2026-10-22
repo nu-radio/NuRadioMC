@@ -21,7 +21,7 @@ class DetectorProvider(object):
         self.__unix_time_periods = None
         self.__astropy_time_periods = None
 
-    def set_detector(self, filename, assume_inf, antenna_by_depth):
+    def set_detector(self, filename):
         """
         Creates a detector object that can be provided to the functions
 
@@ -31,10 +31,9 @@ class DetectorProvider(object):
             Path to the .json file containing the detector description
         """
         self.__detector = NuRadioReco.detector.detector.Detector(
-            source='json', json_filename=filename, assume_inf=assume_inf,
-            antenna_by_depth=antenna_by_depth)
+            source='json', json_filename=filename)
 
-    def set_generic_detector(self, filename, default_station, default_channel, assume_inf, antenna_by_depth):
+    def set_generic_detector(self, filename, default_station, default_channel):
         """
         Creates a GenericDetector object that can be provided to the functions
 
@@ -49,8 +48,7 @@ class DetectorProvider(object):
         """
         import NuRadioReco.detector.generic_detector
         self.__detector = NuRadioReco.detector.generic_detector.GenericDetector(
-            filename, default_station, default_channel, assume_inf=assume_inf,
-            antenna_by_depth=antenna_by_depth, create_new=True)
+            filename, default_station, default_channel, create_new=True)
 
     def set_rnog_detector(self):
         """
