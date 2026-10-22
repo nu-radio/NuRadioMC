@@ -7,7 +7,6 @@ the simulated electric fields (observers) within multiple stations you have to d
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.io.coreas import coreas
-import time
 import os
 
 import logging
@@ -17,9 +16,6 @@ logger = logging.getLogger('NuRadioReco.coreas.readCoREAS')
 class readCoREAS:
 
     def __init__(self):
-        self.__t = 0
-        self.__t_event_structure = 0
-        self.__t_per_event = 0
         self.__input_files = None
         self.__current_input_file = None
         self.__ascending_run_and_event_number = None
@@ -67,9 +63,6 @@ class readCoREAS:
             The event containing the simulated observer as sim. stations.
         """
         while self.__current_input_file < len(self.__input_files):
-            t = time.time()
-            t_per_event = time.time()
-
             filename = self.__input_files[self.__current_input_file]
             filesize = os.path.getsize(filename)
             if filesize < 18456 * 2:  # based on the observation that a file with such a small filesize is corrupt
@@ -87,9 +80,6 @@ class readCoREAS:
                 corsika_evt.set_id(self.__ascending_run_and_event_number)
                 self.__ascending_run_and_event_number += 1
 
-            self.__t_per_event += time.time() - t_per_event
-            self.__t += time.time() - t
-
             self.__current_input_file += 1
             yield corsika_evt
 
@@ -99,12 +89,4 @@ class readCoREAS:
 
 
     def end(self):
-        from datetime import timedelta
-        dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
-        logger.info("\tcreate event structure {}".format(
-            timedelta(seconds=self.__t_event_structure)))
-        logger.info("per event {}".format(
-            timedelta(seconds=self.__t_per_event)))
-
-        return dt
+        pass

@@ -1,7 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import logging
-import time
 
 from NuRadioReco.utilities import units
 
@@ -15,7 +14,6 @@ class simulationSelector:
     '''
 
     def __init__(self):
-        self.__t = 0
         self.begin()
         self.logger = logging.getLogger('NuRadioReco.coreas.simulationSelector')
 
@@ -47,7 +45,6 @@ class simulationSelector:
             if True then simulation has signal in desired range
 
         """
-        t = time.time()
         efields = sim_station.get_electric_fields()
         selected_sim = False
         for efield in efields:
@@ -88,12 +85,7 @@ class simulationSelector:
                 selected_sim = True
                 break
 
-        self.__t += time.time() - t
         return selected_sim
 
     def end(self):
-        from datetime import timedelta
-        self.logger.setLevel(logging.INFO)
-        dt = timedelta(seconds=self.__t)
-        self.logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass
