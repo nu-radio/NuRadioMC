@@ -1741,7 +1741,7 @@ class ray_tracing_2D():
                 result2 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
                 if(plot):
                     self.plot_result(x1, x2, _get_C0_from_log(result2, self.medium.n_ice), ax)
-                if(np.round(result2, 3) not in np.round(C0s, 3)):
+                if(np.round(_get_C0_from_log(result2, self.medium.n_ice), 3) not in np.round(C0s, 3)):
                     C_0 = _get_C0_from_log(result2, self.medium.n_ice)
                     C0s.append(C_0)
                     solution_type = self.determine_solution_type(x1, x2, C_0)
@@ -1764,7 +1764,7 @@ class ray_tracing_2D():
 
                 if(plot):
                     self.plot_result(x1, x2, _get_C0_from_log(result3, self.medium.n_ice), ax)
-                if(np.round(result3, 3) not in np.round(C0s, 3)):
+                if(np.round(_get_C0_from_log(result3, self.medium.n_ice), 3) not in np.round(C0s, 3)):
                     C_0 = _get_C0_from_log(result3, self.medium.n_ice)
                     C0s.append(C_0)
                     solution_type = self.determine_solution_type(x1, x2, C_0)
