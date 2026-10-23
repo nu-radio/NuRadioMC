@@ -196,7 +196,12 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
 
     results = []
-    c0s = []
+    logc0s = []  # logc0 of the solutions found so far
+    # The brentq searches for further roots start logc0_offset away from the first root. Roots closer than
+    # logc0_tol are the same solution: it must exceed logc0_offset (a first root found again is at least that far off)
+    # and stay below the gap between genuine solution pairs (>= ~3e-3 in T10unit_test_C0_greenland3exp).
+    logc0_offset = 1e-5
+    logc0_tol = 1e-3
     z_min, z_max, n_ice, delta_n, z0 = layers
 
     y1, z1 = float(x1[0]), float(x1[1])
@@ -251,10 +256,10 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
     result = optimize.root(obj_delta_y_sqr, x0=logc0straight, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
     if(result.fun < 1e-7):
-        if(np.round(result.x[0], 3) not in np.round(c0s, 3)):
+        if not np.any(np.isclose(result.x[0], logc0s, rtol=0, atol=logc0_tol)):
             c_0 = get_c0_from_log(result.x[0],n_deep)
             c_1, _, _, _ = compute_offsets(c_0,y1, z1, layers)
-            c0s.append(c_0)
+            logc0s.append(result.x[0])
             solution_type = determine_solution_type(y1,z1,y2,z2, c_0, layers,downgoing,with_air)
 
             results.append({'type': solution_type,
@@ -269,10 +274,10 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
         result = optimize.root(obj_delta_y_sqr, x0=logc0skim, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), tol=tol)
         if(result.fun < 1e-7):
-            if(np.round(result.x[0], 3) not in np.round(c0s, 3)):
+            if not np.any(np.isclose(result.x[0], logc0s, rtol=0, atol=logc0_tol)):
                 c_0 = get_c0_from_log(result.x[0],n_deep)
                 c_1, _, _, _ = compute_offsets(c_0,y1, z1, layers)
-                c0s.append(c_0)
+                logc0s.append(result.x[0])
                 solution_type = determine_solution_type(y1,z1,y2,z2, c_0, layers,downgoing,with_air)
 
                 results.append({'type': solution_type,
@@ -291,7 +296,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
     else:
         result_x = result.x[0]
 
-    logc0_start = result_x + 0.00001
+    logc0_start = result_x + logc0_offset
 
     if with_air:
         c0cross_min = 1.0
@@ -325,10 +330,10 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
         result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
 
-        if(np.round(result2, 3) not in np.round(c0s, 3)):
+        if not np.any(np.isclose(result2, logc0s, rtol=0, atol=logc0_tol)):
             c_0 = get_c0_from_log(result2,n_deep)
             c_1, _, _, _ = compute_offsets(c_0,y1, z1, layers)
-            c0s.append(c_0)
+            logc0s.append(result2)
             solution_type = determine_solution_type(y1,z1,y2,z2, c_0, layers,downgoing,with_air)
 
             results.append({'type': solution_type,
@@ -352,7 +357,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
     logc0_start = max(np.log(c0theta_min - 1. / n_deep),-100)
 
-    logc0_stop = result_x - 0.00001
+    logc0_stop = result_x - logc0_offset
     delta_start = obj_delta_y(
         logc0_start,
         y1, z1, y2, z2,
@@ -371,10 +376,10 @@ def find_solutions(x1, x2, layers,tol=1e-12):
         result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
 
 
-        if(np.round(result3, 3) not in np.round(c0s, 3)):
+        if not np.any(np.isclose(result3, logc0s, rtol=0, atol=logc0_tol)):
             c_0 = get_c0_from_log(result3, n_deep)
             c_1, _, _, _ = compute_offsets(c_0,y1, z1, layers)
-            c0s.append(c_0)
+            logc0s.append(result3)
             solution_type = determine_solution_type(y1,z1,y2,z2, c_0, layers,downgoing,with_air)
 
 
@@ -453,7 +458,12 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
 
     results = []
-    c0s = []
+    logc0s = []  # logc0 of the solutions found so far
+    # The brentq searches for further roots start logc0_offset away from the first root. Roots closer than
+    # logc0_tol are the same solution: it must exceed logc0_offset (a first root found again is at least that far off)
+    # and stay below the gap between genuine solution pairs (>= ~3e-3 in T10unit_test_C0_greenland3exp).
+    logc0_offset = 1e-5
+    logc0_tol = 1e-3
     z_min, z_max, n_ice, delta_n, z0 = layers
 
     y1, z1 = float(x1[0]), float(x1[1])
@@ -541,10 +551,10 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
             c_0 = get_c0_from_log(result.x[0],n_deep)
             if(result.fun < 1e-7):
-                if(np.round(c_0, 3) not in np.round(c0s, 3)):
+                if not np.any(np.isclose(result.x[0], logc0s, rtol=0, atol=logc0_tol)):
 
                     c_1, _, _, _ = compute_offsets(c_0,y1, z1, layers)
-                    c0s.append(c_0)
+                    logc0s.append(result.x[0])
                     solution_type = determine_solution_type(y1,z1,y2,z2, c_0, layers,downgoing,with_air)
 
                     results.append({'type': solution_type,
@@ -565,7 +575,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
     else:
         result_x = result.x[0]
 
-    logc0_start = result_x + 0.00001
+    logc0_start = result_x + logc0_offset
 
     if with_air:
         c0cross_min = 1.0
@@ -591,10 +601,10 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
         result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
 
-        if(np.round(result2, 3) not in np.round(c0s, 3)):
+        if not np.any(np.isclose(result2, logc0s, rtol=0, atol=logc0_tol)):
             c_0 = get_c0_from_log(result2,n_deep)
             c_1, _, _, _ = compute_offsets(c_0,y1, z1, layers)
-            c0s.append(c_0)
+            logc0s.append(result2)
             solution_type = determine_solution_type(y1,z1,y2,z2, c_0, layers,downgoing,with_air)
 
             results.append({'type': solution_type,
@@ -618,7 +628,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
     logc0_start = max(np.log(c0theta_min - 1. / n_deep),-100)
 
-    logc0_stop = result_x - 0.00001
+    logc0_stop = result_x - logc0_offset
     delta_start = obj_delta_y(
         logc0_start,
         y1, z1, y2, z2,
@@ -637,10 +647,10 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
         result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
 
 
-        if(np.round(result3, 3) not in np.round(c0s, 3)):
+        if not np.any(np.isclose(result3, logc0s, rtol=0, atol=logc0_tol)):
             c_0 = get_c0_from_log(result3, n_deep)
             c_1, _, _, _ = compute_offsets(c_0,y1, z1, layers)
-            c0s.append(c_0)
+            logc0s.append(result3)
             solution_type = determine_solution_type(y1,z1,y2,z2, c_0, layers,downgoing,with_air)
 
 
