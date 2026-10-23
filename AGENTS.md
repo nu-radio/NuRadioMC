@@ -2,6 +2,7 @@
 
 Guidance for AI coding agents (and new developers) working in this repository.
 Full documentation: https://nu-radio.github.io/NuRadioMC/main.html (sources: `documentation/source`, reST + Sphinx + numpydoc).
+Domain terms (what words mean, which ones not to mix up): `GLOSSARY.md`.
 
 ## What this repository is
 
