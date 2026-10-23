@@ -4,7 +4,9 @@ Domain language of NuRadioMC / NuRadioReco: what the terms mean and which ones m
 How to work in the repository is in `AGENTS.md`; this file only defines words.
 
 Rules for editing: one term per entry, the code name in backticks, only verified meanings. Mark what is unknown
-as unknown (see [Open questions](#open-questions)) instead of guessing. Add a term when it caused a misunderstanding.
+as unknown (see [Open questions](#open-questions)) instead of guessing. Add a term when an agent misread it: a name
+with two meanings, or a NuRadio meaning that differs from the usual one. Terms that are only new to a person belong in
+the documentation.
 
 ## Detector and antennas
 
@@ -69,10 +71,6 @@ as unknown (see [Open questions](#open-questions)) instead of guessing. Add a te
 : An event group contains all showers that follow the same first interaction. Showers that interfere are combined
   into one event (`event_id` counting from 0); `group_into_events` splits a group wherever the gap between signal
   arrival times exceeds `split_event_time_diff`. See `HDF5_structure.rst`.
-
-**Interaction type** (`ccnc`, `interaction_type`)
-: `'cc'` = charged current, `'nc'` = neutral current. The generator option `interaction_type="ccnc"` picks one of
-  them at random.
 
 ## Data and units
 
