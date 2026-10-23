@@ -5,6 +5,7 @@ import numpy as np
 
 import NuRadioReco.modules.io.eventReader
 from NuRadioReco.utilities import units
+from NuRadioMC.utilities._test_helpers import TIME_ATOL
 try:
     file1 = sys.argv[1]
     file2 = sys.argv[2]
@@ -54,17 +55,9 @@ print("Maximum difference between traces [mV]", np.max(np.abs(diff))/units.mV)
 
 testing.assert_almost_equal(all_traces_1, all_traces_2,decimal=precision)
 
-# check that the trace_start_times are all equal
-# Trace start times depend on the raytraced travel time, which is computed in the C++ raytracer
-# via gsl_integration_qags with epsrel=1e-6 (see get_travel_time() in
-# NuRadioMC/SignalProp/CPPAnalyticRayTracing/analytic_raytracing.cpp). That tolerance is looser
-# than this test's default decimal=7 (~1.5e-7 absolute), so last-bit differences in GSL's
-# adaptive quadrature across GSL versions/platforms (observed up to ~9e-5ns) can legitimately
-# exceed decimal=7 without indicating an actual regression. A looser tolerance is used here than
-# for the trace amplitudes above, which are not affected by this.
-start_time_decimal = min(precision, 3)
-testing.assert_almost_equal(
-    trace_start_times_1, trace_start_times_2, decimal=start_time_decimal,
+# check that the trace_start_times are all equal (they depend on the raytraced travel times)
+testing.assert_allclose(
+    trace_start_times_1, trace_start_times_2, rtol=0, atol=TIME_ATOL,
     err_msg=f"Trace start times are not equal (maximum difference: {max(np.abs(trace_start_times_1-trace_start_times_2))})")
 
 try:
