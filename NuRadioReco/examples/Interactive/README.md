@@ -15,4 +15,5 @@ instructive for users who just want to understand the general NuRadio data struc
 Example on how to read & process data from the RNO-G experiment.
 
 ## NuRadioReco/examples/Interactive/read_lofar_data.ipynb
-Example on how to read & process data from LOFAR.
+Example on how to read and process LOFAR data. 
+Includes a reconstructione example, which requires `jax`, `jaxlib` and `nifty`
