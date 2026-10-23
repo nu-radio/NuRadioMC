@@ -1,5 +1,6 @@
 from NuRadioReco.utilities import units, io_utilities
-from radiotools import helper as hp, coordinatesystems as cs
+from NuRadioReco.utilities.logging import deprecated
+from radiotools import helper as hp
 
 from scipy import constants
 from scipy.signal.windows import hann
@@ -19,15 +20,18 @@ path_to_antennamodels = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
     """
-    helper function to linearly interpolate between two complex numbers
+    Linearly interpolate between two (arrays of) complex numbers
+
+    All arguments may be scalars or arrays as long as they broadcast against each other.
+    Where the two data points coincide (``x0 == x1``) ``y0`` is returned.
 
     Parameters
     ----------
-    x: float
-        the requested position
-    x0, y0: float, complex float
+    x: float or array of floats
+        the requested position(s)
+    x0, y0: float or complex float (or arrays thereof)
         the first data point
-    x1, y1: float, complex float
+    x1, y1: float or complex float (or arrays thereof)
         the second data point
     interpolation_method: string
         specifies if interpolation is in
@@ -37,53 +41,81 @@ def interpolate_linear(x, x0, x1, y0, y1, interpolation_method='complex'):
 
     Returns
     -------
-    y: complex float
-        the interpolated value
+    y: complex float or array of complex floats
+        the interpolated value(s)
+    """
+    delta = np.asarray(x1) - np.asarray(x0)
+    coincident = delta == 0
+    weight = np.where(coincident, 0., (np.asarray(x) - np.asarray(x0)) / np.where(coincident, 1., delta))
+
+    if interpolation_method == 'complex':
+        return y0 + (y1 - y0) * weight
+
+    if interpolation_method == 'magphase':  # interpolate magnitude and phase
+        # unwrap along the axis connecting the two data points, i.e. do not confuse
+        # a phase wrap between y0 and y1 with the phase evolution within either of them
+        phase0, phase1 = np.unwrap([np.angle(y0), np.angle(y1)], axis=0)
+        mag = np.abs(y0) + (np.abs(y1) - np.abs(y0)) * weight
+        return mag * np.exp(1j * (phase0 + (phase1 - phase0) * weight))
+
+    logger.error("interpolation mode {} not implemented".format(interpolation_method))
+    raise NotImplementedError("interpolation mode {} not implemented".format(interpolation_method))
+
+
+# `interpolate_linear` handles arrays, the two functions used to be separate
+interpolate_linear_vectorized = interpolate_linear
+
+
+def get_interpolation_weight(x, x0, x1):
+    """
+    Fraction of the way from ``x0`` to ``x1`` at which ``x`` lies, 0 for x0 == x1
     """
     if x0 == x1:
-        return y0
-    if interpolation_method == 'complex':
-        return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
-    elif interpolation_method == 'magphase':  # interpolate magnitude and phase
-        mag0 = np.abs(y0)
-        mag1 = np.abs(y1)
-        phase0 = np.angle(y0)
-        phase1 = np.angle(y1)
-        phase0, phase1 = np.unwrap([phase0, phase1])
-        mag = mag0 + (mag1 - mag0) * (x - x0) / (x1 - x0)
-        phase = phase0 + (phase1 - phase0) * (x - x0) / (x1 - x0)
-        y = mag * np.exp(1j * phase)
-        return y
-    else:
-        logger.error("interpolation mode {} not implemented".format(interpolation_method))
-        raise NotImplementedError
+        return 0.
+
+    return (x - x0) / (x1 - x0)
 
 
-def interpolate_linear_vectorized(x, x0, x1, y0, y1, interpolation_method='complex'):
+def interpolate_bilinear(x, nodes_x, y, nodes_y, corners, interpolation_method='complex'):
     """
-    Same as `interpolate_linear` but all parameters can be vectors
+    Interpolate within a 2-D grid cell from the values at its four corners
 
+    ``corners[..., i, j]`` is the value at ``(nodes_x[i], nodes_y[j])``.
+
+    The 'complex' interpolation is linear in the values, so the cell collapses into a single
+    weighted sum of the four corners, which is ~3x faster than interpolating one axis after
+    the other. The 'magphase' interpolation is not linear in the values and has to go axis
+    by axis.
+
+    Parameters
+    ----------
+    x, y: float
+        the requested position within the cell
+    nodes_x, nodes_y: array of floats
+        the two bracketing nodes of either axis
+    corners: array of complex floats
+        the values at the four corners, shape ``(..., 2, 2)``
+    interpolation_method: string
+        see `interpolate_linear`
+
+    Returns
+    -------
+    values: array of complex floats
+        the interpolated values, shape ``(...)``
     """
-    x = np.array(x)
-    mask = x0 != x1
-    result = np.zeros_like(x, dtype=complex)
-    denominator = x1 - x0
     if interpolation_method == 'complex':
-        result[mask] = y0[mask] + (y1[mask] - y0[mask]) * (x[mask] - x0[mask]) / denominator[mask]
-    elif interpolation_method == 'magphase':  # interpolate magnitude and phase
-        mag0 = np.abs(y0[mask])
-        mag1 = np.abs(y1[mask])
-        phase0 = np.angle(y0[mask])
-        phase1 = np.angle(y1[mask])
-        phase0, phase1 = np.unwrap([phase0, phase1])
-        mag = mag0 + (mag1 - mag0) * (x[mask] - x0[mask]) / denominator[mask]
-        phase = phase0 + (phase1 - phase0) * (x[mask] - x0[mask]) / denominator[mask]
-        result[mask] = mag * np.exp(1j * phase)
-    else:
-        logger.error("interpolation mode {} not implemented".format(interpolation_method))
-        raise NotImplementedError
-    result[~mask] = y0[~mask]
-    return result
+        w_x = get_interpolation_weight(x, *nodes_x)
+        w_y = get_interpolation_weight(y, *nodes_y)
+        return (corners[..., 0, 0] * ((1 - w_x) * (1 - w_y))
+                + corners[..., 0, 1] * ((1 - w_x) * w_y)
+                + corners[..., 1, 0] * (w_x * (1 - w_y))
+                + corners[..., 1, 1] * (w_x * w_y))
+
+    values = interpolate_linear(
+        x, *nodes_x, corners[..., 0, :], corners[..., 1, :], interpolation_method)
+
+    return interpolate_linear(
+        y, *nodes_y, values[..., 0], values[..., 1], interpolation_method)
 
 
 def is_equidistant(nodes, rtol=1e-4):
@@ -748,8 +780,8 @@ def preprocess_AERA(path):
     def P2R(magnitude, phase):
         return magnitude * np.exp(1j * phase)
 
-    VEL_thetas = P2R(theta_amps, theta_phases)
-    VEL_phis = P2R(phi_amps, phi_phases)
+    vel_thetas = P2R(theta_amps, theta_phases)
+    vel_phis = P2R(phi_amps, phi_phases)
 
     # (angle) -> (freq * angle)
     thetas = np.tile(thetas, n_freqs)
@@ -760,8 +792,8 @@ def preprocess_AERA(path):
 
     # sort with increasing frequency, increasing phi, and increasing theta
     index = np.lexsort((thetas, phis, ff))
-    VEL_thetas = VEL_thetas.flatten()[index]
-    VEL_phis = VEL_phis.flatten()[index]
+    vel_thetas = vel_thetas.flatten()[index]
+    vel_phis = vel_phis.flatten()[index]
 
     # (angle) -> (freq * angle)
     theta = np.tile(thetas, n_freqs)[index]
@@ -769,8 +801,8 @@ def preprocess_AERA(path):
 
     # to avoid issues when deviding throw H (H=0 is ignored)
     # |H| < 0.1 should not happen between 30 - 80 MHz
-    H_phi = np.where(np.abs(VEL_phis) > 0.01, VEL_phis, 0)
-    H_theta = np.where(np.abs(VEL_thetas) > 0.01, VEL_thetas, 0)
+    H_phi = np.where(np.abs(vel_phis) > 0.01, vel_phis, 0)
+    H_theta = np.where(np.abs(vel_thetas) > 0.01, vel_thetas, 0)
 
     # values for a upwards pointing LPDA with the arm aligned to the magnetic field
     orientation_theta, orientation_phi, rotation_theta, rotation_phi = 0 * units.deg, 0 * units.deg, 90 * units.deg, 90 * units.deg
@@ -1096,21 +1128,21 @@ def preprocess_LOFAR_txt(directory, ant='LBA', orientation=None):
         for ar in [theta_real, theta_imag, phi_real, phi_imag]:
             ar *= -1
 
-    VEL_thetas = theta_real + 1j * theta_imag
-    VEL_phis = phi_real + 1j * phi_imag
+    vel_thetas = theta_real + 1j * theta_imag
+    vel_phis = phi_real + 1j * phi_imag
 
     # sort with increasing frequency, increasing phi, and increasing theta
     index = np.lexsort((thetas, phis, frequencies))
-    VEL_thetas = VEL_thetas.flatten()[index]
-    VEL_phis = VEL_phis.flatten()[index]
+    vel_thetas = vel_thetas.flatten()[index]
+    vel_phis = vel_phis.flatten()[index]
 
     # (angle) -> (freq * angle)
     theta = thetas[index]
     phi = phis[index]
 
     # TODO: is the correct calculation of VEL? Felix wrote that for AERA, |H| < 0.1 should not happen...
-    H_phi = VEL_phis
-    H_theta = VEL_thetas
+    H_phi = vel_phis
+    H_theta = vel_thetas
 
     # values for an upright LBA antenna aligned along E-W
     orientation_theta, orientation_phi, rotation_theta, rotation_phi = \
@@ -1232,73 +1264,198 @@ def preprocess_FEKO_mat(path, polarization='X', downscale_freq=1, downscale_zeni
                      freq, theta, phi, vel_phi, vel_theta],
                     fout, protocol=4)
 
+def get_onsky_rotation(zenith, azimuth):
+    """
+    Rotation matrix from the ground (x, y, z) into the on-sky (eR, eTheta, ePhi) system
+
+    Equivalent to ``radiotools.coordinatesystems.cstrafo`` but constructs only the
+    transformation needed here. The matrix is orthonormal, i.e. its transpose describes
+    the inverse transformation.
+
+    Parameters
+    ----------
+    zenith, azimuth: float
+        direction defining the on-sky coordinate system
+
+    Returns
+    -------
+    rotation: array of floats
+        the 3x3 rotation matrix
+    """
+    ct, st = np.cos(zenith), np.sin(zenith)
+    cp, sp = np.cos(azimuth), np.sin(azimuth)
+    return np.array([
+        [st * cp, st * sp, ct],
+        [ct * cp, ct * sp, -st],
+        [-sp, cp, 0.]])
+
+
+def get_antenna_basis(theta1, phi1, theta2, phi2, description):
+    """
+    Basis spanned by two (almost) perpendicular directions and their cross product
+
+    The two directions are only required to be almost perpendicular, so the basis is
+    not necessarily orthonormal.
+
+    Parameters
+    ----------
+    theta1, phi1: float
+        zenith and azimuth angle of the first direction (for antennas: the boresight)
+    theta2, phi2: float
+        zenith and azimuth angle of the second direction (for antennas: perpendicular
+        to the boresight, e.g. the normal of the plane containing the tines of an LPDA)
+    description: string
+        what is being defined, used for the error message
+
+    Returns
+    -------
+    basis: array of floats
+        the 3x3 matrix of the three basis vectors
+    """
+    e1 = hp.spherical_to_cartesian(theta1, phi1)
+    e2 = hp.spherical_to_cartesian(theta2, phi2)
+    e3 = np.cross(e1, e2)
+
+    if np.linalg.norm(e3) < 0.9:  # the two directions are not perpendicular enough
+        logger.error("orientation of antenna not properly defined in {}".format(description))
+        raise AssertionError("orientation of antenna not properly defined in {}".format(description))
+
+    return np.array([e1, e2, e3])
+
+
+def make_perpendicular(theta1, phi1, theta2, phi2, description, tolerance=0.1 * units.deg):
+    """
+    Rotate the second direction into the plane perpendicular to the first
+
+    Some antenna models store a rounded angle (89.9544 deg instead of 90 deg), which makes the
+    basis spanned by the two directions non-orthogonal. The transformation between two such bases
+    is not a rotation and rescales the vector effective length slightly. A deviation larger than
+    `tolerance` is a genuine geometry and is left untouched.
+
+    Parameters
+    ----------
+    theta1, phi1: float
+        zenith and azimuth angle of the first direction
+    theta2, phi2: float
+        zenith and azimuth angle of the second direction, the one that is corrected
+    description: string
+        what is being corrected, used for the log message
+    tolerance: float (default: 0.1 deg)
+        largest deviation from perpendicular that is corrected
+
+    Returns
+    -------
+    theta2, phi2: float
+        the corrected second direction
+    """
+    e1 = hp.spherical_to_cartesian(theta1, phi1)
+    e2 = hp.spherical_to_cartesian(theta2, phi2)
+
+    deviation = np.arcsin(np.dot(e1, e2))  # zero if the two directions are perpendicular
+    if not 1e-9 < np.abs(deviation) <= tolerance:  # already perpendicular, or genuinely not
+        return theta2, phi2
+
+    e2 = e2 - np.dot(e2, e1) * e1
+    theta2, phi2 = hp.cartesian_to_spherical(*(e2 / np.linalg.norm(e2)))
+
+    logger.warning("the orientation stored in {} is {:.4f} deg off perpendicular, correcting it".format(
+        description, deviation / units.deg))
+
+    return theta2, phi2
+
+
 class AntennaPatternBase:
     """
-    base class of utility class that handles access and buffering to antenna pattern
+    Base class of utility class that handles access and buffering to antenna pattern
     """
 
     def _get_antenna_rotation(self, orientation_theta, orientation_phi, rotation_theta, rotation_phi):
         """
+        Rotation from the coordinate system of the antenna simulation into the one of
+        the antenna as deployed in the field, and its inverse.
+
+        The result only depends on the requested orientation, of which a detector has very
+        few, so it is buffered.
 
         Parameters
         ----------
+        orientation_theta, orientation_phi: float
+            Orientation (boresight) of the antenna in the field, see
+            `AntennaPatternBase.get_antenna_response_vectorized`
+        rotation_theta, rotation_phi: float
+            Rotation of the antenna in the field, see
+            `AntennaPatternBase.get_antenna_response_vectorized`
 
+        Returns
+        -------
+        rotation, inverse_rotation: array of floats
+            The 3x3 matrix which transforms the signal arrival direction into the
+            coordinate system of the antenna simulation, and its inverse.
+        polar_roll: bool
+            True if the rotation is a pure roll around the polar axis (z-axis), see
+            `AntennaPatternBase.get_antenna_response_vectorized`
         """
-        # define orientation of WIPL-D antenna simulation in NuRadio coordinate system
-        e1 = hp.spherical_to_cartesian(self._orientation_theta, self._orientation_phi)  # boresight direction
-        e2 = hp.spherical_to_cartesian(self._rotation_theta, self._rotation_phi)  # vector perpendicular to tine plane
-        e3 = np.cross(e1, e2)
-        E = np.array([e1, e2, e3])
-        if np.linalg.norm(e3) < 0.9:
-            logger.error("orientation of antenna not properly defined in WIPL-D orientation file")
-            raise AssertionError("orientation of antenna not properly defined in WIPL-D orientation file")
+        orientation = (orientation_theta, orientation_phi, rotation_theta, rotation_phi)
+        if orientation not in self._antenna_rotations:
+            simulated = get_antenna_basis(
+                self._orientation_theta, self._orientation_phi,
+                self._rotation_theta, self._rotation_phi, "the antenna model")
+            deployed = get_antenna_basis(*orientation, "the detector description")
 
-        # get normal vectors for antenne orientation in field in NuRadio coordinate system
-        a1 = hp.spherical_to_cartesian(orientation_theta, orientation_phi)
-        a2 = hp.spherical_to_cartesian(rotation_theta, rotation_phi)
-        a3 = np.cross(a1, a2)
-        A = np.array([a1, a2, a3])
-        if np.linalg.norm(a3) < 0.9:
-            logger.error("orientation of antenna not properly defined detector description")
-            raise AssertionError("orientation of antenna not properly defined detector description")
-        from numpy.linalg import inv
+            # neither basis is required to be orthonormal, so invert instead of transpose
+            rotation = np.matmul(np.linalg.inv(simulated), deployed)
+            polar_roll = (np.allclose(rotation[2], [0., 0., 1.])
+                          and np.allclose(rotation[:, 2], [0., 0., 1.]))
+            self._antenna_rotations[orientation] = (rotation, np.linalg.inv(rotation), polar_roll)
 
-        return np.matmul(inv(E), A)
+        return self._antenna_rotations[orientation]
 
-    def _get_theta_and_phi(self, zenith, azimuth, orientation_theta, orientation_phi, rotation_theta, rotation_phi):
+    def _get_theta_and_phi(self, zenith, azimuth, orientation_theta, orientation_phi,
+                           rotation_theta, rotation_phi):
         """
-        transform zenith and azimuth angle in NuRadio coordinate system to the WIPLD coordinate system.
-        In addition the orientation of the antenna as deployed in the field is taken into account.
+        Transform an incoming signal direction from the NuRadio into the antenna
+        simulation coordinate system, taking the orientation of the antenna as deployed
+        in the field into account
 
         Parameters
         ----------
-        """
+        zenith, azimuth: float
+            incoming signal direction in the NuRadio coordinate system
+        orientation_theta, orientation_phi, rotation_theta, rotation_phi: float
+            orientation of the antenna in the field, see
+            `AntennaPatternBase.get_antenna_response_vectorized`
 
-        rot = self._get_antenna_rotation(orientation_theta, orientation_phi, rotation_theta, rotation_phi)
+        Returns
+        -------
+        theta, phi: float
+            the same direction in the coordinate system of the antenna simulation
+        """
+        rotation, _, _ = self._get_antenna_rotation(
+            orientation_theta, orientation_phi, rotation_theta, rotation_phi)
 
         incoming_direction = hp.spherical_to_cartesian(zenith, azimuth)
-        incoming_direction_WIPLD = np.dot(rot, incoming_direction.T).T
-        theta, phi = hp.cartesian_to_spherical(*incoming_direction_WIPLD)
-        if zenith == 180 * units.deg:
-            logger.debug(incoming_direction)
-            logger.debug(rot)
-            logger.debug(incoming_direction_WIPLD)
-        #         theta = 0.5 * np.pi - theta  # in wipl D the elevation is defined with 0deg being in the x-y plane
-        #         theta = hp.get_normalized_angle(theta)
-        #         phi = hp.get_normalized_angle(phi)
+        theta, phi = hp.cartesian_to_spherical(*np.dot(rotation, incoming_direction.T).T)
 
-        logger.debug("zen/az {:.0f} {:.0f} transform to {:.0f} {:.0f}".format(zenith / units.deg,
-                                                                              azimuth / units.deg,
-                                                                              theta / units.deg,
-                                                                              phi / units.deg))
+        logger.debug("zen/az {:.0f} {:.0f} transform to {:.0f} {:.0f}".format(
+            zenith / units.deg, azimuth / units.deg, theta / units.deg, phi / units.deg))
+
         return theta, phi
 
     def get_antenna_response_vectorized(self, freq, zenith, azimuth, orientation_theta, orientation_phi, rotation_theta,
                                         rotation_phi):
         """
-        get the antenna response for a specific frequency, zenith and azimuth angle
+        Get the antenna response for a specific frequency, zenith and azimuth angle.
 
-        All angles are specified in the NuRadio coordinate system. All units are in NuRadio default units
+        All angles are specified in the NuRadio coordinate system. All units are in NuRadio default units.
+
+        This function does three things:
+
+        * ``_get_theta_and_phi``: transform the requested signal direction into the coordinate system
+          of the antenna simulation, taking the orientation and rotation of the antenna into account
+        * ``_get_antenna_response_vectorized_raw``: interpolate the stored antenna pattern at that
+          requested direction (properly transformed) and frequencies (in the native simulated coordinate system)
+        * rotate the interpolated vector effective length, so that its two components refer to the
+          on-sky unit vectors of the NuRadio coordinate system
 
         Parameters
         ----------
@@ -1319,42 +1476,42 @@ class AntennaPatternBase:
 
         Returns
         -------
-        VEL: dictonary of complex arrays
+        vel: dictonary of complex arrays
             theta and phi component of the vector effective length, both components
             are complex floats or arrays of complex floats
             of the same length as the frequency input
         """
+        freq = np.atleast_1d(freq)
         if self._notfound:
-            VEL = {'theta': np.ones(len(freq), dtype=complex),
-                   'phi': np.ones(len(freq), dtype=complex)}
-            return VEL
-
-        if isinstance(freq, (float, int)):
-            freq = np.array([freq])
+            return {'theta': np.ones(len(freq), dtype=complex),
+                    'phi': np.ones(len(freq), dtype=complex)}
 
         theta, phi = self._get_theta_and_phi(
-            zenith, azimuth, orientation_theta, orientation_phi,
-            rotation_theta, rotation_phi)
+            zenith, azimuth, orientation_theta, orientation_phi, rotation_theta, rotation_phi)
 
-        Vtheta_raw, Vphi_raw = self._get_antenna_response_vectorized_raw(freq, theta, phi)
+        vel_theta_raw, vel_phi_raw = self._get_antenna_response_vectorized_raw(freq, theta, phi)
 
-        # now rotate the raw theta and phi component of the VEL into the NuRadio coordinate system.
-        # As the theta and phi angles are differently defined in WIPLD and NuRadio, also the orientation of the
-        # eTheta and ePhi unit vectors are different.
-        cstrans = cs.cstrafo(zenith=theta, azimuth=phi)
-        V_xyz_raw = cstrans.transform_from_onsky_to_ground(
-            np.array([np.zeros(Vtheta_raw.shape[0]), Vtheta_raw, Vphi_raw]))
-
-        rot = self._get_antenna_rotation(
+        _, inverse_antenna_rotation, polar_roll = self._get_antenna_rotation(
             orientation_theta, orientation_phi, rotation_theta, rotation_phi)
-        V_xyz = np.dot(np.linalg.inv(rot), V_xyz_raw)
 
-        cstrans2 = cs.cstrafo(zenith=zenith, azimuth=azimuth)
-        V_onsky = cstrans2.transform_from_ground_to_onsky(V_xyz)
-        VEL = {'theta': V_onsky[1],
-               'phi': V_onsky[2]}
+        # A roll of the antenna about the polar axis only shifts the azimuth, and the on-sky
+        # unit vectors at the shifted azimuth are rolled by exactly the same angle. Both
+        # cancel for every direction, i.e. the two on-sky systems already coincide.
+        if polar_roll:
+            return {'theta': vel_theta_raw, 'phi': vel_phi_raw}
 
-        return VEL
+        # The eTheta and ePhi unit vectors of the antenna simulation and of NuRadio point in
+        # different directions, so rotate the VEL from the one on-sky system of the simulated
+        # antenna pattern into the NuRadio system by going through the (cartesian) ground coordinate system.
+        rotation = (get_onsky_rotation(zenith, azimuth)
+                    @ inverse_antenna_rotation
+                    @ get_onsky_rotation(theta, phi).T)
+
+        # the eR component of the VEL is zero and the one of the result is not needed,
+        # hence only the eTheta/ePhi block of the rotation contributes
+        vel = np.matmul(rotation[1:, 1:], np.array([vel_theta_raw, vel_phi_raw]))
+
+        return {'theta': vel[0], 'phi': vel[1]}
 
 
 class AntennaPattern(AntennaPatternBase):
@@ -1383,6 +1540,8 @@ class AntennaPattern(AntennaPatternBase):
     H_theta: array of floats
         the complex realized vector effective length of the eTheta polarization component
 
+    The three angular/spectral axes are sampled on a regular (but not necessarily equally
+    spaced) grid, i.e. the VEL is stored as a ``(n_freqs, n_phi, n_theta)`` cube.
     """
 
     def __init__(self, antenna_model, path=path_to_antennamodels,
@@ -1408,6 +1567,7 @@ class AntennaPattern(AntennaPatternBase):
 
         self._name = antenna_model
         self._interpolation_method = interpolation_method
+        self._antenna_rotations = {}
 
         t0 = time()
         filename = os.path.join(path, antenna_model, "{}.pkl".format(antenna_model))
@@ -1421,205 +1581,185 @@ class AntennaPattern(AntennaPatternBase):
             logger.error("antenna response for {} not found".format(antenna_model))
             raise FileNotFoundError("antenna response for {} not found".format(antenna_model))
 
+        self._rotation_theta, self._rotation_phi = make_perpendicular(
+            self._orientation_theta, self._orientation_phi,
+            self._rotation_theta, self._rotation_phi, antenna_model)
+
         self.frequencies = np.unique(ff)
-        self.frequency_lower_bound = self.frequencies[0]
-        self.frequency_upper_bound = self.frequencies[-1]
-
         self.theta_angles = np.unique(thetas)
-        self.theta_lower_bound = self.theta_angles[0]
-        self.theta_upper_bound = self.theta_angles[-1]
-        logger.debug(
-            "{} thetas from {} to {}".format(len(self.theta_angles), self.theta_lower_bound, self.theta_upper_bound))
-
         self.phi_angles = np.unique(phis)
-        self.phi_lower_bound = self.phi_angles[0]
-        self.phi_upper_bound = self.phi_angles[-1]
-        logger.debug("{} phis from {} to {}".format(len(self.phi_angles), self.phi_lower_bound, self.phi_upper_bound))
 
         self.n_freqs = len(self.frequencies)
         self.n_theta = len(self.theta_angles)
         self.n_phi = len(self.phi_angles)
+
+        self.frequency_lower_bound, self.frequency_upper_bound = self.frequencies[[0, -1]]
+        self.theta_lower_bound, self.theta_upper_bound = self.theta_angles[[0, -1]]
+        self.phi_lower_bound, self.phi_upper_bound = self.phi_angles[[0, -1]]
+        logger.debug("{} thetas from {} to {}".format(
+            self.n_theta, self.theta_lower_bound, self.theta_upper_bound))
+        logger.debug("{} phis from {} to {}".format(
+            self.n_phi, self.phi_lower_bound, self.phi_upper_bound))
 
         # allows the faster index calculation in `get_bracketing_indices`
         self._equidistant_freqs = is_equidistant(self.frequencies)
         self._equidistant_theta = is_equidistant(self.theta_angles)
         self._equidistant_phi = is_equidistant(self.phi_angles)
 
-        self.VEL_phi = H_phi
-        self.VEL_theta = H_theta
-
         if do_consistency_check and not verified:
             logger.status("Performing consistency check on antenna response ...")
-            # additional consistency check
-            for iFreq, freq in enumerate(self.frequencies):
-                for iPhi, phi in enumerate(self.phi_angles):
-                    for iTheta, theta in enumerate(self.theta_angles):
-                        index = self._get_index(iFreq, iTheta, iPhi)
+            self._check_grid_ordering(ff, thetas, phis)
 
-                        if phi != phis[index]:
-                            logger.error("phi angle has changed during theta loop {0}, {1}".format(
-                                phi / units.deg, phis[index] / units.deg))
-                            raise Exception("phi angle has changed during theta loop")
-
-                        if theta != thetas[index]:
-                            logger.error("theta angle has changed during theta loop {0}, {1}".format(
-                                theta / units.deg, thetas[index] / units.deg))
-                            raise Exception("theta angle has changed during theta loop")
-
-                        if freq != ff[index]:
-                            logger.error("frequency has changed {0}, {1}".format(
-                                freq, ff[index]))
-                            raise Exception("frequency has changed")
+        # both components in one array so that a single gather serves both
+        grid_shape = (self.n_freqs, self.n_phi, self.n_theta)
+        self._vel = np.array([H_theta.reshape(grid_shape), H_phi.reshape(grid_shape)])
 
         logger.status('Loading antenna file {} took {:.1f} seconds'.format(antenna_model, time() - t0))
 
-    def _get_index(self, iFreq, iTheta, iPhi):
+    @property
+    @deprecated("`AntennaPattern.VEL` is deprecated. You should not use it. "
+        "If you know what you are doing you can use it with `_vel` instead.", stacklevel=2)
+    def VEL(self):
+        return self._vel
+
+    @property
+    @deprecated("`AntennaPattern.VEL_theta` is deprecated. You should not use it. "
+        "If you know what you are doing you can use it with `_vel[0]` instead.", stacklevel=2)
+    def VEL_theta(self):
+        return self._vel[0]
+
+    @property
+    @deprecated("`AntennaPattern.VEL_phi` is deprecated. You should not use it. "
+        "If you know what you are doing you can use it with `_vel[1]` instead.", stacklevel=2)
+    def VEL_phi(self):
+        return self._vel[1]
+
+    def _check_grid_ordering(self, ff, thetas, phis):
         """
+        Check that the flat arrays of the antenna file iterate over theta first, then phi,
+        then frequency, which is what reshaping them into the VEL cube assumes
         """
-        return iFreq * self.n_theta * self.n_phi + iPhi * self.n_theta + iTheta
+        expected = {
+            "frequency": (ff, np.repeat(self.frequencies, self.n_phi * self.n_theta)),
+            "phi angle": (phis, np.tile(np.repeat(self.phi_angles, self.n_theta), self.n_freqs)),
+            "theta angle": (thetas, np.tile(self.theta_angles, self.n_freqs * self.n_phi)),
+        }
+
+        for name, (stored, ordered) in expected.items():
+            if not np.array_equal(stored, ordered):
+                logger.error("{} is not ordered as expected in {}".format(name, self._name))
+                raise Exception("{} is not ordered as expected in {}".format(name, self._name))
 
     def _get_antenna_response_vectorized_raw(self, freq, theta, phi):
         """
-        get vector effective length in (WIPLD) coordinate system
-        """
-        while phi < self.phi_lower_bound:
-            phi += 2 * np.pi
-        while phi > self.phi_upper_bound:
-            phi -= 2 * np.pi
+        Get the vector effective length in the coordinate system of the antenna simulation
 
+        Trilinearly interpolates the VEL cube at the requested position. Frequencies
+        outside of the simulated band return 0, directions outside of the simulated
+        solid angle return 0 for all frequencies.
+
+        Parameters
+        ----------
+        freq: array of floats
+            frequencies at which to evaluate the response
+        theta, phi: float
+            direction in the coordinate system of the antenna simulation
+
+        Returns
+        -------
+        vel_theta, vel_phi: arrays of complex floats
+            the two components of the vector effective length
+        """
+        freq = np.atleast_1d(freq)
+        phi = self.phi_lower_bound + (phi - self.phi_lower_bound) % (2 * np.pi)
+
+        # avoid that rounding pushes a request at exactly 0 or 180 deg out of the grid
         if hp.is_equal(theta, self.theta_upper_bound, rel_precision=1e-5):
             theta = self.theta_upper_bound
         if hp.is_equal(theta, self.theta_lower_bound, rel_precision=1e-5):
             theta = self.theta_lower_bound
-        if (((phi < self.phi_lower_bound) or (phi > self.phi_upper_bound))
-                or ((theta < self.theta_lower_bound) or (theta > self.theta_upper_bound))):
-            logger.debug(self._name)
-            logger.debug("theta bounds {0} ,{1}, {2}".format(self.theta_lower_bound, theta, self.theta_upper_bound))
-            logger.debug("phi bounds {0} ,{1}, {2}".format(self.phi_lower_bound, phi, self.phi_upper_bound))
-            logger.warning("theta, phi or frequency out of range, returning (0,0j)")
-            logger.debug("{0},{1},{2}".format(freq, self.frequency_lower_bound, self.frequency_upper_bound))
-            return np.zeros(shape=(2,1), dtype=complex)
 
-        # the angular and frequency grids are not necessarily equally spaced (e.g. the
-        # theta grid of RNOG_vpol_4inch_center_n1.73), hence look up the bracketing
-        # nodes instead of calculating their indices from the grid boundaries
-        iTheta_lower, iTheta_upper = get_bracketing_indices(
-            theta, self.theta_angles, self._equidistant_theta)
-        theta_lower = self.theta_angles[iTheta_lower]
-        theta_upper = self.theta_angles[iTheta_upper]
+        if not (self.phi_lower_bound <= phi <= self.phi_upper_bound
+                and self.theta_lower_bound <= theta <= self.theta_upper_bound):
+            logger.warning("theta or phi out of range for {}, returning (0, 0j)".format(self._name))
+            logger.debug("theta bounds {}, {}, {}".format(self.theta_lower_bound, theta, self.theta_upper_bound))
+            logger.debug("phi bounds {}, {}, {}".format(self.phi_lower_bound, phi, self.phi_upper_bound))
+            return np.zeros((2, len(freq)), dtype=complex)
 
-        iPhi_lower, iPhi_upper = get_bracketing_indices(
-            phi, self.phi_angles, self._equidistant_phi)
-        phi_lower = self.phi_angles[iPhi_lower]
-        phi_upper = self.phi_angles[iPhi_upper]
+        in_band = ((freq >= self.frequency_lower_bound) & (freq <= self.frequency_upper_bound))
+        if not np.any(in_band):
+            return np.zeros((2, len(freq)), dtype=complex)
 
-        iFrequency_lower, iFrequency_upper = get_bracketing_indices(
-            freq, self.frequencies, self._equidistant_freqs)
-        # handling frequency out of bound cases properly
-        out_of_bound_freqs_low = freq < self.frequency_lower_bound
-        out_of_bound_freqs_high = freq > self.frequency_upper_bound
-        iFrequency_lower[
-            out_of_bound_freqs_low] = 0  # set all out of bound frequencies to its minimum/maximum possible value
-        iFrequency_lower[
-            out_of_bound_freqs_high] = 0  # set all out of bound frequencies to its minimum/maximum possible value
-        iFrequency_upper[out_of_bound_freqs_low] = self.n_freqs - 1
-        iFrequency_upper[out_of_bound_freqs_high] = self.n_freqs - 1
-        frequency_lower = self.frequencies[iFrequency_lower]
-        frequency_upper = self.frequencies[iFrequency_upper]
+        # the grids are not necessarily equally spaced (e.g. the theta grid of
+        # RNOG_vpol_4inch_center_n1.73), hence look up the bracketing nodes instead of
+        # calculating their indices from the grid boundaries
+        i_theta = np.array(get_bracketing_indices(theta, self.theta_angles, self._equidistant_theta))
+        i_phi = np.array(get_bracketing_indices(phi, self.phi_angles, self._equidistant_phi))
 
-        # lower frequency bound
-        # theta low
-        VELt_freq_low_theta_low = interpolate_linear(
-            phi, phi_lower, phi_upper,
-            self.VEL_theta[self._get_index(iFrequency_lower, iTheta_lower, iPhi_lower)],
-            self.VEL_theta[self._get_index(iFrequency_lower, iTheta_lower, iPhi_upper)],
-            self._interpolation_method)
-        VELp_freq_low_theta_low = interpolate_linear(
-            phi, phi_lower, phi_upper,
-            self.VEL_phi[self._get_index(iFrequency_lower, iTheta_lower, iPhi_lower)],
-            self.VEL_phi[self._get_index(iFrequency_lower, iTheta_lower, iPhi_upper)],
-            self._interpolation_method)
+        # Collapse the two angular axes first, over the frequency nodes that the request
+        # spans: theta and phi have a single bracket while every requested frequency has its
+        # own, so this interpolates a few hundred grid points instead of 8 per frequency bin.
+        first = max(int(np.searchsorted(self.frequencies, freq[in_band].min(), "right")) - 1, 0)
+        last = min(int(np.searchsorted(self.frequencies, freq[in_band].max(), "left")) + 1, self.n_freqs)
 
-        # theta up
-        VELt_freq_low_theta_up = interpolate_linear(
-            phi, phi_lower, phi_upper,
-            self.VEL_theta[self._get_index(iFrequency_lower, iTheta_upper, iPhi_lower)],
-            self.VEL_theta[self._get_index(iFrequency_lower, iTheta_upper, iPhi_upper)],
-            self._interpolation_method)
-        VELp_freq_low_theta_up = interpolate_linear(
-            phi, phi_lower, phi_upper,
-            self.VEL_phi[self._get_index(iFrequency_lower, iTheta_upper, iPhi_lower)],
-            self.VEL_phi[self._get_index(iFrequency_lower, iTheta_upper, iPhi_upper)],
-            self._interpolation_method)
+        # Select only the relevant part of the loaded vector effective length:
+        # All frequencies within the requested frequency range (to be used in
+        # _interpolate_frequency). And the two bracketing nodes for the two angles.
+        # self._vel.shape: (n_pol, self.n_freqs, self.n_phi, self.n_theta)
+        # ---> vel.shape: (n_pol, last - first, 2, 2)
+        vel = self._vel[:, first:last][:, :, i_phi[:, None], i_theta[None, :]]
 
-        VELt_freq_low = interpolate_linear(theta, theta_lower,
-                                           theta_upper,
-                                           VELt_freq_low_theta_low,
-                                           VELt_freq_low_theta_up,
-                                           self._interpolation_method)
-        VELp_freq_low = interpolate_linear(theta, theta_lower,
-                                           theta_upper,
-                                           VELp_freq_low_theta_low,
-                                           VELp_freq_low_theta_up,
-                                           self._interpolation_method)
+        # Only interpolate between the 2 angle nodes each
+        # vel.shape: (n_pol, last - first, 2, 2) ---> (n_pol, last - first)
+        vel = interpolate_bilinear(
+            phi, self.phi_angles[i_phi], theta, self.theta_angles[i_theta],
+            vel, self._interpolation_method)
 
-        # upper frequency bound
-        # theta low
-        VELt_freq_up_theta_low = interpolate_linear(
-            phi, phi_lower, phi_upper,
-            self.VEL_theta[self._get_index(iFrequency_upper, iTheta_lower, iPhi_lower)],
-            self.VEL_theta[self._get_index(iFrequency_upper, iTheta_lower, iPhi_upper)],
-            self._interpolation_method)
-        VELp_freq_up_theta_low = interpolate_linear(
-            phi, phi_lower, phi_upper,
-            self.VEL_phi[self._get_index(iFrequency_upper, iTheta_lower, iPhi_lower)],
-            self.VEL_phi[self._get_index(iFrequency_upper, iTheta_lower, iPhi_upper)],
-            self._interpolation_method)
+        # ... and only then interpolate along the frequency axis, shape (component, n_freq)
+        vel = self._interpolate_frequency(freq, self.frequencies[first:last], vel)
 
-        # theta up
-        VELt_freq_up_theta_up = interpolate_linear(
-            phi, phi_lower, phi_upper,
-            self.VEL_theta[self._get_index(iFrequency_upper, iTheta_upper, iPhi_lower)],
-            self.VEL_theta[self._get_index(iFrequency_upper, iTheta_upper, iPhi_upper)],
-            self._interpolation_method)
-        VELp_freq_up_theta_up = interpolate_linear(
-            phi, phi_lower, phi_upper,
-            self.VEL_phi[self._get_index(iFrequency_upper, iTheta_upper, iPhi_lower)],
-            self.VEL_phi[self._get_index(iFrequency_upper, iTheta_upper, iPhi_upper)],
-            self._interpolation_method)
+        vel[:, ~in_band] = 0
+        return vel[0], vel[1]
 
-        VELt_freq_up = interpolate_linear(theta, theta_lower, theta_upper,
-                                          VELt_freq_up_theta_low,
-                                          VELt_freq_up_theta_up,
-                                          self._interpolation_method)
-        VELp_freq_up = interpolate_linear(theta, theta_lower, theta_upper,
-                                          VELp_freq_up_theta_low,
-                                          VELp_freq_up_theta_up,
-                                          self._interpolation_method)
+    def _interpolate_frequency(self, freq, nodes, vel):
+        """
+        Interpolate the vector effective length at the frequency nodes onto ``freq``
 
-        interpolated_VELt = interpolate_linear_vectorized(freq, frequency_lower,
-                                                          frequency_upper,
-                                                          VELt_freq_low,
-                                                          VELt_freq_up,
-                                                          self._interpolation_method)
-        interpolated_VELp = interpolate_linear_vectorized(freq, frequency_lower,
-                                                          frequency_upper,
-                                                          VELp_freq_low,
-                                                          VELp_freq_up,
-                                                          self._interpolation_method)
+        Parameters
+        ----------
+        freq: array of floats
+            the requested frequencies
+        nodes: array of floats
+            the frequency nodes vel is given at
+        vel: array of complex floats
+            the vector effective length, shape (component, len(nodes))
 
-        # set all out of bound frequencies to zero
-        interpolated_VELt[out_of_bound_freqs_low] = 0 + 0 * 1j
-        interpolated_VELt[out_of_bound_freqs_high] = 0 + 0 * 1j
-        interpolated_VELp[out_of_bound_freqs_low] = 0 + 0 * 1j
-        interpolated_VELp[out_of_bound_freqs_high] = 0 + 0 * 1j
-        return interpolated_VELt, interpolated_VELp
+        Returns
+        -------
+        vel: array of complex floats
+            the interpolated vector effective length, shape (component, len(freq))
+        """
+        if self._interpolation_method == 'complex':
+            # np.interp does the bracketing internally, in C and for the whole vector at once
+            return np.array([np.interp(freq, nodes, vel[0]), np.interp(freq, nodes, vel[1])])
+
+        i_freq = np.array(get_bracketing_indices(freq, nodes, is_equidistant(nodes)))
+        return interpolate_linear(
+            freq, *nodes[i_freq], vel[:, i_freq[0]], vel[:, i_freq[1]], self._interpolation_method)
 
 
 class AntennaPatternAnalytic(AntennaPatternBase):
     """
     utility class that handles access and buffering to analytic antenna pattern
     """
+
+    # default low frequency cutoff (peak frequency for the HPol) and maximum VEL, chosen
+    # such that the model approximates the corresponding simulated antenna model
+    _defaults = {
+        'analytic_LPDA': (110 * units.MHz, 0.55 * units.m),   # createLPDA_100MHz_InfFirn_n1.4
+        'analytic_VPol': (220 * units.MHz, 0.18 * units.m),   # RNOG_vpol_v3_5inch_center_n1.74
+        'analytic_HPol': (500 * units.MHz, 0.055 * units.m),  # RNOG_hpol_v4_8inch_center_n1.74
+    }
 
     def __init__(self, antenna_model, cutoff_freq=None, max_VEL=None):
         """
@@ -1645,169 +1785,158 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             'analytic_VPol': 0.18 m,
             'analytic_HPol': 0.055 m.
         """
+        if antenna_model not in self._defaults:
+            logger.error("analytic antenna model {} is not implemented".format(antenna_model))
+            raise ValueError("analytic antenna model {} is not implemented".format(antenna_model))
+
         self._notfound = False
         self._model = antenna_model
+        self._antenna_rotations = {}
 
-        if self._model == 'analytic_LPDA':
-            # LPDA dummy model points towards z direction and has its tines in the y-z plane
-            self._orientation_theta = 0 * units.deg
-            self._orientation_phi = 0 * units.deg
-            self._rotation_theta = 90 * units.deg
-            self._rotation_phi = 0 * units.deg
-            self._cutoff_freq = 110 * units.MHz if cutoff_freq is None else cutoff_freq
-            self._max_VEL = 0.55 * units.m if max_VEL is None else max_VEL
+        default_cutoff_freq, default_max_VEL = self._defaults[antenna_model]
+        self._cutoff_freq = default_cutoff_freq if cutoff_freq is None else cutoff_freq
+        self._max_VEL = default_max_VEL if max_VEL is None else max_VEL
 
-        if self._model == 'analytic_VPol':
-            # VPol dummy model points towards z direction
-            self._orientation_theta = 0 * units.deg
-            self._orientation_phi = 0 * units.deg
-            self._rotation_theta = 90 * units.deg
-            self._rotation_phi = 0 * units.deg
-            self._cutoff_freq = 220 * units.MHz if cutoff_freq is None else cutoff_freq
-            self._max_VEL = 0.18 * units.m if max_VEL is None else max_VEL
-
-        if self._model == 'analytic_HPol':
-            # HPol dummy model points towards z direction
-            self._orientation_theta = 0 * units.deg
-            self._orientation_phi = 0 * units.deg
-            self._rotation_theta = 90 * units.deg
-            self._rotation_phi = 0 * units.deg
-            self._cutoff_freq = 500 * units.MHz if cutoff_freq is None else cutoff_freq
-            self._max_VEL = 0.055 * units.m if max_VEL is None else max_VEL
+        # all dummy models point towards z, the LPDA has its tines in the y-z plane
+        self._orientation_theta = 0 * units.deg
+        self._orientation_phi = 0 * units.deg
+        self._rotation_theta = 90 * units.deg
+        self._rotation_phi = 0 * units.deg
 
     def parametric_phase(self, freq, phase_type='theoretical'):
         """
+        Phase of the analytic antenna models as a function of frequency
 
+        Parameters
+        ----------
+        freq: array of floats
+            frequencies at which to evaluate the phase
+        phase_type: string
+            one of 'theoretical', 'frontlobe_lpda', 'side_lpda', 'back_lpda',
+            'VPol_third_order' or 'HPol_third_order'
+
+        Returns
+        -------
+        phase: array of floats
+            the phase in radians
         """
-        if phase_type == 'frontlobe_lpda':
-            a = 100 * (freq - 400 * units.MHz) ** 2 - 20
-            a[np.where(freq > 400 * units.MHz)] -= 0.00007 * (
-                freq[np.where(freq > 400 * units.MHz)] - 400 * units.MHz) ** 2
+        # The third order parametrizations: the 1st, 2nd, and 3rd order parameters are obtained
+        # from a 2nd order polynomial fit to the slope of the unwrapped complex phase of the
+        # corresponding simulated antenna pattern. The constant term is obtained by fitting the
+        # resulting analytic antenna pattern (with the offset set to 0) in the time domain to
+        # the simulated antenna pattern in the time domain.
+        if phase_type == 'theoretical':
+            tau = 0.75             # ratio of two elements
+            f = 1000. * units.MHz  # maximum frequency
+            return np.pi / np.log(tau) * np.log(freq / f) - 60
+        elif phase_type == 'frontlobe_lpda':
+            phase = 100 * (freq - 400 * units.MHz) ** 2 - 20
+            above = freq > 400 * units.MHz
+            phase[above] -= 0.00007 * (freq[above] - 400 * units.MHz) ** 2
+            return phase
         elif phase_type == 'side_lpda':
-            a = 40 * (freq - 950 * units.MHz) ** 2 - 40
+            return 40 * (freq - 950 * units.MHz) ** 2 - 40
         elif phase_type == 'back_lpda':
-            a = 50 * (freq - 950 * units.MHz) ** 2 - 50
-        elif phase_type == "theoretical":
-            # ratio of two elements
-            tau = 0.75
-            # maximum frequency
-            f = 1000. * units.MHz
-            a = np.pi / np.log(tau) * np.log(freq / f) - 60
-        if phase_type == 'VPol_third_order':
-            # The 1st, 2nd, and 3rd order parameters are obtained from a 2nd order polynomial fit to the slope of the
-            # unwrapped complex phase of the RNOG_vpol_v3_5inch_center_n1.74 antenna pattern. The constant term is obtained
-            # by fitting the resulting analytic antenna pattern (with the offset set to 0) in the time domain to the
-            # simulated antenna pattern in the time domain.
-            a = 2.086 - 117.917 * freq + 74.567/2 * freq**2 - 64.343/3 * freq**3
-        if phase_type == 'HPol_third_order':
-            # The 1st, 2nd, and 3rd order parameters are obtained from a 2nd order polynomial fit to the slope of the
-            # unwrapped complex phase of the RNOG_hpol_v4_8inch_center_n1.74 antenna pattern. The constant term is obtained
-            # by fitting the resulting analytic antenna pattern (with the offset set to 0) in the time domain to the
-            # simulated antenna pattern in the time domain.
-            a = 0.321 - 11.400 * freq + 39.590/2 * freq**2 -38.181/3 * freq**3
+            return 50 * (freq - 950 * units.MHz) ** 2 - 50
+        elif phase_type == 'VPol_third_order':
+            return 2.086 - 117.917 * freq + 74.567 / 2 * freq ** 2 - 64.343 / 3 * freq ** 3
+        elif phase_type == 'HPol_third_order':
+            return 0.321 - 11.400 * freq + 39.590 / 2 * freq ** 2 - 38.181 / 3 * freq ** 3
 
-        return a
+        logger.error("phase type {} not implemented".format(phase_type))
+        raise NotImplementedError("phase type {} not implemented".format(phase_type))
+
+    def _gain_to_vel(self, freq, gain):
+        """
+        Convert a gain into a vector effective length, apply the low frequency cutoff
+        and normalize to the maximum VEL of the model
+
+        Parameters
+        ----------
+        freq: array of floats
+            frequencies at which to evaluate the response
+        gain: array of floats
+            the gain at those frequencies
+
+        Returns
+        -------
+        vel: array of floats
+            the vector effective length
+        """
+        in_band = freq > 0
+        vel = np.zeros_like(freq)
+        vel[in_band] = np.sqrt(gain[in_band]) / freq[in_band]
+
+        i_cutoff = np.argmax(freq > self._cutoff_freq)
+        vel[:i_cutoff] *= hann(2 * i_cutoff)[:i_cutoff]
+
+        vel[in_band] *= self._max_VEL / np.max(vel[in_band])
+        return vel
 
     def _get_antenna_response_vectorized_raw(self, freq, theta, phi, group_delay=True):
         """
+        Get the vector effective length in the coordinate system of the antenna model
 
+        Parameters
+        ----------
+        freq: array of floats
+            frequencies at which to evaluate the response
+        theta, phi: float
+            direction in the coordinate system of the antenna model
+        group_delay: bool
+            if True, apply the parametrized phase of the model
+
+        Returns
+        -------
+        vel_theta, vel_phi: arrays of floats or complex floats
+            the two components of the vector effective length
         """
+        in_band = freq > 0
+
         if self._model == 'analytic_LPDA':
-            """
-            Dummy LPDA model. Approximates createLPDA_100MHz_InfFirn_n1.4 with the default values of cutoff_freq and max_VEL.
-            Flat gain as function of frequency.
-            """
-            fmask = freq > 0
-            index = np.argmax(freq > self._cutoff_freq)
-            gain_filter = hann(2 * index)
-            gain = np.ones_like(freq)
+            # Flat gain as function of frequency
+            vel = self._gain_to_vel(freq, np.ones_like(freq))
+            vel_theta = vel * np.cos(theta) * np.sin(phi) * np.cos(theta / 2)
+            vel_phi = vel * np.cos(theta / 2) * np.cos(phi)
 
-            # Theta component:
-            VEL_theta          = np.zeros_like(gain)
-            VEL_theta[fmask]   = np.sqrt(gain[fmask]) / freq[fmask]            # Gain to VEL conversion
-            VEL_theta[:index] *= gain_filter[:index]                           # Low frequency cutoff
-            VEL_theta[fmask]  *= self._max_VEL / max(VEL_theta[fmask])         # Normalize to requested max VEL
-            VEL_theta         *= np.cos(theta) * np.sin(phi) * np.cos(theta/2) # Directional dependency of response
-
-            # Phi component:
-            VEL_phi          = np.zeros_like(gain)
-            VEL_phi[fmask]   = np.sqrt(gain[fmask]) / freq[fmask]
-            VEL_phi[:index] *= gain_filter[:index]
-            VEL_phi[fmask]  *= self._max_VEL / max(VEL_phi[fmask])
-            VEL_phi         *= np.cos(theta/2) * np.cos(phi)
-
-            if group_delay:
-                if theta <= 45 * units.deg:
-                    phase_type = "frontlobe_lpda"
-                elif theta > 45 * units.deg and theta <= 90 * units.deg:
-                    phase_type = "side_lpda"
-                elif theta > 90 * units.deg:
-                    phase_type = "back_lpda"
-                phase = self.parametric_phase(freq, phase_type=phase_type)
-
-                VEL_phi = VEL_phi.astype(complex)
-                VEL_theta = VEL_theta.astype(complex)
-
-                VEL_phi *= np.exp(1j * phase)
-                VEL_theta *= np.exp(1j * phase)
+            if theta <= 45 * units.deg:
+                phase_type = "frontlobe_lpda"
+            elif theta <= 90 * units.deg:
+                phase_type = "side_lpda"
+            else:
+                phase_type = "back_lpda"
 
         elif self._model == 'analytic_VPol':
-            """
-            Dummy VPol model. Approximates RNOG_vpol_v3_5inch_center_n1.74 with the default values of cutoff_freq and max_VEL.
-            """
-            fmask = freq > 0
-            index = np.argmax(freq > self._cutoff_freq)
-            gain_filter = hann(2 * index)
             gain = np.ones_like(freq)
-            gain[fmask] /= np.sqrt(freq[fmask])  # frequency dependent gain fall-off
+            gain[in_band] /= np.sqrt(freq[in_band])  # frequency dependent gain fall-off
+            vel_theta = self._gain_to_vel(freq, gain) * np.sin(theta)
+            vel_phi = np.zeros_like(freq)
+            phase_type = "VPol_third_order"
 
-            # Theta component:
-            VEL_theta         = np.zeros_like(gain)
-            VEL_theta[fmask]  = np.sqrt(gain[fmask]) / freq[fmask]       # Gain to VEL conversion
-            VEL_theta[:index] *= gain_filter[:index]                     # Low frequency cutoff
-            VEL_theta[fmask]  *= self._max_VEL / max(VEL_theta[fmask])   # Normalize to requested max VEL
-            VEL_theta         *= np.sin(theta)                           # Directional dependency of response
-
-            # Phi component:
-            VEL_phi = np.zeros_like(gain)
-
-            if group_delay:
-                phase = self.parametric_phase(freq, phase_type = "VPol_third_order")
-
-                VEL_theta = VEL_theta.astype(complex)
-
-                VEL_theta *= np.exp(1j * phase)
-            
         elif self._model == 'analytic_HPol':
-            """
-            Dummy HPol model. Approximates RNOG_hpol_v4_8inch_center_n1.74 with the default values of cutoff_freq and max_VEL.
-            In this model, cutoff_freq controls where the gain peaks.
-            """
-            fmask = freq > 0
-            peak_freq = np.copy(self._cutoff_freq)
-            gain = np.ones_like(freq)
+            # cos^2 frequency dependency (peaking at cutoff_freq) and sin^2(theta) directivity
+            vel_phi = np.zeros_like(freq)
+            vel_phi[in_band] = np.sin(freq[in_band] / self._cutoff_freq * np.pi / 2) ** 2
+            vel_phi[freq > 2 * self._cutoff_freq] = 0
+            vel_phi[in_band] *= self._max_VEL / np.max(vel_phi[in_band])
+            vel_phi *= np.sin(theta) ** 2
+            vel_theta = np.zeros_like(freq)
+            phase_type = "HPol_third_order"
 
-            # Theta component:
-            VEL_theta = np.zeros_like(gain)
+        if group_delay:
+            phase = np.exp(1j * self.parametric_phase(freq, phase_type))
+            vel_theta = vel_theta * phase
+            vel_phi = vel_phi * phase
 
-            # Phi component: Assuming cos^2 squared frequency dependency and sin^2(theta) direction dependency
-            VEL_phi                        = np.zeros_like(gain)
-            VEL_phi[fmask]                 = np.sqrt(gain[fmask]) * np.sin(freq[fmask] / peak_freq * np.pi/2)**2
-            VEL_phi[freq > peak_freq * 2]  = 0
-            VEL_phi[fmask]                *= self._max_VEL / max(VEL_phi[fmask])
-            VEL_phi                       *= np.sin(theta)**2
-
-            if group_delay:
-                phase = self.parametric_phase(freq, phase_type = "HPol_third_order")
-
-                VEL_phi = VEL_phi.astype(complex)
-
-                VEL_phi *= np.exp(1j * phase)
-        
-        return VEL_theta, VEL_phi
+        return vel_theta, vel_phi
 
 
 class AntennaPatternProvider(object):
+    """
+    Provider class for antenna pattern. The usage of antenna pattern through this class ensures
+    that an antenna pattern is loaded only once into memory which takes a significant time and
+    occupies a significant amount of memory.
+    """
     __instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -1817,11 +1946,18 @@ class AntennaPatternProvider(object):
 
     def __init__(self, log_level=logging.NOTSET):
         """
-        Provider class for antenna pattern. The usage of antenna pattern through this class ensures
-        that an antenna pattern is loaded only once into memory which takes a significant time and occupies a
-        significant amount of memory.
+        Parameters
+        ----------
+        log_level: int
+            the log level of the antenna pattern logger
         """
         logger.setLevel(log_level)
+
+        # this is a singleton, i.e. __init__ runs on every instantiation. Only set up the
+        # buffer once, otherwise the already loaded patterns would be thrown away
+        if hasattr(self, "_open_antenna_patterns"):
+            return
+
         self._open_antenna_patterns = {}
         self._antenna_model_replacements = {}
 
@@ -1842,19 +1978,40 @@ class AntennaPatternProvider(object):
         **kwargs: dict
             key word arguments that are passed to the init function of the `AntennaPattern` class (see
             documentation of this class for further information)
+
+        Returns
+        -------
+        antenna_pattern : AntennaPattern or AntennaPatternAnalytic
+            Return the loaded antenna pattern object.
         """
         if name in self._antenna_model_replacements:
-            if self._antenna_model_replacements[name] not in self._open_antenna_patterns:
+            replacement = self._antenna_model_replacements[name]
+            if not self._is_buffered(replacement):
                 logger.status("local replacement of antenna model requsted: replacing {} with {}".format(
-                    name, self._antenna_model_replacements[name]))
+                    name, replacement))
 
-            name = self._antenna_model_replacements[name]
+            name = replacement
 
-        if name not in self._open_antenna_patterns:
+        # the keyword arguments are part of the identity of a pattern: a model requested
+        # with different arguments is a different antenna and must not be served from the buffer
+        key = (name,) + tuple(sorted((k, repr(v)) for k, v in kwargs.items()))
+
+        if key not in self._open_antenna_patterns:
+            if self._is_buffered(name):
+                logger.warning(
+                    "antenna model {} is already buffered with different arguments, "
+                    "loading a second copy for {}".format(name, kwargs))
+
             if name.startswith("analytic"):
-                self._open_antenna_patterns[name] = AntennaPatternAnalytic(name, **kwargs)
+                self._open_antenna_patterns[key] = AntennaPatternAnalytic(name, **kwargs)
                 logger.info("loading analytic antenna model {}".format(name))
             else:
-                self._open_antenna_patterns[name] = AntennaPattern(name, **kwargs)
+                self._open_antenna_patterns[key] = AntennaPattern(name, **kwargs)
 
-        return self._open_antenna_patterns[name]
+        return self._open_antenna_patterns[key]
+
+    def _is_buffered(self, name):
+        """
+        Check whether any variant of the antenna model ``name`` is already buffered
+        """
+        return any(key[0] == name for key in self._open_antenna_patterns)
