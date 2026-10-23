@@ -8,12 +8,8 @@ import NuRadioReco.detector.ARIANNA.analog_components
 from radiotools import helper as hp
 import os
 import logging
-from tinydb import TinyDB, Query
-from tinydb_serialization import SerializationMiddleware
-from tinydb.storages import MemoryStorage
 import astropy.time
 from datetime import datetime
-from tinydb_serialization import Serializer
 import six  # # used for compatibility between py2 and py3
 import warnings
 import json
@@ -23,6 +19,8 @@ except ImportError: # users with astropy < 4.2 may not have pyerfa installed
     from astropy.utils.exceptions import ErfaWarning
 import NuRadioReco.utilities.metaclasses
 
+import json
+
 logger = logging.getLogger('NuRadioReco.detector')
 warnings.filterwarnings('ignore', category=ErfaWarning)
 
@@ -30,7 +28,7 @@ warnings.filterwarnings('ignore', category=ErfaWarning)
 with open(os.path.join(os.path.dirname(__file__), 'coordinates.json')) as f:
     site_coordinates = json.load(f)
 
-class DateTimeSerializer(Serializer):
+class DateTimeSerializer():
     """
     helper class to serialize datetime objects with TinyDB
     """
@@ -43,34 +41,19 @@ class DateTimeSerializer(Serializer):
         return datetime.strptime(s, '%Y-%m-%dT%H:%M:%S')
 
 
-def buffer_db(in_memory, filename=None):
+def buffer_db():  
     """
-    buffers the complete SQL database into a TinyDB object (either in memory or into a local JSON file)
-
-    Parameters
-    ----------
-    in_memory: bool
-        if True: the mysql database will be buffered as a tiny tb object that only exists in memory
-        if False: the mysql database will be buffered as a tiny tb object and saved in a local json file
-    filename: string
-        only relevant if `in_memory = True`: the filename of the json file of the tiny db object
+    buffers the complete SQL database into a dictionary
     """
-    serialization = SerializationMiddleware()
-    serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
     logger.info("buffering SQL database on-the-fly")
-    if in_memory:
-        db = TinyDB(storage=MemoryStorage)
-    else:
-        db = TinyDB(filename, storage=serialization, sort_keys=True, indent=4, separators=(',', ': '))
-    db.truncate()
 
+    db = {}
     from NuRadioReco.detector import detector_sql
     sqldet = detector_sql.Detector()
     results = sqldet.get_everything_stations()
-    table_stations = db.table('stations')
-    table_stations.truncate()
+    db['stations'] = {}
     for result in results:
-        table_stations.insert({'station_id': result['st.station_id'],
+        db['stations'][result['st.station_id']] = {'station_id': result['st.station_id'],
                                'commission_time': result['st.commission_time'],
                                'decommission_time': result['st.decommission_time'],
                                'station_type': result['st.station_type'],
@@ -84,13 +67,12 @@ def buffer_db(in_memory, filename=None):
                                'pos_northing': result['pos.northing'],
                                'pos_altitude': result['pos.altitude'],
                                'pos_zone': result['pos.zone'],
-                               'pos_site': result['pos.site']})
+                               'pos_site': result['pos.site']}
 
-    table_channels = db.table('channels')
-    table_channels.truncate()
+    db['channels'] = {}
     results = sqldet.get_everything_channels()
     for channel in results:
-        table_channels.insert({'station_id': channel['st.station_id'],
+        db['channels'][result['ch.channel_id']] = {'station_id': channel['st.station_id'],
                                'channel_id': channel['ch.channel_id'],
                                'commission_time': channel['ch.commission_time'],
                                'decommission_time': channel['ch.decommission_time'],
@@ -115,24 +97,34 @@ def buffer_db(in_memory, filename=None):
                                'adc_time_delay': channel['adcs.time_delay'],
                                'adc_nbits': channel['adcs.nbits'],
                                'adc_n_samples': channel['adcs.n_samples'],
-                               'adc_sampling_frequency': channel['adcs.sampling_frequency']})
+                               'adc_sampling_frequency': channel['adcs.sampling_frequency']}
 
-    results = sqldet.get_everything_positions()
-    table_positions = db.table('positions')
-    table_positions.truncate()
-    for result in results:
-        table_positions.insert({
-            'pos_position': result['pos.position'],
-            'pos_measurement_time': result['pos.measurement_time'],
-            'pos_easting': result['pos.easting'],
-            'pos_northing': result['pos.northing'],
-            'pos_altitude': result['pos.altitude'],
-            'pos_zone': result['pos.zone'],
-            'pos_site': result['pos.site']})
+    # TODO implement positions
+    # results = sqldet.get_everything_positions()
+    # table_positions = db.table('positions')
+    # table_positions.truncate()
+    # for result in results:
+    #     table_positions.insert({
+    #         'pos_position': result['pos.position'],
+    #         'pos_measurement_time': result['pos.measurement_time'],
+    #         'pos_easting': result['pos.easting'],
+    #         'pos_northing': result['pos.northing'],
+    #         'pos_altitude': result['pos.altitude'],
+    #         'pos_zone': result['pos.zone'],
+    #         'pos_site': result['pos.site']})
 
     logger.info("sql database buffered")
     return db
 
+
+def convert_to_datetime(time):
+    if isinstance(time, datetime):
+        return time
+    else:
+        if "{TinyDate}:" in time:
+            return datetime.strptime(time.replace("{TinyDate}:", ""), '%Y-%m-%dT%H:%M:%S')
+        else:
+            return datetime.strptime(time, '%Y-%m-%dT%H:%M:%S')
 
 @six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
 class DetectorBase(object):
@@ -174,32 +166,46 @@ class DetectorBase(object):
             Set to ``True`` to force the creation of a new detector object. By default, the __init__ will only create a new
             object if none already exists.
         """
-        self._serialization = SerializationMiddleware()
-        self._serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
+        # self._serialization = SerializationMiddleware()
+        # self._serialization.register_serializer(DateTimeSerializer(), 'TinyDate')
         if source == 'sql':
-            self._db = buffer_db(in_memory=True)
+            self._db = buffer_db()
         elif source == 'dictionary':
-            self._db = TinyDB(storage=MemoryStorage)
-            self._db.truncate()
-            stations_table = self._db.table('stations', cache_size=1000)
-            for station in dictionary['stations'].values():
-                stations_table.insert({**station})
-            channels_table = self._db.table('channels', cache_size=1000)
-            for channel in dictionary['channels'].values():
-                channels_table.insert({**channel})
+            self._db = dictionary
         else:
-            self._db = TinyDB(
-                json_filename,
-                storage=self._serialization,
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
+            self._db = json.load(open(json_filename, 'r'))
 
-        self._stations = self._db.table('stations', cache_size=1000)
-        self._channels = self._db.table('channels', cache_size=1000)
-        self._devices = self._db.table('devices', cache_size=1000)
-        self.__positions = self._db.table('positions', cache_size=1000)
+        self._stations = self._db['stations']
+        self._channels = self._db['channels']
+        if "devices" in self._db.keys():
+            self._devices = self._db['devices']
+        self.__positions = dict()
+
+        # change db structure: {station_id: {station_info, channels: {channel_id: channel}}}
+        new_db = {}
+        for station in self._db["stations"].values():
+            new_db[station["station_id"]] = {}
+            new_db[station["station_id"]]["station"] = station
+            new_db[station["station_id"]]["station"]["commission_time"] = convert_to_datetime(new_db[station["station_id"]]["station"]["commission_time"])
+            new_db[station["station_id"]]["station"]["decommission_time"] = convert_to_datetime(new_db[station["station_id"]]["station"]["decommission_time"])
+            if "devices" in self._db.keys():
+                new_db[station["station_id"]]["devices"] = {}
+                for device in self._db["devices"].values():
+                    if device["station_id"] == station["station_id"]:
+                        new_db[station["station_id"]]["devices"][device["device_id"]] = device
+                        new_db[station["station_id"]]["devices"][device["device_id"]]["commission_time"] = convert_to_datetime(new_db[station["station_id"]]["devices"][device["device_id"]]["commission_time"])
+                        new_db[station["station_id"]]["devices"][device["device_id"]]["decommission_time"] = convert_to_datetime(new_db[station["station_id"]]["devices"][device["device_id"]]["decommission_time"])
+            new_db[station["station_id"]]["channels"] = {}
+            for channel in self._db["channels"].values():
+                if channel["station_id"] == station["station_id"]:
+                    new_db[station["station_id"]]["channels"][channel["channel_id"]] = channel
+                    new_db[station["station_id"]]["channels"][channel["channel_id"]]["commission_time"] = convert_to_datetime(new_db[station["station_id"]]["channels"][channel["channel_id"]]["commission_time"])
+                    new_db[station["station_id"]]["channels"][channel["channel_id"]]["decommission_time"] = convert_to_datetime(new_db[station["station_id"]]["channels"][channel["channel_id"]]["decommission_time"])
+        self._db = new_db
+        # print(self._db[0].keys())
+
+
+
 
         logger.info("database initialized")
 
@@ -256,78 +262,66 @@ class DetectorBase(object):
             raise ValueError(f"Value for antenna_by_depth should be boolean, not {type(value)}")
 
     def __query_channel(self, station_id, channel_id):
-        Channel = Query()
         if self.__current_time is None:
             raise ValueError(
                 "Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
-        res = self._channels.get((Channel.station_id == station_id) & (Channel.channel_id == channel_id)
-                                 & (Channel.commission_time <= self.__current_time.datetime)
-                                 & (Channel.decommission_time > self.__current_time.datetime))
-        if res is None:
+        try:
+            channel = self._db[station_id]["channels"][channel_id]
+            if not (channel["commission_time"] <= self.__current_time.datetime or channel["decommission_time"] > self.__current_time.datetime):
+                channel = None
+        except KeyError:
             logger.error(
                 "query for station {} and channel {} at time {} returned no results".format(station_id, channel_id,
                                                                                             self.__current_time))
             raise LookupError
-        return res
+        if channel is None:
+            logger.error(
+                "query for station {} and channel {} at time {} returned no results".format(station_id, channel_id,
+                                                                                            self.__current_time))
+            raise LookupError
+        return channel
 
     def _query_channels(self, station_id):
-        Channel = Query()
         if self.__current_time is None:
             raise ValueError(
                 "Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
-        return self._channels.search((Channel.station_id == station_id)
-                                     & (Channel.commission_time <= self.__current_time.datetime)
-                                     & (Channel.decommission_time > self.__current_time.datetime))
+        channels = [channel for channel in self._db[station_id]["channels"].values() if channel["commission_time"] <= self.__current_time.datetime and channel["decommission_time"] > self.__current_time.datetime]        
+        return channels
 
     def _query_devices(self, station_id):
-        Device = Query()
         if self.__current_time is None:
             raise ValueError(
                 "Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
-        return self._devices.search((Device.station_id == station_id)
-                                     & (Device.commission_time <= self.__current_time.datetime)
-                                     & (Device.decommission_time > self.__current_time.datetime))
+        devices = [device for device in self._db[station_id]["devices"].values() if device["commission_time"] <= self.__current_time.datetime and device["decommission_time"] > self.__current_time.datetime]
+        return devices
 
     def _query_station(self, station_id):
-        Station = Query()
         if self.__current_time is None:
             raise ValueError(
                 "Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
-        res = self._stations.get((Station.station_id == station_id)
-                                 & (Station.commission_time <= self.__current_time.datetime)
-                                 & (Station.decommission_time > self.__current_time.datetime))
-        if res is None:
+        try:
+            station = self._db[station_id]["station"]
+            if not (station["commission_time"] <= self.__current_time.datetime or station["decommission_time"] > self.__current_time.datetime):
+                station = None
+        except KeyError:
             logger.error(
                 "query for station {} at time {} returned no results".format(station_id, self.__current_time.datetime))
-            raise LookupError(
+            raise LookupError
+        if station is None:
+            logger.error(
                 "query for station {} at time {} returned no results".format(station_id, self.__current_time.datetime))
-        return res
+            raise LookupError
+        return station
 
     def __query_position(self, position_id):
-        Position = Query()
-        res = self.__positions.get((Position.pos_position == position_id))
-        if self.__current_time is None:
-            raise ValueError(
-                "Detector time is not set. The detector time has to be set using the Detector.update() function before it can be used.")
-        if res is None:
-            logger.error("query for position {} at time {} returned no results".format(position_id,
-                                                                                       self.__current_time.datetime))
-            raise LookupError("query for position {} at time {} returned no results".format(position_id,
-                                                                                            self.__current_time.datetime))
-        return res
+        print("not implemented")
+        pass
 
     def get_station_ids(self):
         """
         returns a sorted list of all station ids present in the database
         """
-        station_ids = []
-        res = self._stations.all()
-        if res is None:
-            logger.error("query for stations returned no results")
-            raise LookupError("query for stations returned no results")
-        for a in res:
-            if a['station_id'] not in station_ids:
-                station_ids.append(a['station_id'])
+        station_ids = [key for key in self._db.keys()]
         return sorted(station_ids)
 
     def _get_station(self, station_id):
@@ -374,20 +368,20 @@ class DetectorBase(object):
             self._buffered_channels[station_id][channel['channel_id']] = channel
             self.__valid_t0 = max(self.__valid_t0, astropy.time.Time(channel['commission_time']))
             self.__valid_t1 = min(self.__valid_t1, astropy.time.Time(channel['decommission_time']))
-        devices = self._query_devices(station_id)
-        self._buffered_devices[station_id] = {}
-        for device in devices:
-            self._buffered_devices[station_id][device['device_id']] = device
-            self.__valid_t0 = max(self.__valid_t0, astropy.time.Time(channel['commission_time']))
-            self.__valid_t1 = min(self.__valid_t1, astropy.time.Time(channel['decommission_time']))
+        if "devices" in self._db[station_id].keys():
+            devices = self._query_devices(station_id)
+            self._buffered_devices[station_id] = {}
+            for device in devices:
+                self._buffered_devices[station_id][device['device_id']] = device
+                self.__valid_t0 = max(self.__valid_t0, astropy.time.Time(channel['commission_time']))
+                self.__valid_t1 = min(self.__valid_t1, astropy.time.Time(channel['decommission_time']))
 
 
     def __buffer_position(self, position_id):
         self.__buffered_positions[position_id] = self.__query_position(position_id)
 
     def __get_t0_t1(self, station_id):
-        Station = Query()
-        res = self._stations.get(Station.station_id == station_id)
+        res = self._get_station(station_id)
         t0 = None
         t1 = None
         if isinstance(res, list):
@@ -416,8 +410,8 @@ class DetectorBase(object):
 
         Returns bool
         """
-        Station = Query()
-        res = self._stations.get(Station.station_id == station_id)
+        
+        res = self._get_station(station_id)
         return res is not None
 
     def get_unique_time_periods(self, station_id):
