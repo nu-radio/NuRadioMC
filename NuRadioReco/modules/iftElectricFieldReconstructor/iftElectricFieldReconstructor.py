@@ -1,5 +1,6 @@
 import numpy as np
-from NuRadioReco.utilities import units, fft, trace_utilities, signal_processing
+from NuRadioReco.utilities import units, fft, trace_utilities, bandpass_filter
+import NuRadioReco.utilities.trace_utilities
 import NuRadioReco.detector.antennapattern
 import NuRadioReco.detector.RNO_G.analog_components
 import NuRadioReco.detector.ARIANNA.analog_components
@@ -8,30 +9,37 @@ from NuRadioReco.framework.parameters import channelParameters as chp
 import NuRadioReco.modules.iftElectricFieldReconstructor.operators
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
-from NuRadioReco.modules.base.module import register_run
-import logging
-
-logger = logging.getLogger('NuRadioReco.iftElectricFieldReconstructor')
-
 import scipy
-try:
-    import nifty5 as ift
-except ImportError as e:
-    logger.error(
-        "To use the iftElectricFieldReconstructor, 'nifty5' and 'pypocketfft' need to be installed:\n\n"
-        "\t pip install git+https://gitlab.mpcdf.mpg.de/ift/nifty.git@NIFTy_5 git+https://gitlab.mpcdf.mpg.de/mtr/pypocketfft"
-        )
-    raise(e)
-
+import nifty5 as ift
 import matplotlib.pyplot as plt
 import scipy.signal
 import radiotools.helper
+
+
+class NanAbortDeltaEnergyController(ift.DeltaEnergyController):
+    """
+    DeltaEnergyController that stops the minimizer as soon as the energy is not finite.
+
+    Once the energy is NaN the minimizer can never recover, but the plain
+    DeltaEnergyController keeps going until the iteration limit is reached,
+    and each of those iterations is a full (and slow) line search.
+    """
+    def check(self, energy):
+        if not np.isfinite(energy.value):
+            print('newton: energy is {} at iteration {}, stopping the minimizer'.format(energy.value, self._itcount + 1))
+            return self.ERROR
+        return super().check(energy)
 
 
 class IftElectricFieldReconstructor:
     """
     Module that uses Information Field Theory to reconstruct the electric field.
     A description how this method works can be found at https://arxiv.org/abs/2102.00258
+
+    Same as iftElectricFieldReconstructor.py, except that a fit whose energy becomes
+    NaN is abandoned immediately instead of running into the iteration limit. The best
+    finite result found before the NaN is kept; if there is none for either phase
+    slope, no electric field is stored and run() returns False.
     """
     def __init__(self):
         self.__antenna_pattern_provider = NuRadioReco.detector.antennapattern.AntennaPatternProvider()
@@ -58,6 +66,7 @@ class IftElectricFieldReconstructor:
         self.__phase_slope = None
         self.__slope_passbands = None
         self.__energy_fluence_passbands = None
+        self.__plot_folder = None
         return
 
     def begin(
@@ -76,13 +85,14 @@ class IftElectricFieldReconstructor:
         energy_fluence_passbands=None,
         slope_passbands=None,
         phase_slope='both',
-        debug=False
+        debug=False,
+        plot_folder='.'
     ):
         """
         Define settings for the reconstruction.
 
         Parameters
-        ----------
+        -------------
         electric_field_template: NuRadioReco.framework.base_trace.BaseTrace object
             BaseTrace (or child class) object containing an electric field template
             that is used to determine the position of the radio pulse in the channel
@@ -92,7 +102,7 @@ class IftElectricFieldReconstructor:
             waveforms and the IFT model. If None is passed, no filter is applied
         filter_type: string
             Name of the filter type to be used. Has to be implemented in the NuRadioReco.utilities.
-            signal_processing.get_filter_response function. Only used if passband is not None
+            bandpass_filter.get_filter_response function. Only used if passband is not None
         amp_dct: dictionary
             Dictionary containing the prior settings for the electric field spectrum
         pulse_time_prior: float
@@ -139,6 +149,7 @@ class IftElectricFieldReconstructor:
         self.__relative_tolerance = relative_tolerance
         self.__pulse_time_prior = pulse_time_prior
         self.__pulse_time_uncertainty = pulse_time_uncertainty
+        self.__plot_folder = plot_folder
         if phase_slope not in ['both', 'negative', 'positive']:
             raise ValueError('Phase slope has to be either both, negative of positive.')
         self.__phase_slope = phase_slope
@@ -149,12 +160,14 @@ class IftElectricFieldReconstructor:
                     (200. * units.MHz, 350. * units.MHz)
                 ]
             ]
+        else:
+            self.__slope_passbands = slope_passbands
         if energy_fluence_passbands is None:
             self.__energy_fluence_passbands = [
                 (130. * units.MHz, 500. * units.MHz)
             ]
         else:
-            self.__slope_passbands = slope_passbands
+            self.__energy_fluence_passbands = energy_fluence_passbands
         if amp_dct is None:
             self.__amp_dct = {
                 'n_pix': 64,  # spectral bins
@@ -176,7 +189,7 @@ class IftElectricFieldReconstructor:
         Plots samples from the prior distribution of the electric field.
 
         Parameters
-        ----------
+        --------------
         event: NuRadioReco.framework.event.Event object
         station: NuRadioReco.framework.station.Station object
         detector: NuRadioReco.detector.detector.Detector object or child object
@@ -200,13 +213,12 @@ class IftElectricFieldReconstructor:
         )
         self.__draw_priors(event, station, frequency_domain)
 
-    @register_run()
-    def run(self, event, station, detector, channel_ids, efield_scaling, use_sim=False):
+    def run(self, event, station, detector, channel_ids, efield_scaling, ray_type, use_sim=False, plot_title='', polarization=None):
         """
         Run the electric field reconstruction
 
         Parameters
-        ----------
+        ----------------
         event: NuRadioReco.framework.event.Event object
         station: NuRadioReco.framework.station.Station object
         detector: NuRadioReco.detector.detector.Detector object or child object
@@ -221,9 +233,23 @@ class IftElectricFieldReconstructor:
         """
         self.__used_channel_ids = []    # only use channels with associated E-field and zenith
         self.__efield_scaling = efield_scaling
-        self.__used_channel_ids = channel_ids
+        self.__used_channel_ids = []
+        self.__ray_type = ray_type
+        self.__plot_title = plot_title
+        if polarization is not None:
+            self.__polarization = polarization
+        for channel_id in channel_ids:
+            channel = station.get_channel(channel_id)
+            if channel.has_parameter(chp.signal_ray_type):
+                for signal_ray_type in channel.get_parameter(chp.signal_ray_type):
+                    if signal_ray_type == ray_type:
+                        self.__used_channel_ids.append(channel_id)
+                        break
+        if len(self.__used_channel_ids) == 0:
+            return
+        self.__used_channel_ids = np.array(self.__used_channel_ids)
         self.__use_sim = use_sim
-        self.__prepare_traces(event, station, detector)
+        self.__prepare_traces(event, station, detector, ray_type)
         ref_channel = station.get_channel(self.__used_channel_ids[0])
         sampling_rate = ref_channel.get_sampling_rate()
         time_domain = ift.RGSpace(self.__trace_samples)
@@ -259,10 +285,10 @@ class IftElectricFieldReconstructor:
             ic_sampling = ift.GradientNormController(1E-8, iteration_limit=min(1000, likelihood.domain.size))
             H = ift.StandardHamiltonian(likelihood, ic_sampling)
 
-            ic_newton = ift.DeltaEnergyController(name='newton',
-                                                  iteration_limit=200,
-                                                  tol_rel_deltaE=self.__relative_tolerance,
-                                                  convergence_level=self.__convergence_level)
+            ic_newton = NanAbortDeltaEnergyController(name='newton',
+                                                      iteration_limit=200,
+                                                      tol_rel_deltaE=self.__relative_tolerance,
+                                                      convergence_level=self.__convergence_level)
             minimizer = ift.NewtonCG(ic_newton)
             median = ift.MultiField.full(H.domain, 0.)
             min_energy = None
@@ -271,6 +297,10 @@ class IftElectricFieldReconstructor:
                 print('----------->>>   {}   <<<-----------'.format(k))
                 KL = ift.MetricGaussianKL(median, H, self.__n_samples, mirror_samples=True)
                 KL, convergence = minimizer(KL)
+                if not np.isfinite(KL.value):
+                    # the position is NaN as well, so further iterations cannot recover
+                    print('Energy is {}, abandoning this fit'.format(KL.value))
+                    break
                 median = KL.position
                 if min_energy is None or KL.value < min_energy:
                     min_energy = KL.value
@@ -309,10 +339,10 @@ class IftElectricFieldReconstructor:
             ic_sampling = ift.GradientNormController(1E-8, iteration_limit=min(1000, likelihood.domain.size))
             H = ift.StandardHamiltonian(likelihood, ic_sampling)
 
-            ic_newton = ift.DeltaEnergyController(name='newton',
-                                                  iteration_limit=200,
-                                                  tol_rel_deltaE=self.__relative_tolerance,
-                                                  convergence_level=self.__convergence_level)
+            ic_newton = NanAbortDeltaEnergyController(name='newton',
+                                                      iteration_limit=200,
+                                                      tol_rel_deltaE=self.__relative_tolerance,
+                                                      convergence_level=self.__convergence_level)
             minimizer = ift.NewtonCG(ic_newton)
             median = ift.MultiField.full(H.domain, 0.)
             min_energy = None
@@ -321,6 +351,10 @@ class IftElectricFieldReconstructor:
                 print('----------->>>   {}   <<<-----------'.format(k))
                 KL = ift.MetricGaussianKL(median, H, self.__n_samples, mirror_samples=True)
                 KL, convergence = minimizer(KL)
+                if not np.isfinite(KL.value):
+                    # the position is NaN as well, so further iterations cannot recover
+                    print('Energy is {}, abandoning this fit'.format(KL.value))
+                    break
                 median = KL.position
                 if min_energy is None or KL.value < min_energy:
                     min_energy = KL.value
@@ -340,10 +374,18 @@ class IftElectricFieldReconstructor:
             negative_reco_KL = best_reco_KL
             final_KL = best_reco_KL
         if self.__phase_slope == 'both':
-            if negative_reco_KL.value < positive_reco_KL.value:
+            if positive_reco_KL is None:
+                final_KL = negative_reco_KL
+            elif negative_reco_KL is None:
+                final_KL = positive_reco_KL
+            elif negative_reco_KL.value < positive_reco_KL.value:
                 final_KL = negative_reco_KL
             else:
                 final_KL = positive_reco_KL
+        if final_KL is None:
+            print('No finite IFT result for run {}, event {}, ray type {}: no electric field stored'.format(
+                event.get_run_number(), event.get_id(), ray_type))
+            return False
         self.__store_reconstructed_efields(
             event, station, final_KL
         )
@@ -360,7 +402,8 @@ class IftElectricFieldReconstructor:
         self,
         event,
         station,
-        det
+        det,
+        ray_type
     ):
         """
         Prepares the channel waveforms for the reconstruction by correcting
@@ -376,11 +419,14 @@ class IftElectricFieldReconstructor:
         self.__noise_levels = np.zeros(len(self.__used_channel_ids))
         self.__n_shifts = np.zeros_like(self.__used_channel_ids)
         self.__trace_start_times = np.zeros(len(self.__used_channel_ids))
+        self.__receive_zeniths = np.zeros(len(self.__used_channel_ids))
+        self.__receive_azimuths = np.zeros(len(self.__used_channel_ids))
+        self.__time_offsets = np.zeros(len(self.__used_channel_ids))
         self.__data_traces = np.zeros((len(self.__used_channel_ids), self.__trace_samples))
         max_channel_length = 0
         passband = [100. * units.MHz, 200 * units.MHz]
         sim_channel_traces = []
-        for channel_id in self.__used_channel_ids:
+        for i_channel, channel_id in enumerate(self.__used_channel_ids):
             channel = station.get_channel(channel_id)
             if self.__use_sim:
                 sim_channel_sum = NuRadioReco.framework.base_trace.BaseTrace()
@@ -394,6 +440,15 @@ class IftElectricFieldReconstructor:
             else:
                 if channel.get_number_of_samples() > max_channel_length:
                     max_channel_length = channel.get_number_of_samples()
+            for i_ray_type, signal_ray_type in enumerate(channel.get_parameter(chp.signal_ray_type)):
+                if signal_ray_type == ray_type:
+                    self.__receive_zeniths[i_channel] = channel.get_parameter(chp.signal_receiving_zenith)[i_ray_type]
+                    self.__time_offsets[i_channel] = channel.get_parameter(chp.signal_time_offset)[i_ray_type]
+                    if channel.has_parameter(chp.signal_receiving_azimuth):
+                        self.__receive_azimuths[i_channel] = channel.get_parameter(chp.signal_receiving_azimuth)[i_ray_type]
+
+        min_offset = np.min(self.__time_offsets)
+        self.__time_offsets -= min_offset
         correlation_sum = np.zeros(self.__electric_field_template.get_number_of_samples() + max_channel_length)
         if self.__debug:
             plt.close('all')
@@ -411,8 +466,8 @@ class IftElectricFieldReconstructor:
             antenna_pattern = self.__antenna_pattern_provider.load_antenna_pattern(det.get_antenna_model(station.get_id(), channel_id))
             antenna_response = antenna_pattern.get_antenna_response_vectorized(
                 self.__electric_field_template.get_frequencies(),
-                channel.get_parameter(chp.signal_receiving_zenith),
-                0.,
+                self.__receive_zeniths[i_channel],
+                self.__receive_azimuths[i_channel],
                 antenna_orientation[0],
                 antenna_orientation[1],
                 antenna_orientation[2],
@@ -424,21 +479,38 @@ class IftElectricFieldReconstructor:
             ) * amp_response * (antenna_response['theta'] + antenna_response['phi'])
             channel_trace_template = fft.freq2time(channel_spectrum_template, self.__electric_field_template.get_sampling_rate())
             channel_trace_templates[i_channel] = channel_trace_template
-            channel.apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
+            channel.apply_time_shift(-self.__time_offsets[i_channel], True)
             if self.__use_sim:
-                sim_channel_traces[i_channel].apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
+                sim_channel_traces[i_channel].apply_time_shift(-self.__time_offsets[i_channel], True)
                 channel_trace = sim_channel_traces[i_channel].get_filtered_trace(passband, filter_type='butterabs')
+                for i_region, signal_region in enumerate(channel.get_parameter(chp.signal_regions)):
+                    if channel.get_parameter(chp.signal_ray_type) == self.__ray_type:
+                        channel_trace[sim_channel_traces[i_channel].get_times() + self.__time_offsets[i_channel] < signal_region[0]] = 0
+                        channel_trace[sim_channel_traces[i_channel].get_times() + self.__time_offsets[i_channel] > signal_region[1]] = 0
             else:
                 channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
+                for i_region, signal_region in enumerate(channel.get_parameter(chp.signal_regions)):
+                    if channel.get_parameter(chp.signal_ray_type)[i_region] == self.__ray_type:
+                        channel_trace[channel.get_times() + self.__time_offsets[i_channel] < signal_region[0]] = 0
+                        channel_trace[channel.get_times() + self.__time_offsets[i_channel] > signal_region[1]] = 0
             if self.__use_sim:
                 correlation = radiotools.helper.get_normalized_xcorr(np.abs(scipy.signal.hilbert(channel_trace_template)), np.abs(scipy.signal.hilbert(channel_trace)))
             else:
-                correlation = radiotools.helper.get_normalized_xcorr(channel_trace_template, channel_trace)
+                # correlation = radiotools.helper.get_normalized_xcorr(channel_trace_template, channel_trace)
+                correlation = np.correlate(channel_trace_template, channel_trace, mode='full')
             correlation = np.abs(correlation)
             correlation_sum[:len(correlation)] += correlation
-            toffset = -(np.arange(0, correlation.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()  # - propagation_times[i_channel, i_solution] - channel.get_trace_start_time()
+
+            lags = scipy.signal.correlation_lags(
+                len(channel_trace_template),
+                len(channel_trace),
+                mode='full'
+            )
+
+            toffset = -lags / channel.get_sampling_rate()
+            # toffset = -(np.arange(0, correlation.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()  # - propagation_times[i_channel, i_solution] - channel.get_trace_start_time()
             if self.__use_sim:
-                sim_channel_traces[i_channel].apply_time_shift(channel.get_parameter(chp.signal_time_offset), True)
+                sim_channel_traces[i_channel].apply_time_shift(self.__time_offsets[i_channel], True)
             # else:
             #     channel.apply_time_shift(channel.get_parameter(chp.signal_time_offset), True)
             if self.__debug:
@@ -446,9 +518,16 @@ class IftElectricFieldReconstructor:
 
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             channel = station.get_channel(channel_id)
-            time_offset = channel.get_parameter(chp.signal_time_offset)
             channel_trace = channel.get_filtered_trace(passband, filter_type='butterabs')
-            toffset = -(np.arange(0, correlation_sum.shape[0]) - len(channel_trace)) / channel.get_sampling_rate()
+            lags = scipy.signal.correlation_lags(
+                correlation_sum.shape[0],
+                len(channel_trace),
+                mode='full'
+            )
+
+            # np.correlate(template, trace) peaks at lag = pulse_pos_template - pulse_pos_trace,
+            # and the shift below is applied as -toffset, so the lag must be negated here.
+            toffset = -lags / channel.get_sampling_rate()
             if self.__debug:
                 ax2_1 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 1)
                 ax2_1.grid()
@@ -456,28 +535,29 @@ class IftElectricFieldReconstructor:
                 ax2_1.set_title('Channel {}'.format(channel_id))
                 ax2_1.plot(self.__electric_field_template.get_times() + channel.get_trace_start_time() + toffset[np.argmax(correlation_sum)], channel_trace_templates[i_channel] / np.max(channel_trace_templates[i_channel]) * np.max(channel_trace) / units.mV, c='C1')
                 sim_channel_sum = None
-                for sim_channel in station.get_sim_station().iter_channels():
-                    if sim_channel.get_id() == channel_id:
-                        if sim_channel_sum is None:
-                            sim_channel_sum = sim_channel
-                        else:
-                            sim_channel_sum += sim_channel
+                if station.get_sim_station() is not None:
+                    for sim_channel in station.get_sim_station().iter_channels():
+                        if sim_channel.get_id() == channel_id:
+                            if sim_channel_sum is None:
+                                sim_channel_sum = sim_channel
+                            else:
+                                sim_channel_sum += sim_channel
                 if sim_channel_sum is not None:
-                    sim_channel_sum.apply_time_shift(-channel.get_parameter(chp.signal_time_offset), True)
+                    sim_channel_sum.apply_time_shift(-self.__time_offsets[i_channel], True)
                     ax2_1.plot(sim_channel_sum.get_times(), sim_channel_sum.get_filtered_trace(passband, filter_type='butterabs') / units.mV, c='k', alpha=.5)
                     ax2_1.set_xlim([sim_channel_sum.get_trace_start_time() - 50, sim_channel_sum.get_times()[-1] + 50])
-                    sim_channel_sum.apply_time_shift(channel.get_parameter(chp.signal_time_offset), True)
+                    sim_channel_sum.apply_time_shift(self.__time_offsets[i_channel], True)
 
             channel.apply_time_shift(-toffset[np.argmax(correlation_sum)])
             self.__data_traces[i_channel] = channel.get_trace()[:self.__trace_samples]
             self.__noise_levels[i_channel] = np.sqrt(np.mean(channel.get_trace()[self.__trace_samples + 1:]**2))
-            self.__n_shifts[i_channel] = int((toffset[np.argmax(correlation_sum)] + time_offset) * channel.get_sampling_rate())
-            self.__trace_start_times[i_channel] = channel.get_trace_start_time() + (toffset[np.argmax(correlation_sum)] + time_offset)
+            self.__n_shifts[i_channel] = int((toffset[np.argmax(correlation_sum)] + self.__time_offsets[i_channel]) * channel.get_sampling_rate())
+            self.__trace_start_times[i_channel] = channel.get_trace_start_time() + (toffset[np.argmax(correlation_sum)] + self.__time_offsets[i_channel])
             if self.__debug:
                 ax2_2 = fig2.add_subplot(len(self.__used_channel_ids), 2, 2 * i_channel + 2)
                 ax2_2.grid()
                 ax2_2.plot(np.arange(len(self.__data_traces[i_channel])) / channel.get_sampling_rate(), self.__data_traces[i_channel])
-            channel.apply_time_shift(channel.get_parameter(chp.signal_time_offset) + toffset[np.argmax(correlation_sum)], True)
+            channel.apply_time_shift(self.__time_offsets[i_channel] + toffset[np.argmax(correlation_sum)], True)
         self.__scaling_factor = np.max(self.__data_traces)
         self.__data_traces /= self.__scaling_factor
         self.__noise_levels /= self.__scaling_factor
@@ -485,7 +565,7 @@ class IftElectricFieldReconstructor:
         if self.__debug:
             ax1_2.plot(correlation_sum)
             fig2.tight_layout()
-            fig2.savefig('{}_{}_traces.png'.format(event.get_run_number(), event.get_id()))
+            fig2.savefig('{}/{}_{}_traces.png'.format(self.__plot_folder, event.get_run_number(), event.get_id()))
 
     def __get_detector_operators(
         self,
@@ -516,12 +596,7 @@ class IftElectricFieldReconstructor:
             filter_phase = 0
         for i_channel, channel_id in enumerate(self.__used_channel_ids):
             channel = station.get_channel(channel_id)
-            receiving_zenith = channel.get_parameter(chp.signal_receiving_zenith)
-            if channel.has_parameter(chp.signal_receiving_azimuth):
-                receive_azimuth = channel.get_parameter(chp.signal_receiving_azimuth)
-            else:
-                receive_azimuth = 0.
-            antenna_response = signal_processing.get_efield_antenna_factor(station, frequencies, [channel_id], detector, receiving_zenith, receive_azimuth, self.__antenna_pattern_provider)[0]
+            antenna_response = NuRadioReco.utilities.trace_utilities.get_efield_antenna_factor(station, frequencies, [channel_id], detector, self.__receive_zeniths[i_channel], self.__receive_azimuths[i_channel], self.__antenna_pattern_provider)[0]
             amp_response = detector.get_amplifier_response(station.get_id(), channel_id, frequencies)
             amp_gain = np.abs(amp_response)
             amp_phase = np.unwrap(np.angle(amp_response))
@@ -686,7 +761,7 @@ class IftElectricFieldReconstructor:
                 polarization_stat_calculator.add(np.arctan(np.sqrt(energy_fluences[2]) / np.sqrt(energy_fluences[1])))
             e_fluences = np.zeros((len(self.__energy_fluence_passbands), 3))
             for i_passband, passband in enumerate(self.__energy_fluence_passbands):
-                filter_response = signal_processing.get_filter_response(freqs, passband, 'butter', 10)
+                filter_response = bandpass_filter.get_filter_response(freqs, passband, 'butter', 10)
                 e_fluence = trace_utilities.get_electric_field_energy_fluence(
                     fft.freq2time(fft.time2freq(efield_sample_pol, sampling_rate) * filter_response, sampling_rate) * self.__scaling_factor / self.__gain_scaling,
                     times
@@ -696,13 +771,13 @@ class IftElectricFieldReconstructor:
             energy_fluence_stat_calculator.add(e_fluences)
             slopes = np.zeros((len(self.__slope_passbands), 3))
             for i_passband, passbands in enumerate(self.__slope_passbands):
-                filter_response_1 = signal_processing.get_filter_response(freqs, passbands[0], 'butter', 10)
+                filter_response_1 = bandpass_filter.get_filter_response(freqs, passbands[0], 'butter', 10)
                 e_fluence_1 = trace_utilities.get_electric_field_energy_fluence(
                     fft.freq2time(fft.time2freq(efield_sample_pol, sampling_rate) * filter_response_1, sampling_rate) * self.__scaling_factor / self.__gain_scaling,
                     times
                 )
                 e_fluence_1[0] = np.sum(np.abs(e_fluence_1))
-                filter_response_2 = signal_processing.get_filter_response(freqs, passbands[1], 'butter', 10)
+                filter_response_2 = bandpass_filter.get_filter_response(freqs, passbands[1], 'butter', 10)
                 e_fluence_2 = trace_utilities.get_electric_field_energy_fluence(
                     fft.freq2time(fft.time2freq(efield_sample_pol, sampling_rate) * filter_response_2, sampling_rate) * self.__scaling_factor / self.__gain_scaling,
                     times
@@ -729,12 +804,18 @@ class IftElectricFieldReconstructor:
         for i_passband, passband in enumerate(self.__energy_fluence_passbands):
             energy_fluence_dict['{:.0f}-{:.0f}'.format(passband[0] / units.MHz, passband[1] / units.MHz)] = energy_fluence_stat_calculator.mean[i_passband]
         for i_passband, passbands in enumerate(self.__slope_passbands):
-            slope_dict['{:.0f}-{:.0f}, {:.0f}-{:.0f}'.format(passbands[0][0], passbands[0][1], passbands[1][0], passbands[1][1])] = slope_parameter_stat_calculator.mean[i_passband]
+            slope_dict['{:.0f}-{:.0f}, {:.0f}-{:.0f}'.format(
+                passbands[0][0] / units.MHz,
+                passbands[0][1] / units.MHz,
+                passbands[1][0] / units.MHz,
+                passbands[1][1] / units.MHz
+            )] = slope_parameter_stat_calculator.mean[i_passband]
         energy_fluence_error = np.sqrt(energy_fluence_stat_calculator.var)
         efield.set_parameter(efp.signal_energy_fluence, energy_fluence_dict)
         efield.set_parameter_error(efp.signal_energy_fluence, energy_fluence_error)
         efield.set_parameter(efp.energy_fluence_ratios, slope_dict)
         efield.set_parameter_error(efp.energy_fluence_ratios, np.sqrt(slope_parameter_stat_calculator.var))
+        efield.set_parameter(efp.ray_path_type, self.__ray_type)
         return efield
 
     def __draw_priors(
@@ -799,7 +880,7 @@ class IftElectricFieldReconstructor:
         ax1_3.set_title('Channel Spectrum')
         ax1_4.set_title('Channel Trace')
         fig1.tight_layout()
-        fig1.savefig('priors_{}_{}.png'.format(event.get_id(), event.get_run_number()))
+        fig1.savefig('{}/priors_{}_{}.png'.format(self.__plot_folder, event.get_id(), event.get_run_number()))
 
     def __draw_reconstruction(
         self,
@@ -924,7 +1005,7 @@ class IftElectricFieldReconstructor:
                         if sim_efield_max is None or np.max(np.abs(efield_sum.get_frequency_spectrum())) > sim_efield_max:
                             sim_efield_max = np.max(np.abs(efield_sum.get_frequency_spectrum()))
             else:
-                channel_snr = .5 * (np.max(station.get_channel(channel_id).get_trace()) - np.min(station.get_channel(channel_id).get_trace())) / (self.__noise_levels * self.__scaling_factor)
+                channel_snr = .5 * (np.max(station.get_channel(channel_id).get_trace()) - np.min(station.get_channel(channel_id).get_trace())) / (self.__noise_levels[i_channel] * self.__scaling_factor)
             ax2_1.plot(times, self.__data_traces[i_channel] * self.__scaling_factor / units.mV, c='C0', alpha=1., zorder=5, label='data')
 
             ax1_1.plot(freqs / units.MHz, amp_trace_stat_calculator.mean * self.__scaling_factor / units.mV, c='C2', label='IFT reco', linewidth=3, alpha=.6)
@@ -951,13 +1032,13 @@ class IftElectricFieldReconstructor:
                 ax1_3.axvline(self.__passband[0] / units.MHz, c='k', alpha=.5, linestyle=':')
                 ax1_3.axvline(self.__passband[1] / units.MHz, c='k', alpha=.5, linestyle=':')
                 ax1_3.grid()
-                ax1_3.set_xlim([0, 750])
+                ax1_3.set_xlim([self.__passband[0] / units.MHz - 50, self.__passband[1] / units.MHz + 50])
                 ax1_3.set_xlabel('f [MHz]')
             if i_channel == 0:
                 ax2_1.legend(fontsize=fontsize)
                 ax1_1.legend(fontsize=fontsize)
-            ax1_1.set_xlim([0, 750])
-            ax1_2.set_xlim([0, 750])
+            ax1_1.set_xlim([self.__passband[0] / units.MHz - 50, self.__passband[1] / units.MHz + 50])
+            ax1_2.set_xlim([self.__passband[0] / units.MHz - 50, self.__passband[1] / units.MHz + 50])
             ax1_1.set_title('Channel {}'.format(channel_id), fontsize=fontsize)
             ax2_1.set_title('Channel {}'.format(channel_id), fontsize=fontsize)
             ax1_1.set_xlabel('f [MHz]', fontsize=fontsize)
@@ -981,6 +1062,6 @@ class IftElectricFieldReconstructor:
             if sim_efield_max is not None:
                 ax1_2.set_ylim([0, 1.2 * sim_efield_max / (units.mV / units.m / units.GHz)])
         fig1.tight_layout()
-        fig1.savefig('{}_{}_spec_reco{}.png'.format(event.get_run_number(), event.get_id(), suffix))
+        fig1.savefig('{}/{}_{}_spec_reco_{}_{}_{}.png'.format(self.__plot_folder, event.get_run_number(), event.get_id(), suffix, self.__ray_type, self.__plot_title))
         fig2.tight_layout()
-        fig2.savefig('{}_{}_trace_reco{}.png'.format(event.get_run_number(), event.get_id(), suffix))
+        fig2.savefig('{}/{}_{}_trace_reco_{}_{}_{}.png'.format(self.__plot_folder, event.get_run_number(), event.get_id(), suffix, self.__ray_type, self.__plot_title))
