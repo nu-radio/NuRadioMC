@@ -10,7 +10,8 @@ solution_types_revert = {v: k for k, v in solution_types.items()}
 available_modules = [
     'analytic',
     'radiopropa',
-    'direct_ray'
+    'direct_ray',
+    'deep_learning'
 ]
 
 reflection_case = {
@@ -50,6 +51,9 @@ def get_propagation_module(name=None):
     elif name == available_modules[1]:
         from NuRadioMC.SignalProp.radioproparaytracing import radiopropa_ray_tracing
         return radiopropa_ray_tracing
+    elif name == available_modules[3]:
+        from NuRadioMC.SignalProp.deep_learning_ray_tracing import DeepLearningRayTracing
+        return DeepLearningRayTracing
     else:
         msg = "Module \'{}\' not implemented. Available modules: {}".format(
             name, str(available_modules))
