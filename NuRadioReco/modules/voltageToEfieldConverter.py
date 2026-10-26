@@ -17,7 +17,7 @@ logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
 
 def get_array_of_channels(station, use_channels, det, zenith, azimuth,
-                          antenna_pattern_provider, time_domain=False, efield_position=None):
+                          antenna_pattern_provider, time_domain=False, efield_position=None, travel_time_delays=None):
     """ Get the voltage traces and antenna factors for the electric field reconstruction.
 
     Parameters
@@ -39,6 +39,9 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         If None, it raises an error.
     time_domain : bool, optional
         If True, returns the time domain traces as well. Default is False.
+    travel_time_delays : numpy array, optional
+        The travel time delays for each channel in use_channels. If not provided (default), the travel time
+        delays are calculated from the geometry of the station and the direction of the incoming signal.
 
     Returns
     -------
@@ -70,17 +73,20 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     for iCh, channel in enumerate(station.iter_channels(use_channels)):
         channel_id = channel.get_id()
 
-        antenna_position = det.get_relative_position(station_id, channel_id)
-        # determine refractive index of signal propagation speed between antennas
-        refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
-        if station.is_cosmic_ray():
-            if zenith > 0.5 * np.pi:
-                refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
+        if travel_time_delays is None:
+            antenna_position = det.get_relative_position(station_id, channel_id)
+            # determine refractive index of signal propagation speed between antennas
+            refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
+            if station.is_cosmic_ray():
+                if zenith > 0.5 * np.pi:
+                    refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
 
-        if station.is_neutrino():
-            refractive_index = ice.get_refractive_index(antenna_position[2], site)
+            if station.is_neutrino():
+                refractive_index = ice.get_refractive_index(antenna_position[2], site)
 
-        time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position - efield_position, n=refractive_index)
+            time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position - efield_position, n=refractive_index)
+        else:
+            time_shift = -travel_time_delays[iCh]
 
         t_shifts.append(time_shift)
         t_min = channel.get_trace_start_time() + time_shift
@@ -181,7 +187,7 @@ class voltageToEfieldConverter:
         pass
 
     @register_run()
-    def run(self, evt, station, det, use_channels=None, use_MC_direction=False, force_Polarization=''):
+    def run(self, evt, station, det, use_channels=None, use_MC_direction=False, force_Polarization='', travel_time_delays=None):
         """
         run method. This function is executed for each event
 
@@ -198,6 +204,12 @@ class voltageToEfieldConverter:
         force_Polarization: str, optional
             If eTheta or ePhi, then only reconstructs chosen polarization of electric field,
             assuming the other is 0. Otherwise (default), reconstructs electric field for both eTheta and ePhi
+        travel_time_delays: array of floats, optional
+            If provided, the travel time delays for each channel in use_channels are used to shift the
+            voltage traces to the same reference position. This is useful for situations where ray-tracing
+            is needed to determine the travel time delays, e.g. for antennas in deep ice. If not provided,
+            the travel time delays are calculated from the geometry of the station and the direction of the
+            incoming signal using the refractive index of air or shallow ice.
         """
         if use_channels is None:
             msg = ("No channels specified for electric field reconstruction. "
