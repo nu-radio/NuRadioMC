@@ -190,9 +190,9 @@ class ShowerSimulator:
             if len(sim_station.get_electric_fields()) != 0:
                 sim.apply_det_response_sim(sim_station, self.det, self.config, self.detector_simulation_filter_amp)
 
-            # Add cable delays:
-            if self.add_cable_delay:
-                channelAddCableDelay.run(evt, sim_station, self.det, mode="add")
+            # Remove cable delays (they were already included in the apply_det_response_sim):
+            if not self.add_cable_delay:
+                channelAddCableDelay.run(evt, sim_station, self.det, mode="subtract")
 
             # Make empty channel and add sim channels to it:
             readout_channel = NuRadioReco.framework.channel.Channel(channel_id)
