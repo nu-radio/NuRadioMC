@@ -96,7 +96,7 @@ def find_threshold_crossing(channels, threshold=None, offset=5*units.ns, min_amp
         trace = channel.get_trace()
         sampling_rate = channel.get_sampling_rate()
         trace -= np.mean(trace)
-        offset_samples = ceil(offset[0] * sampling_rate), ceil(offset[1] * sampling_rate)
+        offset_samples = [ceil(offset[0] * sampling_rate), ceil(offset[1] * sampling_rate)]
         if offset_samples[1] == 0:
             offset_samples[1] = None # needed for correct numpy slicing
 
@@ -140,7 +140,8 @@ def find_threshold_crossing(channels, threshold=None, offset=5*units.ns, min_amp
             axs[i].plot(channel.get_times(), trace)
             axs[i].axvline(threshold_times[i], ls=":", color='red')
             axs[i].set_xlim(threshold_times[i] - 50, threshold_times[i] + 150)
-            axs[i].set_ylim(-.1*threshold, 5*threshold)
+            if threshold != 'max':
+                axs[i].set_ylim(-.1*current_threshold, 5*current_threshold)
             axs[i].set_ylabel('amplitude')
 
     if debug:
@@ -392,6 +393,7 @@ def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_A
 
     channel = channels[0]
     sampling_rate = channel.get_sampling_rate()
+    pos = np.asarray(pos)
 
     ds_max = np.max([np.linalg.norm(pos[i]-pos[j]) for i in range(3) for j in range(3)])
     max_sample_delay = n_index * ds_max / SPEED_OF_LIGHT * sampling_rate + 1
@@ -447,7 +449,10 @@ def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_A
             valid = np.linalg.norm(np.diag(1/s) @ u.T @ ds, axis=0) < 1
 
             if np.any(valid):
-                total_corr = corrs[channels_sorted[0], i0][:, None, None] + corrs[channels_sorted[1], i1][None, :, None] + corrs[channels_sorted[2], i2][None, None, :]
+                total_corr = (
+                    corrs[channels_sorted[0], i0][:, None, None]
+                    + corrs[channels_sorted[1], i1][None, :, None]
+                    + corrs[channels_sorted[2], i2][None, None, :])
                 total_corr = total_corr.flatten()
                 total_corr[~valid] = 0
                 max_index = np.argmax(total_corr.flatten())
@@ -459,8 +464,13 @@ def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_A
 
                 dt = np.zeros(3)
                 dt[channels_sorted] = np.array([t0, t1_max, t2_max])
+                logger.debug(
+                    'Maximum total correlation %.3f at time shifts' + len(dt) * ' %.2f',
+                    total_corr[np.unravel_index(max_index, total_corr.shape)], *dt)
+
                 if full_output:
-                    return dt, np.array([corrs[channels_sorted[i], mesh_index[i]] for i in range(3)])
+                    return dt, np.array([corrs[channels_sorted[k], i[k][mesh_index]] for k in range(3)])
+
                 return dt
 
     else: # no templates provided - we use the direct cross-correlation between the channels instead
@@ -481,8 +491,16 @@ def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_A
         # We cover all possible relative delays as follows:
         # all possible delays of channel 2 - channel 1 (first entry)
         # all possible delays of channel 3 - channel 1 (second entry);
-        # then the delay of channel 3 - channel 2 is fixed
-        sample_delays = np.asarray(np.meshgrid(lags_valid, lags_valid)).reshape(2, -1)
+        # then the delay of channel 3 - channel 2 (third entry) is fixed
+        sample_delays = np.meshgrid(lags_valid, lags_valid)
+        sample_delays = np.asarray(
+            [*sample_delays, sample_delays[1] - sample_delays[0]]
+        ).reshape(3, -1)
+        # compute relevant time differences from trace start times:
+        delta_trace_start_times = np.asarray([
+            trace_start_times[1] - trace_start_times[0],
+            trace_start_times[2] - trace_start_times[0],
+            trace_start_times[2] - trace_start_times[1]])
 
         # we require that a plane wave solution exists
         # if the non-singular part of the equation has a solution with norm < 1,
@@ -493,16 +511,20 @@ def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_A
         valid = np.linalg.norm(np.diag(1/s) @ u.T @ ds, axis=0) < 1
 
         sample_indices = sample_delays - lags[0] + np.round(
-            (trace_start_times[1:3, None] - trace_start_times[0]) * sampling_rate).astype(int) # adjust for different trace start times
+            (delta_trace_start_times[...,None]) * sampling_rate).astype(int) # adjust for different trace start times
         valid &= np.all((sample_indices > 0) & (sample_indices < len(lags)), axis=0) # ensure only valid indices are included
 
         total_corr = np.sum([corrs[i, j] for i, j in enumerate(sample_indices[:, valid])], axis=0)
         max_index = np.argmax(total_corr)
         time_shifts = (sample_delays[:, valid][:, max_index]) / sampling_rate
         dt = np.array([0, *-time_shifts[:len(channels)-1]])
+        logger.debug(
+            'Maximum total correlation %.3f at shifts' + len(time_shifts) * ' %.2f',
+            total_corr[max_index], *time_shifts)
 
         if full_output:
-            return dt, np.array([corrs[i, j] for i,j in enumerate(sample_delays[:, max_index])])
+            selected_indices = sample_indices[:, valid][:, max_index]
+            return dt, corrs[np.arange(len(selected_indices)), selected_indices]
 
         return dt
 
