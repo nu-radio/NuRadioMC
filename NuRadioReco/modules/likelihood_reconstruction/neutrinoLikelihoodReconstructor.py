@@ -353,7 +353,11 @@ class neutrinoLikelihoodReconstructor:
         rec_vertex_xyz = rec_vertex_xyz_rel + det.get_relative_position(station.get_id(), 0)
         signal_model.propagator.set_start_and_end_point(rec_vertex_xyz, det.get_relative_position(station.get_id(), reference_channel))
         signal_model.propagator.find_solutions()
-        travel_time = signal_model.propagator.get_travel_time(0)
+        try:
+            travel_time = signal_model.propagator.get_travel_time(0)
+        except IndexError:
+            logger.warning("Ray-tracer failed to find a solution for the reconstructed vertex position. Setting travel time to 0.")
+            travel_time = 0
         rec_vertex_time = parameters_fit[6] + trace_start_times[reference_index] - det.get_cable_delay(station.get_id(), reference_index) - travel_time
 
         # Convert fit uncertainties to shower parameter uncertainties:
