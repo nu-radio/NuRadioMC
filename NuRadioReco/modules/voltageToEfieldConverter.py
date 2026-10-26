@@ -2,7 +2,7 @@ from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import copy
 from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, fft
 from NuRadioReco.utilities import ice
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import signal_processing
@@ -182,8 +182,10 @@ class voltageToEfieldConverter:
         self.antenna_provider = None
         self.begin()
 
-    def begin(self):
+    def begin(self, debug=False, hann_window_duration=100 * units.ns):
         self.antenna_provider = antennapattern.AntennaPatternProvider()
+        self.debug = debug
+        self.hann_window_duration = hann_window_duration
         pass
 
     @register_run()
@@ -235,7 +237,39 @@ class voltageToEfieldConverter:
             for channel_id in use_channels], axis=0)
 
         times, efield_antenna_factor, V = get_array_of_channels(
-            station, use_channels, det, zenith, azimuth, self.antenna_provider, efield_position=efield_position)
+            station, use_channels, det, zenith, azimuth, self.antenna_provider, efield_position=efield_position, travel_time_delays=travel_time_delays)
+
+        if self.hann_window_duration > 0:
+            hann_window_samples = int(self.hann_window_duration * station.get_channel(use_channels[0]).get_sampling_rate())
+            V = fft.freq2time(V, station.get_channel(use_channels[0]).get_sampling_rate())
+            hann_window = signal_processing.half_hann_window(V.shape[1], hann_window_length=hann_window_samples)
+            V[:, :] *= hann_window[None, :]
+            V = fft.time2freq(V, station.get_channel(use_channels[0]).get_sampling_rate())
+
+        if self.debug:
+            fig, ax = plt.subplots(len(V), 1, figsize=(10, 2*len(V)))
+            ax[0].set_title(f'Station {station.get_id()} - Event {evt.get_id()} - Run {evt.get_run_number()} - Shifted Voltage Traces')
+            for i in range(len(V)):
+                ax[i].plot(times, fft.freq2time(V[i,:], station.get_channel(use_channels[i]).get_sampling_rate()), label=f'Channel {use_channels[i]}')
+                ax[i].set_ylabel('Voltage [V]')
+                ax[i].set_xlim(times[0], times[-1])
+            ax[-1].set_xlabel('Time [ns]')
+            ax[0].legend()
+            fig.tight_layout()
+            plt.savefig("debug_voltage_traces.png")
+
+            fig, ax = plt.subplots(len(V), 1, figsize=(10, 2*len(V)))
+            frequencies = np.fft.rfftfreq(len(times), d=1/station.get_channel(use_channels[0]).get_sampling_rate())
+            ax[0].set_title(f'Station {station.get_id()} - Event {evt.get_id()} - Run {evt.get_run_number()} - Shifted Voltage Traces')
+            for i in range(len(V)):
+                ax[i].plot(frequencies, abs(efield_antenna_factor[i,0,:]), label=f'Channel {use_channels[i]}, theta')
+                ax[i].plot(frequencies, abs(efield_antenna_factor[i,1,:]), label=f'Channel {use_channels[i]}, phi')
+                ax[i].set_ylabel('Voltage [V]')
+                ax[i].set_xlim(frequencies[0], frequencies[-1])
+            ax[-1].set_xlabel('Frequency [GHz]')
+            ax[0].legend()
+            fig.tight_layout()
+            plt.savefig("debug_antenna_factors.png")
 
         n_frequencies = len(V[0])
         denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] -
