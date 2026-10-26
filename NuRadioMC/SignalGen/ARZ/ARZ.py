@@ -500,7 +500,7 @@ class ARZ(object):
         return profile_depth, profile_ce
 
 
-    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=False,
+    def get_time_trace(self, shower_energy, theta, N, dt, shower_type, n_index, R, shift_for_xmax=True,
                        same_shower=False, iN=None, output_mode='trace', maximum_angle=20 * units.deg,
                        profile_depth=None, profile_ce=None):
         """
