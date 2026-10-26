@@ -18,4 +18,10 @@ repos:
         name: check ipynb outputs
         language: python
         entry: python .github/git_hooks/check-ipynb-outputs.py
+    -   id: flake8-changed-lines
+        name: flake8 (all rules, changed lines only)
+        language: python
+        additional_dependencies: [flake8==7.1.2]
+        entry: python .github/git_hooks/flake8-changed-lines.py
+        types: [python]
 

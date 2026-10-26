@@ -17,7 +17,7 @@ NuRadioMC imports NuRadioReco, never the other way round.
 
 ```bash
 pip install -e .[dev]          # optional extras: proposal, galacticnoise, muon-flux, cr_interpolator, ALL
-pre-commit install             # blocks commits to master/develop, files > 500 kB, notebooks with outputs; runs flake8 (E9, F63, F7, F82)
+pre-commit install             # blocks commits to master/develop, files > 500 kB, notebooks with outputs; runs flake8 (E9, F63, F7, F82 on files, all rules on changed lines)
 ./run_all_tests.sh             # shell-driven integration tests under NuRadioMC/test and NuRadioReco/test
 python -m pytest NuRadioReco/detector/test/test_antennapattern.py -q   # single pytest file
 python documentation/make_docs.py                                     # build docs into documentation/build/html
@@ -130,4 +130,4 @@ Manuals: `documentation/source/NuRadioMC/pages/Manuals/` (config, event generati
 - Keep scratch scripts and outputs outside the repo; never commit large files, antenna models, or notebook outputs.
 - Keep diffs scoped to the task.
 - For changes that can affect physics output, show before/after numbers (e.g. a Veff or trigger-rate test with fixed seed, or bit-identical HDF5 output for pure refactors).
-- Run the relevant tests from `run_all_tests.sh` / CI and `flake8` on touched files before proposing a PR.
+- Run the relevant tests from `run_all_tests.sh` / CI before proposing a PR. Lint a branch with `pre-commit run flake8-changed-lines --from-ref origin/develop --to-ref HEAD`.
