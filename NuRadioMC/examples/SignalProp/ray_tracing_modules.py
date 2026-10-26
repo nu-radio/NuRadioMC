@@ -20,7 +20,7 @@ plot_line_styles = ["-", "--", ":", "-."]
 ### ray tracing modules available in NuRadioMC
 ref_index_model = 'greenland_simple'
 ice_simple = medium.get_ice_model(ref_index_model)
-ice_layers = medium.greenland_3exp_layered()
+ice_layers = medium.greenland_3exp_density()
 
 # Let us work on the y = 0 plane
 initial_point = np.array( [70, 0, -300] ) * units.m
