@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import absolute_import, division, print_function
 import sys
+import argparse
 import h5py
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities._test_helpers import (
@@ -9,8 +10,14 @@ from NuRadioMC.utilities._test_helpers import (
     assert_almost_equal_station_keys, assert_almost_equal_station_keys_absolute)
 
 
-file1 = sys.argv[1]
-file2 = sys.argv[2]
+parser = argparse.ArgumentParser(description='Compare two NuRadioMC hdf5 output files')
+parser.add_argument('file1', type=str)
+parser.add_argument('file2', type=str)
+parser.add_argument('--rtol', type=float, default=1e-4,
+                    help='relative tolerance of all keys which are not compared exactly or with an absolute tolerance')
+args = parser.parse_args()
+file1 = args.file1
+file2 = args.file2
 print("Testing the files {} and {} for (almost) equality".format(file1, file2))
 
 fin1 = h5py.File(file1, 'r')
@@ -61,7 +68,7 @@ attributes = [
  u'bandwidth',
  u'Vrms']
 
-error = assert_almost_equal_attributes(fin1, fin2, attributes, error=error)
+error = assert_almost_equal_attributes(fin1, fin2, attributes, accuracy=args.rtol, error=error)
 
 # Test those station keys that should be perfectly equal
 
@@ -91,7 +98,7 @@ error = assert_equal_station_keys(fin1, fin2, keys, error=error)
 keys = [
  u'weights']
 
-error = assert_almost_equal_keys(fin1, fin2, keys, error=error)
+error = assert_almost_equal_keys(fin1, fin2, keys, accuracy=args.rtol, error=error)
 
 keys = [
  u'trigger_times']
@@ -106,9 +113,11 @@ keys = [
  u'travel_distances',
  u'polarization',
  u'max_amp_shower_and_ray',
+ u'maximum_amplitudes',
+ u'maximum_amplitudes_envelope',
  ]
 
-error = assert_almost_equal_station_keys(fin1, fin2, keys, error=error)
+error = assert_almost_equal_station_keys(fin1, fin2, keys, accuracy=args.rtol, error=error)
 
 keys = [
  u'travel_times',
@@ -117,15 +126,6 @@ keys = [
  ]
 
 error = assert_almost_equal_station_keys_absolute(fin1, fin2, keys, atol=time_accuracy, error=error)
-
-# for some reason the test suddenly can't achieve a good enough precision on this quantity. Lets reduce precision
-# for this vairble for now.
-keys = [u'maximum_amplitudes_envelope']
-error = assert_almost_equal_station_keys(fin1, fin2, keys, accuracy=0.002, error=error)
-
-# test maximimum amplitude separately because it might differ slightly because of differences in the interferene between signals
-keys = [u'maximum_amplitudes']
-error = assert_almost_equal_station_keys(fin1, fin2, keys, accuracy=0.01, error=error)
 
 if error == 0:
     print("The two files are (almost) identical.")
