@@ -13,3 +13,4 @@ python3 example_3d.py
 python3 A01IceCubePulserToARA.py
 python3 ray_tracing_modules.py
 python3 E02ToAir.py
+rm -v example.png IceCubePulserToARA1.png IceCubePulserToARA2.png example_to_air.png

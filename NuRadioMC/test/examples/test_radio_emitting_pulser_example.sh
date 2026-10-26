@@ -12,5 +12,5 @@ python NuRadioMC/test/examples/validate_radio_emitter_allmost_equal.py  output.h
     NuRadioMC/test/examples/radio_emitter_output_reference.hdf5
 
 rm emitter_event_list.hdf5
-# rm output.hdf5
+rm output.hdf5
 rm output.nur

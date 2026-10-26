@@ -11,3 +11,7 @@ else
 fi
 
 python3 NuRadioReco/examples/RNOG/data_analysis_example.py NuRadioReco/test/data/station23/run325/combined.root --outputfile NuRadioReco/examples/RNOG/processed.nur
+
+# cleanup
+rm -v NuRadioReco/examples/RNOG/processed.nur
+rm -fv channel_traces_*.png  # number of plots depends on the data
