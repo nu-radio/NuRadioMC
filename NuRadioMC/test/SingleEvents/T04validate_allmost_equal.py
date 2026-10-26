@@ -13,8 +13,8 @@ from NuRadioMC.utilities._test_helpers import (
 parser = argparse.ArgumentParser(description='Compare two NuRadioMC hdf5 output files')
 parser.add_argument('file1', type=str)
 parser.add_argument('file2', type=str)
-parser.add_argument('--rtol', type=float, default=0.0005,
-                    help='relative tolerance for all keys without a dedicated tolerance')
+parser.add_argument('--rtol', type=float, default=1e-4,
+                    help='relative tolerance of all keys which are not compared exactly or with an absolute tolerance')
 args = parser.parse_args()
 file1 = args.file1
 file2 = args.file2
@@ -113,6 +113,8 @@ keys = [
  u'travel_distances',
  u'polarization',
  u'max_amp_shower_and_ray',
+ u'maximum_amplitudes',
+ u'maximum_amplitudes_envelope',
  ]
 
 error = assert_almost_equal_station_keys(fin1, fin2, keys, accuracy=args.rtol, error=error)
@@ -124,15 +126,6 @@ keys = [
  ]
 
 error = assert_almost_equal_station_keys_absolute(fin1, fin2, keys, atol=time_accuracy, error=error)
-
-# for some reason the test suddenly can't achieve a good enough precision on this quantity. Lets reduce precision
-# for this vairble for now.
-keys = [u'maximum_amplitudes_envelope']
-error = assert_almost_equal_station_keys(fin1, fin2, keys, accuracy=0.002, error=error)
-
-# test maximimum amplitude separately because it might differ slightly because of differences in the interferene between signals
-keys = [u'maximum_amplitudes']
-error = assert_almost_equal_station_keys(fin1, fin2, keys, accuracy=0.01, error=error)
 
 if error == 0:
     print("The two files are (almost) identical.")
