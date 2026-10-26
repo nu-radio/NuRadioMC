@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import absolute_import, division, print_function
 import sys
+import argparse
 import h5py
 from NuRadioReco.utilities import units
 from NuRadioMC.utilities._test_helpers import (
@@ -9,8 +10,14 @@ from NuRadioMC.utilities._test_helpers import (
     assert_almost_equal_station_keys, assert_almost_equal_station_keys_absolute)
 
 
-file1 = sys.argv[1]
-file2 = sys.argv[2]
+parser = argparse.ArgumentParser(description='Compare two NuRadioMC hdf5 output files')
+parser.add_argument('file1', type=str)
+parser.add_argument('file2', type=str)
+parser.add_argument('--rtol', type=float, default=0.0005,
+                    help='relative tolerance for all keys without a dedicated tolerance')
+args = parser.parse_args()
+file1 = args.file1
+file2 = args.file2
 print("Testing the files {} and {} for (almost) equality".format(file1, file2))
 
 fin1 = h5py.File(file1, 'r')
@@ -61,7 +68,7 @@ attributes = [
  u'bandwidth',
  u'Vrms']
 
-error = assert_almost_equal_attributes(fin1, fin2, attributes, error=error)
+error = assert_almost_equal_attributes(fin1, fin2, attributes, accuracy=args.rtol, error=error)
 
 # Test those station keys that should be perfectly equal
 
@@ -91,7 +98,7 @@ error = assert_equal_station_keys(fin1, fin2, keys, error=error)
 keys = [
  u'weights']
 
-error = assert_almost_equal_keys(fin1, fin2, keys, error=error)
+error = assert_almost_equal_keys(fin1, fin2, keys, accuracy=args.rtol, error=error)
 
 keys = [
  u'trigger_times']
@@ -108,7 +115,7 @@ keys = [
  u'max_amp_shower_and_ray',
  ]
 
-error = assert_almost_equal_station_keys(fin1, fin2, keys, error=error)
+error = assert_almost_equal_station_keys(fin1, fin2, keys, accuracy=args.rtol, error=error)
 
 keys = [
  u'travel_times',
