@@ -1,0 +1,19 @@
+# Source: IceCube EHE Limit (2025), Data available at  https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/JHK49D
+# Data type: Upper limit
+# Energy bins per decade: 1
+# Column values:
+# Energy [GeV]
+# Flux [GeV cm^-2 s^-1 sr^-1]
+# Flux band minimum
+# Flux band maximum
+
+3.162E+06  7.011E-09  0 0
+1.000E+07  9.136E-09  0 0
+3.162E+07  5.377E-09  0 0
+1.000E+08  5.743E-09  0 0
+3.162E+08  7.535E-09  0 0
+1.000E+09  1.147E-08  0 0
+3.162E+09  1.978E-08  0 0
+1.000E+10  3.713E-08  0 0
+3.162E+10  7.529E-08  0 0
+1.000E+11  2.201E-07  0 0

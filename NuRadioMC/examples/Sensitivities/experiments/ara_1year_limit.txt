@@ -1,0 +1,18 @@
+# Source: ARA 2 station x 1 year analysis level limit 
+# Data type: Upper limit
+# Energy bins per decade: 1
+# Column values:
+# Energy [eV]
+# Flux [GeV cm^-2 s^-1 sr^-1]
+# Flux band minimum
+# Flux band maximum
+
+9.80923E+15  1.66106E-04  0 0
+3.11547E+16  1.24595E-05  0 0
+9.79329E+16  4.06271E-06  0 0
+3.10570E+17  2.04351E-06  0 0
+9.75635E+17  1.48811E-06  0 0
+3.09240E+18  1.42649E-06  0 0
+9.80103E+18  1.50393E-06  0 0
+3.07732E+19  2.10936E-06  0 0
+9.75028E+19  3.25384E-06  0 0

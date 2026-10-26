@@ -1,0 +1,20 @@
+# Source: BEACON 1000 high frequency design, 3 years, half decade, all flavor
+# Data type: Upper limit
+# Energy bins per decade: 2
+# Column values:
+# Energy [GeV]
+# Flux [GeV cm^-2 s^-1 sr^-1]
+# Flux band minimum
+# Flux band maximum
+
+1.00000000E+07  1.01459826E-06  0 0
+3.16227766E+07  5.25910446E-08  0 0
+1.00000000E+08  8.16365020E-09  0 0
+3.16227766E+08  2.90054480E-09  0 0
+1.00000000E+09  2.57153151E-09  0 0
+3.16227766E+09  4.39470678E-09  0 0
+1.00000000E+10  1.06058213E-08  0 0
+3.16227766E+10  3.10497544E-08  0 0
+1.00000000E+11  1.01472755E-07  0 0
+3.16227766E+11  3.57230670E-07  0 0
+1.00000000E+12  1.35441025E-06  0 0
