@@ -250,9 +250,7 @@ class neutrinoLikelihoodReconstructor:
 
         traces = []
         trace_start_times = []
-        for channel in station.iter_channels():
-            if channel.get_id() not in use_channels:
-                continue
+        for channel in station.iter_channels(use_channels=use_channels):
             traces.append(channel.get_trace())
             trace_start_times.append(channel.get_trace_start_time())
         traces = np.array(traces)
