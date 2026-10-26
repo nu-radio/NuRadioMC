@@ -598,7 +598,7 @@ ARA: XFDTD
    * - .. _XFDTD_Vpol_CrossFeed_150mmHole_n1.78_InfFirn:
 
        ``XFDTD_Vpol_CrossFeed_150mmHole_n1.78_InfFirn``
-     - *No description yet.*
+     - Identical to ``XFDTD_Vpol_CrossFeed_150mmHole_n1.78`` (same file hash).
      - 
      - 
      - 
@@ -710,7 +710,7 @@ LOFAR low-band antenna. ``LOFAR_LBA_X`` and ``LOFAR_LBA_Y`` are used in ``NuRadi
    * - .. _LOFAR_LBA_Y:
 
        ``LOFAR_LBA_Y``
-     - *No description yet.*
+     - Identical to ``LOFAR_LBA`` (same file hash).
      - 
      - 
      - 

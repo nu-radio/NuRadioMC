@@ -638,7 +638,12 @@ def get_pickle_antenna_response(path, return_verified=False):
 
     # entries are [sha1 hash, comment]; the log level is set by a leading "error" / "warning" in the comment
     file_name = os.path.basename(path)
-    sha1_hash, comment = antenna_hashs.get(file_name, (None, ""))
+    entry = antenna_hashs.get(file_name, (None, ""))
+    if not (isinstance(entry, (list, tuple)) and len(entry) == 2):
+        raise ValueError(
+            f"Invalid entry for {file_name} in antenna_models_hash.json: {entry!r}. "
+            "Expected [sha1 hash, comment].")
+    sha1_hash, comment = entry
     if comment:
         if comment.lower().startswith("error"):
             logger.error(f"Antenna model {file_name}: {comment}")
