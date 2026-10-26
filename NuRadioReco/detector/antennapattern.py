@@ -1830,14 +1830,11 @@ class AntennaPatternAnalytic(AntennaPatternBase):
             f = 1000. * units.MHz  # maximum frequency
             return np.pi / np.log(tau) * np.log(freq / f) - 60
         elif phase_type == 'frontlobe_lpda':
-            phase = 100 * (freq - 400 * units.MHz) ** 2 - 20
-            above = freq > 400 * units.MHz
-            phase[above] -= 0.00007 * (freq[above] - 400 * units.MHz) ** 2
-            return phase
+            return -2.074e+02 * freq**5 + 6.815e+02 * freq**4 - 8.960e+02 * freq**3 + 6.100e+02 * freq**2 - 2.062e+02 * freq + 6.826e+00
         elif phase_type == 'side_lpda':
-            return 40 * (freq - 950 * units.MHz) ** 2 - 40
+            return  8.528e+01 * freq**5 + 3.902e+01 * freq**4 - 4.270e+02 * freq**3 + 4.651e+02 * freq**2 - 2.060e+02 * freq + 7.184e+00
         elif phase_type == 'back_lpda':
-            return 50 * (freq - 950 * units.MHz) ** 2 - 50
+            return -1.203e+03 * freq**5 + 3.125e+03 * freq**4 - 2.953e+03 * freq**3 + 1.267e+03 * freq**2 - 3.119e+02 * freq + 8.328e+00
         elif phase_type == 'VPol_third_order':
             return 2.086 - 117.917 * freq + 74.567 / 2 * freq ** 2 - 64.343 / 3 * freq ** 3
         elif phase_type == 'HPol_third_order':
