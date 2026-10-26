@@ -12,7 +12,7 @@ You will need to have a functioning installation of [GSL](https://www.gnu.org/so
 ### As part of NuRadioMC
 To create python wrapper around the relevant C function, so that the C code can be used directly from the ray tracer
 class of NuRadioMC just execute
-`python setup.py build_ext --inplace` 
+`python setup.py build_ext --inplace`
 
 ### As standalone package
 Getting going is easy. Just:
@@ -22,4 +22,3 @@ Getting going is easy. Just:
   - You can find if, and how many, solutions exist to the ray tracing problem.
   - Find the ray tracing path, path length, time of flight, and attenuation factor of the ray.
   - Find the launch and receive angles for the ray.
-

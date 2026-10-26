@@ -13,6 +13,15 @@ import itertools
 import logging
 logger = logging.getLogger('NuRadioReco.framework.parameter_storage')
 
+# Module-level alias so `get_parameter` can use a `copy` keyword argument
+# without shadowing the `copy` module inside its own body.
+_deepcopy = copy.deepcopy
+
+# Types that can never be mutated in place, so returning them without copying
+# is always safe. Everything else (list, dict, set, numpy.ndarray, custom
+# objects, ...) is deep-copied by `get_parameter` unless `copy=False`.
+_IMMUTABLE_SCALAR_TYPES = (int, float, complex, bool, str, bytes, type(None))
+
 
 class ParameterStorage:
     """
@@ -65,10 +74,32 @@ class ParameterStorage:
             logger.error(f"Parameter {key} needs to be of type {self._parameter_types}")
             raise ValueError(f"Parameter {key} needs to be of type {self._parameter_types}")
 
-    def get_parameter(self, key):
-        """ Get a parameter """
+    def get_parameter(self, key, copy=True):
+        """
+        Get a parameter
+
+        Parameters
+        ----------
+        key : parameter key
+            The parameter to retrieve.
+        copy : bool (default: True)
+            If `True` (default), mutable values (e.g. `list`, `dict`, `numpy.ndarray`) are
+            deep-copied before being returned, so that modifying the returned value does not
+            also modify the parameter stored in this object. Values of immutable types (e.g.
+            `int`, `float`, `str`, `None`) are never copied, since they cannot be mutated in
+            place regardless of this option.
+
+            Set to `False` to retrieve the stored object itself without copying, e.g. for
+            read-only access to large objects in performance-critical code. Note that in this
+            case, any in-place modification of the returned object will also modify the
+            parameter stored in this object.
+        """
         self._check_key(key)
-        return self._parameters[key]
+        value = self._parameters[key]
+        if copy and not isinstance(value, _IMMUTABLE_SCALAR_TYPES):
+            value = _deepcopy(value)
+
+        return value
 
     def has_parameter(self, key):
         """ Returns `True` if the parameter `key` is present, `False` otherwise """

@@ -87,11 +87,14 @@ for iX, x in enumerate(points):
 compare_array = np.vstack((results_theta, results_phi))
 reference_array = np.load('reference_BF.npy')
 
-# The tolerance was chosen to be 0.0002V/m. The amplitudes of the pulses are above 0.1V/m.
-# This tolerance is necessary as there are small numerical instabilities in the polarization calculation of the birefringence functions. 
+# The tolerance was chosen to be 0.0003V/m. The amplitudes of the pulses are above 0.1V/m.
+# This tolerance is necessary as there are small numerical instabilities in the polarization calculation of the birefringence functions.
 # Over the propagation these differences can add up but seem to remain below 1% of the original pulse amplitude.
+# The tolerance includes some headroom for platform/GSL-version-dependent last-bit differences
+# in the underlying root finding (observed differences up to ~2.3e-4V/m between macOS and the
+# reference values).
 
-testing.assert_allclose(compare_array, reference_array, atol=2e-4  * units.V / units.m, rtol=1e-7)
+testing.assert_allclose(compare_array, reference_array, atol=3e-4  * units.V / units.m, rtol=1e-7)
 print('T07test_birefringence passed without issues')
 
 

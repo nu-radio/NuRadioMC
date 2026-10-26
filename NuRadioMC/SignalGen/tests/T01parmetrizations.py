@@ -46,7 +46,7 @@ ax1.set_xlabel("Frequency [MHz]")
 ax1.set_xlim(10, 2e3)
 ax1.set_ylim(1e-9, 1e-3)
 ax1.legend()
-ax1.set_title("E = {:.1e}eV, $\Delta\Omega$ = {:.1f}deg, R = {:.1f}km".format(E/units.eV, domega / units.deg, R / units.km))
+ax1.set_title(r"E = {:.1e}eV, $\Delta\Omega$ = {:.1f}deg, R = {:.1f}km".format(E/units.eV, domega / units.deg, R / units.km))
 fig1.tight_layout()
 
 ax.set_ylabel("Amplitude [V/m]")

@@ -55,7 +55,7 @@ class calculateAmplitudePerRaySolution:
 
                 # get antenna pattern for current channel
                 antenna_model = det.get_antenna_model(sim_station_id, channel_id, zenith)
-                antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model, interpolation_method='complex')
+                antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model)
                 ori = det.get_antenna_orientation(sim_station_id, channel_id)
                 logger.debug("zen {:.0f}, az {:.0f}".format(zenith / units.deg, azimuth / units.deg))
                 VEL = antenna_pattern.get_antenna_response_vectorized(ff, zenith, azimuth, *ori)
@@ -74,8 +74,16 @@ class calculateAmplitudePerRaySolution:
                 if not efield.has_parameter(efp.max_amp_antenna):
                     efield[efp.max_amp_antenna] = {}
                     efield[efp.max_amp_antenna_envelope] = {}
-                efield[efp.max_amp_antenna][channel_id] = maximum
-                efield[efp.max_amp_antenna_envelope][channel_id] = maximum_envelope
+
+                # `get_parameter` returns a copy of the stored dict, so it needs to be
+                # written back with `set_parameter` after being updated in place.
+                max_amp_antenna = efield[efp.max_amp_antenna]
+                max_amp_antenna[channel_id] = maximum
+                efield[efp.max_amp_antenna] = max_amp_antenna
+
+                max_amp_antenna_envelope = efield[efp.max_amp_antenna_envelope]
+                max_amp_antenna_envelope[channel_id] = maximum_envelope
+                efield[efp.max_amp_antenna_envelope] = max_amp_antenna_envelope
 
         self.__t += time.time() - t
 

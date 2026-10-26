@@ -25,9 +25,6 @@ See Also
 
 from NuRadioReco.utilities import units, geometryUtilities as geo_utl, fft, trace_utilities, constants
 
-from NuRadioReco.detector import filterresponse
-from NuRadioReco.detector.response import Response
-import NuRadioReco.framework.base_trace
 
 from scipy.signal.windows import hann
 from scipy import signal, interpolate, integrate
@@ -35,11 +32,21 @@ import numpy as np
 import fractions
 import decimal
 import copy
-
-from matplotlib import pyplot as plt  # for debugging plots
+import sys
 
 import logging
 logger = logging.getLogger("NuRadioReco.utilities.signal_processing")
+
+
+def _isinstance_if_loaded(obj, module_name, class_name):
+    """
+    Check ``isinstance(obj, module_name.class_name)`` without importing the module.
+
+    If the module was never imported, ``obj`` cannot be an instance. This keeps
+    the framework/detector packages out of the import chain of this module.
+    """
+    module = sys.modules.get(module_name)
+    return module is not None and isinstance(obj, getattr(module, class_name))
 
 
 def half_hann_window(length, half_percent=None, hann_window_length=None):
@@ -57,11 +64,14 @@ def half_hann_window(length, half_percent=None, hann_window_length=None):
         The length of the half the Hann window. If `half_percent` is set, this value will be overwritten by it.
     """
     if half_percent is not None:
-        hann_window_length = int(length * half_percent)
+        hann_window_length = max(int(length * half_percent), 1)
     elif hann_window_length is None:
         raise ValueError("Either half_percent or half_window_length should be set!")
-    hann_window = hann(2 * hann_window_length)
 
+    if hann_window_length <= 1:
+        logger.warning("The half hann window you are using is basically only a box filter - this is not intended.")
+
+    hann_window = hann(2 * hann_window_length)
     half_hann_widow = np.ones(length, dtype=np.double)
     half_hann_widow[:hann_window_length] = hann_window[:hann_window_length]
     half_hann_widow[-hann_window_length:] = hann_window[hann_window_length:]
@@ -330,6 +340,7 @@ def get_filter_response(
         )
 
     else:
+        from NuRadioReco.detector import filterresponse  # lazy: keeps the detector package out of the import chain
         return filterresponse.get_filter_response(frequencies, filter_type)
 
 
@@ -430,7 +441,7 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
     """
     # Do nothing if time_delay is 0
     if not time_delay:
-        if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
+        if _isinstance_if_loaded(trace, 'NuRadioReco.framework.base_trace', 'BaseTrace'):
             if crop_trace:
                 return trace.get_trace(), 0
             else:
@@ -441,7 +452,7 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
             else:
                 return trace
 
-    if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
+    if _isinstance_if_loaded(trace, 'NuRadioReco.framework.base_trace', 'BaseTrace'):
         spectrum = trace.get_frequency_spectrum()
         frequencies = trace.get_frequencies()
         if trace.get_sampling_rate() != sampling_frequency:
@@ -491,7 +502,7 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
         return delayed_trace
 
 
-def get_electric_field_from_temperature(frequencies, noise_temperature, solid_angle):
+def get_electric_field_from_temperature(frequencies, noise_temperature, solid_angle, n=1):
     """
     Calculate the electric field amplitude from the radiance of a radio signal.
 
@@ -507,20 +518,22 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
         The noise temperature to use in the Rayleigh-Jeans law
     solid_angle: float
         The solid angle over which the radiance is integrated
+    n: float (default: 1)
+        The refractive index of the medium
 
     Returns
     -------
     efield_amplitude: array of floats
         The electric field amplitude at each frequency
     """
-    c_vac = constants.c  # already in NuRadioReco units
+    c_med = constants.c / n  # already in NuRadioReco units
 
     # Calculate frequency spacing
     d_f = frequencies[2] - frequencies[1]
 
     # Calculate spectral radiance of radio signal using Rayleigh-Jeans law
     spectral_radiance = (
-        2.0 * constants.k_B * frequencies**2 * noise_temperature / c_vac**2
+        2.0 * constants.k_B * frequencies**2 * noise_temperature / c_med**2
     )
     spectral_radiance[np.isnan(spectral_radiance)] = 0
 
@@ -528,8 +541,8 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
     radiance_per_bin = spectral_radiance * d_f * solid_angle
 
     # calculate electric field per energy bin from the radiance per bin
-    # 1 / (c_vac * epsilon_0) = Z_0 the vaccum impedance, d_f term due to our fft definition
-    efield_amplitude = np.sqrt(radiance_per_bin / (c_vac * constants.epsilon_0)) / d_f
+    # wave impedance in the medium: Z = Z_0 / n = 1 / (n * c_vac * epsilon_0), d_f term due to our fft definition
+    efield_amplitude = np.sqrt(radiance_per_bin / (n * constants.c * constants.epsilon_0)) / d_f
 
     return efield_amplitude
 
@@ -675,7 +688,10 @@ def get_channel_voltage_from_efield(
 
 
 
-def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * units.microsecond, min_diff=0.005, max_t_diff=5 * units.ns, min_island_length=1 * units.ns, show_debug=False, freqs=None):
+def window_response_in_time_domain(
+        resp, sampling_rate=5 * units.GHz, t0=2 * units.microsecond,
+        min_diff=0.005, max_t_diff=5 * units.ns, min_island_length=1 * units.ns,
+        show_debug=False, freqs=None):
     """ Windows a response in the time domain (i.e., sets the response to 0 outside a window).
 
     This function takes the reponse in the time domain, identifies the relevant region of the response,
@@ -714,7 +730,7 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
         The windowed response function or spectrum.
     """
 
-    if isinstance(resp, Response) or callable(resp):
+    if _isinstance_if_loaded(resp, 'NuRadioReco.detector.response', 'Response') or callable(resp):
         spec = resp(freqs)
         input_response = True
         num_samples = int(t0 * sampling_rate)
@@ -739,6 +755,7 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
     hilbert = np.abs(trace_utilities.get_hilbert_envelope(time_response))
 
     if show_debug:
+        from matplotlib import pyplot as plt
         fig, ax = plt.subplots()
         ax.plot(times, time_response / np.amax(time_response), label='time response', lw=1)
         ax.plot(times, hilbert / np.amax(hilbert), label='hilbert', lw=1)
@@ -777,11 +794,16 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
     selected_islands = islands[np.logical_and(distance_mask, size_mask)]
 
     if not np.any(selected_islands):
-        raise ValueError("No islands found that satisfy the conditions")
+        logger.warning("No islands found that satisfy the conditions. Returning original response.")
+        if input_response:
+            return resp
+        else:
+            return spec
 
     # Connect selected islands
     sample_padding = 3  # padding because we apply a window
-    selected_range = [selected_islands[0, 0] - sample_padding, selected_islands[-1, 1] + sample_padding]
+    selected_range = [max(selected_islands[0, 0] - sample_padding, 0),
+                      min(selected_islands[-1, 1] + sample_padding, len(time_response))]
 
     try:
         window = half_hann_window(selected_range[1] - selected_range[0], 0.01)

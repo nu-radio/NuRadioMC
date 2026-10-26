@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger("NuRadioMC.T04MooresBay")
 logger.setLevel(logging.INFO)
 
-ice = medium.mooresbay_simple()
+ice = medium.mooresbay_simple_layered()
 
 """
 this unit test compares the numerical and analytic calculation of path length and travel time for the Moore's Bay site with additional reflections off the bottom.

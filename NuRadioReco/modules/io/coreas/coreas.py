@@ -580,6 +580,10 @@ def create_sim_shower_from_hdf5(corsika, declination=0):
 
     if 'ATMOD' in corsika['inputs'].attrs:  # this can be false is left on default or when using GDAS atmosphere
         sim_shower.set_parameter(shp.atmospheric_model, corsika["inputs"].attrs["ATMOD"])
+    else:
+        if np.any([att.startswith("ATM") for att in corsika['inputs'].attrs]):
+            raise ValueError("Can not correctly infer the atmospheric model from the input data.")
+        sim_shower.set_parameter(shp.atmospheric_model, 1)
 
     if 'highlevel' in corsika:
         sim_shower.set_parameter(shp.electromagnetic_energy, corsika["highlevel"].attrs["Eem"] * units.eV)

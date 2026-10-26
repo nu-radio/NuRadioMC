@@ -222,7 +222,8 @@ class ModDetector(Detector):
         sampling_rate = self.get_sampling_frequency(station_id, channel_id)
 
         # number of samples a trace would have with a length at least that of the time delay
-        n_samples = int(time_delay * 2.0 * sampling_rate) + 1
+        # also make sure that we have at least three frequency bins to avoid a degenerate frequency axis
+        n_samples = int(time_delay * 2.0 * sampling_rate) + 3
         freqs = fft.freqs(n_samples, sampling_rate)
 
         # pseudo data
@@ -282,7 +283,7 @@ if __name__ == "__main__":
     import datetime
     det.update(datetime.datetime(2023, 1, 1, 0, 0, 0))
     resp = det.get_signal_chain_response(11, 0)
-    print(resp.get_time_delay(), resp._calculate_time_delay())
+    print(resp.get_time_delay(), resp.calculate_time_delay())
     det.add_manual_time_delay(11, 0, 250)
     resp = det.get_signal_chain_response(11, 0)
-    print(resp.get_time_delay(), resp._calculate_time_delay())
+    print(resp.get_time_delay(), resp.calculate_time_delay())

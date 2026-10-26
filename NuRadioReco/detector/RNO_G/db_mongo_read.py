@@ -1109,6 +1109,7 @@ class Database(object):
                         template_name = component_data["template_response"]["name"]
                         component_data_template = {"collection": "full_chain"}
                         component_data_template["name"] = template_name
+                        component_data_template["weight"] = 1
                         component_data_template.update(self.get_component_data(
                             collection_name="full_chain",
                             component_name=component_data["template_response"]["name"],

@@ -133,7 +133,7 @@ class channelGalacticNoiseAdder:
         scaling: float, default: 1.0
             Scaling factor for the noise. This is useful when doing interferometry with extremely large arrays
             such as SKA-low. For such an array it is very expensive to simulate/interpolate/process all antennas.
-            Instead, one can use every nth antenna and scale the noise by a factor of 1/\sqrt{n} (since the SNR
+            Instead, one can use every nth antenna and scale the noise by a factor of 1/sqrt(n) (since the SNR
             is expected to scale with the square root of the number of antennas when using interferomtery/beamforming).
         ice_model: str, default: None
             The ice model to use for the simulation of in-ice antennas.
@@ -629,9 +629,9 @@ def Tb_quiet_sun(nu, kind='linear'):
 @functools.lru_cache(maxsize=2)
 def _Tb_quiet_sun(kind='linear'):
     """ Returns function of Tb(f) """
-    
+
     # First column (i.e., entires data[::2]) is the frequency in MHz,
-    # second column (i.e., entries data[1::2]) is the brightness temperature in K.    
+    # second column (i.e., entries data[1::2]) is the brightness temperature in K.
     data = np.array([
         15.060724325205065, 122701.78220087259,
         15.876542140124316, 146675.73927896278,

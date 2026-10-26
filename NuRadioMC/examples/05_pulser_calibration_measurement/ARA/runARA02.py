@@ -30,31 +30,33 @@ triggerSimulator.begin(log_level=logging.WARNING)
 
 
 class mySimulation(simulation.simulation):
+
     def _detector_simulation_filter_amp(self, evt, station, det):
         # bandpass filter trace, the upper bound is higher then the sampling rate which makes it just a highpass filter
         channelBandPassFilter.run(evt, station, det, passband=[80 * units.MHz, 1000 * units.GHz],filter_type='butter', order=2)
         channelBandPassFilter.run(evt, station, det, passband=[0, 500 * units.MHz],filter_type='butter', order=10)
         hardwareResponseIncorporator.run(evt, station, det, sim_to_data=True)
+
     def _detector_simulation_trigger(self, evt, station, det):
         # save the amplitudes to output hdf5 file
         # save amplitudes per ray tracing solution to hdf5 data output
         calculateAmplitudePerRaySolution.run(evt, station, det)
         triggerSimulator.run(evt, station, det,
-                           threshold_high=1e-6 * self._Vrms,
-                           threshold_low=-1e-6 * self._Vrms,
+                           threshold_high=1. * self._Vrms,
+                           threshold_low=-1. * self._Vrms,
                            high_low_window=50 * units.ns,
                            coinc_window=170 * units.ns,
                            number_concidences=4,
-                           trigger_name='highlow_2sigma_Vpol',
+                           trigger_name='highlow_1sigma_Vpol',
                            triggered_channels=[0, 1, 2, 3, 4, 5, 6, 7])
 
         triggerSimulator.run(evt, station, det,
-                           threshold_high=1e-6 * self._Vrms,
-                           threshold_low=-1e-6 * self._Vrms,
+                           threshold_high=1e-8 * self._Vrms,
+                           threshold_low=-1e-8 * self._Vrms,
                            high_low_window=50 * units.ns,
                            coinc_window=170 * units.ns,
                            number_concidences=4,
-                           trigger_name='highlow_2sigma_Hpol',
+                           trigger_name='highlow_0sigma_Hpol',
                            triggered_channels=[8, 9, 10, 11, 12, 13, 14, 15])
 
 

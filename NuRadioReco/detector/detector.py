@@ -117,7 +117,7 @@ def Detector(*args, **kwargs):
                 assume_inf=_if_not_None(assume_inf, True),
                 antenna_by_depth=_if_not_None(antenna_by_depth, True))
 
-        elif source == "rnog_mongo":
+        elif source == "rnog_mongo" or source == "rnog" or source == "mongo":
             return rnog_detector.Detector(*args, **kwargs)
 
         elif source == "dictionary":
@@ -148,7 +148,7 @@ def Detector(*args, **kwargs):
 
         else:
             raise ValueError(f'Unknown source specifed (\"{source}\"). '
-                             f'Must be one of \"json\", \"sql\", \"dictionary\", \"mongo\"')
+                             f'Must be one of \"json\", \"sql\", \"dictionary\", \"mongo\" (\"rnog_mongo\" or \"rnog\" work too))')
 
         has_reference_entry = _find_reference_entry(station_dict)
 

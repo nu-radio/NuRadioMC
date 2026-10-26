@@ -141,6 +141,9 @@ venv.bak/
 .pydevproject
 .settings
 
+# neovim
+.nvim.lua
+
 #Mac nonsense
 .DS_Store
 

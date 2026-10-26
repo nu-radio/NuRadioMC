@@ -1,4 +1,6 @@
 import logging
+import warnings
+from functools import wraps
 
 LOGGING_STATUS = 25
 INFO = logging.INFO
@@ -145,19 +147,24 @@ def get_fancy_formatter():
             red = "\033[31;1m"
             reset = "\033[0m"
 
+            # One formatter per level, built once: constructing them in format() would
+            # drop `datefmt` and allocate a Formatter per record.
             self.FORMATS = {
-                logging.DEBUG: grey + "%(levelname)s - " + reset + format,
-                logging.INFO: green + "%(levelname)s - " + reset + format,
-                LOGGING_STATUS: yellow + "%(levelname)s - " + reset + format,
-                logging.WARNING: purple + "%(levelname)s - " + reset + format,
-                logging.ERROR: red + "%(levelname)s - " + reset + format,
-                logging.CRITICAL: red + "%(levelname)s - " + reset + format
+                level: logging.Formatter(color + "%(levelname)s - " + reset + format, datefmt=datefmt)
+                for level, color in [
+                    (logging.DEBUG, grey),
+                    (logging.INFO, green),
+                    (LOGGING_STATUS, yellow),
+                    (logging.WARNING, purple),
+                    (logging.ERROR, red),
+                    (logging.CRITICAL, red),
+                ]
             }
+            # Used for levels which have no color assigned
+            self.default_format = logging.Formatter(format, datefmt=datefmt)
 
         def format(self, record):
-            log_fmt = self.FORMATS.get(record.levelno)
-            formatter = logging.Formatter(log_fmt)
-            return formatter.format(record)
+            return self.FORMATS.get(record.levelno, self.default_format).format(record)
 
 
     formatter = CustomFormatter(
@@ -182,3 +189,33 @@ def set_general_log_level(level):
 
     nrmc_logger = logging.getLogger("NuRadioMC")
     nrmc_logger.setLevel(level)
+
+try:
+    from warnings import deprecated # only available in Python >= 3.13
+except ImportError:
+    def deprecated(msg, *, category=DeprecationWarning, stacklevel=1):
+        """Decorator for deprecated functions/classes
+
+        Parameters
+        ----------
+        msg : str
+            Message that is displayed when the deprecated class / function is called
+
+        Other Parameters
+        ----------------
+        category : Warning, optional
+            Type of warning to emit (default: DeprecationWarning)
+        stacklevel : int, optional
+            stacklevel passed on to `warnings.warn`. Default is 1.
+        """
+
+        def func_decorator(func):
+
+            @wraps(func)
+            def deprecated_fn(*args, **kwargs):
+                warnings.warn(message=msg, category=category, stacklevel=stacklevel)
+                return func(*args, **kwargs)
+
+            return deprecated_fn
+
+        return func_decorator
