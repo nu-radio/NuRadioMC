@@ -102,7 +102,7 @@ station.add_sim_station(sim_station)
 efieldToVoltageConverter.run(evt, station, det)
 
 # Add noise and filter:
-channelGenericNoiseAdder.run(evt, station, det, min_freq=0*units.GHz, max_freq=max(frequencies), amplitude=noise_amplitude, type="rayleigh")
+channelGenericNoiseAdder.run(evt, station, det, min_freq=0*units.GHz, max_freq=max(frequencies), amplitude=noise_amplitude, type="rayleigh", bandwidth=(max_freq - min_freq))
 channelBandPassFilter.run(evt, station, det, **filter_settings_low)
 channelBandPassFilter.run(evt, station, det, **filter_settings_high)
 
@@ -113,14 +113,14 @@ filter_high = channelBandPassFilter.get_filter(frequencies, station_id, channel_
 filter = abs(filter_low * filter_high)
 reco = NuRadioReco.modules.likelihood_reconstruction.electricFieldLikelihoodReconstructor.electricFieldLikelihoodReconstructor()
 reco.begin(n_channels, n_samples, sampling_rate, filter, noise_amplitude, [filter_settings_low, filter_settings_high])
-signal_fit, parameters_fit, minus_two_llh = reco.run(evt, station, det, use_MC_direction=True, full_output=True)
+signal_fit, parameters_fit, minus_two_llh, p_value_fit = reco.run(evt, station, det, use_MC_direction=True, full_output=True)
 
 efield_reco = station.get_electric_fields()[0]
 
-reference_fluence = 1.144
-reference_fluence_error = 0.221
-reference_polarization = 55.994
-reference_polarization_error = 7.983
+reference_fluence = 1.315
+reference_fluence_error = 0.261
+reference_polarization = 51.688
+reference_polarization_error = 7.073
 
 np.testing.assert_almost_equal(efield_reco[efp.signal_energy_fluence], reference_fluence, decimal=2)
 np.testing.assert_almost_equal(efield_reco.get_parameter_error(efp.signal_energy_fluence), reference_fluence_error, decimal=2)
