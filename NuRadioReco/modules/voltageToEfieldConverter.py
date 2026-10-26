@@ -292,5 +292,17 @@ class voltageToEfieldConverter:
         electric_field.set_trace_start_time(times[0])
         station.add_electric_field(electric_field)
 
+        if self.debug:
+            fig, ax = plt.subplots(3, 1, figsize=(10, 6))
+            ax[0].set_title(f'Station {station.get_id()} - Event {evt.get_id()} - Run {evt.get_run_number()} - Reconstructed Electric Field')
+            for i in range(3):
+                ax[i].plot(times, fft.freq2time(efield3_f[i,:], station.get_channel(use_channels[0]).get_sampling_rate()), label=f'E-field component {i}')
+                ax[i].set_ylabel('Electric Field [V/m]')
+                ax[i].set_xlim(times[0], times[-1])
+                ax[i].legend()
+            ax[-1].set_xlabel('Time [ns]')
+            fig.tight_layout()
+            plt.savefig("debug_efield_unfolded.png")
+
     def end(self):
         pass
