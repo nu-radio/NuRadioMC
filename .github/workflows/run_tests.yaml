@@ -240,6 +240,11 @@ jobs:
       run: |
         python NuRadioReco/detector/test/test_detector_jsons.py
 
+    - name: "detector: removed antenna_by_depth"
+      if: always()
+      run: |
+        python NuRadioReco/detector/test/test_removed_antenna_by_depth.py
+
     - name: "Test unfolding with voltageToEfieldConverter"
       if: always()
       run: |

@@ -25,6 +25,12 @@ import NuRadioReco.utilities.metaclasses
 
 logger = logging.getLogger('NuRadioReco.detector')
 
+warnings.filterwarnings('ignore', category=ErfaWarning)
+
+# load site coordinates / elevation from json
+with open(os.path.join(os.path.dirname(__file__), 'coordinates.json')) as f:
+    site_coordinates = json.load(f)
+
 
 def check_removed_arguments(assume_inf=None, antenna_by_depth=None):
     """ Raises for ``antenna_by_depth=True`` and warns for any other explicit value of the arguments removed in v3.2. """
@@ -37,11 +43,7 @@ def check_removed_arguments(assume_inf=None, antenna_by_depth=None):
     for name, value in [("assume_inf", assume_inf), ("antenna_by_depth", antenna_by_depth)]:
         if value is not None:
             logger.warning(f"`{name}` was removed in v3.2 and has no effect. Please remove this argument.")
-warnings.filterwarnings('ignore', category=ErfaWarning)
 
-# load site coordinates / elevation from json
-with open(os.path.join(os.path.dirname(__file__), 'coordinates.json')) as f:
-    site_coordinates = json.load(f)
 
 class DateTimeSerializer(Serializer):
     """
