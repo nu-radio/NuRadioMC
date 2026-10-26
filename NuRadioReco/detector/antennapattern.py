@@ -11,7 +11,6 @@ import cmath
 import scipy
 import json
 import csv
-import re
 import os
 
 logger = logging.getLogger('NuRadioReco.antennapattern')
@@ -637,14 +636,13 @@ def get_pickle_antenna_response(path, return_verified=False):
     with open(os.path.join(antenna_directory, 'antenna_models_hash.json'), 'r') as fin:
         antenna_hashs = json.load(fin)
 
-    # entries are [sha1 hash, comment] (since v3.2) or a plain sha1 hash string (old format)
+    # entries are [sha1 hash, comment]; the log level is set by a leading "error" / "warning" in the comment
     file_name = os.path.basename(path)
-    entry = antenna_hashs.get(file_name, (None, ""))
-    sha1_hash, comment = (entry, "") if isinstance(entry, str) else entry
+    sha1_hash, comment = antenna_hashs.get(file_name, (None, ""))
     if comment:
-        if re.search(r"\berror\b", comment, re.IGNORECASE):
+        if comment.lower().startswith("error"):
             logger.error(f"Antenna model {file_name}: {comment}")
-        elif re.search(r"\bwarning\b", comment, re.IGNORECASE):
+        elif comment.lower().startswith("warning"):
             logger.warning(f"Antenna model {file_name}: {comment}")
         else:
             logger.info(f"Antenna model {file_name}: {comment}")

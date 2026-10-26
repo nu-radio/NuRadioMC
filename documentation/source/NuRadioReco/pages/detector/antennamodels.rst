@@ -7,9 +7,8 @@ whenever the user requests the antenna model for the first time.
 For developers:
 If you add a new antenna model please add the sha1sum = hashlib.sha1() to ``NuRadioReco/detector/antenna_models_hash.json``
 as ``[sha1sum, comment]`` and send one of the core maintainers the antenna model so that they can put it on our central server.
-The comment (may be empty) is logged whenever the model is loaded: at error level if it contains "error",
-at warning level if it contains "warning" (case-insensitive), otherwise at info level.
-The comment field was added in version 3.2; entries with only the sha1sum (as a plain string) are still supported.
+The comment (may be empty) is logged whenever the model is loaded: at error level if it starts with "error",
+at warning level if it starts with "warning" (case-insensitive), otherwise at info level.
 
 Implementation of Antenna Models
 ================================
@@ -124,8 +123,9 @@ Create LPDA: createLPDA_100MHz
 ------------------------------
 
 WIPL-D simulations of the 100 MHz LPDA from Create, used by ARIANNA. The complex (magnitude + phase) vector effective length of both polarization components (ePhi, eTheta) is provided.
-For the ``*_InFirn_RG`` models the simulation geometry is inverted, i.e., the medium of the antenna is firn and the ground is air
-(hence "above air" in their descriptions).
+For ``createLPDA_100MHz_z1cm_InFirn_RG`` and ``createLPDA_100MHz_z1cm_InAir_RG`` the original documentation states
+that the simulation geometry is inverted, i.e., the medium of the antenna is firn and the ground is air
+(hence "above air" in the descriptions). We assume this holds for the other ``*_RG`` models as well; this is not confirmed.
 
 .. warning::
     ``createLPDA_100MHz_InfFirn`` and ``createLPDA_100MHz_InfFirn_n1.4`` use the wrong sign for the eTheta component.
