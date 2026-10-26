@@ -71,7 +71,7 @@ class DeepLearningRayTracing(ray_tracing_base):
             Name of the deep learning model to load.
         """
         if model_name is None:
-            model_name = "model_shallow_7" #"ray_tracing_model"  # Default model name
+            model_name = "model_shallow_8_r" #"ray_tracing_model"  # Default model name
         
         model_folder_path = os.path.join(ABS_PATH_HERE, "deep_learning_models", model_name)
 
@@ -135,7 +135,7 @@ class DeepLearningRayTracing(ray_tracing_base):
         """
         find all solutions between x1 and x2
         """
-        n_solutions, launch_vectors, receive_vectors, theta_receives, phi_receives, path_lengths, travel_times, reference_time = self._trace(self._X1, self._X2)
+        n_solutions, launch_vectors, receive_vectors, theta_receives, phi_receives, path_lengths, travel_times = self._trace(self._X1, self._X2)
 
         self._results = []
         for iS in range(n_solutions):
@@ -146,8 +146,7 @@ class DeepLearningRayTracing(ray_tracing_base):
                 'theta_receive': theta_receives[iS, 0],
                 'phi_receive': phi_receives[iS, 0],
                 'path_length': path_lengths[iS, 0],
-                'travel_time': travel_times[iS, 0],
-                'reference_time': reference_time
+                'travel_time': travel_times[iS, 0]
             })
 
     def _trace(self, xyz_start, xyz_end):
@@ -194,9 +193,8 @@ class DeepLearningRayTracing(ray_tracing_base):
         phi_receives = phi_receives.detach().cpu().numpy()
         path_lengths = path_lengths.detach().cpu().numpy()
         travel_times = travel_times.detach().cpu().numpy()
-        reference_time = travel_times[0, 0]
 
-        return n_solutions, launch_vectors, receive_vectors, theta_receives, phi_receives, path_lengths, travel_times, reference_time
+        return n_solutions, launch_vectors, receive_vectors, theta_receives, phi_receives, path_lengths, travel_times
 
     def get_solution_type(self, iS):
         """ returns the type of the solution
