@@ -4,7 +4,6 @@ import NuRadioReco.modules.io.eventReader
 import argparse
 import numpy as np
 import sys
-from NuRadioReco.utilities import units
 from NuRadioMC.utilities._test_helpers import TIME_ATOL
 
 

@@ -53,13 +53,20 @@ def _get(fin, key, location, station):
     return np.array(fin[key])
 
 
-def _get_event_group_ids(fin, station):
-    # different NuRadioMC output formats store event_group_ids either at the top level or
-    # nested under the station group
-    try:
-        return np.array(fin['event_group_ids'])
-    except KeyError:
-        return np.array(fin[station]['event_group_ids'])
+def _get_event_group_ids(fin, location, station, n_rows):
+    # event group id of each row: station keys have one row per event or per shower
+    candidates = [fin['event_group_ids']]
+    if location == 'station':
+        group = fin[station]
+        candidates = [group[k] for k in ('event_group_ids', 'event_group_id_per_shower') if k in group] + candidates
+    for ids in candidates:
+        if len(ids) == n_rows:
+            return np.array(ids)
+    return None
+
+
+def _isnan(arr):
+    return np.isnan(arr) if arr.dtype.kind in 'fc' else np.zeros(arr.shape, dtype=bool)
 
 
 def compare_key(fin1, fin2, key, location='top', rtol=0, atol=0, station='station_101'):
@@ -91,13 +98,16 @@ def compare_key(fin1, fin2, key, location='top', rtol=0, atol=0, station='statio
     except AssertionError as e:
         msg = f"{location} '{key}' differs (rtol={rtol}, atol={atol}):{e}"
         if location != 'attrs' and arr1.shape == arr2.shape and arr1.ndim:
-            # report which events (first axis) differ
-            bad = (arr1 != arr2) if exact else ~np.isclose(arr1, arr2, rtol=rtol, atol=atol)
+            # report which events (first axis) differ; NaN in both files is equal (as in assert_array_equal)
+            if exact:
+                bad = (arr1 != arr2) & ~(_isnan(arr1) & _isnan(arr2))
+            else:
+                bad = ~np.isclose(arr1, arr2, rtol=rtol, atol=atol)
             bad_events = np.nonzero(bad.reshape(len(bad), -1).any(axis=1))[0]
             msg += f"\nDiffering event indices: {bad_events}"
             try:
-                gids = _get_event_group_ids(fin1, station)
-                if len(gids) == len(arr1):
+                gids = _get_event_group_ids(fin1, location, station, len(arr1))
+                if gids is not None:
                     msg += f"\nCorresponding event group ids: {gids[bad_events]}"
             except KeyError:
                 pass
