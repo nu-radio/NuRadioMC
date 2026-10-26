@@ -381,7 +381,7 @@ class ShowerSimulator:
         shower[shp.type] = type
 
         # Run ray-tracer to get travel time for reference antenna:
-        self.propagator.set_start_and_end_point(self.det.get_relative_position(self.station_id, self.reference_channel), shower[shp.vertex])
+        self.propagator.set_start_and_end_point(shower[shp.vertex], self.det.get_relative_position(self.station_id, self.reference_channel))
         self.propagator.find_solutions()
 
         if self.propagator.get_number_of_solutions() > 0:
