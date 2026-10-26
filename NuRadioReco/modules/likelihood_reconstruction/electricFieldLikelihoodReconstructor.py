@@ -44,8 +44,9 @@ class electricFieldLikelihoodReconstructor:
     This class is similar to voltageToAnalyticEfieldConverter, but uses a likelihood based on the
     noise spectrum instead of a chi-square and has an improved minimization strategy.
 
-    The class assumes that the hardware response is subtracted from the data, e.g.,
-    hardwareResponseIncorporator.run(event, station, det, sim_to_data=False, mingainlin=0.001) has been run.
+    If no hardware_response is provided (default and recomended), the class assumes that the hardware
+    response is subtracted from the data, e.g., hardwareResponseIncorporator.run(event, station, det, sim_to_data=False, mingainlin=0.001)
+    has been run.
 
     For a full description of the method, see Section III.C in https://arxiv.org/abs/2510.21925.
     """
@@ -53,7 +54,7 @@ class electricFieldLikelihoodReconstructor:
     def __init__(self):
         pass
 
-    def begin(self, n_channels, n_samples, sampling_rate, noise_spectra, Vrms, filter_settings_list, use_chi2=False, zenith_azimuth_free=False, debug=False, travel_time_shifts=None):
+    def begin(self, n_channels, n_samples, sampling_rate, noise_spectra, Vrms, filter_settings_list, use_chi2=False, zenith_azimuth_free=False, travel_time_shifts=None, hardware_response=None, debug=False):
         """
 
         Parameters
@@ -91,6 +92,12 @@ class electricFieldLikelihoodReconstructor:
                 in efieldToVoltageConverter, which assumes the electric field is a plane wave. It is useful to provide ray-traced travel time
                 shifts e.g. for deep in-ice antennas, where the plane wave approximation doesn't hold.
 
+            hardware_response: function, optional
+                hardwareResponseIncorporator.run() function to be applied to the foward-folded electric field, e.g., the
+                run function of an initialized NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.
+                If no hardware_response is provided, the module assumes that the hardware response has already been subtracted from
+                the data traces, which is recommended for computational efficiency.
+
             debug: bool, optional
                 Extra plots and printouts for debugging
         """
@@ -104,7 +111,7 @@ class electricFieldLikelihoodReconstructor:
         self.zenith_azimuth_free = zenith_azimuth_free
         self.debug = debug
         self.travel_time_shifts = travel_time_shifts
-
+        self.hardware_response = hardware_response
         self.delta_t = 1/self.sampling_rate
         self.t_array_matched_filter = np.arange(0, self.n_samples) * self.delta_t - self.n_samples * self.delta_t/ 2
         self.i_shift_cc = np.arange(0, self.n_samples)
@@ -497,6 +504,10 @@ class electricFieldLikelihoodReconstructor:
         station[stnp.zenith] = zenith_arrival
         station[stnp.azimuth] = azimuth_arrival
         efieldToVoltageConverter.run(evt, station, det, channel_ids=use_channels)
+
+        # Add hardware response:
+        if self.hardware_response is not None:
+            self.hardware_response(evt, station, det, sim_to_data=True, mingainlin=0.001)
 
         for i_ch, channel_id in enumerate(use_channels):
             channel = station.get_channel(channel_id)
