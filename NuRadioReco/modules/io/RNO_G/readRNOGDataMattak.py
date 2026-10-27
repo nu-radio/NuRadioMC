@@ -847,6 +847,13 @@ class readRNOGData:
         trigger.set_trigger_time(0)  # The trigger time is relative to the event/station time
         station.set_trigger(trigger)
 
+        # Only set for DiDAQ data (and with a mattak version which knows about the DiDAQ)
+        for key, attr in [(stpRNOG.trigger_beam_mask, "didaqBeamMask"),
+                          (stpRNOG.trigger_channel_mask, "didaqChannelMask")]:
+            mask = getattr(event_info, attr, None)
+            if mask is not None:
+                station.set_parameter(key, int(mask))
+
         readout_delays = event_info.readoutDelay
         channel_ids = self._select_channels or range(len(waveforms))
         for channel_id in channel_ids:
