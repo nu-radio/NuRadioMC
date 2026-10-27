@@ -48,7 +48,6 @@ class channelSignalPropertiesFromNeighbors:
             with 0 for a region that was interpolated rather than measured.
         """
         self.__fix_snr_bookkeeping = fix_snr_bookkeeping
-        # ns (the NuRadioReco base unit); how far a region may stick out of the trace
         self.__max_region_outside = max_region_outside
         self.__fix_region_bookkeeping = fix_region_bookkeeping
         self.__require_region_in_trace = require_region_in_trace
@@ -83,19 +82,19 @@ class channelSignalPropertiesFromNeighbors:
             channel_region_snrs = np.zeros((len(channel_group), 3))
             channel_has_snrs = np.zeros(len(channel_group), dtype=bool)
             for i_channel, channel_id in enumerate(channel_group):
-                channel_depths[i_channel] = detector.get_relative_position(station.get_id(), channel_id)[2]
+                channel_depths[i_channel] = (detector.get_relative_position(station.get_id(), channel_id)+ detector.get_absolute_position(station.get_id()))[2]
                 channel = station.get_channel(channel_id)
                 if channel.has_parameter(chp.signal_regions):
                     ch_sig_regs = channel.get_parameter(chp.signal_regions)
                     if len(ch_sig_regs) > 0:
-                        ch_ray_types = channel.get_parameter(chp.signal_ray_type).astype(int)
+                        ch_ray_types = channel.get_parameter(chp.signal_ray_type).astype(int) #one entry per region, 1=direct, 2=reflected, 3=surface
                         ch_snrs = None
                         if channel.has_parameter(chp.signal_region_snrs):
                             ch_snrs = np.atleast_1d(channel.get_parameter(chp.signal_region_snrs))
                             # only usable while it still pairs with the regions
                             if len(ch_snrs) != len(ch_sig_regs):
                                 ch_snrs = None
-                        channel_has_snrs[i_channel] = ch_snrs is not None
+                        channel_has_snrs[i_channel] = ch_snrs is not None #should always be true if the pulse finder was run, but just in case
                         for i_region, signal_region in enumerate(ch_sig_regs):
                             channel_signal_time_offsets[i_channel, ch_ray_types[i_region] - 1] = channel.get_parameter(chp.signal_time_offset)[i_region]
                             channel_signal_zeniths[i_channel, ch_ray_types[i_region] - 1] = channel.get_parameter(chp.signal_receiving_zenith)[i_region]
@@ -116,7 +115,7 @@ class channelSignalPropertiesFromNeighbors:
                         azimuth_fit = np.polyfit(channel_depths[has_pulse_mask], channel_signal_azimuths[:, ray_type][has_pulse_mask], deg=1)
                         lower_signal_region_fit = np.polyfit(channel_depths[has_pulse_mask], channel_signal_regions[:, ray_type, 0][has_pulse_mask], deg=1)
                         upper_signal_region_fit = np.polyfit(channel_depths[has_pulse_mask], channel_signal_regions[:, ray_type, 1][has_pulse_mask], deg=1)
-                        x_coords = np.arange(np.min(channel_depths), np.max(channel_depths))
+                        # x_coords = np.arange(np.min(channel_depths), np.max(channel_depths))
                         if not channel_has_region[i_channel, ray_type]:
                             lower = channel_depths[i_channel] * lower_signal_region_fit[0] + lower_signal_region_fit[1]
                             upper = channel_depths[i_channel] * upper_signal_region_fit[0] + upper_signal_region_fit[1]
