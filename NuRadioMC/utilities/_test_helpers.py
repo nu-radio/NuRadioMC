@@ -26,8 +26,8 @@ DEFAULT_RTOL = 5e-4
 
 #: Default relative tolerance for channel/station parameters in ``.nur`` files (e.g. from the
 #: ``channelSignalReconstructor``): tiny platform-dependent trace differences are amplified for
-#: low-amplitude channels (observed up to ~8e-4).
-PARAMETER_RTOL = 2e-3
+#: low-amplitude channels (observed up to 7.5e-4).
+PARAMETER_RTOL = 1e-3
 
 #: Channel/station parameters (enum names) that depend on the noise in a trace. In noiseless
 #: simulations, this "noise" is the numerical floor of the trace, which differs by orders of
