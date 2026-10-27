@@ -390,7 +390,11 @@ class readRNOGData:
             except (ReferenceError, KeyError, OSError) as e:
                 self.__skipped_runs += 1
                 self.__skipped_runs_reasons["error when reading run"] += 1
-                self.logger.error(f"The following exeption was raised reading in the run: {dir_file}. Skip that run ...:\n", exc_info=e)
+                debug = self.logger.isEnabledFor(logging.DEBUG)
+                self.logger.error(
+                    f"Error reading run {dir_file}, skip it: {type(e).__name__}: {e}"
+                    + ("" if debug else " (use `log_level=logging.DEBUG` for the full traceback)"),
+                    exc_info=e if debug else None)
                 continue
 
             # filter runs/datasets based on
