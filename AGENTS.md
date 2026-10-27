@@ -23,6 +23,7 @@ python documentation/make_docs.py                                     # build do
 ```
 
 - CI: `.github/workflows/run_tests.yaml` (flake8 + test jobs: single events, signal processing, Veff/Aeff with fixed seeds, RNO-G, examples, module structure). Coverage is combined across jobs and commented on PRs.
+- Python: write code for Python 3.8+ (currently the minimum). The supported versions are set by `.github/workflows/python_version_compatibility.yaml`, which runs `run_tests.yaml` for each version only on pushes to `develop`, not on PRs; PR CI runs only 3.10.
 - Many tests are scripts compared against reference output (fixed seeds). A change in physics output breaks them intentionally; update references only with a justification.
 - Antenna models (up to ~700 MB each) are downloaded on first use into `NuRadioReco/detector/AntennaModels/` (sha1-checked, see `antenna_models_hash.json`, `utilities/dataservers.py`). They are not in git.
 
