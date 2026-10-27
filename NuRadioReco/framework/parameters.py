@@ -94,7 +94,11 @@ class stationParametersRNOG(Enum):
     coherent_entropy = 3  #: Shannon entropy of the coherently summed waveform
     coherent_kurtosis = 4  #: kurtosis of the coherently summed waveform
 
+    trigger_beam_mask = 50  #: bit mask (int) of the phased-array beams which were over the trigger threshold (DiDAQ only)
+    trigger_channel_mask = 51  #: bit mask (int) of the channels which contributed to the trigger (DiDAQ only)
+
     digitizer = 100  #: the digitizer used by the station (derived from data format)
+
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')
