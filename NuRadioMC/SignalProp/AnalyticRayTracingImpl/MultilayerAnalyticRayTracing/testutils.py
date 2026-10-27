@@ -277,9 +277,7 @@ def compare_point_full(
                 foc_a = tracer_a.get_focusing(i_a)
                 type_a = tracer_a.get_solution_type(i_a)
                 c0_a = tracer_a.get_C0(i_a)
-                #ra_a = tracer_a.get_reflection_angle(i_a)
-
-                if type_a == 3:  # Replace with your actual solution-type check
+                if type_a == 3:  # the reflection angle only exists for reflected solutions
                     ra_a = safe_get(
                         lambda: tracer_a.get_reflection_angle(i_a),
                         default=None,
@@ -354,9 +352,7 @@ def compare_point_full(
                 foc_b = tracer_b.get_focusing(i_b)
                 type_b = tracer_b.get_solution_type(i_b)
                 c0_b = tracer_b.get_C0(i_b)
-                #ra_b = tracer_b.get_reflection_angle(i_b)
-
-                if type_b == 3:  # Replace with your actual solution-type check
+                if type_b == 3:  # the reflection angle only exists for reflected solutions
                     ra_b = safe_get(
                         lambda: tracer_b.get_reflection_angle(i_b),
                         default=None,
@@ -464,8 +460,6 @@ def compare_point_full(
                     ),
 
                     "r_angle_diff": r_angle_diff
-
-
                 }
 
             out["solutions"][group] = entry
