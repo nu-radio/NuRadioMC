@@ -31,7 +31,7 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
 
     def __init__(self, json_filename, default_station=None, default_channel=None, default_device=None, source='json',
                  dictionary=None, log_level=logging.NOTSET,
-                 assume_inf=True, antenna_by_depth=False):
+                 assume_inf=None, antenna_by_depth=None):
         """
         Initialize the stations detector properties.
 
@@ -72,13 +72,10 @@ class GenericDetector(NuRadioReco.detector.detector_base.DetectorBase):
         dictionary: dict
             If 'dictionary' is passed to the parameter source, the dictionary
             passed to this parameter will be used for the detector description.
-        assume_inf : Bool
-            Default to True, if true forces antenna models to have infinite boundary conditions, otherwise the antenna
-            madel will be determined by the station geometry.
-        antenna_by_depth: bool (default False)
-            if True the antenna model is determined automatically depending on the depth of the antenna.
-            This is done by appending e.g. '_InfFirn' to the antenna model name.
-            if False, the antenna model as specified in the database is used.
+        assume_inf : None
+            Removed in v3.2. See :class:`NuRadioReco.detector.detector_base.DetectorBase`.
+        antenna_by_depth : None
+            Removed in v3.2. See :class:`NuRadioReco.detector.detector_base.DetectorBase`.
         """
         self.__logger = logging.getLogger('NuRadioReco.genericDetector')
         self.__logger.setLevel(log_level)

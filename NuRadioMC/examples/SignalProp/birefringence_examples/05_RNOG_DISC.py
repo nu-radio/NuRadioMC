@@ -34,7 +34,7 @@ loc_2_in_DISC_cord = loc_2_in_BIG_cord - DISC_in_BIG_cord
 loc_3_in_DISC_cord = loc_3_in_BIG_cord - DISC_in_BIG_cord
 loc_4_in_DISC_cord = loc_4_in_BIG_cord - DISC_in_BIG_cord
 
-detector_file = detector.Detector(json_filename='../../../../NuRadioReco/detector/RNO_G/RNO_season_2022.json', antenna_by_depth=False)
+detector_file = detector.Detector(json_filename='../../../../NuRadioReco/detector/RNO_G/RNO_season_2022.json')
 evt_time=datetime.datetime(2023, 1, 1)
 detector_file.update(evt_time)
 sim_station = NuRadioReco.framework.sim_station

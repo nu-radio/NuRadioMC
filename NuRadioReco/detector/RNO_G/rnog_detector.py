@@ -207,8 +207,6 @@ class Detector():
 
         self.logger.info(info)
 
-        self.assume_inf = None  # Compatibility with other detectors classes
-        self.antenna_by_depth = None  # Compatibility with other detectors classes
 
     @property
     def signal_chain_measurement_name(self):

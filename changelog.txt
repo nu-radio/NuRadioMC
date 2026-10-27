@@ -4,6 +4,13 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.2.0-dev
 new features:
+- Removed `antenna_by_depth` (and `assume_inf`): the antenna model is no longer derived from the antenna depth
+  (e.g., by appending '_InfFirn'). `ant_type` has to be the full antenna model name; all detector jsons were updated.
+  Passing `antenna_by_depth=True` raises an error, passing any other value of either argument logs a warning, and
+  loading a model name that lacks the suffix raises an error suggesting the full name (#792, #1190). Reading .nur files
+  written with `antenna_by_depth=True` only logs a warning. This also drops the zenith-dependent switch to the
+  `createLPDA_100MHz_z1cm_In{Air,Firn}_RG` models for signals arriving from the antenna's own medium (only active
+  with `assume_inf=False`, unused in NuRadioMC); these models can still be set explicitly as `ant_type`.
 - `antenna_models_hash.json` entries are now `[hash, comment]`. The comment is logged when the antenna model is loaded
   (error/warning level if it starts with "error"/"warning", otherwise info). Added warnings for the unphysical `RNOG_vpol_4inch_*_n1.73` and
   other outdated antenna models. Restructured the antenna model docs by antenna family (one table per family,
