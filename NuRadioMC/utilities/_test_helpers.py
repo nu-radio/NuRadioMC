@@ -24,6 +24,17 @@ TIME_ATOL = 1e-3 * units.ns
 #: Default relative tolerance for floating point quantities.
 DEFAULT_RTOL = 5e-4
 
+#: Default relative tolerance for channel/station parameters in ``.nur`` files (e.g. from the
+#: ``channelSignalReconstructor``): tiny platform-dependent trace differences are amplified for
+#: low-amplitude channels (observed up to ~8e-4).
+PARAMETER_RTOL = 2e-3
+
+#: Channel/station parameters (enum names) that depend on the noise in a trace. In noiseless
+#: simulations, this "noise" is the numerical floor of the trace, which differs by orders of
+#: magnitude between platforms and simulation paths (observed: ``noise_rms`` up to a factor 6).
+#: Hence, these are compared separately from parameters that depend only on the signal.
+NOISE_SENSITIVE_PARAMETERS = ('noise_rms', 'SNR', 'root_power_ratio', 'entropy')
+
 
 def check(keys, location='top', rtol=0, atol=0):
     """

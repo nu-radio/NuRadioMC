@@ -13,10 +13,11 @@ checks = [
     check(['trigger_times'], atol=TIME_ATOL),
     check(['ray_tracing_solution_type'], location='station'),
     check(['ray_tracing_C0', 'ray_tracing_C1', 'launch_vectors', 'receive_vectors', 'travel_distances',
-           'polarization', 'max_amp_shower_and_ray'], location='station', rtol=DEFAULT_RTOL),
+           'polarization'], location='station', rtol=DEFAULT_RTOL),
     check(['travel_times', 'trigger_times_per_event', 'trigger_times'], location='station', atol=TIME_ATOL),
-    # reduced precision: this quantity suddenly could not be reproduced to DEFAULT_RTOL anymore
-    check(['maximum_amplitudes_envelope'], location='station', rtol=0.002),
+    # signal amplitudes inherit platform-dependent differences of the ray-tracing solution, e.g. via
+    # the numerical focusing factor (observed up to ~5e-4 for weak rays)
+    check(['maximum_amplitudes_envelope', 'max_amp_shower_and_ray'], location='station', rtol=0.002),
     # may differ slightly because of differences in the interference between signals
     check(['maximum_amplitudes'], location='station', rtol=0.01),
 ]
