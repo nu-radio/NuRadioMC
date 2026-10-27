@@ -9,8 +9,7 @@ from collections import Counter
 from inspect import signature
 
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.modules.RNO_G.channelBlockOffsetFitter import \
-    channelBlockOffsets, fit_block_offsets, _calculate_block_offsets
+from NuRadioReco.modules.RNO_G.channelBlockOffsetFitter import channelBlockOffsets
 
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
@@ -205,7 +204,8 @@ class readRNOGData:
             mattak_kwargs={},
             overwrite_sampling_rate=None,
             max_in_mem=256,
-            use_fallback_time=True):
+            use_fallback_time=True,
+            select_channels=None):
         """
         Parameters
         ----------
@@ -283,6 +283,10 @@ class readRNOGData:
             If True and if the trigger time is infinity, the readout time will be used instead of the trigger time.
             Otherwise, the event will be skipped in the case of infinite trigger times.
             (Default=True)
+        select_channels: list(int) | None
+            Ids of the channels to read. All other channels are not added to the station
+            (and are not processed, e.g., by the baseline correction). If None, read all channels.
+            (Default: None)
         """
         t0 = time.time()
 
@@ -300,8 +304,7 @@ class readRNOGData:
         self._apply_baseline_correction = apply_baseline_correction.lower()
         self._convert_to_voltage = convert_to_voltage
 
-        if self._apply_baseline_correction != 'none':
-            self._blockoffsetfitter = channelBlockOffsets()
+        self._blockoffsetfitter = channelBlockOffsets()
 
         # Temporary solution hard-coded values from Cosmin. Only used when uncalibrated data
         # is read and convert_to_voltage is True.
@@ -314,6 +317,8 @@ class readRNOGData:
         self._max_in_mem = max_in_mem
 
         self._use_fallback_time = use_fallback_time
+
+        self._select_channels = sorted(set(select_channels or []))  # empty: all channels
 
         # Set parameter for run selection
         self.__max_trigger_rate = max_trigger_rate
@@ -742,45 +747,19 @@ class readRNOGData:
             based on the class config.
         """
 
-        if apply_baseline_correction is None:
-            apply_baseline_correction = self._apply_baseline_correction
-
         events_waveforms = []
 
         for path in self._datasets_paths:
             dataset = self.__get_dataset(path)
-
             dataset.setEntries((0, dataset.N()))
-            if apply_baseline_correction in ['auto', 'fit', 'approximate']: # we need the sampling rate
-                try:
-                    sampling_rate = dataset.eventInfo()[0].sampleRate
-                except AttributeError:
-                    sampling_rate = None
-                if not sampling_rate: # invalid sampling rate - overwrite
-                    sampling_rate = self._overwrite_sampling_rate
 
-            for idx, (_, wfs) in enumerate(dataset.iterate(
-                calibrated=self._read_calibrated_data,
-                selectors=self._select_events)):
+            for evtinfo, wfs in dataset.iterate(
+                    calibrated=self._read_calibrated_data, selectors=self._select_events,
+                    max_entries_in_mem=self._max_in_mem):
 
-                if self._read_calibrated_data:
-                    wfs = wfs * units.V
-                else:
-                    # wf stores ADC counts
-                    if self._convert_to_voltage:
-                        # convert adc to voltage
-                        wfs = wfs * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
-
-                if apply_baseline_correction == 'median':
-                    wfs = _calculate_block_offsets(wfs)
-                elif apply_baseline_correction in ['auto', 'fit', 'approximate']:
-                    wfs = np.vstack([
-                        fit_block_offsets(
-                            wf, mode=self._apply_baseline_correction,
-                            sampling_rate=sampling_rate, return_trace=True)[1]
-                        for wf in wfs])
-
-                events_waveforms.append(wfs)
+                # building the event is cheap compared to reading the data (~6%, without baseline correction)
+                evt = self._get_event(evtinfo, wfs, baseline_correction=apply_baseline_correction)
+                events_waveforms.append([channel.get_trace() for channel in evt.get_station().iter_channels()])
                 if (max_events is not None) and (len(events_waveforms) >= max_events):
                     self.logger.warning(
                         f"Number of waveforms {len(events_waveforms)} exceeds max_events. Returning first {max_events} waveforms only."
@@ -822,7 +801,7 @@ class readRNOGData:
         return True
 
 
-    def _get_event(self, event_info, waveforms):
+    def _get_event(self, event_info, waveforms, baseline_correction=None):
         """ Return a NuRadioReco event
 
         Parameters
@@ -831,7 +810,11 @@ class readRNOGData:
             The event info object for one event.
 
         waveforms: np.array(n_channel, n_samples)
-            Typically what dataset.wfs() returns (for one event!)
+            Typically what dataset.wfs() returns (for one event!). Has to contain all channels,
+            ``select_channels`` (see `begin`) is applied here.
+
+        baseline_correction: str | None
+            If not None, overwrite ``apply_baseline_correction`` (see `begin`). (Default: None)
 
         Returns
         -------
@@ -861,7 +844,9 @@ class readRNOGData:
         station.set_trigger(trigger)
 
         readout_delays = event_info.readoutDelay
-        for channel_id, wf in enumerate(waveforms):
+        channel_ids = self._select_channels or range(len(waveforms))
+        for channel_id in channel_ids:
+            wf = waveforms[channel_id]
             channel = NuRadioReco.framework.channel.Channel(channel_id)
 
             if self._read_calibrated_data:
@@ -882,8 +867,9 @@ class readRNOGData:
             station.add_channel(channel)
 
         evt.set_station(station)
-        if self._apply_baseline_correction in ['auto', 'fit', 'approximate', 'median']:
-            self._blockoffsetfitter.remove_offsets(evt, station, mode=self._apply_baseline_correction)
+        baseline_correction = baseline_correction or self._apply_baseline_correction
+        if baseline_correction in ['auto', 'fit', 'approximate', 'median']:
+            self._blockoffsetfitter.remove_offsets(evt, station, mode=baseline_correction)
 
         return evt
 
