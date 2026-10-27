@@ -992,6 +992,7 @@ class readRNOGData:
                 f"\n\tRead {self.__counter} events ({self.__skipped} events are skipped (filtered), {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
                 f"\n\tRead {self.__n_runs} runs, skipped {self.__skipped_runs} runs."
+                + (f"\n\tSelected channels: {self._select_channels}" if self._select_channels else "")
                 + ("\n\tReasons for skipping runs: "
                    + ", ".join(f"{reason} ({n})" for reason, n in self.__skipped_runs_reasons.most_common())
                    if self.__skipped_runs_reasons else ""))
