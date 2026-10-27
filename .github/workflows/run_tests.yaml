@@ -96,8 +96,8 @@ jobs:
     - name: Single event test (ARZ - Without Numba)
       if: always()
       run: |
-        pip uninstall numba -y # easiest way to test ARZ without numba
-        NuRadioMC/test/SingleEvents/validate_ARZ.sh
+        # numba's jit decorator becomes a no-op, i.e., ARZ runs its python implementation
+        NUMBA_DISABLE_JIT=1 NuRadioMC/test/SingleEvents/validate_ARZ.sh
 
     - name: Upload coverage data
       if: always()
@@ -313,6 +313,8 @@ jobs:
         jupyter execute NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_lofar_data.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_RNOG_data.ipynb
+        rm -v NuRadioMC/examples/Interactive/{1e19_n1e3.hdf5,1e19_n1e3_output.hdf5,1e19_n1e3_output.nur}
+        rm -v NuRadioReco/examples/Interactive/92380604.nur NuRadioReco/examples/Interactive/*_92380604.png
 
     - name: "Simulation examples"
       if: always()

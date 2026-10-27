@@ -8,4 +8,4 @@ NuRadioMC/test/Veff/1e18eV/T02RunSimulation.py 1e18_full.hdf5  ../dipole_100m.js
 NuRadioMC/test/Veff/1e18eV/T03check_output.py output.hdf5
 
 # cleanup
-rm -v NuRadioMC/test/Veff/1e18eV/output.{nur,hdf5}
+rm -v NuRadioMC/test/Veff/1e18eV/{output.nur,output.hdf5,1e18_full.hdf5}

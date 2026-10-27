@@ -30,6 +30,7 @@ if __name__ == "__main__":
     parser.add_argument('--file', type=str, default=os.path.join(parent_dir, 'data', 'cr-noiseless-with-delays.nur'), help="Input .nur file")
     parser.add_argument('--detector', type=str, default=os.path.join(current_dir, 'cr-detector.json'), help='Detector description')
     parser.add_argument('--channels', default=[13,16,19], help='Channels to use in the unfolding')
+    parser.add_argument('--plot_file', default=None, help='Save a diagnostic plot to this file')
     args = parser.parse_args()
 
     hwresponder.begin()
@@ -99,7 +100,8 @@ if __name__ == "__main__":
 
     axs[2, 0].set_ylabel('Difference [V/m]')
 
-    plt.savefig('./test-cosmic-ray-unfolding.pdf')
+    if args.plot_file is not None:
+        plt.savefig(args.plot_file)
     plt.close()
 
     # check that the difference is less than 1% of the simulated fluence

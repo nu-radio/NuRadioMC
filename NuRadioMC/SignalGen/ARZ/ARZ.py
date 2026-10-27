@@ -10,8 +10,8 @@ import os
 import logging
 import six
 try:
-    from numba import jit
-    numba_available = True
+    from numba import jit, config as numba_config
+    numba_available = not numba_config.DISABLE_JIT  # NUMBA_DISABLE_JIT turns jit into a no-op
 except ImportError:
     numba_available = False
 
@@ -342,7 +342,8 @@ class ARZ(object):
         self._library = io_utilities.read_pickle(library)
         self._use_numba = use_numba
         if use_numba & (not numba_available):
-            logger.warning('Numba implementation was requested, but Numba is unavailable. Using Python implementation instead.')
+            logger.warning('Numba implementation was requested, but Numba is unavailable (not installed or NUMBA_DISABLE_JIT is set). '
+                           'Using Python implementation instead.')
             self._use_numba = False
 
         logger.status(
