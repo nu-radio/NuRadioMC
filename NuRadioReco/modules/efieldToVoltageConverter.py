@@ -75,6 +75,9 @@ class efieldToVoltageConverter():
                                 "The argument is ignored.")
         self.__caching = caching
         self.__freqs = None
+        # Clear the cache in case `begin` is called again on the same instance: with `__freqs` reset,
+        # run() would not detect changed frequencies and would return stale antenna responses.
+        self._get_cached_antenna_response.cache_clear()
         self.__debug = debug
         self.__pre_pulse_time = pre_pulse_time
         self.__post_pulse_time = post_pulse_time
