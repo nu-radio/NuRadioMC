@@ -58,7 +58,7 @@ def _add_time(run_method, instance, duration, calls):
 
 def _timed_generator(gen, run_method, instance):
     """
-    Wrapper around run methods returning a generator. Passes yield after accounting for 
+    Wrapper around run methods returning a generator. Passes yield after accounting for
     the time spent to produce the ``next`` item.
 
     The `run()` of a reader returns a generator immediately; the actual work happens in `next()`, i.e. while the
