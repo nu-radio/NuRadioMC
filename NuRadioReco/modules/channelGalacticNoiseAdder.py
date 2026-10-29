@@ -157,6 +157,10 @@ class channelGalacticNoiseAdder:
         self.__caching = caching
         self.scaling = scaling
         self.__freqs = None
+        # Clear the caches in case `begin` is called again on the same instance: run() only clears them
+        # when the frequencies change, but a new sky model / n_side also invalidates them.
+        self._get_cached_antenna_response.cache_clear()
+        self._get_cached_noise_temperature_for_pixel.cache_clear()
         if self.__caching and 12 * n_side ** 2 * 2 > maxsize:
             logger.warning(
                 f"Caching for the vector effective length is enabled (with `maxsize={maxsize}`) and `n_side={n_side}` is to large, and thus "
