@@ -62,6 +62,7 @@ Submodules
    NuRadioReco.modules.electricFieldResampler
    NuRadioReco.modules.electricFieldSignalReconstructor
    NuRadioReco.modules.eventTypeIdentifier
+   NuRadioReco.modules.impulsiveSignalReconstructor
    NuRadioReco.modules.sphericalWaveFitter
    NuRadioReco.modules.templateDirectionFitter
    NuRadioReco.modules.voltageToAnalyticEfieldConverter

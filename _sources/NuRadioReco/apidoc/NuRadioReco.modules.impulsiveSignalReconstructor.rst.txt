@@ -1,0 +1,7 @@
+NuRadioReco.modules.impulsiveSignalReconstructor module
+=======================================================
+
+.. automodule:: NuRadioReco.modules.impulsiveSignalReconstructor
+   :members:
+   :undoc-members:
+   :show-inheritance:
