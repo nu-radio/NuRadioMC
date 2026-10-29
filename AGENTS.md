@@ -132,4 +132,4 @@ Manuals: `documentation/source/NuRadioMC/pages/Manuals/` (config, event generati
 - Keep diffs scoped to the task.
 - For changes that can affect physics output, show before/after numbers (e.g. a Veff or trigger-rate test with fixed seed, or bit-identical HDF5 output for pure refactors).
 - Run the relevant tests from `run_all_tests.sh` / CI and `flake8` on touched files before proposing a PR.
-- For new code or when you modify untested code add a test before you apply your changes.
+- For new code or when you modify untested code, add a test before you apply your changes.
