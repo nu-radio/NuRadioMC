@@ -24,6 +24,7 @@ python documentation/make_docs.py                                     # build do
 ```
 
 - CI: `.github/workflows/run_tests.yaml` (flake8 + test jobs: single events, signal processing, Veff/Aeff with fixed seeds, RNO-G, examples, module structure). Coverage is combined across jobs and commented on PRs.
+- Python: write code for Python 3.8+ (currently the minimum). The supported versions are set by `.github/workflows/python_version_compatibility.yaml`, which runs `run_tests.yaml` for each version only on pushes to `develop`, not on PRs; PR CI runs only 3.10.
 - Many tests are scripts compared against reference output (fixed seeds). A change in physics output breaks them intentionally; update references only with a justification.
 - Antenna models (up to ~700 MB each) are downloaded on first use into `NuRadioReco/detector/AntennaModels/` (sha1-checked, see `antenna_models_hash.json`, `utilities/dataservers.py`). They are not in git.
 
@@ -121,6 +122,7 @@ Manuals: `documentation/source/NuRadioMC/pages/Manuals/` (config, event generati
 - **Detector responses**: evaluate `Response` objects (e.g. `rnog_detector.Detector.get_signal_chain_response`) on the rfft grid from `fft.freqs(n, sampling_rate)`; arbitrary `linspace` grids break the time-domain windowing (or pass `window_response=False`).
 - **RNO-G database**: `rnog_detector.Detector(database_connection='RNOG_public')` needs network access to the MongoDB; an SSL/`ServerSelectionTimeoutError` is a network/firewall issue. The legacy `RNO_season_*.json` files are for `detector.Detector`, not `rnog_detector.Detector`.
 - **Always `det.update(astropy.time.Time(...))`** before querying a time-dependent detector.
+- **`Detector(...)` picks its class from the description**: with a `reference_station`/`reference_channel` entry it returns a time-independent `GenericDetector`; without one, a `DetectorBase` that only finds stations/channels whose `commission_time`/`decommission_time` bracket the detector time (else `LookupError: query for station ... returned no results`). A minimal JSON/dict for simulations needs `reference_station`.
 - **FFT filtering is circular**: multiplying spectra wraps pulses around short traces; pad or use `channelStopFilter`.
 - **Filter-then-sum ≠ sum-then-filter** on short windows; changes to the order of detector-response steps can alter trigger rates / Veff.
 - `AntennaPattern.get_antenna_response_vectorized` returns 0-d values for a single frequency.
@@ -131,3 +133,4 @@ Manuals: `documentation/source/NuRadioMC/pages/Manuals/` (config, event generati
 - Keep diffs scoped to the task.
 - For changes that can affect physics output, show before/after numbers (e.g. a Veff or trigger-rate test with fixed seed, or bit-identical HDF5 output for pure refactors).
 - Run the relevant tests from `run_all_tests.sh` / CI and `flake8` on touched files before proposing a PR.
+- For new code or when you modify untested code, add a test before you apply your changes.
