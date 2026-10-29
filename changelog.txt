@@ -36,6 +36,7 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   buffered. The antenna response lookup is 2-6x faster depending on the number of frequency bins, results are unchanged.
   The `AntennaPattern.VEL`, `AntennaPattern.VEL_theta` and `AntennaPattern.VEL_phi` attributes are deprecated, the cube is
   stored in `AntennaPattern._vel`.
+- Added `impulsiveSignalReconstructor` module to reconstruct 'generic' impulsive signals
 
 bugfixes:
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
