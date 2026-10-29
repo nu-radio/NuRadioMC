@@ -4,6 +4,11 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.2.0-dev
 new features:
+- `antenna_models_hash.json` entries are now `[hash, comment]`. The comment is logged when the antenna model is loaded
+  (error/warning level if it starts with "error"/"warning", otherwise info). Added warnings for the unphysical `RNOG_vpol_4inch_*_n1.73` and
+  other outdated antenna models. Restructured the antenna model docs by antenna family (one table per family,
+  outdated models in a collapsible block). The docs and the hash file now list exactly the models available on
+  the data server (added missing ones, removed ones no longer available, fixed two outdated hashes).
 - Added AGENTS.md (imported by .claude/CLAUDE.md) describing code structure, data structure and conventions for AI coding agents
   and new developers.
 - Added automatic test coverage measurement to CI. Coverage is combined across all test jobs and reported as a PR

@@ -664,6 +664,26 @@ def get_pickle_antenna_response(path, return_verified=False):
     download_file = False
     verified = False
 
+    antenna_directory = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(antenna_directory, 'antenna_models_hash.json'), 'r') as fin:
+        antenna_hashs = json.load(fin)
+
+    # entries are [sha1 hash, comment]; the log level is set by a leading "error" / "warning" in the comment
+    file_name = os.path.basename(path)
+    entry = antenna_hashs.get(file_name, (None, ""))
+    if not (isinstance(entry, (list, tuple)) and len(entry) == 2):
+        raise ValueError(
+            f"Invalid entry for {file_name} in antenna_models_hash.json: {entry!r}. "
+            "Expected [sha1 hash, comment].")
+    sha1_hash, comment = entry
+    if comment:
+        if comment.lower().startswith("error"):
+            logger.error(f"Antenna model {file_name}: {comment}")
+        elif comment.lower().startswith("warning"):
+            logger.warning(f"Antenna model {file_name}: {comment}")
+        else:
+            logger.info(f"Antenna model {file_name}: {comment}")
+
     # check if gziped pickle file already exists
     if not os.path.exists(path):
         logger.status("antenna pattern {} does not exist, file will be downloaded".format(path))
@@ -672,7 +692,6 @@ def get_pickle_antenna_response(path, return_verified=False):
     if os.path.exists(path):
         BUF_SIZE = 65536 * 2 ** 4  # lets read stuff in 64kb chunks!
         import hashlib
-        import json
         sha1 = hashlib.sha1()
         with open(path, 'rb') as f:
             while True:
@@ -681,19 +700,16 @@ def get_pickle_antenna_response(path, return_verified=False):
                     break
                 sha1.update(data)
 
-        antenna_directory = os.path.dirname(os.path.abspath(__file__))
-        with open(os.path.join(antenna_directory, 'antenna_models_hash.json'), 'r') as fin:
-            antenna_hashs = json.load(fin)
-            logger.info('search for {}'.format(os.path.basename(path)))
-            if os.path.basename(path) in antenna_hashs.keys():
-                verified = True  # either hash is correct or the file is downloaded
-                if sha1.hexdigest() != antenna_hashs[os.path.basename(path)]:
-                    logger.status("antenna model {} has changed on the server. downloading newest version...".format(
-                        os.path.basename(path)))
-                    os.remove(path) # remove outdated file
-                    download_file = True
-            else:
-                logger.warning("no hash sum of {} available, skipping up-to-date check".format(os.path.basename(path)))
+        logger.info('search for {}'.format(file_name))
+        if sha1_hash is not None:
+            verified = True  # either hash is correct or the file is downloaded
+            if sha1.hexdigest() != sha1_hash:
+                logger.status("antenna model {} has changed on the server. downloading newest version...".format(
+                    file_name))
+                os.remove(path) # remove outdated file
+                download_file = True
+        else:
+            logger.warning("no hash sum of {} available, skipping up-to-date check".format(file_name))
 
     if download_file:
         # does not exist yet -> download file
