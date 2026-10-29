@@ -4,7 +4,8 @@ reference files (e.g. ``NuRadioMC/test/SingleEvents/T04validate_allmost_equal.py
 ``NuRadioMC/test/examples/validate_radio_emitter_allmost_equal.py``).
 
 A validation is a list of `check` specifications passed to `validate_hdf5_files`, which runs all
-of them, reports every mismatch and exits non-zero if any failed.
+of them, reports every mismatch and exits non-zero if any failed. `validate_nur_files` does the
+same for the traces and channel/station parameters of ``.nur`` files.
 """
 import sys
 import h5py
@@ -164,4 +165,130 @@ def validate_hdf5_files(file1, file2, checks, station='station_101', dump_on_fai
         for fn in (file1, file2):
             print(f"file {fn}")
             dump(fn)
+    sys.exit(1)
+
+
+def _read_nur_file(file):
+    """
+    Returns all channel traces (concatenated), their trace start times and a dict
+    {(run, event, station, channel or None): {parameter: value}} of all station/channel parameters.
+    """
+    from NuRadioReco.modules.io.eventReader import eventReader  # only needed here, not for the HDF5 validators
+
+    reader = eventReader()
+    reader.begin(file)
+    traces, start_times, parameters = [], [], {}
+    for event in reader.run():
+        for station in event.get_stations():
+            key = (event.get_run_number(), event.get_id(), station.get_id())
+            parameters[key + (None,)] = dict(station._parameters)
+            for channel in station.iter_channels(sorted=True):
+                traces.append(channel.get_trace())
+                start_times.append(channel.get_trace_start_time())
+                parameters[key + (channel.get_id(),)] = dict(channel._parameters)
+    return np.concatenate(traces), np.array(start_times), parameters
+
+
+def _relative_difference(value1, value2):
+    """ Maximum relative difference |value1 - value2| / |value2| (0 for identical values, including inf and nan) """
+    value1, value2 = np.asarray(value1, dtype=float), np.asarray(value2, dtype=float)
+    identical = (value1 == value2) | (np.isnan(value1) & np.isnan(value2))
+    with np.errstate(divide='ignore', invalid='ignore'):
+        rel = np.where(identical, 0, np.abs(value1 - value2) / np.abs(value2))
+    return float(np.max(np.nan_to_num(rel, nan=np.inf), initial=0))
+
+
+def _compare_parameter(value1, value2, rtol, name, parameter, largest_differences):
+    """
+    Returns a list of error messages for all (nested) parameter values which differ (only keys are
+    compared if ``rtol`` is None). The largest relative difference of each parameter (and where it
+    occurs) is stored in ``largest_differences``.
+    """
+    if isinstance(value1, dict):
+        if value1.keys() != value2.keys():
+            return [f"{name}: keys differ ({sorted(value1)} vs. {sorted(value2)})"]
+        return [error for key in value1 for error in _compare_parameter(
+            value1[key], value2[key], rtol, f"{name}/{key}", f"{parameter}/{key}", largest_differences)]
+    rel = _relative_difference(value1, value2)
+    if rel > largest_differences.get(parameter, (-1, None))[0]:
+        largest_differences[parameter] = (rel, name)
+    if rtol is None:
+        return []
+    try:
+        testing.assert_allclose(value1, value2, rtol=rtol, atol=0, err_msg=f"Parameter {name} differs")
+    except AssertionError as e:
+        return [str(e)]
+    return []
+
+
+def validate_nur_files(file1, file2, precision=7, parameter_rtol=PARAMETER_RTOL, noise_parameter_rtol=None):
+    """
+    Compare the traces, trace start times and all channel/station parameters of the ``.nur`` file
+    `file1` with the reference `file2`.
+
+    Prints every mismatch and the largest relative difference of each parameter, and exits with
+    code 1 if any check failed.
+
+    Parameters
+    ----------
+    file1, file2: str
+        Paths to the output and the reference file.
+    precision: int (default: 7)
+        Number of decimals to which the traces have to agree (as in `numpy.testing.assert_almost_equal`).
+    parameter_rtol: float (default: `PARAMETER_RTOL`)
+        Relative tolerance for parameters which depend only on the signal.
+    noise_parameter_rtol: float or None (default: None)
+        Relative tolerance for `NOISE_SENSITIVE_PARAMETERS`. If None (e.g. for noiseless
+        simulations), only their presence is checked.
+    """
+    print(f"Testing the files {file1} and {file2} for equality")
+    traces_1, start_times_1, parameters_1 = _read_nur_file(file1)
+    traces_2, start_times_2, parameters_2 = _read_nur_file(file2)
+    # collect all differences (instead of stopping at the first one) to see the full picture in a single run
+    errors = []
+
+    if traces_1.shape != traces_2.shape:
+        errors.append(f"Traces have different shapes: {traces_1.shape} vs. {traces_2.shape}")
+    else:
+        print(f"Maximum difference between traces [mV]: {np.max(np.abs(traces_1 - traces_2)) / units.mV}")
+        try:
+            testing.assert_almost_equal(traces_1, traces_2, decimal=precision)
+        except AssertionError as e:
+            errors.append(f"Traces differ:{e}")
+
+    # the trace start times depend on the raytraced travel times
+    try:
+        testing.assert_allclose(start_times_1, start_times_2, rtol=0, atol=TIME_ATOL)
+    except (AssertionError, ValueError) as e:
+        errors.append(f"Trace start times differ:{e}")
+
+    largest_differences = {}
+    if parameters_1.keys() != parameters_2.keys():
+        errors.append("Files contain different events/stations/channels")
+    for key in [key for key in parameters_1 if key in parameters_2]:
+        if parameters_1[key].keys() != parameters_2[key].keys():
+            errors.append(f"{key}: parameters differ ({sorted(map(str, parameters_1[key]))} vs. "
+                          f"{sorted(map(str, parameters_2[key]))})")
+            continue
+        for parameter in parameters_1[key]:
+            noise_sensitive = parameter.name in NOISE_SENSITIVE_PARAMETERS
+            errors += _compare_parameter(
+                parameters_1[key][parameter], parameters_2[key][parameter],
+                noise_parameter_rtol if noise_sensitive else parameter_rtol,
+                f"{key}/{parameter}", ('* ' if noise_sensitive else '  ') + str(parameter), largest_differences)
+
+    # the largest relative difference of each parameter shows how tight the tolerance can be
+    print("Largest relative difference per parameter (* = noise sensitive):")
+    for parameter, (rel, name) in sorted(largest_differences.items(), key=lambda item: -item[1][0]):
+        print(f"  {rel:9.2e} {parameter}  (at {name})")
+
+    noise_tolerance = 'only presence checked' if noise_parameter_rtol is None else f'rtol={noise_parameter_rtol}'
+    tolerances = (f"traces: {precision} decimals, parameters: rtol={parameter_rtol}, "
+                  f"noise sensitive parameters: {noise_tolerance}")
+    if not errors:
+        print(f"The files {file1} and {file2} agree ({tolerances}).")
+        return
+
+    print("\n" + "\n\n".join(errors))
+    print(f"\n{len(errors)} difference(s) found ({tolerances})")
     sys.exit(1)
