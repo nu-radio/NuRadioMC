@@ -193,21 +193,21 @@ class channelIceThermalNoiseAdder:
                 detector.get_antenna_model(station.get_id(), channel.get_id()))
             antenna_orientation = detector.get_antenna_orientation(station.get_id(), channel.get_id())
 
+            # The phi bins are uniform, hence the solid angle and electric field amplitude only depend on theta
+            efield_amplitudes = [
+                signal_processing.get_electric_field_from_temperature(
+                    freqs[passband_filter], eff_temperature[theta_i], self.solid_angle(theta, d_theta, d_phis[0]), n=n)
+                for theta_i, (theta, d_theta) in enumerate(zip(self.thetas, d_thetas))
+            ]
+
             for phi_edge, d_phi in zip(self.phis, d_phis):
                 phi = phi_edge + d_phi / 2
                 # Each theta is the center of a band of width d_theta (see solid_angle). For the grids of
                 # ice_integrator.py (0 to pi, inclusive) this misses the polar caps at 0 and pi (the band at 0 has
                 # zero weight, pi is dropped by zip), i.e., ~1e-4 of the full sphere for 100 thetas.
-                for theta_i, (theta, d_theta) in enumerate(zip(self.thetas, d_thetas)):
-                    solid_angle = self.solid_angle(theta, d_theta, d_phi)
-
+                for theta, efield_amplitude in zip(self.thetas, efield_amplitudes):
                     noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
                     channel_noise_spec = np.zeros_like(noise_spectrum)
-                        
-
-                    # calculate spectral radiance of radio signal using rayleigh-jeans law
-                    efield_amplitude = signal_processing.get_electric_field_from_temperature(
-                        freqs[passband_filter], eff_temperature[theta_i], solid_angle, n=n)
 
                     # assign random phases to electric field
                     if self.debug:
