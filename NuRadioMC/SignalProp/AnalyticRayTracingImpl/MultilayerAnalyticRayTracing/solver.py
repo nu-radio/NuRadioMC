@@ -392,6 +392,13 @@ def find_solutions(x1, x2, layers,tol=1e-12):
                             'x1': x1,
                             'flag' : 4})
 
+    
+
+    if with_air:
+        # Keep only the solution with the smallest C0
+        results = max(results, key=lambda x: x['C0'])
+        return [results]
+
     return sorted(results, key=itemgetter('type', 'C0'))
 
 def find_solutions_bulk(x1, x2, layers,tol=1e-12):
@@ -664,54 +671,3 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
                             'flag' : 4})
 
     return sorted(results, key=itemgetter('type', 'C0'))
-
-def reduce_solutions(results, with_air=False, tol = 1e-3):
-    """
-    Reduce a list of ray-tracing solutions by removing numerically
-    equivalent solutions and limiting the total number of returned
-    solutions.
-
-    Solutions are grouped according to their c0 parameter using
-    the specified tolerance. Within each group, the solution with the
-    lowest flag value is retained. If more than two solutions remain
-    after this reduction, only the two solutions with the highest c0
-    values are kept. This suppresses unphysical low-c0 solutions
-    that can appear due to numerical instabilities.
-
-    Parameters
-    ----------
-    results : list of dict
-        List of solution dictionaries. Each dictionary is expected
-        to contain at least the keys 'C0', 'flag', and 'type'.
-
-    tol : float, optional
-        Tolerance used to group similar c0 values.
-        Default is 1e-3.
-
-    Returns
-    -------
-    results : list of dict
-        Reduced and sorted list of solutions.
-    """
-    unique_results = {}
-
-    for r in results:
-
-        key = round(r['C0'] / tol)
-
-        # keep result with lower flag
-        if key not in unique_results or r['flag'] < unique_results[key]['flag']:
-            unique_results[key] = r
-
-    results = sorted(unique_results.values(), key=itemgetter('type', 'C0'))
-
-    if with_air:
-        results = max(results, key=itemgetter('C0'))
-        return [results]
-
-    if len(results) > 2: # keep results with higher c0 (sometimes numerical issues result in wrong solutions with low c0)
-        results = sorted(results, key=itemgetter('C0'))[-2:]
-
-    results = sorted(results, key=itemgetter('type', 'C0'))
-
-    return results
