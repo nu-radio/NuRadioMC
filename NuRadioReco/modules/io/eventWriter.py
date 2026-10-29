@@ -166,6 +166,7 @@ class eventWriter:
             logger.info("current output file exceeds max file size -> closing current output file and opening new one")
             self.__current_file_size = 0
             self.__fout.close()
+            self.__fout = None
             self.__number_of_files += 1
             # self.__filename = "{}_part{:02d}".format(self.__filename, self.__number_of_files)
             self.__stored_stations = []
