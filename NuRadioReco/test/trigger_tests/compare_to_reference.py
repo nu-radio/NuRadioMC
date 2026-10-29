@@ -4,14 +4,7 @@ import NuRadioReco.modules.io.eventReader
 import argparse
 import numpy as np
 import sys
-from NuRadioReco.utilities import units
-
-# trigger_time depends on the raytraced travel time, which involves GSL numerical integration
-# whose last-bit behavior differs slightly across GSL versions/platforms (see get_travel_time()
-# in NuRadioMC/SignalProp/CPPAnalyticRayTracing/analytic_raytracing.cpp), independent of any
-# actual code change. A relative tolerance is physically inappropriate here since this noise
-# floor is an absolute quantity that does not scale with the (arbitrarily large) trigger time.
-time_accuracy = 1e-3 * units.ns
+from NuRadioMC.utilities._test_helpers import TIME_ATOL
 
 
 parser = argparse.ArgumentParser()
@@ -53,7 +46,7 @@ else:
                     np.testing.assert_allclose(
                         np.array(trigger_results[trigger_name][prop], dtype=float),
                         np.array(reference[trigger_name][prop], dtype=float),
-                        atol=time_accuracy, rtol=0)
+                        atol=TIME_ATOL, rtol=0)  # trigger_time depends on the raytraced travel time
                 except AssertionError as e:
                     print('Property {} of trigger {} differs from reference'.format(prop, trigger_name))
                     print(e)
