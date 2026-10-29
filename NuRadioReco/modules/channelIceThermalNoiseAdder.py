@@ -209,20 +209,16 @@ class channelIceThermalNoiseAdder:
                     noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
                     channel_noise_spec = np.zeros_like(noise_spectrum)
 
-                    # assign random phases to electric field
+                    # random phases and polarizations of the electric field
                     if self.debug:
                         phases = np.zeros(len(efield_amplitude))
+                        polarizations = np.zeros(len(efield_amplitude))
                     else:
                         phases = self.__random_generator.uniform(0, 2 * np.pi, len(efield_amplitude))
+                        polarizations = self.__random_generator.uniform(0, 2 * np.pi, len(efield_amplitude))
 
                     noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
                     noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
-
-                    # add random polarizations and phase to electric field
-                    if self.debug:
-                        polarizations = np.zeros(len(efield_amplitude))
-                    else:
-                        polarizations = self.__random_generator.uniform(0, 2 * np.pi, len(efield_amplitude))
 
                     channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.cos(polarizations)
                     channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.sin(polarizations)
