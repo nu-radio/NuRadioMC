@@ -12,9 +12,13 @@ from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 logger = logging.getLogger('NuRadioReco.module')
 
-# Controls both recording and the printout at exit. Default from the environment variable NURADIO_TIMING (0 = off);
-# can be changed at runtime via `NuRadioReco.modules.base.module.ENABLE_TIMING = False`.
-ENABLE_TIMING = os.environ.get("NURADIO_TIMING", "1") not in ("", "0")
+# Controls both recording and the printout at exit. Set via the environment variable NURADIO_TIMING:
+# unset or "1" = on (default), "" or "0" = off. Can be changed at runtime via
+# ``NuRadioReco.modules.base.module.ENABLE_TIMING = False``.
+_nuradio_timing = os.environ.get("NURADIO_TIMING", "1")
+if _nuradio_timing not in ("", "0", "1"):
+    raise ValueError(f"Invalid value NURADIO_TIMING={_nuradio_timing!r}, use \"1\" (on) or \"0\" (off).")
+ENABLE_TIMING = _nuradio_timing == "1"
 TIMING_MIN_PERCENT = 2.  # modules below this share (in percent) of the total time are merged into "others"
 _timed_runs = []  # all decorated run methods, used for the timing summary
 
@@ -61,8 +65,8 @@ def _timed_generator(gen, run_method, instance):
     Wrapper around run methods returning a generator. Passes yield after accounting for
     the time spent to produce the ``next`` item.
 
-    The `run()` of a reader returns a generator immediately; the actual work happens in `next()`, i.e. while the
-    caller loops over the events. Only the time inside `next()` is counted, not the caller's processing between items.
+    The ``run()`` of a reader returns a generator immediately; the actual work happens in ``next()``, i.e. while the
+    caller loops over the events. Only the time inside ``next()`` is counted, not the caller's processing between items.
     """
     while True:
         _child_time.append(0.)  # collects the time of timed modules called from within this `next()`
@@ -150,8 +154,7 @@ def register_run(level=None):
             else:
                 module_level = "reader"
 
-            timing = ENABLE_TIMING
-            if timing:
+            if ENABLE_TIMING:
                 _child_time.append(0.)
                 start = timer()
 
@@ -166,13 +169,13 @@ def register_run(level=None):
             try:
                 res = run(self, *args, **kwargs)
             finally:
-                if timing:
+                if ENABLE_TIMING:
                     duration = timer() - start
                     nested = _child_time.pop()
                     if _child_time:
                         _child_time[-1] += duration
 
-            if timing:
+            if ENABLE_TIMING:
                 is_generator = inspect.isgenerator(res)
                 _add_time(register_run_method, self, duration - nested, 0 if is_generator else 1)
                 if is_generator:
@@ -194,6 +197,10 @@ def end_all_modules():
     Call `end()` of all module instances that have executed a decorated `run()`, in order of their first `run()` call.
 
     Each instance is ended only once. Exceptions in an `end()` are logged and do not stop the remaining ones.
+    Registered with ``atexit``, so it runs automatically when the program exits.
+
+    Modules holding files (e.g. ``eventReader``, ``eventWriter``) provide a ``close()`` which their ``end()``
+    calls. Call ``close()`` yourself to release the file before exit, e.g. to read back a file you just wrote.
     """
     instances = list(_instances.values())
     _instances.clear()
