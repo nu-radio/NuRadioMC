@@ -10,6 +10,9 @@ class eventReader:
     read events from file
     """
 
+    def __init__(self):
+        self.__fin = None
+
     def begin(self, filename, read_detector=False, log_level=logging.NOTSET):
         """
         Setup function for the eventReader module
@@ -30,8 +33,13 @@ class eventReader:
     def run(self):
         return self.__fin.get_events()
 
+    def close(self):
+        """ Close all input files. Safe to call multiple times and before ``begin()``. """
+        if self.__fin is not None:
+            self.__fin.close_files()
+
     def end(self):
-        self.__fin.close_files()
+        self.close()
 
     def get_header(self):
         """

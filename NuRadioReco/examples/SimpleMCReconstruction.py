@@ -149,5 +149,5 @@ for iE, evt in enumerate(readCoREASDetector.run(
 
         eventWriter.run(evt)
 
-nevents = eventWriter.end()
-print("Finished processing, {} events".format(nevents))
+eventWriter.close()
+print("Finished processing, {} events".format(eventWriter.get_n_events()))

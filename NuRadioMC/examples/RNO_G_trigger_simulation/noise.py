@@ -505,7 +505,6 @@ if __name__ == "__main__":
     for ele in info_str:
         logger.info(f"{ele}:\n\t{info_str[ele]}")
 
-    beamformedPowerIntegrationTrigger.end()
     vrms_label = 'running_vrms' if args.running_vrms else 'fixed_vrms'
 
     noise_str = f"noise_{args.noise_type}_{args.noise_temperature:.0f}K"

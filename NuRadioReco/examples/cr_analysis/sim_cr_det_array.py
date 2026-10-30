@@ -135,4 +135,5 @@ if __name__ == "__main__":
                         'SimElectricFields': True
                     })
 
-    nevents = eventWriter.end()
+    eventWriter.close()
+

@@ -33,6 +33,46 @@ Each module consists of four components:
 These methods should all be called in that order, though the *begin* and *end*
 function can be skipped for some modules.
 
+You do not need to call ``end`` yourself: when the program exits, the ``end`` method
+of every module whose (decorated, see below) ``run`` was executed is called automatically,
+in the order of their first ``run`` call (see ``end_all_modules()`` in
+`NuRadioReco/modules/base/module.py`). Modules that hold open files, e.g. the
+``eventReader`` and ``eventWriter``, additionally provide a ``close`` method, which their
+``end`` calls. Call ``close`` yourself if the file has to be closed before the program
+exits, e.g. to read back a file you just wrote.
+
+Timing
+------
+The ``run`` method of a module should be decorated with ``register_run`` from
+`NuRadioReco/modules/base/module.py`:
+
+  .. code-block:: Python
+
+    from NuRadioReco.modules.base.module import register_run
+
+    class MODULE:
+        @register_run()
+        def run(self, evt, station, det):
+            ...
+
+Next to registering the module and its arguments in the event, the decorator measures the
+time spent in each ``run`` call. Time spent in a module called from within another module
+is attributed to the inner module only. For readers, whose ``run`` returns a generator,
+the time to produce each event is counted. At exit, a summary table with the total time
+per module is logged with level STATUS. Modules contributing less than 2% of the total
+time are merged into a single row (adjust via ``print_timing_summary(min_percent=...)``
+or ``TIMING_MIN_PERCENT``).
+
+The timing is controlled with the environment variable ``NURADIO_TIMING``: unset or
+``1`` enables it (default), ``0`` or empty disables it; any other value raises an error
+on import. It can also be switched at runtime:
+
+  .. code-block:: Python
+
+    import NuRadioReco.modules.base.module
+
+    NuRadioReco.modules.base.module.ENABLE_TIMING = False
+
 Logging
 --------------
 In version 2.3.0, the way in which we handle logging changed. We switched to a custom logging
