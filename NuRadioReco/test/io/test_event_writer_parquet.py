@@ -384,6 +384,18 @@ def test_reader_duplicate_events(tmp_path):
     assert ParquetReader(str(tmp_path), runs=2, check_unique=False).read().height == 2
 
 
+def test_reader_duplicate_events_order(tmp_path):
+    # Each event twice in the same file, in random event order: the sorted table keeps the file order of
+    # the copies (an unstable sort mixes them up for large tables)
+    events = np.random.default_rng(1).permutation(100_000).repeat(2)
+    pl.DataFrame({"station_id": 11, "run": 1, "event_id": events, "copy": np.tile([0, 1], len(events) // 2)}
+                 ).write_parquet(tmp_path / "station11_run1.parquet", row_group_size=5000)
+
+    table = ParquetReader(str(tmp_path), check_unique=False).events().collect()
+    assert table["event_id"].is_sorted()
+    assert table["copy"].to_list() == [0, 1] * 100_000
+
+
 def test_calpulsers(tmp_path):
     writer = EventWriterParquet()
     writer.begin(str(tmp_path))

@@ -192,6 +192,7 @@ class ParquetReader:
             Sort the returned tables, because the row order after reading many files or joining is not
             guaranteed by polars. Order: ``station_id, run, event_id``, for the electric fields and sim channels
             followed by their channel id(s) and ray tracing id (and tie breakers: ``source`` and ``shower_id``).
+            Events with the same keys (duplicates, read with ``check_unique=False``) keep their order in the file.
             This needs the whole table in memory: disable it for very large data sets if the order does not matter.
         check_unique : bool, default=True
             Check that each event (``run``, ``event_id``, ``station_id``) occurs only once in the selected event files,
@@ -446,7 +447,8 @@ class ParquetReader:
         if self.__filter_runs:
             table = table.filter(pl.col("run").is_in(sorted(self.__runs)))
 
-        return table.sort(_SORT_KEYS[kind]) if sort else table
+        # maintain_order: rows with the same keys keep their order in the file
+        return table.sort(_SORT_KEYS[kind], maintain_order=True) if sort else table
 
     def __check_unique(self):
         """
