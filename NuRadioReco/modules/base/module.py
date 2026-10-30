@@ -20,6 +20,9 @@ if _nuradio_timing not in ("0", "1"):
     raise ValueError(f"Invalid value NURADIO_TIMING={_nuradio_timing!r}, use \"0\" (off) or \"1\" (on).")
 ENABLE_TIMING = _nuradio_timing == "1"
 
+TIMING_MIN_PERCENT = 2.  # modules below this share (in percent) of the total time are merged into "others"
+_timed_runs = []  # all decorated run methods, used for the timing summary
+
 
 def setup_logger(name="NuRadioReco", level=None):
     """
