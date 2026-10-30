@@ -49,16 +49,16 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         The time array of the traces.
     efield_antenna_factor : numpy array
         The antenna factor for the electric field at the given position.
-    V : numpy array
+    V_freq_domain : numpy array
         The frequency spectrum of the voltage traces for the selected channels.
-    V_timedomain : numpy array, optional
+    V_time_domain : numpy array, optional
         The time domain traces for the selected channels, if `time_domain` is True.
     """
 
 
     if efield_position is None:
         raise ValueError(
-            "Function signiture changed. Please provide `efield_position`. "
+            "Function signature changed. Please provide `efield_position`. "
             "To retain old behavior, use `efield_position=np.array([0, 0, 0])`. "
             "The return signature has also changed. Additionally the time vector "
             "of the deconvolved electric field traces is returned as first "
@@ -105,34 +105,34 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     electric_field_window = NuRadioReco.framework.base_trace.BaseTrace()  # create base trace class to do the fft with correct normalization etc.
     electric_field_window.set_trace(np.zeros(n_samples), channel.get_sampling_rate(), t_min)
 
-    traces = []
+    channels = []
     for iCh, channel in enumerate(station.iter_channels(use_channels)):
         channel_copy = copy.copy(channel)  # copy to not modify data structure
         channel_copy.add_trace_start_time(t_shifts[iCh])
 
         channel_in_window = copy.copy(electric_field_window)
         channel_in_window.add_to_trace(channel_copy)
-        traces.append(channel_in_window)
+        channels.append(channel_in_window)
 
 
-    times = traces[0].get_times()  # assumes that all channels have the same sampling rate
+    times = channels[0].get_times()  # assumes that all channels have the same sampling rate
     if time_domain:  # save time domain traces first to avoid extra fft
-        V_timedomain = np.zeros((len(use_channels), len(times)))
-        for iCh, trace in enumerate(traces):
-            V_timedomain[iCh] = trace.get_trace()
+        V_time_domain = np.zeros((len(use_channels), len(times)))
+        for iCh, trace in enumerate(channels):
+            V_time_domain[iCh] = trace.get_trace()
 
-    frequencies = traces[0].get_frequencies()  # assumes that all channels have the same sampling rate
-    V = np.zeros((len(use_channels), len(frequencies)), dtype=complex)
-    for iCh, trace in enumerate(traces):
-        V[iCh] = trace.get_frequency_spectrum()
+    frequencies = channels[0].get_frequencies()  # assumes that all channels have the same sampling rate
+    V_freq_domain = np.zeros((len(use_channels), len(frequencies)), dtype=complex)
+    for iCh, trace in enumerate(channels):
+        V_freq_domain[iCh] = trace.get_frequency_spectrum()
 
     efield_antenna_factor = signal_processing.get_efield_antenna_factor(
         station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider)
 
     if time_domain:
-        return times, efield_antenna_factor, V, V_timedomain
+        return times, efield_antenna_factor, V_freq_domain, V_time_domain
 
-    return times, efield_antenna_factor, V
+    return times, efield_antenna_factor, V_freq_domain
 
 
 def stacked_lstsq(L, b, rcond=1e-10):
@@ -236,42 +236,43 @@ class voltageToEfieldConverter:
             det.get_relative_position(station.get_id(), channel_id)
             for channel_id in use_channels], axis=0)
 
-        times, efield_antenna_factor, V = get_array_of_channels(
-            station, use_channels, det, zenith, azimuth, self.antenna_provider, efield_position=efield_position, travel_time_delays=travel_time_delays)
+        times, efield_antenna_factor, traces_freq_domain = get_array_of_channels(
+            station, use_channels, det, zenith, azimuth, self.antenna_provider, efield_position=efield_position, propagator=self.propagator, travel_time_delays=travel_time_delays)
 
         if self.hann_window_duration > 0:
             hann_window_samples = int(self.hann_window_duration * station.get_channel(use_channels[0]).get_sampling_rate())
-            V = fft.freq2time(V, station.get_channel(use_channels[0]).get_sampling_rate())
-            hann_window = signal_processing.half_hann_window(V.shape[1], hann_window_length=hann_window_samples)
-            V[:, :] *= hann_window[None, :]
-            V = fft.time2freq(V, station.get_channel(use_channels[0]).get_sampling_rate())
+            traces_time_domain = fft.freq2time(traces_freq_domain, station.get_channel(use_channels[0]).get_sampling_rate())
+            hann_window = signal_processing.half_hann_window(traces_time_domain.shape[1], hann_window_length=hann_window_samples)
+            traces_time_domain[:, :] *= hann_window[None, :]
+            traces_freq_domain = fft.time2freq(traces_time_domain, station.get_channel(use_channels[0]).get_sampling_rate())
 
         if self.debug:
-            fig, ax = plt.subplots(len(V), 1, figsize=(10, 2*len(V)))
+            fig, ax = plt.subplots(len(use_channels), 1, figsize=(10, 2*len(use_channels)))
             ax[0].set_title(f'Station {station.get_id()} - Event {evt.get_id()} - Run {evt.get_run_number()} - Shifted Voltage Traces')
-            for i in range(len(V)):
-                ax[i].plot(times, fft.freq2time(V[i,:], station.get_channel(use_channels[i]).get_sampling_rate()), label=f'Channel {use_channels[i]}')
-                ax[i].set_ylabel('Voltage [V]')
-                ax[i].set_xlim(times[0], times[-1])
+            traces_time_domain = fft.freq2time(traces_freq_domain, station.get_channel(use_channels[0]).get_sampling_rate())
+            for i_ch in range(len(traces_freq_domain)):
+                ax[i_ch].plot(times, traces_time_domain[i_ch,:], label=f'Channel {use_channels[i_ch]}')
+                ax[i_ch].set_ylabel('Voltage [V]')
+                ax[i_ch].set_xlim(times[0], times[-1])
             ax[-1].set_xlabel('Time [ns]')
             ax[0].legend()
             fig.tight_layout()
             plt.savefig("debug_voltage_traces.png")
 
-            fig, ax = plt.subplots(len(V), 1, figsize=(10, 2*len(V)))
+            fig, ax = plt.subplots(len(use_channels), 1, figsize=(10, 2*len(use_channels)))
             frequencies = np.fft.rfftfreq(len(times), d=1/station.get_channel(use_channels[0]).get_sampling_rate())
             ax[0].set_title(f'Station {station.get_id()} - Event {evt.get_id()} - Run {evt.get_run_number()} - Shifted Voltage Traces')
-            for i in range(len(V)):
-                ax[i].plot(frequencies, abs(efield_antenna_factor[i,0,:]), label=f'Channel {use_channels[i]}, theta')
-                ax[i].plot(frequencies, abs(efield_antenna_factor[i,1,:]), label=f'Channel {use_channels[i]}, phi')
-                ax[i].set_ylabel('Voltage [V]')
-                ax[i].set_xlim(frequencies[0], frequencies[-1])
+            for i_ch in range(len(traces_freq_domain)):
+                ax[i_ch].plot(frequencies, abs(efield_antenna_factor[i_ch,0,:]), label=f'Channel {use_channels[i_ch]}, theta')
+                ax[i_ch].plot(frequencies, abs(efield_antenna_factor[i_ch,1,:]), label=f'Channel {use_channels[i_ch]}, phi')
+                ax[i_ch].set_ylabel('Voltage [V]')
+                ax[i_ch].set_xlim(frequencies[0], frequencies[-1])
             ax[-1].set_xlabel('Frequency [GHz]')
             ax[0].legend()
             fig.tight_layout()
             plt.savefig("debug_antenna_factors.png")
 
-        n_frequencies = len(V[0])
+        n_frequencies = len(traces_freq_domain[0])
         denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] -
                  efield_antenna_factor[0][1] * efield_antenna_factor[-1][0])
         mask = np.abs(denom) != 0
@@ -279,11 +280,11 @@ class voltageToEfieldConverter:
         # solve it in a vectorized way
         efield3_f = np.zeros((3, n_frequencies), dtype=complex)
         if force_Polarization == 'eTheta':
-            efield3_f[1:2, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 0, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(V[:, mask], 1, 0)), 0, 1)
+            efield3_f[1:2, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 0, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(traces_freq_domain[:, mask], 1, 0)), 0, 1)
         elif force_Polarization == 'ePhi':
-            efield3_f[2:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 1, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(V[:, mask], 1, 0)), 0, 1)
+            efield3_f[2:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, 1, mask], 1, 0)[:, :, np.newaxis], np.moveaxis(traces_freq_domain[:, mask], 1, 0)), 0, 1)
         else:
-            efield3_f[1:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, :, mask], 2, 0), np.moveaxis(V[:, mask], 1, 0)), 0, 1)
+            efield3_f[1:, mask] = np.moveaxis(stacked_lstsq(np.moveaxis(efield_antenna_factor[:, :, mask], 2, 0), np.moveaxis(traces_freq_domain[:, mask], 1, 0)), 0, 1)
 
         electric_field = NuRadioReco.framework.electric_field.ElectricField(use_channels, efield_position)
         electric_field.set_frequency_spectrum(efield3_f, station.get_channel(use_channels[0]).get_sampling_rate())
@@ -299,7 +300,7 @@ class voltageToEfieldConverter:
                 ax[i].plot(times, fft.freq2time(efield3_f[i,:], station.get_channel(use_channels[0]).get_sampling_rate()), label=f'E-field component {i}')
                 ax[i].set_ylabel('Electric Field [V/m]')
                 ax[i].set_xlim(times[0], times[-1])
-                ax[i].legend()
+                ax[i].legend(loc=1)
             ax[-1].set_xlabel('Time [ns]')
             fig.tight_layout()
             plt.savefig("debug_efield_unfolded.png")
