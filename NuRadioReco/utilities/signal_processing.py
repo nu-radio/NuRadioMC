@@ -781,7 +781,10 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
 
     # Connect selected islands
     sample_padding = 3  # padding because we apply a window
-    selected_range = [selected_islands[0, 0] - sample_padding, selected_islands[-1, 1] + sample_padding]
+    selected_range = [
+        max(selected_islands[0, 0] - sample_padding, 0),
+        min(selected_islands[-1, 1] + sample_padding, len(time_response))
+    ]
 
     try:
         window = half_hann_window(selected_range[1] - selected_range[0], 0.01)

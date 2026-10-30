@@ -117,7 +117,7 @@ time_offset_calculator = NuRadioReco.modules.channelTimeOffsetCalculator.channel
 time_offset_calculator.begin(
     electric_field_template=efield_template,
     medium=ice,
-    use_sim=True
+    use_sim=False
 )
 channel_props_from_neighbor = NuRadioReco.modules.channelSignalPropertiesFromNeighbors.channelSignalPropertiesFromNeighbors() # this module uses the timing information from the channels for which we calculated the time offset to calculate the timing of the other channels, which do not have a direct time offset calculation because they do not have a clear pulse. Again, this is not something you would do in a real analysis, but it allows us to check that the reconstruction works when the timing between channels is perfect.
 

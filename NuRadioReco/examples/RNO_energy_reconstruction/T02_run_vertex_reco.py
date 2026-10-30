@@ -104,12 +104,8 @@ vertex_reconstructor.begin(
     channel_ids=vertex_channel_ids,
     detector=Detector,
     template=efield_template,
-    distances_2d=np.arange(10, 600, 10),
-    distance_step_3d=2,
-    z_step_3d=2,
-    widths_3d=np.arange(-50, 50, 2),
+    distances_2d=[700, 2700],
     passband=vertex_reco_passband,
-    z_coordinates_2d=np.arange(-600, -10, 10),
     debug_folder='plots/Vertex_reco_with_normal_trace_20'
 )
 for i_event, event in enumerate(event_reader.run()):
@@ -117,6 +113,7 @@ for i_event, event in enumerate(event_reader.run()):
     station = event.get_station(11)
     station.set_is_neutrino()
     cable_delay_remover.run(event, station, Detector, mode='subtract')
+    cable_delay_remover.run(event, station.get_sim_station(), Detector, mode='subtract')
     channel_resampler.run(event, station, Detector, sampling_rate=sampling_rate)
     # noise_adder.run(event, station, Detector, amplitude=noise_level, type='rayleigh')
     vertex_reconstructor.run(

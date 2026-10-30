@@ -86,6 +86,8 @@ for event in event_reader.run():
             nu_flavors.append(nu_flavor)
             interaction_types.append(interaction_type)
             rec_energies.append(rec_shower.get_parameter(shp.energy))
+            print('Run {}: E_rec = {:.3e} eV, E_sim = {:.3e} eV, E_rec / E_sim = {:.3f}'.format(
+                event.get_run_number(), rec_energies[-1], sim_energy, rec_energies[-1] / sim_energy))
 
 sim_energies = np.array(sim_energies)
 rec_energies = np.array(rec_energies)
