@@ -16,9 +16,22 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
 
-def get_array_of_channels(station, use_channels, det, zenith, azimuth,
-                          antenna_pattern_provider, time_domain=False, efield_position=None, travel_time_delays=None):
-    """ Get the voltage traces and antenna factors for the electric field reconstruction.
+def get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_pattern_provider,
+                          time_domain=False, efield_position=None, propagator=None, travel_time_delays=None):
+    """ Get the time-alligned voltage traces and antenna factors for electric field reconstruction using unfolding.
+
+    If the efield_position is at the same position as the antennas, the travel time delays are zero. Otherwise, the travel time delays are calculated
+
+    If station.is_cosmic_ray() is True, the travel time delays are calculated from the geometry of the station and
+    the direction of the incoming signal using the refractive index of air or shallow ice assuming a plane wave.
+
+    If station.is_neutrino() is True, a propagator must be provided to calculate the travel time delays, using
+    station.get_parameter(stnp.nu_vertex) and a previously reconstructed (or MC true) absolute vertex position must
+    hence be saved in stnp.nu_vertex.
+
+    Alternatively, the travel time delays can be provided directly via the travel_time_delays argument, which overrides
+    the automatic calculation of the travel time delays. This is useful for geometries not supported by the automatic
+    calculation, e.g. plane waves in air observed with deep antennas.
 
     Parameters
     ----------
@@ -39,9 +52,13 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         If None, it raises an error.
     time_domain : bool, optional
         If True, returns the time domain traces as well. Default is False.
+    propagator : `NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base`, optional
+        Propagator module used to calculate the travel times for a neutrino event.
+        An instance of ``ray_tracing_base`` or any class derived from it.
     travel_time_delays : numpy array, optional
         The travel time delays for each channel in use_channels. If not provided (default), the travel time
-        delays are calculated from the geometry of the station and the direction of the incoming signal.
+        delays are calculated from the geometry of the station and the direction of the incoming signal. Must
+        have same length as use_channels if provided.
 
     Returns
     -------
@@ -74,17 +91,54 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         channel_id = channel.get_id()
 
         if travel_time_delays is None:
-            antenna_position = det.get_relative_position(station_id, channel_id)
-            # determine refractive index of signal propagation speed between antennas
-            refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
-            if station.is_cosmic_ray():
-                if zenith > 0.5 * np.pi:
+
+            if np.linalg.norm(det.get_relative_position(station_id, channel_id) - efield_position) < 0.01 * units.mm:
+                time_shift = 0.0
+
+            elif station.is_cosmic_ray():
+                antenna_position = det.get_relative_position(station_id, channel_id) # here, only the relative position is needed
+
+                # determine refractive index of signal propagation speed between antennas
+                if zenith <= 0.5 * np.pi:
+                    refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
+                elif zenith > 0.5 * np.pi:
                     refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
 
-            if station.is_neutrino():
-                refractive_index = ice.get_refractive_index(antenna_position[2], site)
+                time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position - efield_position, n=refractive_index)
 
-            time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position - efield_position, n=refractive_index)
+            elif station.is_neutrino():
+                if propagator is None:
+                    raise ValueError("For neutrino events, a propagator must be provided.")
+
+                # Calculate the travel time delays using the propagator
+                vertex_position = station.get_parameter(stnp.nu_vertex)
+                antenna_position = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station.get_id()) # assuming that the vertex_position is absolute, the absolute position is needed here
+                propagator.set_start_and_end_point(vertex_position, antenna_position)
+                propagator.find_solutions()
+                if propagator.get_number_of_solutions() > 0:
+                    travel_time = propagator.get_travel_time(0) # using first solution
+                else:
+                    raise ValueError(f"No propagation solution found for channel {channel_id}. Please check the geometry. Vertex: {vertex_position}, Antenna: {antenna_position}.")
+
+                # Warning if ray-traced arrival direction is not consistent with zenith and azimuth
+                ray_traced_direction = propagator.get_receive_vector(0)
+                ray_traced_zenith = np.arccos(ray_traced_direction[2])
+                ray_traced_azimuth = np.arctan2(ray_traced_direction[1], ray_traced_direction[0])
+                if not (np.isclose(ray_traced_zenith, zenith, atol=3 * units.deg) and np.isclose(ray_traced_azimuth, azimuth, atol=3 * units.deg)):
+                    logger.warning(
+                        f"Ray-traced arrival direction (zenith: {ray_traced_zenith}, azimuth: {ray_traced_azimuth}) is not "
+                        f"consistent with the provided zenith ({zenith / units.deg}) and azimuth ({azimuth / units.deg}) angles. "
+                        f"Please check the geometry and the reconstruction and provided angles. Vertex: {vertex_position}, Antenna: {antenna_position}."
+                    )
+
+                time_shift = -travel_time
+
+            else:
+                raise ValueError(
+                    "Please set station.set_is_cosmic_ray(True) for cosmic ray events (plane wave air or shallow ice), "
+                    "station.set_is_neutrino(True) for neutrino events (deep ice), or provide user-defined travel_time_delays."
+                    )
+
         else:
             time_shift = -travel_time_delays[iCh]
 
@@ -176,16 +230,44 @@ class voltageToEfieldConverter:
     orthogonal polarization response are needed to reconstruct the 3dim electric field.
     Alternatively, the polarization of the resulting efield could be forced to a
     single polarization component. In that case, a single antenna is sufficient.
+
+    The module automatically calculates the relavant time delays for channels, if they are not at the same position.
+
+    If station.is_cosmic_ray() is True, the travel time delays are calculated from the geometry of the station and
+    the direction of the incoming signal using the refractive index of air or shallow ice assuming a plane wave.
+
+    If station.is_neutrino() is True, a propagator must be provided to calculate the travel time delays, using
+    station.get_parameter(stnp.nu_vertex) and a previously reconstructed (or MC true) absolute vertex position must
+    hence be saved in stnp.nu_vertex.
+
+    Alternatively, the travel time delays can be provided directly via the travel_time_delays argument, which overrides
+    the automatic calculation of the travel time delays. This is useful for geometries not supported by the automatic
+    calculation, e.g. plane waves in air observed with deep antennas.
     """
 
     def __init__(self):
         self.antenna_provider = None
         self.begin()
 
-    def begin(self, debug=False, hann_window_duration=100 * units.ns):
+    def begin(self, debug=False, hann_window_duration=100 * units.ns, propagator=None):
+        """
+        Initialize the voltageToEfieldConverter.
+
+        Parameters
+        ----------
+        debug : bool, optional
+            If True, enables debug mode.
+        hann_window_duration : float, optional
+            A Hann window is applied to the edges of the voltage traces to reduce artifacts from the
+            FFT and unfolding. The default duration is 100 ns at each edge, but can be set to 0 to disable the Hann window.
+        propagator : `NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base`, optional
+            A propagator object to calculate the travel time delays for neutrino events.
+            An instance of ``ray_tracing_base`` or any class derived from it.
+        """
         self.antenna_provider = antennapattern.AntennaPatternProvider()
         self.debug = debug
         self.hann_window_duration = hann_window_duration
+        self.propagator = propagator
         pass
 
     @register_run()
