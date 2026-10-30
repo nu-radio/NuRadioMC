@@ -3,6 +3,7 @@ from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
+import scipy as scp
 
 from NuRadioReco.utilities.analytic_pulse import get_analytic_pulse_freq
 from NuRadioReco.utilities import units, fft, minimization, matched_filter, trace_utilities
@@ -43,8 +44,9 @@ class electricFieldLikelihoodReconstructor:
     This class is similar to voltageToAnalyticEfieldConverter, but uses a likelihood based on the
     noise spectrum instead of a chi-square and has an improved minimization strategy.
 
-    The class assumes that the hardware response is subtracted from the data, e.g.,
-    hardwareResponseIncorporator.run(event, station, det, sim_to_data=False, mingainlin=0.001) has been run.
+    If no hardware_response is provided (default and recomended), the class assumes that the hardware
+    response is subtracted from the data, e.g., hardwareResponseIncorporator.run(event, station, det, sim_to_data=False, mingainlin=0.001)
+    has been run.
 
     For a full description of the method, see Section III.C in https://arxiv.org/abs/2510.21925.
     """
@@ -52,7 +54,7 @@ class electricFieldLikelihoodReconstructor:
     def __init__(self):
         pass
 
-    def begin(self, n_channels, n_samples, sampling_rate, noise_spectra, Vrms, filter_settings_list, use_chi2=False, zenith_azimuth_free=False, debug=False, travel_time_shifts=None):
+    def begin(self, n_channels, n_samples, sampling_rate, noise_spectra, Vrms, filter_settings_list, use_chi2=False, zenith_azimuth_free=False, travel_time_shifts=None, hardware_response=None, debug=False):
         """
 
         Parameters
@@ -90,6 +92,12 @@ class electricFieldLikelihoodReconstructor:
                 in efieldToVoltageConverter, which assumes the electric field is a plane wave. It is useful to provide ray-traced travel time
                 shifts e.g. for deep in-ice antennas, where the plane wave approximation doesn't hold.
 
+            hardware_response: function, optional
+                hardwareResponseIncorporator.run() function to be applied to the foward-folded electric field, e.g., the
+                run function of an initialized NuRadioReco.modules.RNO_G.hardwareResponseIncorporator.hardwareResponseIncorporator.
+                If no hardware_response is provided, the module assumes that the hardware response has already been subtracted from
+                the data traces, which is recommended for computational efficiency.
+
             debug: bool, optional
                 Extra plots and printouts for debugging
         """
@@ -103,7 +111,7 @@ class electricFieldLikelihoodReconstructor:
         self.zenith_azimuth_free = zenith_azimuth_free
         self.debug = debug
         self.travel_time_shifts = travel_time_shifts
-
+        self.hardware_response = hardware_response
         self.delta_t = 1/self.sampling_rate
         self.t_array_matched_filter = np.arange(0, self.n_samples) * self.delta_t - self.n_samples * self.delta_t/ 2
         self.i_shift_cc = np.arange(0, self.n_samples)
@@ -182,6 +190,10 @@ class electricFieldLikelihoodReconstructor:
             The minus two log-likelihood value of the reconstructed signal.
             Only returned if `full_output` enabled
 
+        p_value_fit: float
+            The p-value of the fit, calculated from the minus two log-likelihood and
+            the number of degrees of freedom.
+
         """
 
         if use_channels is None:
@@ -199,9 +211,7 @@ class electricFieldLikelihoodReconstructor:
 
         traces = []
         trace_start_times = []
-        for channel in station.iter_channels():
-            if channel.get_id() not in use_channels:
-                continue
+        for channel in station.iter_channels(use_channels=use_channels):
             traces.append(channel.get_trace())
             trace_start_times.append(channel.get_trace_start_time())
         traces = np.array(traces)
@@ -262,8 +272,12 @@ class electricFieldLikelihoodReconstructor:
 
         station.add_electric_field(electric_field)
 
+        # Calculate goodness of fit:
+        n_dof_fit = self.likelihood_calculator.get_dof() - 6
+        p_value_fit = 1 - scp.stats.chi2.cdf(minus_two_llh_best, n_dof_fit)
+
         if full_output:
-            return fitted_signal, fitted_params_best, minus_two_llh_best
+            return fitted_signal, fitted_params_best, minus_two_llh_best, p_value_fit
 
     def _function_to_minimize_mf(self, data, signal):
         """
@@ -491,6 +505,10 @@ class electricFieldLikelihoodReconstructor:
         station[stnp.azimuth] = azimuth_arrival
         efieldToVoltageConverter.run(evt, station, det, channel_ids=use_channels)
 
+        # Add hardware response:
+        if self.hardware_response is not None:
+            self.hardware_response(evt, station, det, sim_to_data=True, mingainlin=0.001)
+
         for i_ch, channel_id in enumerate(use_channels):
             channel = station.get_channel(channel_id)
 
@@ -697,22 +715,27 @@ class electricFieldLikelihoodReconstructor:
                 ax[i_ch].vlines([t_max+self.t_array_matched_filter[0], t_max+self.t_array_matched_filter[-1]], np.min(data[i_ch]*2), np.max(data[i_ch]*2), color="r", ls="--", label="Bounds (matched filter)")
 
                 # Plot bounds (LLH reconstruction):
-                s0 = signal_function(np.array([fitted_params_2[i_ch], fitted_params_2[1], fitted_params_2[2], fitted_params_2[3], bounds[4][0], fitted_params_2[5], fitted_params_2[6], fitted_params_2[7]]))
+                s0 = signal_function(np.array([fitted_params_2[0], fitted_params_2[1], fitted_params_2[2], fitted_params_2[3], bounds[4][0], fitted_params_2[5], fitted_params_2[6], fitted_params_2[7]]))
                 t_max_bound_0 = t_array[np.argmax(s0[i_ch])]
-                s1 = signal_function(np.array([fitted_params_2[i_ch], fitted_params_2[1], fitted_params_2[2], fitted_params_2[3], bounds[4][1], fitted_params_2[5], fitted_params_2[6], fitted_params_2[7]]))
+                s1 = signal_function(np.array([fitted_params_2[0], fitted_params_2[1], fitted_params_2[2], fitted_params_2[3], bounds[4][1], fitted_params_2[5], fitted_params_2[6], fitted_params_2[7]]))
                 t_max_bound_1 = t_array[np.argmax(s1[i_ch])]
                 ax[i_ch].vlines([t_max_bound_0, t_max_bound_1], np.min(data[i_ch]*2), np.max(data[i_ch]*2), color="b", ls="--", label="Bounds (LLH fit)")
 
                 ax[i_ch].set_ylabel("Voltage [V]")
 
-            ax[0].legend()
+            ax[0].legend(loc=1)
             if not self.use_chi2:
                 ax[0].set_title(r"$-2\Delta$LLH: " f"{minus_two_llh_fit_2} \n parameters: {fitted_params_2}")
             else:
                 ax[0].set_title(r"$\chi^2$: " f"{minus_two_llh_fit_2} \n parameters: {fitted_params_2}")
             ax[-1].set_xlabel("Time [s]")
             plt.tight_layout()
-            plt.savefig("debug_StationElectricFieldReconstructor.png")
+            plt.savefig("debug_electricFieldLikelihoodReconstructor.png")
+            for i_ch in range(self.n_channels):
+                t_array = trace_start_times[0] + np.arange(0, self.n_samples) * self.delta_t
+                t_max = t_array[np.argmax(signal_fit[0])]
+                ax[i_ch].set_xlim(t_max - 100 * units.ns, t_max + 100 * units.ns)
+            plt.savefig("debug_electricFieldLikelihoodReconstructor_zoom.png")
             plt.show()
             plt.close()
 
@@ -720,16 +743,20 @@ class electricFieldLikelihoodReconstructor:
             fig, ax = plt.subplots(self.n_channels, 1, figsize=(10, self.n_channels*3))
             for i_ch in range(self.n_channels):
                 ax[i_ch].plot(self.frequencies, self.likelihood_calculator.spectra[i_ch], "k-", label="Likelihood noise spectrum")
-                ax[i_ch].plot(self.frequencies, np.abs(fft.time2freq(data[i_ch], sampling_rate=self.sampling_rate)), "b-", label="data")
+                ax[i_ch].plot(self.frequencies, np.abs(fft.time2freq(data[i_ch], sampling_rate=self.sampling_rate)), "b-", label="data", alpha=0.7)
                 ax[i_ch].plot(self.frequencies, np.abs(fft.time2freq(signal_initial[i_ch], sampling_rate=self.sampling_rate)), "r-", label="initial")
                 ax[i_ch].plot(self.frequencies, np.abs(fft.time2freq(signal_fit_2[i_ch], sampling_rate=self.sampling_rate)), "g-", label="fit")
-                ax[i_ch].hlines( np.max(self.likelihood_calculator.spectra[i_ch])/100, 0, max(self.frequencies), "m", "--", label="threshold")
+                ax[i_ch].hlines(np.max(self.likelihood_calculator.spectra[i_ch]) * self.likelihood_calculator.threshold_amplitude, 0, max(self.frequencies), "m", "--", label="threshold")
                 ax[i_ch].set_ylabel("Amplitude [V/GHz]")
                 #ax[i].set_yscale("log")
             ax[0].legend()
             ax[-1].set_xlabel("Frequency [GHz]")
             fig.tight_layout()
-            plt.savefig("debug_StationElectricFieldReconstructor_spectra.png")
+            plt.savefig("debug_electricFieldLikelihoodReconstructor_spectra.png")
+            for i_ch in range(self.n_channels):
+                ax[i_ch].set_yscale("log")
+                ax[i_ch].set_ylim(1e-6, 1e-2)
+            plt.savefig("debug_electricFieldLikelihoodReconstructor_spectra_log.png")
             plt.show()
             plt.close()
 

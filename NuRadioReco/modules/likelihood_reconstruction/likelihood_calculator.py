@@ -126,14 +126,15 @@ class LikelihoodCalculator:
         self.Vrms = Vrms
 
         # Scale spectra to Vrms if provided:
+        spectra_normalized = spectra.copy()
         if Vrms is not None:
             for i_ant in range(self.n_antennas):
                 spectrum_power = np.sum(spectra[i_ant]**2) * (self.frequencies[1] - self.frequencies[0])
                 time_domain_power = Vrms[i_ant]**2 * self.n_samples * 1/self.sampling_rate
-                spectra[i_ant, :] = spectra[i_ant, :] / np.sqrt(spectrum_power) * np.sqrt(time_domain_power)
+                spectra_normalized[i_ant, :] = spectra[i_ant, :] / np.sqrt(spectrum_power) * np.sqrt(time_domain_power)
 
-        covariance_matrices, covariance_matrices_inverse = self._calculate_covariance_matrices_from_spectra(abs(spectra))
-        self._set_covariance_matrices(covariance_matrices, spectra, cov_inv=covariance_matrices_inverse)
+        covariance_matrices, covariance_matrices_inverse = self._calculate_covariance_matrices_from_spectra(abs(spectra_normalized))
+        self._set_covariance_matrices(covariance_matrices, spectra_normalized, cov_inv=covariance_matrices_inverse)
 
     def initialize_with_data(self, data, method="using_spectra"):
         """
