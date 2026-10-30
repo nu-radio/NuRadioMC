@@ -23,7 +23,7 @@ from NuRadioReco.detector.RNO_G import rnog_detector_mod as RNO_G_detector
 from astropy.time import Time
 from NuRadioReco.modules.eventTypeIdentifier import eventTypeIdentifier
 
-#need to check how to removed cable delays from the data.
+
 
 Detector = RNO_G_detector.ModDetector(
     select_stations=11,
@@ -32,21 +32,6 @@ Detector = RNO_G_detector.ModDetector(
     database_time=Time("2024-11-01T00:00:00")
 )
 Detector.update(time=Time("2023-08-01T00:00:00"))
-
-
-for chennel_id in Detector.get_channel_ids(11):
-    delay = Detector.get_cable_delay(11, chennel_id)
-    print(f"Channel {chennel_id} has a cable delay of {delay*1e9:.2f} ns")
-    Detector.add_manual_time_delay(11, chennel_id, delay, weight=-1)
-
-station_id = 11
-print("Original station position:", Detector.get_absolute_position(station_id))
-Detector.modify_station_description(
-    station_id=station_id,
-    keys=["station_position", "position"], 
-    value=[0.0, 0.0, 0.0]
-)
-print("Modified station position:", Detector.get_absolute_position(station_id))
 
 parser = argparse.ArgumentParser(
     'Run the IFT electric field reconstruction.'

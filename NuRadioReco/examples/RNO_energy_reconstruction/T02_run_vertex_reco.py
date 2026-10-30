@@ -13,29 +13,17 @@ import os
 
 from NuRadioReco.detector.RNO_G import rnog_detector_mod as RNO_G_detector
 from astropy.time import Time
-
+from NuRadioReco.modules.channelAddCableDelay import channelAddCableDelay
 
 Detector = RNO_G_detector.ModDetector(
     select_stations=11,
     always_query_entire_description=True,
-    signal_chain_measurement_name="calibrated_impulse_response_v0"
+    signal_chain_measurement_name=None,
+    database_time=Time("2024-11-01T00:00:00")
 )
-Detector.update(time=Time("2023-08-01"))
-for chennel_id in Detector.get_channel_ids(11):
-    delay = Detector.get_cable_delay(11, chennel_id)
-    print(f"Channel {chennel_id} has a cable delay of {delay*1e9:.2f} ns")
-    Detector.add_manual_time_delay(11, chennel_id, delay, weight=-1)
-
-
-station_id = 11
-print("Original station position:", Detector.get_absolute_position(station_id))
-Detector.modify_station_description(
-    station_id=station_id,
-    keys=["station_position", "position"],   # ✅ correct nested path
-    value=[0.0, 0.0, 0.0]
-)
-print("Modified station position:", Detector.get_absolute_position(station_id))
-
+Detector.update(time=Time("2023-08-01T00:00:00"))
+cable_delay_remover = channelAddCableDelay()
+cable_delay_remover.begin()
 
 
 parser = argparse.ArgumentParser(
@@ -128,6 +116,7 @@ for i_event, event in enumerate(event_reader.run()):
     print('Event {}, ID={}, Run={}'.format(i_event, event.get_id(), event.get_run_number()))
     station = event.get_station(11)
     station.set_is_neutrino()
+    cable_delay_remover.run(event, station, Detector, mode='subtract')
     channel_resampler.run(event, station, Detector, sampling_rate=sampling_rate)
     # noise_adder.run(event, station, Detector, amplitude=noise_level, type='rayleigh')
     vertex_reconstructor.run(

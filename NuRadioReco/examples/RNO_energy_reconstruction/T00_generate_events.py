@@ -13,9 +13,9 @@ parser.add_argument(
     help='Number of events to generate.'
 )
 parser.add_argument(
-    'output_file',
+    'output_file',    #example : 1e19_n100.hdf5
     type=str,
-    help='Name of the .nur file the simulated events will be written into.'
+    help='Name of the hdf5 file the simulated events will be written into.'
 )
 
 args = parser.parse_args()
@@ -23,13 +23,13 @@ args = parser.parse_args()
 #substitute the interested station position
 
 # # Station absolute position
-# station_x = -1572.81617365 * units.m  
-# station_y =  729.37223865 * units.m  
-# station_z =  -3.78323115 * units.m  
+station_x = -1572.81617365 * units.m  
+station_y =  729.37223865 * units.m  
+station_z =  -3.78323115 * units.m  
 
-station_x = 0 * units.m  
-station_y =  0 * units.m  
-station_z =  0 * units.m  
+# station_x = 0 * units.m  
+# station_y =  0 * units.m  
+# station_z =  0 * units.m  
 
 
 
