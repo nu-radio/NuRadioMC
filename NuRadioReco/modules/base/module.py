@@ -13,14 +13,12 @@ from NuRadioReco.utilities.logging import LOGGING_STATUS
 logger = logging.getLogger('NuRadioReco.module')
 
 # Controls both recording and the printout at exit. Set via the environment variable NURADIO_TIMING:
-# unset or "1" = on (default), "" or "0" = off. Can be changed at runtime via
+# unset, empty or "1" = on (default), "0" = off. Can be changed at runtime via
 # ``NuRadioReco.modules.base.module.ENABLE_TIMING = False``.
-_nuradio_timing = os.environ.get("NURADIO_TIMING", "1")
-if _nuradio_timing not in ("", "0", "1"):
-    raise ValueError(f"Invalid value NURADIO_TIMING={_nuradio_timing!r}, use \"1\" (on) or \"0\" (off).")
+_nuradio_timing = os.environ.get("NURADIO_TIMING") or "1"
+if _nuradio_timing not in ("0", "1"):
+    raise ValueError(f"Invalid value NURADIO_TIMING={_nuradio_timing!r}, use \"0\" (off) or \"1\" (on).")
 ENABLE_TIMING = _nuradio_timing == "1"
-TIMING_MIN_PERCENT = 2.  # modules below this share (in percent) of the total time are merged into "others"
-_timed_runs = []  # all decorated run methods, used for the timing summary
 
 
 def setup_logger(name="NuRadioReco", level=None):
