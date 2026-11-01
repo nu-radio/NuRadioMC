@@ -542,9 +542,6 @@ class neutrinoLikelihoodReconstructor:
                 x_min = np.min([params_fit[i_param], parameters_initial[i_param], parameters_initial_llh[i_param]])
                 x_max = np.max([params_fit[i_param], parameters_initial[i_param], parameters_initial_llh[i_param]])
                 delta_x = abs(params_fit[i_param] - parameters_initial[i_param])
-                # delta_x = abs(params_fit[i_param] - parameters_initial_llh[i_param])
-                # x_min = np.min([params_fit[i_param], parameters_initial_llh[i_param]]) - 0.2 * delta_x
-                # x_max = np.max([params_fit[i_param], parameters_initial_llh[i_param]]) + 0.2 * delta_x
 
                 minimizer_llh.profile_scan_1D(
                     method = "minuit",
