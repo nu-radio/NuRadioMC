@@ -12,10 +12,10 @@ from NuRadioReco.framework.sim_station import SimStation
 from NuRadioReco.framework.event import Event
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework.parameters import stationParameters as stnp
+import NuRadioMC.SignalGen.parametrizations
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.electricFieldBandPassFilter
-import NuRadioReco.modules.channelLengthAdjuster
 from NuRadioReco.modules.likelihood_reconstruction import likelihood_calculator
 from radiotools import helper as hp
 from radiotools import coordinatesystems
@@ -25,7 +25,6 @@ efieldToVoltageConverter.begin(pre_pulse_time=200*units.ns, post_pulse_time=200*
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 channelBandPassFilter.begin()
 electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
-channelLengthAdjuster = NuRadioReco.modules.channelLengthAdjuster.channelLengthAdjuster()
 
 import logging
 logger = logging.getLogger('NuRadioReco.electricFieldLikelihoodReconstructor')
@@ -54,7 +53,10 @@ class electricFieldLikelihoodReconstructor:
     def __init__(self):
         pass
 
-    def begin(self, n_channels, n_samples, sampling_rate, noise_spectra, Vrms, filter_settings_list, use_chi2=False, zenith_azimuth_free=False, travel_time_shifts=None, hardware_response=None, debug=False):
+    def begin(
+            self, n_channels, n_samples, sampling_rate,noise_spectra, Vrms, filter_settings_list, efield_model = "analytic_pulse",
+            second_order=False, use_chi2=False, zenith_azimuth_free=False, travel_time_shifts=None, hardware_response=None, debug=False
+        ):
         """
 
         Parameters
@@ -78,6 +80,13 @@ class electricFieldLikelihoodReconstructor:
             filter_settings_list: list of dicts, optional
                 List of filter settings to be applied to the electric field signal. The same filters must have been applied to
                 the data and noise before this module is run.
+
+            efield_model: str, optional
+                Model of the electric field to be used in the reconstruction. Currently "analytic_pulse" (default) and "Alvarez2009" are supported.
+
+            second_order: bool, optional
+                If True, fit includes the second order term in the frequency domain of the electric field
+                as a fitting parameter. Otherwise, the second order term is fixed to 0. Default: False
 
             use_chi2: bool, optional
                 Whether to use chi2 minimization instead of likelihood. Mostly used for debugging and method comparison.
@@ -106,7 +115,9 @@ class electricFieldLikelihoodReconstructor:
         self.n_samples = n_samples
         self.sampling_rate = sampling_rate
         self.Vrms = Vrms
-        self.filter_settings_list = filter_settings_list
+        self.filter_settings_list = filter_settings_list or []
+        self.efield_model = efield_model
+        self.second_order = second_order
         self.use_chi2 = use_chi2
         self.zenith_azimuth_free = zenith_azimuth_free
         self.debug = debug
@@ -138,7 +149,7 @@ class electricFieldLikelihoodReconstructor:
         )
 
     @register_run()
-    def run(self, evt, station, det, use_channels=None, signal_search_window=None, use_MC_direction=False, second_order=False, full_output=False, save_filtered_efield=True):
+    def run(self, evt, station, det, use_channels=None, signal_search_window=None, use_MC_direction=False, full_output=False, save_filtered_efield=True):
         """
         Run the likelihood reconstruction of electric field.
 
@@ -162,10 +173,6 @@ class electricFieldLikelihoodReconstructor:
         use_MC_direction: bool, optional
             Whether to use the Monte Carlo true arrival direction for the reconstruction if it is
             present in the sim_station object. Default: False
-
-        second_order: bool, optional
-            If True, fit include the second order term in the frequency domain of the electric field
-            as a fitting parameter. Otherwise, the second order term is fixed to 0. Default: False
 
         full_output: bool, optional
             If True, return the reconstructed signal, the signal parameters and the minus two
@@ -228,11 +235,18 @@ class electricFieldLikelihoodReconstructor:
         minus_two_llh_best = None
         f_theta_f_phi_initial = [[0.5, 1], [0.5, -1], [-0.5, 1], [-0.5, -1]]
         for i_fit in range(4):
-
-            parameters_initial = np.array([f_theta_f_phi_initial[i_fit][0], f_theta_f_phi_initial[i_fit][1], -1, np.pi/2, trace_start_times[0] + 300, -10 if second_order else 0, zenith, azimuth])
-
+            parameters_initial = np.array([
+                f_theta_f_phi_initial[i_fit][0], # f_theta
+                f_theta_f_phi_initial[i_fit][1], # f_phi
+                -1 if self.efield_model == "analytic_pulse" else 56*units.deg if self.efield_model == "Alvarez2009" else 0, # slope/viewing angle
+                np.pi/2, # phase
+                trace_start_times[0] + 300, # signal time
+                zenith,
+                azimuth,
+                -10 if self.second_order else 0, # second order term
+            ])
             minus_two_llh, polarization_reco, polarization_uncertainty, fluence_reco, fluence_uncertainty, fitted_params, fitted_params_uncertainties = self._reconstruct_signal(
-                traces, signal_function, parameters_initial, trace_start_times, second_order=second_order, signal_search_window=signal_search_window)
+                traces, signal_function, parameters_initial, trace_start_times, signal_search_window=signal_search_window)
 
             if minus_two_llh_best is None or minus_two_llh < minus_two_llh_best:
                 minus_two_llh_best = np.copy(minus_two_llh)
@@ -250,22 +264,34 @@ class electricFieldLikelihoodReconstructor:
             efield_time = fitted_params_best[4] - det.get_cable_delay(station.get_id(), use_channels[0])
         elif self.travel_time_shifts is not None:
             efield_time = fitted_params_best[4] - det.get_cable_delay(station.get_id(), use_channels[0]) - self.travel_time_shifts[0]
-        efield_parameters = np.array([fitted_params_best[0], fitted_params_best[1], fitted_params_best[2], fitted_params_best[3], efield_time, fitted_params_best[5]])
-        electric_field = self._get_efield(efield_parameters, fitted_params_best[6], fitted_params_best[7], use_channels, apply_filter=save_filtered_efield)
+        electric_field = self._get_efield(
+            fluence_theta = fitted_params_best[0],
+            fluence_phi = fitted_params_best[1],
+            phase = fitted_params_best[3],
+            pulse_time = efield_time,
+            slope = fitted_params_best[2] if self.efield_model == "analytic_pulse" else None,
+            quadratic_term = fitted_params_best[7] if self.efield_model == "analytic_pulse" else None,
+            viewing_angle = fitted_params_best[2] if self.efield_model == "Alvarez2009" else None,
+            zenith_arrival = fitted_params_best[5],
+            azimuth_arrival = fitted_params_best[6],
+            use_channels = use_channels,
+            apply_filter = save_filtered_efield,
+        )
         electric_field.set_parameter(efp.signal_energy_fluence, fluence_reco_best)
         electric_field.set_parameter_error(efp.signal_energy_fluence, fluence_uncertainty_best)
         electric_field.set_parameter(efp.polarization_angle, polarization_reco_best)
         electric_field.set_parameter_error(efp.polarization_angle, polarization_uncertainty_best)
-        electric_field.set_parameter(efp.cr_spectrum_slope, fitted_params_best[2])
-        electric_field.set_parameter(efp.signal_time, trace_start_times[0] + fitted_params_best[3])
-        electric_field.set_parameter(efp.cr_spectrum_quadratic_term, fitted_params_best[5])
-        electric_field.set_parameter(efp.zenith, fitted_params_best[6])
-        electric_field.set_parameter(efp.azimuth, fitted_params_best[7])
+        if self.efield_model == "analytic_pulse":
+            electric_field.set_parameter(efp.cr_spectrum_slope, fitted_params_best[2])
+            electric_field.set_parameter(efp.cr_spectrum_quadratic_term, fitted_params_best[7])
+        electric_field.set_parameter(efp.signal_time, fitted_params_best[4])
+        electric_field.set_parameter(efp.zenith, fitted_params_best[5])
+        electric_field.set_parameter(efp.azimuth, fitted_params_best[6])
 
         # compute expected polarization
         site = det.get_site(station.get_id())
-        exp_efield = hp.get_lorentzforce_vector(fitted_params_best[6], fitted_params_best[7], hp.get_magnetic_field_vector(site))
-        cs = coordinatesystems.cstrafo(fitted_params_best[6], fitted_params_best[7], site=site)
+        exp_efield = hp.get_lorentzforce_vector(fitted_params_best[5], fitted_params_best[6], hp.get_magnetic_field_vector(site))
+        cs = coordinatesystems.cstrafo(fitted_params_best[5], fitted_params_best[6], site=site)
         exp_efield_onsky = cs.transform_from_ground_to_onsky(exp_efield)
         exp_pol_angle = np.arctan2(exp_efield_onsky[2], exp_efield_onsky[1])
         electric_field.set_parameter(efp.polarization_angle_expectation, exp_pol_angle)
@@ -273,7 +299,7 @@ class electricFieldLikelihoodReconstructor:
         station.add_electric_field(electric_field)
 
         # Calculate goodness of fit:
-        n_dof_fit = self.likelihood_calculator.get_dof() - 6
+        n_dof_fit = self.likelihood_calculator.get_dof() - (4 + 2 * self.zenith_azimuth_free + self.second_order) # 4 parameters for the efield, 2 for the arrival direction if free, 1 for the second order term if free
         p_value_fit = 1 - scp.stats.chi2.cdf(minus_two_llh_best, n_dof_fit)
 
         if full_output:
@@ -346,20 +372,36 @@ class electricFieldLikelihoodReconstructor:
         chi2 = np.sum((data - signal)**2 / sigma**2)
         return chi2
 
-    def _get_efield(self, parameters, zenith_arrival, azimuth_arrival, use_channels, apply_filter=False):
+    def _get_efield(self, fluence_theta, fluence_phi, phase , pulse_time, slope, quadratic_term,
+                    viewing_angle, zenith_arrival, azimuth_arrival, use_channels, apply_filter=False):
         """
-        Get the electric field for the given parameters.
+        Get the electric field for the given parameters and the efield_model.
 
         Parameters
         ----------
-        parameters: np.ndarray
-            Parameters of the signal model
-            0: fluence theta
-            1: fluence phi
-            2: slope of the pulse
-            3: phase of the pulse
-            4: time of the electric field pulse (maximum of absolute hilbert envelope) at the 0th antenna
-            5: quadratic term
+        fluence_theta: float
+            Fluence of the electric field in the theta direction
+
+        fluence_phi: float
+            Fluence of the electric field in the phi direction
+
+        phase: float
+            Phase of the electric field in the frequency domain
+
+        pulse_time: float
+            Time of the electric field pulse (maximum of absolute hilbert envelope) at the 0th antenna
+
+        slope: float
+            Slope of the electric field in the frequency domain
+            only used for the "analytic_pulse" model
+
+        quadratic_term: float
+            Quadratic term of the electric field in the frequency domain
+            only used for the "analytic_pulse" model and only if self.second_order=True
+
+        viewing_angle: float
+            Viewing angle of the observer
+            only used for the "Alvarez2009" model
 
         zenith_arrival: float
             Zenith angle of the incoming electric field
@@ -379,19 +421,22 @@ class electricFieldLikelihoodReconstructor:
             Electric field for given parameters
         """
 
-        n_samples_time = self.n_samples
-        sampling_rate = self.sampling_rate
-
-        amp_p0 = 1
-        amp_p1 = parameters[2]
-        phase_p0 = parameters[3]
-        pulse_time = 0.5 * self.n_samples / self.sampling_rate # middle of efield trace
-        phase_p1 = - pulse_time * 2*np.pi
-        quadratic_term = parameters[5]
-        quadratic_term_offset = 100 * units.MHz
-
         # Calculate the electric field:
-        efield_norm = get_analytic_pulse_freq(amp_p0, amp_p1, phase_p0, n_samples_time, sampling_rate, phase_p1=phase_p1, bandpass=None, quadratic_term=quadratic_term, quadratic_term_offset=quadratic_term_offset)
+        t_middle = 0.5 * self.n_samples / self.sampling_rate # middle of efield trace
+        if self.efield_model == "analytic_pulse":
+            efield_norm = get_analytic_pulse_freq(
+                amp_p0=1, amp_p1=slope, phase_p0=phase, n_samples_time=self.n_samples,
+                sampling_rate=self.sampling_rate, phase_p1=-t_middle * 2*np.pi, bandpass=None,
+                quadratic_term=quadratic_term, quadratic_term_offset=100 * units.MHz
+            )
+        elif self.efield_model == "Alvarez2009":
+            efield_norm = fft.time2freq(
+                NuRadioMC.SignalGen.parametrizations.get_time_trace(
+                    energy = 1 * units.PeV, theta = viewing_angle, N = self.n_samples,  dt = 1.0 / self.sampling_rate,
+                    shower_type = "HAD", n_index = 1.32, R = 100 * units.m, model="Alvarez2009"
+                ),
+                self.sampling_rate
+            ) * np.exp(1j * phase)
 
         # Set the electric field:
         electric_field = ElectricField(use_channels, position=None, shower_id=None, ray_tracing_id=None)
@@ -415,15 +460,54 @@ class electricFieldLikelihoodReconstructor:
             trace = efield_filtered.get_frequency_spectrum()
         else:
             trace = electric_field.get_frequency_spectrum()
-        trace[1] *= np.sign(parameters[0]) * np.sqrt(np.abs(parameters[0]) / f_theta)
-        trace[2] *= np.sign(parameters[1]) * np.sqrt(np.abs(parameters[1]) / f_phi)
+        trace[1] *= np.sign(fluence_theta) * np.sqrt(np.abs(fluence_theta) / f_theta)
+        trace[2] *= np.sign(fluence_phi) * np.sqrt(np.abs(fluence_phi) / f_phi)
 
         electric_field.set_frequency_spectrum(trace, self.sampling_rate)
 
         electric_field.set_position(self.reference_antenna_position)
-        electric_field.set_trace_start_time(parameters[4] - pulse_time) # efield pulse at provided time
+        electric_field.set_trace_start_time(pulse_time - t_middle) # place efield pulse at provided time
 
         return electric_field
+
+    def _get_efield_parameters(self, parameters, det, station_id, use_channels):
+
+        # Subtract the cable delay (and travel time) of the reference channel, to
+        # get the rough efield time for the desired readout pulse time. These times
+        # are added again in efieldToVoltageConverter. Antenna group delay is not
+        # taken into account here:
+        if self.travel_time_shifts is None:
+            efield_time = parameters[4] - det.get_cable_delay(station_id, use_channels[0])
+        elif self.travel_time_shifts is not None:
+            efield_time = parameters[4] - det.get_cable_delay(station_id, use_channels[0]) - self.travel_time_shifts[0]
+
+        if self.efield_model == "analytic_pulse":
+            return {
+                "fluence_theta": parameters[0],
+                "fluence_phi": parameters[1],
+                "phase": parameters[3],
+                "pulse_time": efield_time,
+                "zenith_arrival": parameters[5],
+                "azimuth_arrival": parameters[6],
+                "slope": parameters[2],
+                "quadratic_term": parameters[7],
+                "viewing_angle": None,
+            }
+        elif self.efield_model == "Alvarez2009":
+            return {
+                "fluence_theta": parameters[0],
+                "fluence_phi": parameters[1],
+                "phase": parameters[3],
+                "pulse_time": efield_time,
+                "zenith_arrival": parameters[5],
+                "azimuth_arrival": parameters[6],
+                "slope": None,
+                "quadratic_term": None,
+                "viewing_angle": parameters[2],
+            }
+        else:
+            raise ValueError(f"Unknown efield_model: {self.efield_model}. Supported models are 'analytic_pulse' and 'Alvarez2009'.")
+
 
     def _get_signal(self, parameters, det, station_id, use_channels, trace_start_times, filter_before_det_resp=True):
         """
@@ -435,12 +519,12 @@ class electricFieldLikelihoodReconstructor:
             Parameters of the signal model
             0: fluence theta
             1: fluence phi
-            2: slope of the pulse
+            2: slope of the pulse (for analytic_pulse model) or viewing angle (for Alvarez2009 model)
             3: phase of the pulse
             4: global time of the pulse in the 0'th trace (minus antenna group delay)
-            5: quadratic term
-            6: zenith_arrival
-            7: azimuth_arrival
+            5: zenith_arrival
+            6: azimuth_arrival
+            7: (only for analytic_pulse model) quadratic term
 
         det: NuRadioReco.framework.detector.Detector
             The detector description to use for the simulation
@@ -463,20 +547,13 @@ class electricFieldLikelihoodReconstructor:
             Signal for given parameters
         """
 
-        # Subtract the cable delay (and travel time) of the reference channel, to
-        # get the rough efield time for the desired readout pulse time. These times
-        # are added again in efieldToVoltageConverter. Antenna group delay is not
-        # taken into account here:
-        if self.travel_time_shifts is None:
-            efield_time = parameters[4] - det.get_cable_delay(station_id, use_channels[0])
-        elif self.travel_time_shifts is not None:
-            efield_time = parameters[4] - det.get_cable_delay(station_id, use_channels[0]) - self.travel_time_shifts[0]
-        efield_parameters = np.array([parameters[0], parameters[1], parameters[2], parameters[3], efield_time, parameters[5]])
+        efield_parameters = self._get_efield_parameters(parameters, det, station_id, use_channels)
 
-        zenith_arrival = parameters[6]
-        azimuth_arrival = parameters[7]
-
-        electric_field = self._get_efield(efield_parameters, zenith_arrival, azimuth_arrival, use_channels, apply_filter=filter_before_det_resp)
+        electric_field = self._get_efield(
+            **efield_parameters,
+            use_channels = use_channels,
+            apply_filter = filter_before_det_resp,
+        )
 
         sim_station = SimStation(station_id)
         if self.travel_time_shifts is None:
@@ -495,14 +572,14 @@ class electricFieldLikelihoodReconstructor:
                 )
                 sim_station.add_electric_field(electric_field_channel)
         sim_station.set_is_cosmic_ray()
-        sim_station[stnp.zenith] = zenith_arrival
-        sim_station[stnp.azimuth] = azimuth_arrival
+        sim_station[stnp.zenith] = efield_parameters["zenith_arrival"]
+        sim_station[stnp.azimuth] = efield_parameters["azimuth_arrival"]
 
         evt = Event(1, 1)
         station = NuRadioReco.framework.station.Station(station_id)
         station.add_sim_station(sim_station)
-        station[stnp.zenith] = zenith_arrival
-        station[stnp.azimuth] = azimuth_arrival
+        station[stnp.zenith] = efield_parameters["zenith_arrival"]
+        station[stnp.azimuth] = efield_parameters["azimuth_arrival"]
         efieldToVoltageConverter.run(evt, station, det, channel_ids=use_channels)
 
         # Add hardware response:
@@ -530,7 +607,7 @@ class electricFieldLikelihoodReconstructor:
 
         return np.array(traces)
 
-    def _reconstruct_signal(self, data, signal_function, parameters_initial, trace_start_times, second_order=False, signal_search_window=None):
+    def _reconstruct_signal(self, data, signal_function, parameters_initial, trace_start_times, signal_search_window=None):
         """
         Reconstruct the signal from the given data.
 
@@ -548,9 +625,6 @@ class electricFieldLikelihoodReconstructor:
         trace_start_times: np.ndarray
             Start times of the channels to be used in the reconstruction. Used to bound the time parameter of the signal in the reconstruction.
 
-        second_order: bool, default: True
-            If True, the second order correction to the analytical efield spectrum is fitted
-
         signal_search_window: tuple, optional
             The time window to search for the signal in the data. The window is the global
             time of the pulse in the readout window minus antenna group delay. If None, the
@@ -558,7 +632,7 @@ class electricFieldLikelihoodReconstructor:
 
         Returns
         -------
-        minus_two_llh_fit_2: float
+        minus_two_llh_fit: float
             The negative log-likelihood value for the reconstructed signal
 
         polarization: float
@@ -567,7 +641,7 @@ class electricFieldLikelihoodReconstructor:
         fluence: float
             The fluence of the reconstructed signal
 
-        fitted_params_2: np.ndarray
+        fitted_params_llh: np.ndarray
             The fitted parameters for the reconstructed signal
 
         uncertainties_fit: np.ndarray
@@ -580,23 +654,29 @@ class electricFieldLikelihoodReconstructor:
             The error on the fluence
         """
 
+        # Determine normalization of parameters to use in minimization based on estimated uncertainties:
         dx_array = np.array([1e-3, 1e-5, 1e-5, 1e-5, 1e-4, 1e-5, 1e-5, 1e-5])
-        fisher_information_matrix = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, parameters_initial, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
+        parameters_to_ignore = []
+        if not self.zenith_azimuth_free:
+            parameters_to_ignore.extend([5, 6])
+        if not self.second_order or self.efield_model != "analytic_pulse":
+            parameters_to_ignore.extend([7])
+        fisher_information_matrix = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, parameters_initial, dx_array, ignore_parameters = parameters_to_ignore)
         f_i = np.linalg.pinv(fisher_information_matrix)
-        uncertainties_1 = np.sqrt(np.diag(f_i))
-        normalization = np.append(uncertainties_1, [1, 1]) if not self.zenith_azimuth_free else uncertainties_1
-
+        uncertainties_estimated = np.sqrt(np.diag(f_i))
+        normalization_mf = uncertainties_estimated.copy()
+        normalization_mf[parameters_to_ignore] = 1
 
         bounds = np.array([
-            (-10000, 10000),
-            (-10000, 10000),
-            (-100, -0.0001),
-            (-3*np.pi, 3*np.pi),
-            (np.min(trace_start_times), np.max(trace_start_times) + (self.n_samples-1)*self.delta_t),
-            (-500, 0),
-            (0, np.pi/2),
-            (-2*np.pi, 2*np.pi)
-            ])
+            (-10000, 10000), # fluence theta
+            (-10000, 10000), # fluence phi
+            (-100, -0.0001) if self.efield_model == "analytic_pulse" else (0*units.deg, 180*units.deg) if self.efield_model == "Alvarez2009" else (0, 1), # slope/viewing angle
+            (-3*np.pi, 3*np.pi), # phase
+            (np.min(trace_start_times), np.max(trace_start_times) + (self.n_samples-1)*self.delta_t), # time
+            (0, np.pi/2), # zenith
+            (-2*np.pi, 2*np.pi), # azimuth
+            (-500, 0), # second order term
+        ])
 
         # Set matched filter scan bounds and initial signal to match signal_search_window:
         if signal_search_window is not None:
@@ -607,39 +687,40 @@ class electricFieldLikelihoodReconstructor:
             elif self.use_chi2:
                 self.i_shift_cc = (self.t_array_matched_filter / self.sampling_rate).astype(int)
 
+        # Initialize the first minimizer which uses a matched filter for the objective function
+        # internally profiling over the time and amplitude of the signal:
         minimizer_mf = minimization.Minimizer(
             signal_function = signal_function,
             objective_function = self._function_to_minimize_mf,
             parameters_initial = parameters_initial,
             parameters_bounds = bounds,
-            normalization = normalization,
+            normalization = normalization_mf,
         )
-        if self.zenith_azimuth_free:
-            minimizer_mf.fix_parameters([True, False, False, False, True, not(second_order), False, False])
-        else:
-            minimizer_mf.fix_parameters([True, False, False, False, True, not(second_order), True, True])
+
+        # Fix time and energy since they are profiled over in the matched filter, and fix other unused parameters:
+        minimizer_mf.fix_parameters([
+            True, False, False, False, True,
+            not(self.zenith_azimuth_free),
+            not(self.zenith_azimuth_free),
+            (self.efield_model == "Alvarez2009") or (not(self.second_order))
+        ])
 
         m = minimizer_mf.run_minimization(data=data, method="minuit")
 
-        fitted_params_1 = minimizer_mf.parameters
+        fitted_params_mf = minimizer_mf.parameters
 
-        signal_fit = signal_function(fitted_params_1)
+        signal_fit_mf = signal_function(fitted_params_mf)
 
-        # get time:
+        # The first fit has internally profiled over the time and amplitude of the signal,
+        # so we need to retrieve the best matching time and amplitude manually:
         if not self.use_chi2:
-            self.matched_filter.set_template(signal_fit)
+            self.matched_filter.set_template(signal_fit_mf)
             t_offset, x = self.matched_filter.matched_filter_search(time_shift_array=self.t_array_matched_filter)
         else:
-            i_max, cross = self.cross_correlation(data, signal_fit, shift_array=self.i_shift_cc)
+            i_max, cross = self.cross_correlation(data, signal_fit_mf, shift_array=self.i_shift_cc)
             t_offset = i_max / self.sampling_rate
-        parameters_adjusted = np.array([fitted_params_1[0], fitted_params_1[1], fitted_params_1[2], fitted_params_1[3], (fitted_params_1[4]+t_offset), parameters_initial[5], fitted_params_1[6], fitted_params_1[7]])
-        signal_fit_adjusted = signal_function(parameters_adjusted)
-        signal_fit_adjusted = signal_fit_adjusted / np.max(signal_fit_adjusted) * np.max(data)
-
-
-        # Get best matching time and amplitude of the fit:
-        amplitude_correction = (np.max(data) / np.max(signal_fit))**2
-        parameters_initial_2 = np.array([fitted_params_1[0]*amplitude_correction, fitted_params_1[1]*amplitude_correction, fitted_params_1[2], fitted_params_1[3], (parameters_initial[4]+t_offset), parameters_initial[5], parameters_initial[6], parameters_initial[7]])
+        fluence_correction = (np.max(data) / np.max(signal_fit_mf))**2
+        parameters_initial_llh = np.array([fitted_params_mf[0]*fluence_correction, fitted_params_mf[1]*fluence_correction, fitted_params_mf[2], fitted_params_mf[3], (parameters_initial[4]+t_offset), parameters_initial[5], parameters_initial[6], parameters_initial[7]])
 
         if signal_search_window is not None:
             bounds[4] = np.array([signal_search_window[0], signal_search_window[1]])
@@ -648,37 +729,40 @@ class electricFieldLikelihoodReconstructor:
             bounds[4][0] = bounds[4][0] - (bounds[4][1] - bounds[4][0]) / 2
             bounds[4][1] = bounds[4][1] + (bounds[4][1] - bounds[4][0]) / 2
 
-        fisher_information_matrix2 = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, fitted_params_1, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
-        f_i_2 = np.linalg.pinv(fisher_information_matrix2)
-        uncertainties_2 = np.sqrt(np.diag(f_i_2))
-        normalization_2 = np.append(uncertainties_2, [1, 1]) if not self.zenith_azimuth_free else uncertainties_2
+        fisher_information_matrix = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, fitted_params_mf, dx_array, ignore_parameters = parameters_to_ignore)
+        f_i = np.linalg.pinv(fisher_information_matrix)
+        uncertainties_estimated = np.sqrt(np.diag(f_i))
+        normalization_llh = uncertainties_estimated.copy()
+        normalization_llh[parameters_to_ignore] = 1
 
+        # Initialize the second minimizer which uses the full log-likelihood as the objective function:
         minimizer_llh = minimization.Minimizer(
             signal_function = signal_function,
             objective_function = self._function_to_minimize_llh,
-            parameters_initial = parameters_initial_2,
+            parameters_initial = parameters_initial_llh,
             parameters_bounds = bounds,
-            normalization = normalization_2
+            normalization = normalization_llh
         )
 
-        if self.zenith_azimuth_free:
-            minimizer_llh.fix_parameters([False, False, False, False, False, not(second_order), False, False])
-        else:
-            minimizer_llh.fix_parameters([False, False, False, False, False, not(second_order), True, True])
-
+        # Leave all used parameters free:
+        minimizer_llh.fix_parameters([
+            False, False, False, False, False,
+            not(self.zenith_azimuth_free),
+            not(self.zenith_azimuth_free),
+            (self.efield_model == "Alvarez2009") or (not(self.second_order))])
 
         m = minimizer_llh.run_minimization(data=data, method="minuit")
 
-        fitted_params_2 = minimizer_llh.parameters
-        minus_two_llh_fit_2 = minimizer_llh.result
+        fitted_params_llh = minimizer_llh.parameters
+        minus_two_llh_fit = minimizer_llh.result
 
-        f_theta = np.abs(fitted_params_2[0])
-        f_phi = np.abs(fitted_params_2[1])
+        f_theta = np.abs(fitted_params_llh[0])
+        f_phi = np.abs(fitted_params_llh[1])
         fluence = f_theta + f_phi
-        A_theta = np.sign(fitted_params_2[0]) * f_theta**0.5
-        A_phi = np.sign(fitted_params_2[1]) * f_phi**0.5
+        A_theta = np.sign(fitted_params_llh[0]) * f_theta**0.5
+        A_phi = np.sign(fitted_params_llh[1]) * f_phi**0.5
         polarization = np.arctan2(A_phi, A_theta)
-        phi = fitted_params_2[3]
+        phi = fitted_params_llh[3]
         # If phi is greater than pi, the polarity is opposite of what A_theta and A_phi implies:
         if phi % (2 * np.pi) > np.pi:
             if polarization > 0:
@@ -686,7 +770,7 @@ class electricFieldLikelihoodReconstructor:
             elif polarization <= 0:
                 polarization += 180 * units.deg
 
-        fisher_information_matrix_fit = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, fitted_params_2, dx_array, ignore_parameters = [6,7] if not self.zenith_azimuth_free else [])
+        fisher_information_matrix_fit = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function, fitted_params_llh, dx_array, ignore_parameters = parameters_to_ignore)
         f_i_fit = np.linalg.pinv(fisher_information_matrix_fit)
         uncertainties_fit = np.sqrt(np.diag(f_i_fit))
         f_theta_uncertainty = uncertainties_fit[0]
@@ -697,27 +781,26 @@ class electricFieldLikelihoodReconstructor:
         if self.debug:
             # plot results for debugging:
             signal_initial = signal_function(parameters_initial)
-            signal_initial_2 = signal_function(parameters_initial_2)
-            signal_fit_2 = signal_function(fitted_params_2)
+            signal_initial_2 = signal_function(parameters_initial_llh)
+            signal_fit_2 = signal_function(fitted_params_llh)
 
             fig, ax = plt.subplots(self.n_channels, 1, figsize=(10, self.n_channels*3))
             for i_ch in range(self.n_channels):
                 t_array = trace_start_times[i_ch] + np.arange(0, self.n_samples) * self.delta_t
                 ax[i_ch].plot(t_array, data[i_ch], label="data")
                 ax[i_ch].plot(t_array, signal_initial[i_ch], ls="--", label="initial")
-                ax[i_ch].plot(t_array, signal_fit[i_ch], label="fit")
-                ax[i_ch].plot(t_array, signal_fit_adjusted[i_ch], "--", label="fit adjusted")
+                ax[i_ch].plot(t_array, signal_fit_mf[i_ch], label="fit")
                 ax[i_ch].plot(t_array, signal_initial_2[i_ch], "y:", label="initial 2")
                 ax[i_ch].plot(t_array, signal_fit_2[i_ch], "k:", label="fit 2")
 
                 # Plot bounds (matched filter):
-                t_max = t_array[np.argmax(signal_fit[i_ch])]
+                t_max = t_array[np.argmax(signal_fit_mf[i_ch])]
                 ax[i_ch].vlines([t_max+self.t_array_matched_filter[0], t_max+self.t_array_matched_filter[-1]], np.min(data[i_ch]*2), np.max(data[i_ch]*2), color="r", ls="--", label="Bounds (matched filter)")
 
                 # Plot bounds (LLH reconstruction):
-                s0 = signal_function(np.array([fitted_params_2[0], fitted_params_2[1], fitted_params_2[2], fitted_params_2[3], bounds[4][0], fitted_params_2[5], fitted_params_2[6], fitted_params_2[7]]))
+                s0 = signal_function(np.array([fitted_params_llh[0], fitted_params_llh[1], fitted_params_llh[2], fitted_params_llh[3], bounds[4][0], fitted_params_llh[5], fitted_params_llh[6], fitted_params_llh[7]]))
                 t_max_bound_0 = t_array[np.argmax(s0[i_ch])]
-                s1 = signal_function(np.array([fitted_params_2[0], fitted_params_2[1], fitted_params_2[2], fitted_params_2[3], bounds[4][1], fitted_params_2[5], fitted_params_2[6], fitted_params_2[7]]))
+                s1 = signal_function(np.array([fitted_params_llh[0], fitted_params_llh[1], fitted_params_llh[2], fitted_params_llh[3], bounds[4][1], fitted_params_llh[5], fitted_params_llh[6], fitted_params_llh[7]]))
                 t_max_bound_1 = t_array[np.argmax(s1[i_ch])]
                 ax[i_ch].vlines([t_max_bound_0, t_max_bound_1], np.min(data[i_ch]*2), np.max(data[i_ch]*2), color="b", ls="--", label="Bounds (LLH fit)")
 
@@ -725,15 +808,15 @@ class electricFieldLikelihoodReconstructor:
 
             ax[0].legend(loc=1)
             if not self.use_chi2:
-                ax[0].set_title(r"$-2\Delta$LLH: " f"{minus_two_llh_fit_2} \n parameters: {fitted_params_2}")
+                ax[0].set_title(r"$-2\Delta$LLH: " f"{minus_two_llh_fit} \n parameters: {fitted_params_llh}")
             else:
-                ax[0].set_title(r"$\chi^2$: " f"{minus_two_llh_fit_2} \n parameters: {fitted_params_2}")
+                ax[0].set_title(r"$\chi^2$: " f"{minus_two_llh_fit} \n parameters: {fitted_params_llh}")
             ax[-1].set_xlabel("Time [s]")
             plt.tight_layout()
             plt.savefig("debug_electricFieldLikelihoodReconstructor.png")
             for i_ch in range(self.n_channels):
                 t_array = trace_start_times[0] + np.arange(0, self.n_samples) * self.delta_t
-                t_max = t_array[np.argmax(signal_fit[0])]
+                t_max = t_array[np.argmax(signal_fit_mf[0])]
                 ax[i_ch].set_xlim(t_max - 100 * units.ns, t_max + 100 * units.ns)
             plt.savefig("debug_electricFieldLikelihoodReconstructor_zoom.png")
             plt.show()
@@ -760,4 +843,4 @@ class electricFieldLikelihoodReconstructor:
             plt.show()
             plt.close()
 
-        return minus_two_llh_fit_2, polarization, uncertainty_polarization, fluence, uncertainty_fluence, fitted_params_2, uncertainties_fit
+        return minus_two_llh_fit, polarization, uncertainty_polarization, fluence, uncertainty_fluence, fitted_params_llh, uncertainties_fit
