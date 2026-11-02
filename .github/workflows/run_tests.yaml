@@ -246,6 +246,13 @@ jobs:
         python NuRadioReco/test/CREfieldReconstructor/load-atmosphere.py
         python NuRadioReco/test/CREfieldReconstructor/test-reconstruction.py --add-noise
 
+    - name: "Test impulsiveSignalReconstructor"
+      if: always()
+      run: |
+        python NuRadioReco/test/impulsiveSignalReconstructor/test-reconstruction.py --method=xcorr
+        python NuRadioReco/test/impulsiveSignalReconstructor/test-reconstruction.py --method=stft
+        python NuRadioReco/test/impulsiveSignalReconstructor/test-reconstruction.py --method=simple_threshold
+
     - name: "Test module structure of all modules in NuRadioReco.modules"
       if: always()
       run: |
@@ -255,6 +262,11 @@ jobs:
       if: always()
       run: |
         python NuRadioReco/test/framework/test_parameter_storage.py
+
+    - name: "Test light utilities import without heavy dependencies"
+      if: always()
+      run: |
+        python NuRadioReco/test/utilities/test_light_imports.py
 
     - name: "Test calibration pulser example"
       if: always()

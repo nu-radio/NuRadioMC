@@ -19,15 +19,18 @@ _IS_DEV_VERSION = False
 parent_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 toml_file = os.path.join(parent_dir, 'pyproject.toml')
 if os.path.isfile(toml_file):
-    import toml
-    toml_dict = toml.load(toml_file)
     try:
-        if toml_dict['tool']['poetry']['name'] == "NuRadioMC": # check this is the right pyproject.toml
+        import toml
+        toml_dict = toml.load(toml_file)
+        if toml_dict['tool']['poetry']['name'] == "NuRadioMC":  # check this is the right pyproject.toml
             __version__ = toml_dict['tool']['poetry']['version']
             _IS_DEV_VERSION = True
-    except KeyError:
+    except (ImportError, KeyError, OSError):
         pass
-    
+
 # If not available, we're probably using the pip installed package
-if __version__ == None:
-    __version__ = importlib_metadata.version("NuRadioMC")
+if __version__ is None:
+    try:
+        __version__ = importlib_metadata.version("NuRadioMC")
+    except importlib_metadata.PackageNotFoundError:
+        __version__ = "unknown"

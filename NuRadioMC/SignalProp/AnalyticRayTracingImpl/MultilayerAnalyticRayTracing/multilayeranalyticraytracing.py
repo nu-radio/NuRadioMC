@@ -105,8 +105,7 @@ from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.pl
 
 import logging
 
-
-class multi_layer_ray_tracing_2D(ray_tracing_base):
+class multi_layer_ray_tracing_2D():
 
     def __init__(self, medium, attenuation_model=None,
                  log_level=logging.NOTSET,

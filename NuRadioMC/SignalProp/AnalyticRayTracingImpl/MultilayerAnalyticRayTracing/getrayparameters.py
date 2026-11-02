@@ -546,8 +546,7 @@ def get_reflection_angle(c0, x1, x2, layers):
     Compute the surface reflection angle of a ray solution.
 
     For surface-reflected solutions, the incidence angle is evaluated
-    just below the surface (z ≈ 0) and the reflection angle is defined
-    as twice the incidence angle. This corresponds to the angle between
+    just below the surface (z ≈ 0). This corresponds to the angle between
     the incoming and reflected ray directions for specular reflection
     at a horizontal interface.
 
@@ -594,7 +593,7 @@ def get_reflection_angle(c0, x1, x2, layers):
         y1, z1, y2, z2, c0, layers, downgoing, with_air
     )
 
-    if solution_type != REFLECTED:
+    if solution_type != REFLECTED and not with_air:
         return None
 
     # evaluate just below surface
@@ -602,7 +601,7 @@ def get_reflection_angle(c0, x1, x2, layers):
 
     incidence_angle = get_launch_angle(c0, x_surface, x2, layers)
 
-    return 2.0 * incidence_angle
+    return incidence_angle
 
 @njit(cache=True)
 def get_travel_time_analytic(c0, x1, x2, layers):

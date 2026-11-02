@@ -10,7 +10,7 @@ from numpy import testing
 logger = logging.getLogger('NuRadioMC.test_raytracing')
 logger.setLevel(logging.INFO)
 
-ice = medium.greenland_3exp_layered()
+ice = medium.greenland_3exp_density()
 
 np.random.seed(10)  # set seed to have reproducible results
 n_events = int(1e3)
