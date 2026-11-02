@@ -251,6 +251,7 @@
 </li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#basic-module-structure">Basic Module Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#timing">Timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#logging">Logging</a></li>
 </ul>
 </li>
@@ -395,7 +396,6 @@
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.utilities.trace_utilities.html">NuRadioReco.utilities.trace_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.utilities.units.html">NuRadioReco.utilities.units module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../apidoc/NuRadioReco.utilities.version.html">NuRadioReco.utilities.version module</a></li>
@@ -680,6 +680,45 @@ or to print information on what the module has done.</p></li>
 </ul>
 <p>These methods should all be called in that order, though the <em>begin</em> and <em>end</em>
 function can be skipped for some modules.</p>
+<p>You do not need to call <code class="docutils literal notranslate"><span class="pre">end</span></code> yourself: when the program exits, the <code class="docutils literal notranslate"><span class="pre">end</span></code> method
+of every module whose (decorated, see below) <code class="docutils literal notranslate"><span class="pre">run</span></code> was executed is called automatically,
+in the order of their first <code class="docutils literal notranslate"><span class="pre">run</span></code> call (see <code class="docutils literal notranslate"><span class="pre">end_all_modules()</span></code> in
+<em class="xref py py-obj">NuRadioReco/modules/base/module.py</em>). Modules that hold open files, e.g. the
+<code class="docutils literal notranslate"><span class="pre">eventReader</span></code> and <code class="docutils literal notranslate"><span class="pre">eventWriter</span></code>, additionally provide a <code class="docutils literal notranslate"><span class="pre">close</span></code> method, which their
+<code class="docutils literal notranslate"><span class="pre">end</span></code> calls. Call <code class="docutils literal notranslate"><span class="pre">close</span></code> yourself if the file has to be closed before the program
+exits, e.g. to read back a file you just wrote.</p>
+</section>
+<section id="timing">
+<h2>Timing<a class="headerlink" href="#timing" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">run</span></code> method of a module should be decorated with <code class="docutils literal notranslate"><span class="pre">register_run</span></code> from
+<em class="xref py py-obj">NuRadioReco/modules/base/module.py</em>:</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MODULE</span><span class="p">:</span>
+    <span class="nd">@register_run</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">evt</span><span class="p">,</span> <span class="n">station</span><span class="p">,</span> <span class="n">det</span><span class="p">):</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Next to registering the module and its arguments in the event, the decorator measures the
+time spent in each <code class="docutils literal notranslate"><span class="pre">run</span></code> call. Time spent in a module called from within another module
+is attributed to the inner module only. For readers, whose <code class="docutils literal notranslate"><span class="pre">run</span></code> returns a generator,
+the time to produce each event is counted. At exit, a summary table with the total time
+per module is logged with level STATUS. Modules contributing less than 2% of the total
+time are merged into a single row (adjust via <code class="docutils literal notranslate"><span class="pre">print_timing_summary(min_percent=...)</span></code>
+or <code class="docutils literal notranslate"><span class="pre">TIMING_MIN_PERCENT</span></code>).</p>
+<p>The timing is controlled with the environment variable <code class="docutils literal notranslate"><span class="pre">NURADIO_TIMING</span></code>: unset or
+<code class="docutils literal notranslate"><span class="pre">1</span></code> enables it (default), <code class="docutils literal notranslate"><span class="pre">0</span></code> or empty disables it; any other value raises an error
+on import. It can also be switched at runtime:</p>
+<blockquote>
+<div><div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span>
+
+<span class="n">NuRadioReco</span><span class="o">.</span><span class="n">modules</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">module</span><span class="o">.</span><span class="n">ENABLE_TIMING</span> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
+</div>
+</div></blockquote>
 </section>
 <section id="logging">
 <h2>Logging<a class="headerlink" href="#logging" title="Link to this heading"></a></h2>

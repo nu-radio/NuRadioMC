@@ -251,6 +251,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#timing">Timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#logging">Logging</a></li>
 </ul>
 </li>
@@ -395,7 +396,6 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.trace_utilities.html">NuRadioReco.utilities.trace_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.units.html">NuRadioReco.utilities.units module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.version.html">NuRadioReco.utilities.version module</a></li>
@@ -670,6 +670,12 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.eventWriter.eventWriter.begin" title="NuRadioReco.modules.io.eventWriter.eventWriter.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>(filename[, max_file_size, ...])</p></td>
 <td><p>begin method</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.eventWriter.eventWriter.close" title="NuRadioReco.modules.io.eventWriter.eventWriter.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close</span></code></a>()</p></td>
+<td><p>Close the output file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.eventWriter.eventWriter.get_n_events" title="NuRadioReco.modules.io.eventWriter.eventWriter.get_n_events"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_n_events</span></code></a>()</p></td>
+<td><p>Number of events written so far.</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.eventWriter.eventWriter.run" title="NuRadioReco.modules.io.eventWriter.eventWriter.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a>(evt[, det, mode])</p></td>
 <td><p>writes NuRadioReco event into a file</p></td>
 </tr>
@@ -731,6 +737,18 @@ Can contain the following keys:</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.eventWriter.eventWriter.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/eventWriter.html#eventWriter.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.eventWriter.eventWriter.close" title="Link to this definition"></a></dt>
+<dd><p>Close the output file. Safe to call multiple times.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.eventWriter.eventWriter.get_n_events">
+<span class="sig-name descname"><span class="pre">get_n_events</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/eventWriter.html#eventWriter.get_n_events"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.eventWriter.eventWriter.get_n_events" title="Link to this definition"></a></dt>
+<dd><p>Number of events written so far.</p>
 </dd></dl>
 
 <dl class="py method">

@@ -251,6 +251,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#timing">Timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#logging">Logging</a></li>
 </ul>
 </li>
@@ -395,7 +396,6 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.trace_utilities.html">NuRadioReco.utilities.trace_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.units.html">NuRadioReco.utilities.units module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.version.html">NuRadioReco.utilities.version module</a></li>
@@ -686,38 +686,38 @@ accessed through the get_detector() function</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_detector" title="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_detector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_detector</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.close_files" title="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.close_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close_files</span></code></a>()</p></td>
+<td><p>Close all open files.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_detector" title="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_detector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_detector</span></code></a>()</p></td>
 <td><p>If parse_detector was set True in the __init__() function, this function return the detector description (assuming there is one in the files).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event_ids" title="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_event_ids</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event_ids" title="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_event_ids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_event_ids</span></code></a>()</p></td>
 <td><p>returns a list of (run, eventid) tuples of all events contained in the data file</p></td>
 </tr>
 </tbody>
 </table>
 <table class="docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><strong>close_files</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_event</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_event</strong></p></td>
+<tr class="row-even"><td><p><strong>get_event_i</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_event_i</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_events</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_events</strong></p></td>
+<tr class="row-even"><td><p><strong>get_filenames</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_filenames</strong></p></td>
+<tr class="row-odd"><td><p><strong>get_header</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>get_header</strong></p></td>
+<tr class="row-even"><td><p><strong>get_n_events</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>get_n_events</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>openFile</strong></p></td>
+<tr class="row-odd"><td><p><strong>openFile</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -730,7 +730,8 @@ accessed through the get_detector() function</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.close_files">
 <span class="sig-name descname"><span class="pre">close_files</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/NuRadioRecoio.html#NuRadioRecoio.close_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.close_files" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Close all open files. Safe to call multiple times; files are reopened when read again.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio.get_filenames">

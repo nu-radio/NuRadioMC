@@ -251,6 +251,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#timing">Timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#logging">Logging</a></li>
 </ul>
 </li>
@@ -395,7 +396,6 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.trace_utilities.html">NuRadioReco.utilities.trace_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.units.html">NuRadioReco.utilities.units module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.version.html">NuRadioReco.utilities.version module</a></li>
@@ -665,10 +665,13 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.eventReader.eventReader.begin" title="NuRadioReco.modules.io.eventReader.eventReader.begin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">begin</span></code></a>(filename[, read_detector, log_level])</p></td>
 <td><p>Setup function for the eventReader module</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.eventReader.eventReader.get_detector" title="NuRadioReco.modules.io.eventReader.eventReader.get_detector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_detector</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.eventReader.eventReader.close" title="NuRadioReco.modules.io.eventReader.eventReader.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close</span></code></a>()</p></td>
+<td><p>Close all input files.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.eventReader.eventReader.get_detector" title="NuRadioReco.modules.io.eventReader.eventReader.get_detector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_detector</span></code></a>()</p></td>
 <td><p>If read_detector was set True in the begin() function, this function return the detector description (assuming there is one in the files).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.eventReader.eventReader.get_header" title="NuRadioReco.modules.io.eventReader.eventReader.get_header"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_header</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.modules.io.eventReader.eventReader.get_header" title="NuRadioReco.modules.io.eventReader.eventReader.get_header"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_header</span></code></a>()</p></td>
 <td><p>returns the header information of all events, useful to get a quick overview of all events without looping through all events</p></td>
 </tr>
 </tbody>
@@ -707,6 +710,12 @@
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.eventReader.eventReader.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/eventReader.html#eventReader.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.eventReader.eventReader.run" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.modules.io.eventReader.eventReader.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/io/eventReader.html#eventReader.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.io.eventReader.eventReader.close" title="Link to this definition"></a></dt>
+<dd><p>Close all input files. Safe to call multiple times and before <code class="docutils literal notranslate"><span class="pre">begin()</span></code>.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioReco.modules.io.eventReader.eventReader.end">

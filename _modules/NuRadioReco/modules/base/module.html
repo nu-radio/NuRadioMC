@@ -248,6 +248,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/nur_modules.html#timing">Timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
 </ul>
 </li>
@@ -392,7 +393,6 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html">NuRadioReco.utilities.trace_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.units.html">NuRadioReco.utilities.units module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.version.html">NuRadioReco.utilities.version module</a></li>
@@ -651,8 +651,25 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.event</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.base_station</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.detector.detector</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">detectors</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">atexit</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">LOGGING_STATUS</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.module'</span><span class="p">)</span>
+
+<span class="c1"># Controls both recording and the printout at exit. Set via the environment variable NURADIO_TIMING:</span>
+<span class="c1"># unset, empty or "1" = on (default), "0" = off. Can be changed at runtime via</span>
+<span class="c1"># ``NuRadioReco.modules.base.module.ENABLE_TIMING = False``.</span>
+<span class="n">_nuradio_timing</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"NURADIO_TIMING"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"1"</span>
+<span class="k">if</span> <span class="n">_nuradio_timing</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"0"</span><span class="p">,</span> <span class="s2">"1"</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid value NURADIO_TIMING=</span><span class="si">{</span><span class="n">_nuradio_timing</span><span class="si">!r}</span><span class="s2">, use </span><span class="se">\"</span><span class="s2">0</span><span class="se">\"</span><span class="s2"> (off) or </span><span class="se">\"</span><span class="s2">1</span><span class="se">\"</span><span class="s2"> (on)."</span><span class="p">)</span>
+<span class="n">ENABLE_TIMING</span> <span class="o">=</span> <span class="n">_nuradio_timing</span> <span class="o">==</span> <span class="s2">"1"</span>
+
+<span class="n">TIMING_MIN_PERCENT</span> <span class="o">=</span> <span class="mf">2.</span>  <span class="c1"># modules below this share (in percent) of the total time are merged into "others"</span>
+<span class="n">_timed_runs</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># all decorated run methods, used for the timing summary</span>
 
 
 <div class="viewcode-block" id="setup_logger">
@@ -681,6 +698,48 @@
 
 
 
+<span class="n">_child_time</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># stack: time spent in nested timed calls per active call, subtracted to get exclusive times</span>
+<span class="n">_order</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># module name -&gt; index of first execution</span>
+<span class="n">_events</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># (run number, event id) of all events seen by event/station modules</span>
+<span class="n">_instances</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># id(module instance) -&gt; instance, in order of first run() call</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_time</span><span class="p">(</span><span class="n">run_method</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">calls</span><span class="p">):</span>
+    <span class="c1"># We use the module instance as key to time different module instances separately.</span>
+    <span class="k">if</span> <span class="n">instance</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">run_method</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
+        <span class="n">_order</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">_order</span><span class="p">))</span>
+    <span class="n">run_method</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="n">instance</span><span class="p">]</span> <span class="o">=</span> <span class="n">run_method</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">duration</span>
+    <span class="n">run_method</span><span class="o">.</span><span class="n">calls</span><span class="p">[</span><span class="n">instance</span><span class="p">]</span> <span class="o">=</span> <span class="n">run_method</span><span class="o">.</span><span class="n">calls</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">calls</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_timed_generator</span><span class="p">(</span><span class="n">gen</span><span class="p">,</span> <span class="n">run_method</span><span class="p">,</span> <span class="n">instance</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Wrapper around run methods returning a generator. Passes yield after accounting for</span>
+<span class="sd">    the time spent to produce the ``next`` item.</span>
+
+<span class="sd">    The ``run()`` of a reader returns a generator immediately; the actual work happens in ``next()``, i.e. while the</span>
+<span class="sd">    caller loops over the events. Only the time inside ``next()`` is counted, not the caller's processing between items.</span>
+<span class="sd">    """</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">_child_time</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>  <span class="c1"># collects the time of timed modules called from within this `next()`</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+        <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="n">done</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">finally</span><span class="p">:</span>  <span class="c1"># also runs if `gen` raises, which keeps the `_child_time` stack balanced</span>
+            <span class="n">duration</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+            <span class="n">nested</span> <span class="o">=</span> <span class="n">_child_time</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">_child_time</span><span class="p">:</span>  <span class="c1"># we are called from another timed module: report our time so it can subtract it</span>
+                <span class="n">_child_time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">duration</span>
+        <span class="c1"># exclusive time; the final `next()` raising StopIteration is timed but not counted as a call</span>
+        <span class="n">_add_time</span><span class="p">(</span><span class="n">run_method</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">duration</span> <span class="o">-</span> <span class="n">nested</span><span class="p">,</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">done</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">yield</span> <span class="n">item</span>  <span class="c1"># paused here while the caller processes the item -&gt; not timed</span>
+
+
 <div class="viewcode-block" id="register_run">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.base.module.html#NuRadioReco.modules.base.module.register_run">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">register_run</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -691,6 +750,10 @@
 <span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">run_decorator</span><span class="p">(</span><span class="n">run</span><span class="p">):</span>
+
+        <span class="c1"># the signature is static, so inspect it only once (not per call)</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">run</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">'self'</span><span class="p">]</span>
 
         <span class="nd">@wraps</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">register_run_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -706,18 +769,17 @@
             <span class="n">evt</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">station</span> <span class="o">=</span> <span class="kc">None</span>
 
-            <span class="n">signature</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
-            <span class="n">parameters</span> <span class="o">=</span> <span class="n">signature</span><span class="o">.</span><span class="n">parameters</span>
+            <span class="n">_instances</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="bp">self</span><span class="p">)</span>
+
             <span class="c1"># convert args to kwargs to facilitate easier bookkeeping</span>
-            <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="s1">'self'</span><span class="p">]</span>
             <span class="n">all_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">args</span><span class="p">)}</span>
-            <span class="n">all_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># this silently overwrites positional args with kwargs, but this is probably okay as we still raise an error later</span>
+            <span class="c1"># this silently overwrites positional args with kwargs, but this is probably okay as we still raise an error later</span>
+            <span class="n">all_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
 
             <span class="c1"># include parameters with default values</span>
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">value</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                    <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
-                        <span class="n">all_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">default</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">all_kwargs</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">default</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">inspect</span><span class="o">.</span><span class="n">Parameter</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                    <span class="n">all_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">default</span>
 
             <span class="n">store_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
@@ -728,13 +790,16 @@
                 <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">NuRadioReco</span><span class="o">.</span><span class="n">framework</span><span class="o">.</span><span class="n">base_station</span><span class="o">.</span><span class="n">BaseStation</span><span class="p">)</span> <span class="ow">and</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">station</span> <span class="o">=</span> <span class="n">value</span>
                 <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="n">detectors</span><span class="o">.</span><span class="n">detector_base</span><span class="o">.</span><span class="n">DetectorBase</span><span class="p">,</span> <span class="n">detectors</span><span class="o">.</span><span class="n">rnog_detector</span><span class="o">.</span><span class="n">Detector</span><span class="p">)):</span>
-                    <span class="k">pass</span> <span class="c1"># we don't try to store detectors</span>
-                <span class="k">else</span><span class="p">:</span> <span class="c1"># we try to store other arguments IF they are pickleable</span>
+                    <span class="k">pass</span>  <span class="c1"># we don't try to store detectors</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># we try to store other arguments IF they are pickleable</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
                         <span class="n">store_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
                     <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>  <span class="c1"># object couldn't be pickled - we store the error instead</span>
                         <span class="n">store_kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Argument of type </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2"> could not be serialized"</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">evt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">_events</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">evt</span><span class="o">.</span><span class="n">get_run_number</span><span class="p">(),</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_id</span><span class="p">()))</span>
 
             <span class="k">if</span> <span class="n">station</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">module_level</span> <span class="o">=</span> <span class="s2">"station"</span>
@@ -743,7 +808,9 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">module_level</span> <span class="o">=</span> <span class="s2">"reader"</span>
 
-            <span class="n">start</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">ENABLE_TIMING</span><span class="p">:</span>
+                <span class="n">_child_time</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
 
             <span class="k">if</span> <span class="n">module_level</span> <span class="o">==</span> <span class="s2">"event"</span><span class="p">:</span>
                 <span class="n">evt</span><span class="o">.</span><span class="n">_register_module_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">store_kwargs</span><span class="p">)</span>
@@ -753,23 +820,130 @@
                 <span class="c1"># not sure what to do... function returns generator, not sure how to access the event...</span>
                 <span class="k">pass</span>
 
-            <span class="n">res</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ENABLE_TIMING</span><span class="p">:</span>
+                    <span class="n">duration</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+                    <span class="n">nested</span> <span class="o">=</span> <span class="n">_child_time</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">_child_time</span><span class="p">:</span>
+                        <span class="n">_child_time</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">duration</span>
 
-            <span class="n">end</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
-
-            <span class="k">if</span> <span class="bp">self</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">register_run_method</span><span class="o">.</span><span class="n">time</span><span class="p">:</span>
-                <span class="c1"># keep track of timing of modules. We use the module instance as key to time different module instances separately.</span>
-                <span class="n">register_run_method</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="bp">self</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">register_run_method</span><span class="o">.</span><span class="n">time</span><span class="p">[</span><span class="bp">self</span><span class="p">]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ENABLE_TIMING</span><span class="p">:</span>
+                <span class="n">is_generator</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isgenerator</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+                <span class="n">_add_time</span><span class="p">(</span><span class="n">register_run_method</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">duration</span> <span class="o">-</span> <span class="n">nested</span><span class="p">,</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">is_generator</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">is_generator</span><span class="p">:</span>
+                    <span class="n">res</span> <span class="o">=</span> <span class="n">_timed_generator</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">register_run_method</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
 
             <span class="k">return</span> <span class="n">res</span>
 
         <span class="n">register_run_method</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">register_run_method</span><span class="o">.</span><span class="n">calls</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">_timed_runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">register_run_method</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">register_run_method</span>
 
     <span class="k">return</span> <span class="n">run_decorator</span></div>
 
+
+
+<div class="viewcode-block" id="end_all_modules">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.base.module.html#NuRadioReco.modules.base.module.end_all_modules">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">end_all_modules</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Call `end()` of all module instances that have executed a decorated `run()`, in order of their first `run()` call.</span>
+
+<span class="sd">    Each instance is ended only once. Exceptions in an `end()` are logged and do not stop the remaining ones.</span>
+<span class="sd">    Registered with ``atexit``, so it runs automatically when the program exits.</span>
+
+<span class="sd">    Modules holding files (e.g. ``eventReader``, ``eventWriter``) provide a ``close()`` which their ``end()``</span>
+<span class="sd">    calls. Call ``close()`` yourself to release the file before exit, e.g. to read back a file you just wrote.</span>
+<span class="sd">    """</span>
+    <span class="n">instances</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_instances</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">_instances</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">instance</span> <span class="ow">in</span> <span class="n">instances</span><span class="p">:</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="s2">"end"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">end</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">end</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Calling end() of </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> failed"</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="print_timing_summary">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.base.module.html#NuRadioReco.modules.base.module.print_timing_summary">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_timing_summary</span><span class="p">(</span><span class="n">min_percent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Print the accumulated run time per module (class) in order of first execution, followed by a total line.</span>
+
+<span class="sd">    Times are exclusive: time spent in nested module calls (e.g. a generator wrapping another one) is</span>
+<span class="sd">    attributed to the nested module only.</span>
+
+<span class="sd">    For reader modules (generators), the time spent producing each item is counted, with one call per item.</span>
+<span class="sd">    The "per call" entry of the total row is the total time divided by the number of distinct events</span>
+<span class="sd">    (run number, event id) seen by event/station modules.</span>
+<span class="sd">    It is printed automatically at exit if ``ENABLE_TIMING`` is set (see top of file).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    min_percent : float, optional</span>
+<span class="sd">        Modules contributing less than this share (in percent) of the total time are merged into a single</span>
+<span class="sd">        "others" row, which states the number of merged modules. Default: ``TIMING_MIN_PERCENT``</span>
+<span class="sd">        (2). Use 0 to list all modules.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">min_percent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">min_percent</span> <span class="o">=</span> <span class="n">TIMING_MIN_PERCENT</span>
+
+    <span class="n">stats</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">_timed_runs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">instance</span><span class="p">,</span> <span class="n">total</span> <span class="ow">in</span> <span class="n">run</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">entry</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">entry</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">total</span>
+            <span class="n">entry</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">run</span><span class="o">.</span><span class="n">calls</span><span class="p">[</span><span class="n">instance</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">stats</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">all_total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">stats</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">all_calls</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">c</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">stats</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">percent</span><span class="p">(</span><span class="n">total</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">total</span> <span class="o">/</span> <span class="n">all_total</span> <span class="k">if</span> <span class="n">all_total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">row</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">calls</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">per_call</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">n_per</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">n_per</span> <span class="o">=</span> <span class="n">calls</span> <span class="k">if</span> <span class="n">n_per</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">n_per</span>
+        <span class="n">per</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="mf">1e3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">total</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">n_per</span><span class="si">:</span><span class="s2">&gt;14.3f</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">per_call</span> <span class="ow">and</span> <span class="n">n_per</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'-'</span><span class="si">:</span><span class="s2">&gt;14</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">&lt;40</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">calls</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">total</span><span class="si">:</span><span class="s2">&gt;10.3f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">per</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">percent</span><span class="p">(</span><span class="n">total</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;6.1f</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="n">shown</span> <span class="o">=</span> <span class="p">[(</span><span class="n">name</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">stats</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">kv</span><span class="p">:</span> <span class="n">_order</span><span class="p">[</span><span class="n">kv</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+             <span class="k">if</span> <span class="n">percent</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="n">min_percent</span><span class="p">]</span>
+    <span class="n">hidden</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">stats</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">percent</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">min_percent</span><span class="p">]</span>
+
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">row</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">calls</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">calls</span><span class="p">)</span> <span class="ow">in</span> <span class="n">shown</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">hidden</span><span class="p">:</span>
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">(</span><span class="sa">f</span><span class="s2">"others (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hidden</span><span class="p">)</span><span class="si">}</span><span class="s2"> modules &lt; </span><span class="si">{</span><span class="n">min_percent</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">%)"</span><span class="p">,</span>
+                        <span class="nb">sum</span><span class="p">(</span><span class="n">c</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">hidden</span><span class="p">),</span> <span class="nb">sum</span><span class="p">(</span><span class="n">t</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">hidden</span><span class="p">),</span> <span class="n">per_call</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+
+    <span class="n">header</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'module'</span><span class="si">:</span><span class="s2">&lt;40</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'calls'</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'total [s]'</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'per call [ms]'</span><span class="si">:</span><span class="s2">&gt;14</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'%'</span><span class="si">:</span><span class="s2">&gt;6</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"┌"</span> <span class="o">+</span> <span class="s2">"─"</span> <span class="o">*</span> <span class="p">(</span><span class="n">width</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"┐"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"│ </span><span class="si">{</span><span class="n">header</span><span class="si">}</span><span class="s2"> │"</span><span class="p">,</span> <span class="s2">"├"</span> <span class="o">+</span> <span class="s2">"─"</span> <span class="o">*</span> <span class="p">(</span><span class="n">width</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"┤"</span><span class="p">]</span>
+    <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"│ </span><span class="si">{</span><span class="n">r</span><span class="si">}</span><span class="s2"> │"</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">]</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"├"</span> <span class="o">+</span> <span class="s2">"─"</span> <span class="o">*</span> <span class="p">(</span><span class="n">width</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"┤"</span><span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"│ </span><span class="si">{</span><span class="n">row</span><span class="p">(</span><span class="s1">'total (per event)'</span><span class="p">,</span><span class="w"> </span><span class="s1">''</span><span class="p">,</span><span class="w"> </span><span class="n">all_total</span><span class="p">,</span><span class="w"> </span><span class="n">n_per</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">_events</span><span class="p">))</span><span class="si">}</span><span class="s2"> │"</span><span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"└"</span> <span class="o">+</span> <span class="s2">"─"</span> <span class="o">*</span> <span class="p">(</span><span class="n">width</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"┘"</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">LOGGING_STATUS</span><span class="p">,</span> <span class="s2">"Module timing</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"  "</span> <span class="o">+</span> <span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">))</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_print_timing_summary_at_exit</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">ENABLE_TIMING</span><span class="p">:</span>
+        <span class="n">print_timing_summary</span><span class="p">()</span>
+
+
+<span class="c1"># atexit runs in reverse order of registration: modules are ended first, then the timing summary is printed</span>
+<span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">_print_timing_summary_at_exit</span><span class="p">)</span>
+<span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">end_all_modules</span><span class="p">)</span>
 </pre></div>
 
            </div>

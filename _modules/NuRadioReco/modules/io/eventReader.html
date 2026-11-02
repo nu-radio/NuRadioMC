@@ -248,6 +248,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/nur_modules.html#timing">Timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
 </ul>
 </li>
@@ -392,7 +393,6 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html">NuRadioReco.utilities.trace_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.units.html">NuRadioReco.utilities.units module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.version.html">NuRadioReco.utilities.version module</a></li>
@@ -660,6 +660,9 @@
 <span class="sd">    read events from file</span>
 <span class="sd">    """</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__fin</span> <span class="o">=</span> <span class="kc">None</span>
+
 <div class="viewcode-block" id="eventReader.begin">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.eventReader.html#NuRadioReco.modules.io.eventReader.eventReader.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">read_detector</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">NOTSET</span><span class="p">):</span>
@@ -686,10 +689,18 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fin</span><span class="o">.</span><span class="n">get_events</span><span class="p">()</span></div>
 
 
+<div class="viewcode-block" id="eventReader.close">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.eventReader.html#NuRadioReco.modules.io.eventReader.eventReader.close">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">""" Close all input files. Safe to call multiple times and before ``begin()``. """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__fin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__fin</span><span class="o">.</span><span class="n">close_files</span><span class="p">()</span></div>
+
+
 <div class="viewcode-block" id="eventReader.end">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.io.eventReader.html#NuRadioReco.modules.io.eventReader.eventReader.end">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__fin</span><span class="o">.</span><span class="n">close_files</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="eventReader.get_header">

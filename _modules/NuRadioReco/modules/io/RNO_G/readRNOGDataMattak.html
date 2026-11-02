@@ -248,6 +248,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../NuRadioReco/pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../../NuRadioReco/pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../NuRadioReco/pages/nur_modules.html#timing">Timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../../NuRadioReco/pages/nur_modules.html#logging">Logging</a></li>
 </ul>
 </li>
@@ -392,7 +393,6 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../../../NuRadioReco/apidoc/NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../../NuRadioReco/apidoc/NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../../NuRadioReco/apidoc/NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="../../../../../NuRadioReco/apidoc/NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../../NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html">NuRadioReco.utilities.trace_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../../NuRadioReco/apidoc/NuRadioReco.utilities.units.html">NuRadioReco.utilities.units module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../../NuRadioReco/apidoc/NuRadioReco.utilities.version.html">NuRadioReco.utilities.version module</a></li>
@@ -987,7 +987,6 @@
 
         <span class="c1"># Read data</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_time_begin</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_event_idx</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="c1"># only for logging</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__counter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__skipped</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1497,9 +1496,8 @@
                     <span class="n">calibrated</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_calibrated_data</span><span class="p">,</span> <span class="n">selectors</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_select_events</span><span class="p">,</span>
                     <span class="n">max_entries_in_mem</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_max_in_mem</span><span class="p">):</span>
 
-                <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
                 <span class="n">evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_event</span><span class="p">(</span><span class="n">evtinfo</span><span class="p">,</span> <span class="n">wf</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
+
                 <span class="k">yield</span> <span class="n">evt</span></div>
 
 
@@ -1521,7 +1519,6 @@
 <span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Processing event number </span><span class="si">{</span><span class="n">event_index</span><span class="si">}</span><span class="s2"> out of total </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_events_total</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
         <span class="n">dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_dataset_for_event</span><span class="p">(</span><span class="n">event_index</span><span class="p">)</span>
         <span class="n">event_info</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">eventInfo</span><span class="p">()</span>  <span class="c1"># returns a single eventInfo</span>
@@ -1534,7 +1531,6 @@
 
         <span class="n">evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_event</span><span class="p">(</span><span class="n">event_info</span><span class="p">,</span> <span class="n">waveforms</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__counter</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="k">return</span> <span class="n">evt</span></div>
@@ -1560,7 +1556,6 @@
 <span class="sd">        """</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Getting event </span><span class="si">{</span><span class="n">event_id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
         <span class="n">event_infos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_events_information</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"eventNumber"</span><span class="p">,</span> <span class="s2">"run"</span><span class="p">])</span>
         <span class="n">event_idx_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">index</span><span class="p">,</span> <span class="n">ele</span><span class="p">[</span><span class="s2">"eventNumber"</span><span class="p">],</span> <span class="n">ele</span><span class="p">[</span><span class="s2">"run"</span><span class="p">]]</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">ele</span> <span class="ow">in</span> <span class="n">event_infos</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
@@ -1589,7 +1584,6 @@
 
         <span class="n">evt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_event</span><span class="p">(</span><span class="n">event_info</span><span class="p">,</span> <span class="n">waveforms</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__counter</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="k">return</span> <span class="n">evt</span></div>
@@ -1602,14 +1596,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Read </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">}</span><span class="s2"> events (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__skipped</span><span class="si">}</span><span class="s2"> events are skipped (filtered), </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__invalid</span><span class="si">}</span><span class="s2"> invalid events)"</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Time to initialize data sets  : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_begin</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s"</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Time to read all events       : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s"</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Time to per event             : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s"</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Read </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__n_runs</span><span class="si">}</span><span class="s2"> runs, skipped </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__skipped_runs</span><span class="si">}</span><span class="s2"> runs."</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Read </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__counter</span><span class="si">}</span><span class="s2"> events   (skipped </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__skipped</span><span class="si">}</span><span class="s2"> events, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__invalid</span><span class="si">}</span><span class="s2"> invalid events)"</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Time to initialize data sets  : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_begin</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s"</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Time to read all events       : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_run</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s"</span><span class="p">)</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="se">\n\t</span><span class="s2">Time to initialize data sets  : </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_time_begin</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s"</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_blockoffsetfitter</span><span class="o">.</span><span class="n">end</span><span class="p">()</span></div>

@@ -251,6 +251,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../pages/nur_modules.html">Modules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#basic-module-structure">Basic Module Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#timing">Timing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../pages/nur_modules.html#logging">Logging</a></li>
 </ul>
 </li>
@@ -395,7 +396,6 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.particle_names.html">NuRadioReco.utilities.particle_names module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.signal_processing.html">NuRadioReco.utilities.signal_processing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.templates.html">NuRadioReco.utilities.templates module</a></li>
-<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.timing.html">NuRadioReco.utilities.timing module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.trace_utilities.html">NuRadioReco.utilities.trace_utilities module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.units.html">NuRadioReco.utilities.units module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.version.html">NuRadioReco.utilities.version module</a></li>
@@ -684,6 +684,38 @@ the default logging level.</p>
 <dd><p>Decorator for run methods. This decorator registers the run methods. It allows to keep track of
 which module is executed in which order and with what parameters. Also the execution time of each
 module is tracked.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.base.module.end_all_modules">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.base.module.</span></span><span class="sig-name descname"><span class="pre">end_all_modules</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/base/module.html#end_all_modules"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.base.module.end_all_modules" title="Link to this definition"></a></dt>
+<dd><p>Call <em class="xref py py-obj">end()</em> of all module instances that have executed a decorated <em class="xref py py-obj">run()</em>, in order of their first <em class="xref py py-obj">run()</em> call.</p>
+<p>Each instance is ended only once. Exceptions in an <em class="xref py py-obj">end()</em> are logged and do not stop the remaining ones.
+Registered with <code class="docutils literal notranslate"><span class="pre">atexit</span></code>, so it runs automatically when the program exits.</p>
+<p>Modules holding files (e.g. <code class="docutils literal notranslate"><span class="pre">eventReader</span></code>, <code class="docutils literal notranslate"><span class="pre">eventWriter</span></code>) provide a <code class="docutils literal notranslate"><span class="pre">close()</span></code> which their <code class="docutils literal notranslate"><span class="pre">end()</span></code>
+calls. Call <code class="docutils literal notranslate"><span class="pre">close()</span></code> yourself to release the file before exit, e.g. to read back a file you just wrote.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioReco.modules.base.module.print_timing_summary">
+<span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.base.module.</span></span><span class="sig-name descname"><span class="pre">print_timing_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">min_percent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/base/module.html#print_timing_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.base.module.print_timing_summary" title="Link to this definition"></a></dt>
+<dd><p>Print the accumulated run time per module (class) in order of first execution, followed by a total line.</p>
+<p>Times are exclusive: time spent in nested module calls (e.g. a generator wrapping another one) is
+attributed to the nested module only.</p>
+<p>For reader modules (generators), the time spent producing each item is counted, with one call per item.
+The “per call” entry of the total row is the total time divided by the number of distinct events
+(run number, event id) seen by event/station modules.
+It is printed automatically at exit if <code class="docutils literal notranslate"><span class="pre">ENABLE_TIMING</span></code> is set (see top of file).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>min_percent</strong><span class="classifier">float, optional</span></dt><dd><p>Modules contributing less than this share (in percent) of the total time are merged into a single
+“others” row, which states the number of merged modules. Default: <code class="docutils literal notranslate"><span class="pre">TIMING_MIN_PERCENT</span></code>
+(2). Use 0 to list all modules.</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

@@ -31,7 +31,6 @@ Submodules
    NuRadioReco.utilities.particle_names
    NuRadioReco.utilities.signal_processing
    NuRadioReco.utilities.templates
-   NuRadioReco.utilities.timing
    NuRadioReco.utilities.trace_utilities
    NuRadioReco.utilities.units
    NuRadioReco.utilities.version
