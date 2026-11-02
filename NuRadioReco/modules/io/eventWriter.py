@@ -166,6 +166,7 @@ class eventWriter:
             logger.info("current output file exceeds max file size -> closing current output file and opening new one")
             self.__current_file_size = 0
             self.__fout.close()
+            self.__fout = None
             self.__number_of_files += 1
             # self.__filename = "{}_part{:02d}".format(self.__filename, self.__number_of_files)
             self.__stored_stations = []
@@ -337,10 +338,17 @@ class eventWriter:
                                  "`check_for_duplicates=True` to the begin method.".format(event_id, run_number))
         return
 
-    def end(self):
+    def close(self):
+        """ Close the output file. Safe to call multiple times. """
         if self.__fout is not None:
             self.__fout.close()
+            self.__fout = None
             logger.info(f"closing file {self.__filename}.")
-        else:
-            logger.warning(f"file {self.__filename} does not exist and won't be closed.")
+
+    def get_n_events(self):
+        """ Number of events written so far. """
+        return self.__number_of_events
+
+    def end(self):
+        self.close()
         return self.__number_of_events
