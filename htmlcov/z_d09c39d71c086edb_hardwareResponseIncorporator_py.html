@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for NuRadioReco/modules/RNO_G/hardwareResponseIncorporator.py: 50%</title>
+    <title>Coverage for NuRadioReco/modules/RNO_G/hardwareResponseIncorporator.py: 54%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_c827f16f.png">
     <link rel="stylesheet" href="style_cb_4667309f.css" type="text/css">
     <script src="coverage_html_cb_54cfdca1.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>NuRadioReco<span class="sep">/</span>modules<span class="sep">/</span>RNO_G<span class="sep">/</span>hardwareResponseIncorporator.py</b>:
-            <span class="pc_cov">50%</span>
+            <span class="pc_cov">54%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">132 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">66<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">66<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">71<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">61<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_d09c39d71c086edb_stationCoherentlySummedWaveforms_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.17.0">coverage.py v7.17.0</a>,
-            created at 2026-10-29 14:14 +0000
+            created at 2026-11-02 12:52 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -339,11 +339,11 @@
     <p class="run"><span class="n"><a id="t257" href="#t257">257</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">__t</span> <span class="op">+=</span> <span class="nam">time</span><span class="op">.</span><span class="nam">time</span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="nam">t</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t258" href="#t258">258</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t259" href="#t259">259</a></span><span class="t">    <span class="key">def</span> <span class="nam">end</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t260" href="#t260">260</a></span><span class="t">        <span class="key">from</span> <span class="nam">datetime</span> <span class="key">import</span> <span class="nam">timedelta</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t261" href="#t261">261</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">logger</span><span class="op">.</span><span class="nam">setLevel</span><span class="op">(</span><span class="nam">logging</span><span class="op">.</span><span class="nam">INFO</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t262" href="#t262">262</a></span><span class="t">        <span class="nam">dt</span> <span class="op">=</span> <span class="nam">timedelta</span><span class="op">(</span><span class="nam">seconds</span><span class="op">=</span><span class="nam">self</span><span class="op">.</span><span class="nam">__t</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t263" href="#t263">263</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">logger</span><span class="op">.</span><span class="nam">info</span><span class="op">(</span><span class="str">&quot;total time used by this module is {}&quot;</span><span class="op">.</span><span class="nam">format</span><span class="op">(</span><span class="nam">dt</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t264" href="#t264">264</a></span><span class="t">        <span class="key">return</span> <span class="nam">dt</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t260" href="#t260">260</a></span><span class="t">        <span class="key">from</span> <span class="nam">datetime</span> <span class="key">import</span> <span class="nam">timedelta</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t261" href="#t261">261</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">logger</span><span class="op">.</span><span class="nam">setLevel</span><span class="op">(</span><span class="nam">logging</span><span class="op">.</span><span class="nam">INFO</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t262" href="#t262">262</a></span><span class="t">        <span class="nam">dt</span> <span class="op">=</span> <span class="nam">timedelta</span><span class="op">(</span><span class="nam">seconds</span><span class="op">=</span><span class="nam">self</span><span class="op">.</span><span class="nam">__t</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t263" href="#t263">263</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">logger</span><span class="op">.</span><span class="nam">info</span><span class="op">(</span><span class="str">&quot;total time used by this module is {}&quot;</span><span class="op">.</span><span class="nam">format</span><span class="op">(</span><span class="nam">dt</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t264" href="#t264">264</a></span><span class="t">        <span class="key">return</span> <span class="nam">dt</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t265" href="#t265">265</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t266" href="#t266">266</a></span><span class="t">    <span class="key">def</span> <span class="nam">__calculate_time_delays_amp</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">amp_type</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t267" href="#t267">267</a></span><span class="t">        <span class="str">&quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
@@ -428,7 +428,7 @@
             <a class="nav" href="z_d09c39d71c086edb_stationCoherentlySummedWaveforms_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.17.0">coverage.py v7.17.0</a>,
-            created at 2026-10-29 14:14 +0000
+            created at 2026-11-02 12:52 +0000
         </p>
     </div>
 </footer>

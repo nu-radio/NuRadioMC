@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for NuRadioReco/modules/RNO_G/dataProviderRNOG.py: 95%</title>
+    <title>Coverage for NuRadioReco/modules/RNO_G/dataProviderRNOG.py: 94%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_c827f16f.png">
     <link rel="stylesheet" href="style_cb_4667309f.css" type="text/css">
     <script src="coverage_html_cb_54cfdca1.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>NuRadioReco<span class="sep">/</span>modules<span class="sep">/</span>RNO_G<span class="sep">/</span>dataProviderRNOG.py</b>:
-            <span class="pc_cov">95%</span>
+            <span class="pc_cov">94%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -54,8 +54,8 @@
             </div>
         </aside>
         <h2>
-            <span class="text">39 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">37<span class="text"> run</span></button>
+            <span class="text">35 statements &nbsp;</span>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">33<span class="text"> run</span></button>
             <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">2<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_d09c39d71c086edb_hardwareResponseIncorporator_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.17.0">coverage.py v7.17.0</a>,
-            created at 2026-10-29 14:14 +0000
+            created at 2026-11-02 12:52 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -167,38 +167,32 @@
     <p class="run"><span class="n"><a id="t85" href="#t85">85</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">channelGlitchDetector</span><span class="op">.</span><span class="nam">begin</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t86" href="#t86">86</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">channelCableDelayAdder</span><span class="op">.</span><span class="nam">begin</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t87" href="#t87">87</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t88" href="#t88">88</a></span><span class="t">    <span class="key">def</span> <span class="nam">end</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t89" href="#t89">89</a></span><span class="t">        <span class="str">&quot;&quot;&quot; Call the end method of the modules &quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t90" href="#t90">90</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">reader</span><span class="op">.</span><span class="nam">end</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t91" href="#t91">91</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">channelGlitchDetector</span><span class="op">.</span><span class="nam">end</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t92" href="#t92">92</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">channelBlockOffsetFitter</span><span class="op">.</span><span class="nam">end</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t93" href="#t93">93</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t94" href="#t94">94</a></span><span class="t">    <span class="op">@</span><span class="nam">register_run</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t95" href="#t95">95</a></span><span class="t">    <span class="key">def</span> <span class="nam">run</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t96" href="#t96">96</a></span><span class="t">        <span class="str">&quot;&quot;&quot; Run the modules</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t88" href="#t88">88</a></span><span class="t">    <span class="op">@</span><span class="nam">register_run</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t89" href="#t89">89</a></span><span class="t">    <span class="key">def</span> <span class="nam">run</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t90" href="#t90">90</a></span><span class="t">        <span class="str">&quot;&quot;&quot; Run the modules</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t91" href="#t91">91</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t92" href="#t92">92</a></span><span class="t"><span class="str">        Yields</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t93" href="#t93">93</a></span><span class="t"><span class="str">        ------</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t94" href="#t94">94</a></span><span class="t"><span class="str">        event: Event</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t95" href="#t95">95</a></span><span class="t"><span class="str">            The processed event</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t96" href="#t96">96</a></span><span class="t"><span class="str">        &quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t97" href="#t97">97</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t98" href="#t98">98</a></span><span class="t"><span class="str">        Yields</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t99" href="#t99">99</a></span><span class="t"><span class="str">        ------</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t100" href="#t100">100</a></span><span class="t"><span class="str">        event: Event</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t101" href="#t101">101</a></span><span class="t"><span class="str">            The processed event</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t102" href="#t102">102</a></span><span class="t"><span class="str">        &quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t103" href="#t103">103</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t104" href="#t104">104</a></span><span class="t">        <span class="key">for</span> <span class="nam">event</span> <span class="key">in</span> <span class="nam">self</span><span class="op">.</span><span class="nam">reader</span><span class="op">.</span><span class="nam">run</span><span class="op">(</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t105" href="#t105">105</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t106" href="#t106">106</a></span><span class="t">            <span class="com"># This will throw an error if the event has more than one station</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t107" href="#t107">107</a></span><span class="t">            <span class="nam">station</span> <span class="op">=</span> <span class="nam">event</span><span class="op">.</span><span class="nam">get_station</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t108" href="#t108">108</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t109" href="#t109">109</a></span><span class="t">            <span class="com"># Detector object is not used in the channelBlockOffsetFitter and channelGlitchDetector, so we set it to None to avoid confusion.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t110" href="#t110">110</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">channelBlockOffsetFitter</span><span class="op">.</span><span class="nam">run</span><span class="op">(</span><span class="nam">event</span><span class="op">,</span> <span class="nam">station</span><span class="op">,</span> <span class="nam">det</span><span class="op">=</span><span class="key">None</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t111" href="#t111">111</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">channelGlitchDetector</span><span class="op">.</span><span class="nam">run</span><span class="op">(</span><span class="nam">event</span><span class="op">,</span> <span class="nam">station</span><span class="op">,</span> <span class="nam">det</span><span class="op">=</span><span class="key">None</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t98" href="#t98">98</a></span><span class="t">        <span class="key">for</span> <span class="nam">event</span> <span class="key">in</span> <span class="nam">self</span><span class="op">.</span><span class="nam">reader</span><span class="op">.</span><span class="nam">run</span><span class="op">(</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t99" href="#t99">99</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t100" href="#t100">100</a></span><span class="t">            <span class="com"># This will throw an error if the event has more than one station</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t101" href="#t101">101</a></span><span class="t">            <span class="nam">station</span> <span class="op">=</span> <span class="nam">event</span><span class="op">.</span><span class="nam">get_station</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t102" href="#t102">102</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t103" href="#t103">103</a></span><span class="t">            <span class="com"># Detector object is not used in the channelBlockOffsetFitter and channelGlitchDetector, so we set it to None to avoid confusion.</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t104" href="#t104">104</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">channelBlockOffsetFitter</span><span class="op">.</span><span class="nam">run</span><span class="op">(</span><span class="nam">event</span><span class="op">,</span> <span class="nam">station</span><span class="op">,</span> <span class="nam">det</span><span class="op">=</span><span class="key">None</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t105" href="#t105">105</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">channelGlitchDetector</span><span class="op">.</span><span class="nam">run</span><span class="op">(</span><span class="nam">event</span><span class="op">,</span> <span class="nam">station</span><span class="op">,</span> <span class="nam">det</span><span class="op">=</span><span class="key">None</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t106" href="#t106">106</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t107" href="#t107">107</a></span><span class="t">            <span class="com"># channelCableDelayAdder needs the detector object to retrieve the cable delays. </span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t108" href="#t108">108</a></span><span class="t">            <span class="com"># If the detector object is not set, we skip this step and do not add/subtract cable delays.</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t109" href="#t109">109</a></span><span class="t">            <span class="key">if</span> <span class="nam">self</span><span class="op">.</span><span class="nam">detector</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t110" href="#t110">110</a></span><span class="t">                <span class="nam">self</span><span class="op">.</span><span class="nam">detector</span><span class="op">.</span><span class="nam">update</span><span class="op">(</span><span class="nam">station</span><span class="op">.</span><span class="nam">get_station_time</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t111" href="#t111">111</a></span><span class="t">                <span class="nam">self</span><span class="op">.</span><span class="nam">channelCableDelayAdder</span><span class="op">.</span><span class="nam">run</span><span class="op">(</span><span class="nam">event</span><span class="op">,</span> <span class="nam">station</span><span class="op">,</span> <span class="nam">self</span><span class="op">.</span><span class="nam">detector</span><span class="op">,</span> <span class="nam">mode</span><span class="op">=</span><span class="str">&#x27;subtract&#x27;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t112" href="#t112">112</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t113" href="#t113">113</a></span><span class="t">            <span class="com"># channelCableDelayAdder needs the detector object to retrieve the cable delays. </span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t114" href="#t114">114</a></span><span class="t">            <span class="com"># If the detector object is not set, we skip this step and do not add/subtract cable delays.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t115" href="#t115">115</a></span><span class="t">            <span class="key">if</span> <span class="nam">self</span><span class="op">.</span><span class="nam">detector</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t116" href="#t116">116</a></span><span class="t">                <span class="nam">self</span><span class="op">.</span><span class="nam">detector</span><span class="op">.</span><span class="nam">update</span><span class="op">(</span><span class="nam">station</span><span class="op">.</span><span class="nam">get_station_time</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t117" href="#t117">117</a></span><span class="t">                <span class="nam">self</span><span class="op">.</span><span class="nam">channelCableDelayAdder</span><span class="op">.</span><span class="nam">run</span><span class="op">(</span><span class="nam">event</span><span class="op">,</span> <span class="nam">station</span><span class="op">,</span> <span class="nam">self</span><span class="op">.</span><span class="nam">detector</span><span class="op">,</span> <span class="nam">mode</span><span class="op">=</span><span class="str">&#x27;subtract&#x27;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t118" href="#t118">118</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t119" href="#t119">119</a></span><span class="t">            <span class="key">yield</span> <span class="nam">event</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t113" href="#t113">113</a></span><span class="t">            <span class="key">yield</span> <span class="nam">event</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -208,7 +202,7 @@
             <a class="nav" href="z_d09c39d71c086edb_hardwareResponseIncorporator_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.17.0">coverage.py v7.17.0</a>,
-            created at 2026-10-29 14:14 +0000
+            created at 2026-11-02 12:52 +0000
         </p>
     </div>
 </footer>
