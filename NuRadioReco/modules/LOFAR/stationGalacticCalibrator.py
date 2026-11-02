@@ -227,15 +227,26 @@ class stationGalacticCalibrator:
         -------
         str
             The channel polarisation key
+
+        Notes
+        -----
+        This mapping is the opposite of the historical one (phi=225 -> "1", phi=135 -> "0"),
+        which applied each Fourier curve to the orthogonal dipole. A cross-check against
+        galactic-noise simulations shows that the sidereal modulation depth of the
+        "polarization 1" curve matches the phi=135 dipoles, and that only with the mapping
+        below does the calibrated noise power agree with the simulated sky power in both
+        polarisations and both LBA sub-arrays (P_data/P_sky = 1 to within ~10%; the historical
+        mapping splits it to ~0.6 and ~1.3, mirrored between LBA inner and outer, following
+        the parity/orientation cabling flip between the antenna sets).
         """
         orientation_rad = detector.get_antenna_orientation(
             station.get_id(), channel.get_id()
         )[1]  # takes the phi orientation in rad of the specific channel
         orientation = orientation_rad / units.deg  # get value in degrees
         if orientation == 225.0:
-            channel_polarisation = 1  # for X dipoles, channel_polarisation is set to 1
+            channel_polarisation = 0  # Fourier column "0" describes the phi=225 dipoles
         elif orientation == 135.0:
-            channel_polarisation = 0  # for Y dipoles, channel_polarisation is set to 0
+            channel_polarisation = 1  # Fourier column "1" describes the phi=135 dipoles
         else:
             self.logger.error(f"Antenna orientation of {orientation} does not correspond to either X or Y dipole.")
             raise ValueError

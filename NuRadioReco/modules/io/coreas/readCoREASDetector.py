@@ -1,6 +1,7 @@
 import NuRadioReco.framework.event
 import NuRadioReco.framework.station
 import NuRadioReco.framework.radio_shower
+import NuRadioReco.framework.hybrid_shower
 from NuRadioReco.framework.parameters import (
     showerParameters as shp, stationParameters as stnp, electricFieldParameters as efp)
 
@@ -120,13 +121,14 @@ class readCoREASDetector:
         self.__t_event_structure = 0
         self.__t_per_event = 0
         self.__corsika_evt = None
+        self.__hybrid_shower_name = None
 
         self.coreas_interpolator = None
 
         self.logger = logging.getLogger('NuRadioReco.readCoREASDetector')
 
     def begin(self, input_file, interp_lowfreq=30 * units.MHz, interp_highfreq=1000 * units.MHz,
-              site=None, declination=None, log_level=logging.NOTSET):
+              site=None, declination=None, hybrid_shower = False, log_level=logging.NOTSET):
         """
         Begin method to initialize readCoREASDetector module.
 
@@ -151,6 +153,8 @@ class readCoREASDetector:
         site: str, default=None
             Instead of declination, a site name can be given to retrieve the declination.
             This parameter is passed on to the `coreas.read_CORSIKA7()` function.
+        hybrid_shower: Union[NuRadioReco.framework.hybrid_shower.HybridShower, bool], default=False
+            Whether to use hybrid shower information. If the HybridShower object is provided, it will be used.
         log_level: default=logging.NOTSET
             log level for the logger
         """
@@ -168,11 +172,15 @@ class readCoREASDetector:
             f"azimuth angle = {self.__corsika_evt.get_first_sim_shower().get_parameter(shp.azimuth) / units.deg:.2f}deg"
         )
 
+        if hybrid_shower and isinstance(hybrid_shower, NuRadioReco.framework.hybrid_shower.HybridShower):
+            self.__corsika_evt.get_hybrid_information().add_hybrid_shower(hybrid_shower)
+            self.__hybrid_shower_name = hybrid_shower.get_name()
+
         self.coreas_interpolator = coreasInterpolator.coreasInterpolator(self.__corsika_evt)
         self.coreas_interpolator.initialize_efield_interpolator(interp_lowfreq, interp_highfreq)
 
     @register_run()
-    def run(self, detector, core_position_list, selected_station_channel_ids=None):
+    def run(self, detector, core_position_list=[0, 0], selected_station_channel_ids=None):
         """
         run method, get interpolated electric fields for the given detector and core positions and set them in the event.
         The trace is smoothed with a half-Hann window to avoid ringing effects. When using short traces, this might have
@@ -182,11 +190,13 @@ class readCoREASDetector:
         ----------
         detector: `NuRadioReco.detector.detector_base.DetectorBase`
             Detector description of the detector that shall be simulated
-        core_position_list: list of (list of float)
+        core_position_list: list of (list of float) or None, default=None
             List of 2D or 3D core positions in the format [[x1, y1, (z1)], [x2, y2, (z2)], ...]
             The z coordinate is optional. It is actually encouraged to **not** use it, as it can mess with
             the observation level of the event. If not provided, all oberser positions are put at the
             observation by the interpolator (this is the behaviour of `coreasInterpolator.get_interp_efield_value`).
+
+            If None, and the detector has a HybridShower, the core position of the HybridShower is used. If there is no HybridShower, the core position of the first SimShower in the event is used.
         selected_station_channel_ids: dict, default=None
             A dictionary containing the list of channels IDs to simulate per station.
             If None, all channels of all stations in the detector are simulated.
@@ -244,6 +254,25 @@ class readCoREASDetector:
         self.__t_per_event += time.time() - t_per_event
         self.__t += time.time() - t
 
+        # setting the core position based on a hybrid shower or a provided core position list. If both are provided, the core position list takes precedence.
+        has_hybrid_shower = self.__hybrid_shower_name is not None
+
+        if has_hybrid_shower and core_position_list is None:
+            hybrid_shower = self.__corsika_evt.get_hybrid_information().get_hybrid_shower(self.__hybrid_shower_name)
+            if hybrid_shower is not None:
+                core_position_list = [hybrid_shower.get_parameter(shp.core)[:2]]  # only use x and y coordinates
+                self.logger.info(f"Using core position from HybridShower: {core_position_list[0]}")
+            else:
+                self.logger.warning("HybridShower is not set in the event, using default core position list.")
+
+        elif has_hybrid_shower and core_position_list is not None:
+            self.logger.warning("HybridShower is set in the event, but core_position_list is provided. "
+                                "Using provided core_position_list.")
+        elif not has_hybrid_shower and core_position_list is None:
+            raise ValueError("core_position_list is None and HybridShower is not set in the event. "
+                             "Please provide a core_position_list or set a HybridShower in the event.")
+
+
         # Loop over all cores
         for iCore, core in enumerate(core_position_list):
             t = time.time()
@@ -256,6 +285,11 @@ class readCoREASDetector:
             new_core[:len(core)] = core  # If no z coordinate is given, keep the original one
             sim_shower.set_parameter(shp.core, new_core)
             evt.add_sim_shower(sim_shower)
+            
+            # add the hybrid shower if it does exist and is set in the event
+            if has_hybrid_shower:
+                hybrid_shower = self.__corsika_evt.get_hybrid_information().get_hybrid_shower(self.__hybrid_shower_name)
+                evt.get_hybrid_information().add_hybrid_shower(hybrid_shower)
 
             # Loop over all selected stations
             for station_id in selected_station_ids:
@@ -298,6 +332,13 @@ class readCoREASDetector:
                 sim_station.set_parameter(stnp.zenith, sim_shower[shp.zenith])
                 sim_station.set_parameter(stnp.azimuth, sim_shower[shp.azimuth])
                 station.set_sim_station(sim_station)
+
+                # if the station has a HybridShower, add it to the station
+                if has_hybrid_shower:
+                    hybrid_shower = self.__corsika_evt.get_hybrid_information().get_hybrid_shower(self.__hybrid_shower_name)
+                    if hybrid_shower is not None:
+                        station.set_parameter(stnp.zenith, hybrid_shower.get_parameter(shp.zenith))
+                        station.set_parameter(stnp.azimuth, hybrid_shower.get_parameter(shp.azimuth))
 
                 evt.set_station(station)
 

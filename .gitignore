@@ -161,6 +161,7 @@ NuRadioMC/EvtGen/proposal_tables/
 
 # Default location for sample data for interactive examples
 NuRadioReco/examples/Interactive/data/
+NuRadioReco/examples/Interactive/lofar_ift_demo/
 
 # zipped DB json files
 *json.xz
@@ -168,3 +169,6 @@ NuRadioReco/examples/Interactive/data/
 # Simulation output
 NuRadioMC/examples/simulate_effective_ice_temperature/*.json
 NuRadioMC/examples/simulate_effective_ice_temperature/__output_tempfile.h5
+
+# test data
+NuRadioReco/test/LOFAR/test-data/
