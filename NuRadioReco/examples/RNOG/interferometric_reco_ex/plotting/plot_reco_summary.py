@@ -11,6 +11,10 @@ Plots:
 - peak_0_corr distribution            (map-peak correlation)
 - peak_0_map_snr distribution         (map SNR at the peak)
 - max_corr distribution               (best correlation across pols/multiray)
+- surface-region maximum correlations (overall, VPOL, HPOL)
+
+PA-centred geometric quantities are intentionally not calculated here. They
+are plotted from the canonical combined event table by ``plot_pa_geometry.py``.
 """
 import argparse
 import os
@@ -24,10 +28,6 @@ import pandas as pd
 
 _ANGLE_LABEL_DEG = {
     "peak_phi": (r"Reconstructed $\phi$ [deg]", r"$\phi$ [rad]"),
-    "peak_zen": ("Reconstructed zenith [deg]", "zenith [rad]"),
-    "surf_zen": ("Surface-correlator zenith [deg]", "zenith [rad]"),
-    "surf_zen_vpol": ("Surface-correlator zenith VPOL [deg]", "zenith [rad]"),
-    "surf_zen_hpol": ("Surface-correlator zenith HPOL [deg]", "zenith [rad]"),
 }
 
 PANELS = [
@@ -37,16 +37,11 @@ PANELS = [
     ("peak_0_corr", "Peak correlation", "peak_corr"),
     ("peak_0_map_snr", "Map SNR at peak", "peak_map_snr"),
     ("max_corr", "Best correlation across pols/multiray", "max_corr"),
-    # Zenith of the reco vertex direction from the detector origin,
-    # derived from peak_0_rho and peak_0_z. Computed below before
-    # the panel loop. 0 rad = straight down (vertex directly below
-    # detector); pi/2 = horizontal.
-    ("peak_0_zen", _ANGLE_LABEL_DEG["peak_zen"][0], "peak_zen"),
-    # Surface-correlator zenith columns (different reconstruction
-    # quantity than peak_0_zen above; kept for completeness).
-    ("surf_corr_zen", _ANGLE_LABEL_DEG["surf_zen"][0], "surf_zen"),
-    ("surf_corr_zen_vpol", _ANGLE_LABEL_DEG["surf_zen_vpol"][0], "surf_zen_vpol"),
-    ("surf_corr_zen_hpol", _ANGLE_LABEL_DEG["surf_zen_hpol"][0], "surf_zen_hpol"),
+    # Despite their names, these are maximum correlation values inside a
+    # configured surface-like zenith region, not angles.
+    ("surf_corr_zen", "Maximum correlation in surface-zenith region", "surf_zen"),
+    ("surf_corr_zen_vpol", "Maximum VPOL correlation in surface-zenith region", "surf_zen_vpol"),
+    ("surf_corr_zen_hpol", "Maximum HPOL correlation in surface-zenith region", "surf_zen_hpol"),
 ]
 
 
@@ -112,20 +107,6 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
     df = pd.read_hdf(args.input, key="data")
     print(f"Loaded {len(df):,} events from {args.input}", flush=True)
-
-    # Derive zenith from PA center (origin of incoming RF direction),
-    # NOT from the reco's (rho=0, z=0) reference. The reco frame has
-    # z=0 at the ice surface and z negative subsurface; the PA center
-    # sits at z ~ -95 m. For a vertex at (rho, z), the line from the
-    # PA to the vertex has vertical run (z - z_PA) and horizontal run
-    # rho, so zenith from straight-up at the PA is arctan(rho/(z-z_PA)).
-    # A vertex at (0, 0) is 95 m straight above the PA -> zen = 0.
-    # A vertex at (rho=95, z=0) is 45 deg from vertical -> 45 deg.
-    PA_Z_M = -95.0
-    if "peak_0_zen" not in df.columns and {"peak_0_rho", "peak_0_z"} <= set(df.columns):
-        rho = pd.to_numeric(df["peak_0_rho"], errors="coerce").to_numpy()
-        z = pd.to_numeric(df["peak_0_z"], errors="coerce").to_numpy()
-        df["peak_0_zen"] = np.arctan2(rho, z - PA_Z_M)
 
     for column, xlabel, stem in PANELS:
         if column not in df.columns:

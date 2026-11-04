@@ -1,7 +1,6 @@
 """Reco plotting orchestrator. Dispatches enabled plots from a YAML config."""
 import argparse
 import os
-import re
 import subprocess
 import sys
 
@@ -21,25 +20,32 @@ def main(argv=None):
     ap.add_argument("--reco-merged",
                     help="Merged 3D reco H5 (consumed by reco_summary).")
     ap.add_argument("--combined",
-                    help="combined_event_variables.h5 (consumed by sim_zenith_error).")
+                    help="combined_event_variables.h5 (consumed by PA-geometry plots).")
+    ap.add_argument("--combined-source", choices=["burn", "sim"],
+                    help="Rows to use for the PA-geometry distribution.")
+    ap.add_argument(
+        "--only",
+        action="append",
+        choices=["reco_summary", "pa_geometry", "sim_zenith_error"],
+        help=("Run only this enabled plot group. May be repeated. By default "
+              "all groups enabled in the config are considered."),
+    )
     ap.add_argument("--output-dir", required=True)
     ap.add_argument("--label", default="burn")
-    ap.add_argument("--station", type=int,
-                    help="Station id (needed by sim_zenith_error); inferred from a "
-                         "station{N} component of --output-dir when omitted.")
-    ap.add_argument("--detector-source", default="rnog_mongo")
-    ap.add_argument("--detector-file", default=None)
-    ap.add_argument("--detector-date", default="2022-10-01")
     args = ap.parse_args(argv)
 
     with open(args.config) as f:
         cfg = yaml.safe_load(f) or {}
     enabled = set(cfg.get("enabled", []))
-    if args.station is None:
-        m = re.search(r"station(\d+)", os.path.abspath(args.output_dir))
-        if m:
-            args.station = int(m.group(1))
-            print(f"[plot_all] station {args.station} inferred from the output path")
+    if args.only:
+        requested = set(args.only)
+        disabled = sorted(requested - enabled)
+        if disabled:
+            raise RuntimeError(
+                "requested plot groups are not enabled in the config: "
+                + ", ".join(disabled)
+            )
+        enabled = requested
 
     os.makedirs(args.output_dir, exist_ok=True)
 
@@ -52,18 +58,25 @@ def main(argv=None):
         else:
             print("[plot_all] skipping reco_summary: --reco-merged not given")
 
+    if "pa_geometry" in enabled:
+        if args.combined and args.combined_source:
+            _run("plot_pa_geometry.py",
+                 "--input", args.combined,
+                 "--source", args.combined_source,
+                 "--output-dir", args.output_dir,
+                 "--label", args.label)
+        else:
+            print("[plot_all] skipping pa_geometry: "
+                  "--combined or --combined-source not given")
+
     if "sim_zenith_error" in enabled:
-        if args.combined and args.station is not None:
-            extra = ["--detector-source", args.detector_source, "--detector-date", args.detector_date]
-            if args.detector_file:
-                extra += ["--detector-file", args.detector_file]
+        if args.combined:
             _run("plot_sim_zenith_error.py",
                  "--input", args.combined,
                  "--output-dir", args.output_dir,
-                 "--label", args.label,
-                 "--station", str(args.station), *extra)
+                 "--label", args.label)
         else:
-            print("[plot_all] skipping sim_zenith_error: --combined or --station not given")
+            print("[plot_all] skipping sim_zenith_error: --combined not given")
 
 
 if __name__ == "__main__":
