@@ -659,7 +659,6 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
 
 <div class="viewcode-block" id="stationHitFilter">
@@ -843,8 +842,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.RNO_G.stationHitFitter'</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">log_level</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__counting_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__is_wanted_trigger_type</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__total_run_time</span> <span class="o">=</span> <span class="mi">0</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__is_wanted_trigger_type</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 
@@ -946,7 +944,6 @@
 <span class="sd">        self.is_passed_hit_filter(): bool</span>
 <span class="sd">            Event passed the Hit Filter or not</span>
 <span class="sd">        """</span>
-        <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="n">trigger_type</span> <span class="o">=</span> <span class="n">evt</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span><span class="o">.</span><span class="n">get_first_trigger</span><span class="p">()</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
 
         <span class="c1"># Only run the module on selected trigger type</span>
@@ -975,7 +972,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__counting_dict</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">trigger_type</span><span class="si">}</span><span class="s2">_passed"</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_passed_hit_filter</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__counting_dict</span><span class="p">[</span><span class="s2">"total"</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">__total_run_time</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_passed_hit_filter</span><span class="p">()</span></div>
 
 
@@ -984,8 +980,7 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.stationHitFilter.html#NuRadioReco.modules.RNO_G.stationHitFilter.stationHitFilter.end">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">event_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__counting_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"total"</span><span class="p">)</span>
-        <span class="n">counts</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"Processed Total: </span><span class="si">{</span><span class="n">event_count</span><span class="si">}</span><span class="s2"> events. Total run time: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__total_run_time</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> s, "</span>
-            <span class="sa">f</span><span class="s2">"Time per event: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__total_run_time</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">event_count</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1000</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ms"</span><span class="p">)</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Processed Total: </span><span class="si">{</span><span class="n">event_count</span><span class="si">}</span><span class="s2"> events."</span>
 
         <span class="n">trigger_types</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">([</span><span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">"_passed"</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__counting_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()])</span>
         <span class="k">for</span> <span class="n">trigger_type</span> <span class="ow">in</span> <span class="n">trigger_types</span><span class="p">:</span>
