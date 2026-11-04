@@ -4,13 +4,14 @@ import NuRadioReco.framework.trigger
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_storage
-from NuRadioReco.utilities import io_utilities
+from NuRadioReco.utilities import io_utilities, units
 
 import datetime
 import astropy.time
 import logging
 import collections
 import pickle
+import numpy as np
 from NuRadioReco.utilities.io_utilities import _dumps
 
 logger = logging.getLogger('NuRadioReco.BaseStation')
@@ -77,6 +78,25 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
         self._station_time.format = format
         return self._station_time
+
+    def get_station_time_ns(self):
+            """
+            Returns the subsecond part of the station time astropy.time.Time object
+            in nanoseconds, retaining sub-nanosecond precision. This is, e.g., useful
+            to investigate when in a second an event triggered.
+
+            Returns
+            -------
+            station_time_ns: float
+                The subsecond part of the station time in nanoseconds
+            """
+            if self._station_time is None:
+                return None
+
+            station_time_seconds = self._station_time.to_value("unix", "long")
+            station_time_whole_second = np.floor(station_time_seconds)
+
+            return float((station_time_seconds - station_time_whole_second) * units.s)
 
     def get_id(self):
         return self._station_id
