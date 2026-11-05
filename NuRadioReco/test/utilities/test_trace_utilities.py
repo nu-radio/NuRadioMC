@@ -13,7 +13,7 @@ import sys
 
 import numpy as np
 
-from NuRadioReco.utilities import trace_utilities
+from NuRadioReco.utilities import trace_utilities, units
 
 RTOL = 1e-9
 
@@ -30,16 +30,37 @@ TRACE_REFERENCE = {2048: {'split_noise_rms': 9.898692049030199,
         'root_power_ratio': 1.764072041408105}}
 
 
-def make_trace(n_samples, seed):
+def make_trace(n_samples, seed, sampling_rate=3.2 * units.GHz):
+    """
+    Synthetic trace: Gaussian noise (std 10) plus a 250 MHz wavelet (amplitude 40, width 3 ns)
+    at 40% of the trace. Amplitudes are in arbitrary units.
+
+    Parameters
+    ----------
+    n_samples: int
+        Number of samples
+    seed: int
+        Seed of the noise
+    sampling_rate: float (default: 3.2 GHz)
+        Sampling rate
+
+    Returns
+    -------
+    times: array of floats
+        Sample times
+    trace: array of floats
+        Amplitudes
+    """
     rng = np.random.default_rng(seed)
-    t = np.arange(n_samples) / 3.2
-    pulse = 40 * np.exp(-0.5 * ((t - 0.4 * n_samples / 3.2) / 3) ** 2) * np.sin(2 * np.pi * 0.25 * t)
-    return rng.normal(0, 10, n_samples) + pulse
+    times = np.arange(n_samples) / sampling_rate
+    t_pulse = 0.4 * n_samples / sampling_rate
+    pulse = 40 * np.exp(-0.5 * ((times - t_pulse) / (3 * units.ns)) ** 2) \
+        * np.sin(2 * np.pi * 250 * units.MHz * times)
+    return times, rng.normal(0, 10, n_samples) + pulse
 
 
 def compute_trace_values(n_samples):
-    trace = make_trace(n_samples, n_samples)
-    times = np.arange(n_samples) / 3.2
+    times, trace = make_trace(n_samples, n_samples)
     rms = trace_utilities.get_split_trace_noise_RMS(trace)
     return {key: float(value) for key, value in {
         "split_noise_rms": rms,
