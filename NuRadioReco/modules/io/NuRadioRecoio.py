@@ -168,8 +168,12 @@ class NuRadioRecoio(object):
             self.__scan_files()
 
     def close_files(self):
+        """ Close all open files. Safe to call multiple times; files are reopened when read again. """
+        if not self.__open_files:
+            return
         for f in self.__open_files.values():
             f['file'].close()
+        self.__open_files.clear()
 
     def get_filenames(self):
         return self._filenames
