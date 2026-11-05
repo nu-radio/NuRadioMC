@@ -11,7 +11,7 @@ import astropy.time
 import logging
 import collections
 import pickle
-import numpy as np
+from decimal import Decimal
 from NuRadioReco.utilities.io_utilities import _dumps
 
 logger = logging.getLogger('NuRadioReco.BaseStation')
@@ -79,24 +79,26 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
         self._station_time.format = format
         return self._station_time
 
-    def get_station_time_ns(self):
-            """
-            Returns the subsecond part of the station time astropy.time.Time object
-            in nanoseconds, retaining sub-nanosecond precision. This is, e.g., useful
-            to investigate when in a second an event triggered.
+    def get_station_time_subsecond(self):
+        """
+        Returns the fractional part of the station time's UTC Unix second
+        in the base NuRadioMC time unit (nanoseconds). This is, e.g., useful
+        to investigate when in a second an event triggered.
 
-            Returns
-            -------
-            station_time_ns: float
-                The subsecond part of the station time in nanoseconds
-            """
-            if self._station_time is None:
-                return None
+        Returns
+        -------
+        station_time_ns: float or None
+            The fractional UTC second in nanoseconds, or ``None`` if no
+            station time is set.
+        """
+        if self._station_time is None:
+            return None
 
-            station_time_seconds = self._station_time.to_value("unix", "long")
-            station_time_whole_second = np.floor(station_time_seconds)
-
-            return float((station_time_seconds - station_time_whole_second) * units.s)
+        station_time_seconds = self._station_time.utc.to_value(
+            "unix", subfmt="decimal"
+        )
+        fractional_seconds = station_time_seconds % Decimal(1)
+        return float(fractional_seconds * Decimal(1e9)) * units.ns
 
     def get_id(self):
         return self._station_id
