@@ -77,7 +77,5 @@ for coreas_event in readCoREAS.run():
 
     eventWriter.run(event, det)
 
-efieldInterferometricDepthReco.end()
-eventWriter.end()
-nevents = eventWriter.end()
-print("Finished processing, {} events".format(nevents))
+eventWriter.close()
+print("Finished processing, {} events".format(eventWriter.get_n_events()))

@@ -37,8 +37,11 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   The `AntennaPattern.VEL`, `AntennaPattern.VEL_theta` and `AntennaPattern.VEL_phi` attributes are deprecated, the cube is
   stored in `AntennaPattern._vel`.
 - The channelResampler resamples all channels with the same number of samples and sampling rate together as one 2D array (faster).
+- Added `impulsiveSignalReconstructor` module to reconstruct 'generic' impulsive signals
 
 bugfixes:
+- The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
+  (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported
   with only numpy, scipy and matplotlib: radiotools, astropy, the `NuRadioReco.detector`/`framework` packages etc. are imported lazily
   and the version lookup in `__init__` is guarded.
