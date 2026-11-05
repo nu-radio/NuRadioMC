@@ -565,7 +565,7 @@ def _obj_delta_y_square(logC_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflectio
     """
     Objective function to find solution for C0
     """
-    c_0 = _get_C0_from_log(logC_0[0], n_ice)
+    c_0 = _get_C0_from_log(logC_0, n_ice)
     return _get_delta_y(c_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, (-1.0,-1.0), reflection=reflection, reflection_case=reflection_case) ** 2
 
 def _get_reflection_point(c_0, c_1, n_ice, medium_reflection, b, z_0, delta_n):
@@ -1678,7 +1678,7 @@ class ray_tracing_2D():
                 # special case of ice to air ray tracing. There is always one unique solution between C_0 = inf and C_0 that
                 # skims the surface. Therefore, we can find the solution using an efficient root finding algorithm.
                 logC0_start = 100  # infinity is bad, 100 is steep enough
-                C_0_stop = self.get_C_0_from_angle(np.arcsin(1/self.medium.get_index_of_refraction([0, x1[0], x1[1]])), x1[1]).x[0]
+                C_0_stop = self.get_C_0_from_angle(np.arcsin(1/self.medium.get_index_of_refraction([0, x1[0], x1[1]])), x1[1])
                 logC0_stop = np.log(C_0_stop - 1/self.medium.n_ice)
                 delta_ys = [self.obj_delta_y(logC0, x1, x2, reflection, reflection_case) for logC0 in [logC0_start, logC0_stop]]
                 self.__logger.debug("Looking for ice-air solutions between log(C0) (%s, %s) with delta_y (%s, %s)", logC0_start, logC0_stop, *delta_ys)
@@ -1715,16 +1715,19 @@ class ray_tracing_2D():
                     'starting optimization with x0 = %.2f -> C0 = %.3f', logC_0_start, C_0_start)
             else:
                 logC_0_start = -1
-            obj_delta_y_sqr = _obj_delta_y_square
-            result = optimize.root(obj_delta_y_sqr, x0=logC_0_start, args=(np.array(x1), np.array(x2),self.medium.n_ice,self.__b, self.medium.delta_n, self.medium.z_0, self.reflection, reflection, reflection_case), tol=tol)
+            args = (
+                np.asarray(x1), np.asarray(x2), self.medium.n_ice,
+                self.__b, self.medium.delta_n, self.medium.z_0,
+                self.reflection, reflection, reflection_case)
+            result = optimize.root_scalar(_obj_delta_y_square, x0=logC_0_start, args=args, xtol=tol)
             if(plot):
                 import matplotlib.pyplot as plt
                 fig, ax = plt.subplots(1, 1)
-            if(result.fun < 1e-7):
+            if result.converged: #_obj_delta_y_square(result.root, *args) < tol:
                 if(plot):
-                    self.plot_result(x1, x2, _get_C0_from_log(result.x[0], self.medium.n_ice), ax)
-                if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
-                    C_0 = _get_C0_from_log(result.x[0], self.medium.n_ice)
+                    self.plot_result(x1, x2, _get_C0_from_log(result.root, self.medium.n_ice), ax)
+                if(np.round(result.root, 3) not in np.round(C0s, 3)):
+                    C_0 = _get_C0_from_log(result.root, self.medium.n_ice)
                     C0s.append(C_0)
                     solution_type = self.determine_solution_type(x1, x2, C_0)
                     self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
@@ -1733,14 +1736,18 @@ class ray_tracing_2D():
                                     'C1': self.get_C_1(x1, C_0),
                                     'reflection': reflection,
                                     'reflection_case': reflection_case})
+            else:
+                self.__logger.info(
+                    'root finding did not converge. residual: %.3g / requested tolerance %.1g \n%s',
+                    _obj_delta_y_square(result.root, *args), tol, result)
 
             # check if another solution with higher logC0 exists
-            logC0_start = result.x[0] + 0.0001
+            logC0_start = result.root + 0.0001
             logC0_stop = 100
             delta_start = self.obj_delta_y(logC0_start, x1, x2, reflection, reflection_case)
             delta_stop = self.obj_delta_y(logC0_stop, x1, x2, reflection, reflection_case)
             if(np.sign(delta_start) != np.sign(delta_stop)):
-                self.__logger.info("solution with logC0 > {:.3f} exists".format(result.x[0]))
+                self.__logger.info("solution with logC0 > {:.3f} exists".format(result.root))
                 result2 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
                 if(plot):
                     self.plot_result(x1, x2, _get_C0_from_log(result2, self.medium.n_ice), ax)
@@ -1755,14 +1762,14 @@ class ray_tracing_2D():
                                     'reflection': reflection,
                                     'reflection_case': reflection_case})
             else:
-                self.__logger.info("no solution with logC0 > {:.3f} exists".format(result.x[0]))
+                self.__logger.info("no solution with logC0 > {:.3f} exists".format(result.root))
 
             logC0_start = -100
-            logC0_stop = result.x[0] - 0.0001
+            logC0_stop = result.root - 0.0001
             delta_start = self.obj_delta_y(logC0_start, x1, x2, reflection, reflection_case)
             delta_stop = self.obj_delta_y(logC0_stop, x1, x2, reflection, reflection_case)
             if(np.sign(delta_start) != np.sign(delta_stop)):
-                self.__logger.info("solution with logC0 < {:.3f} exists".format(result.x[0]))
+                self.__logger.info("solution with logC0 < {:.3f} exists".format(result.root))
                 result3 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
 
                 if(plot):
@@ -1778,7 +1785,7 @@ class ray_tracing_2D():
                                     'reflection': reflection,
                                     'reflection_case': reflection_case})
             else:
-                self.__logger.info("no solution with logC0 < {:.3f} exists".format(result.x[0]))
+                self.__logger.info("no solution with logC0 < {:.3f} exists".format(result.root))
 
             if(plot):
                 import matplotlib.pyplot as plt
@@ -1831,7 +1838,7 @@ class ray_tracing_2D():
         '''
 
         C_0 = _get_C0_from_log(logC_0, self.medium.n_ice)
-        C_0 = np.atleast_1d(C_0)[0]
+        # C_0 = np.atleast_1d(C_0)[0]
         dydz = _get_y_diff(z_pos, C_0, self.medium.n_ice, self.__b, self.medium.z_0, self.medium.delta_n, in_air=in_air)
         angle = np.arctan(dydz)
 
@@ -1841,13 +1848,24 @@ class ray_tracing_2D():
 
         '''
         Find parameter C0 corresponding to a given launch angle and z-position of a ray.
-        The parameter is found by means of a root finding procedure
 
-        output:
-            Complete output of optimisation procedure
-            (result.x[0] is the C0 value found by optimisation procedure)
+        Returns
+        -------
+        C0 : float
+
+        Notes
+        -----
+        C0 is related to the launch angle through:
+
+        :math:`1 / C_0 = n(z) \sin(\theta(z))`
 
         '''
+
+        n = self.medium.get_refractive_index(z_pos)
+
+        c0 = 1 / (n * np.sin(np.abs(anglaunch)))
+
+        return c0
 
         # C_0 has a smallest possible value at 1./self.medium.n_ice . When it approaches this value, very
         # small changes in C_0 correspond to given change in the angle. In order to prevent the root finding
@@ -1916,8 +1934,8 @@ class ray_tracing_2D():
             # ray goes from point with high optical thickness to point with lower optical thickness,
             # i.e. ray bending is towards horizontal
             thcrit = np.arcsin(sinthcrit)
-            C0result = self.get_C_0_from_angle(thcrit, x1[1])
-            C0crit = C0result.x[0]
+            C0crit = self.get_C_0_from_angle(thcrit, x1[1])
+            # C0crit = C0result.x[0]
         else:
             # ray goes from point with low optical thickness to point with higher optical thickness,
             # i.e. ray bending is towards vertical, no solution
@@ -1978,7 +1996,7 @@ class ray_tracing_2D():
             # experimentally this was found to give slightly different results than mirroring the array at the critical angle.
             # theoretically this is not quite unterstood
             C0check = self.get_C_0_from_angle(np.pi / 2., 0)
-            C0check = C0check.x[0]
+            # C0check = C0check.x[0]
             gcheck = _get_gamma(x2[1], self.medium.delta_n, self.medium.z_0)
             ycheck = -_get_y(gcheck, C0check, self.get_C_1([ycrit, 0], C0check), self.medium.n_ice, self.__b, self.medium.z_0) + 2 * ycrit
 
@@ -2076,8 +2094,8 @@ class ray_tracing_2D():
         for x in [x1, x2]:
             sinthemit = nxsin / _n(x[1], self.medium.n_ice, self.medium.delta_n, self.medium.z_0)
             th_emit = np.arcsin(sinthemit)
-            C0result = self.get_C_0_from_angle(th_emit, x[1])
-            C0_emit = C0result.x[0]
+            C0_emit = self.get_C_0_from_angle(th_emit, x[1])
+            # C0_emit = C0result.x[0]
 
             self.__logger.info(' emission angle for position {},{} is theta_emit= {}'.format(x[0], x[1], th_emit / units.deg))
 
