@@ -15,7 +15,7 @@ import h5py
 
 vTEACFN = voltageToEfieldAnalyticConverterForNeutrinos.voltageToAnalyticEfieldConverterNeutrinos()
 
-det = detector.Detector(json_filename = "./configurations/ARIANNA_4LPDA_1dipole.json", antenna_by_depth=False)
+det = detector.Detector(json_filename = "./configurations/ARIANNA_4LPDA_1dipole.json")
 icemodel = medium.get_ice_model("southpole_2015")
 
 passband_low = {}

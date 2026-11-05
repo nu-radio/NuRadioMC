@@ -355,9 +355,12 @@ class NuRadioRecoio(object):
 
             detector_dict = self._detector_dicts[self._current_file_id]
 
-            # Extract keywords from detector dict (if not present in nur file, "detector_parameters" is empty dict)
-            assume_inf = detector_dict['detector_parameters'].get('assume_inf', None)
-            antenna_by_depth = detector_dict['detector_parameters'].get('antenna_by_depth', None)
+            # Older files store `antenna_by_depth` (removed in v3.2). Not passed on, so that these files stay readable
+            if detector_dict.get('detector_parameters', {}).get('antenna_by_depth', False):
+                self.logger.warning(
+                    "This file was written with `antenna_by_depth=True`, which was removed in v3.2. The antenna "
+                    "types stored in its detector description may lack the '_InfFirn'/'_InfAir' suffix and fail "
+                    "to load as antenna models.")
 
             if 'generic_detector' in detector_dict:
                 if detector_dict['generic_detector']:
@@ -370,7 +373,6 @@ class NuRadioRecoio(object):
                         source='dictionary', dictionary=detector_dict,
                         default_station=detector_dict.get('default_station', None),
                         default_channel=detector_dict.get('default_channel', None),
-                        assume_inf=assume_inf, antenna_by_depth=antenna_by_depth,
                         create_new=True)
 
                     if self._current_file_id in self._event_specific_detector_changes.keys():
@@ -387,7 +389,6 @@ class NuRadioRecoio(object):
             # Detector is a normal detector
             self.__detectors[self._current_file_id] = NuRadioReco.detector.detector.Detector(
                 source='dictionary', dictionary=self._detector_dicts[self._current_file_id],
-                assume_inf=assume_inf, antenna_by_depth=antenna_by_depth,
                 create_new=True
             )
 

@@ -191,7 +191,8 @@ To write a JSON detector file, first we start with the channels, each one having
     * ``channel_id``, the ID that will be used internally in NuRadioMC and NuRadioReco
     * ``station_id``, the ID of the station the channel belongs to
     * ``adc_sampling_frequency``, the sampling frequency for the analog-to-digital converter, which can be used for resampling traces.
-    * ``ant_type``, the antenna type. For instance, 'bicone_v8' or 'createLPDA_100MHz'.
+    * ``ant_type``, the full name of the antenna model, for instance, 'bicone_v8_InfFirn' or 'createLPDA_100MHz_v2_InfFirn'
+      (see :doc:`/NuRadioReco/pages/detector/antennamodels`). Since v3.2, no suffix depending on the antenna depth is appended automatically.
     * These positions are relative to the altitude, northing, and easting of the associated station.
         * ``ant_position_x``, the x coordinate of the antenna in metres
         * ``ant_position_y``, the y coordinate of the antenna in metres

@@ -178,7 +178,7 @@ class crRNOGTemplateCreator:
                 for rid, eid, sid, cid, e_width, antrot, cr_zen, cr_az in zip(self.__template_run_id, self.__template_event_id, self.__template_station_id, self.__template_channel_id, self.__efield_width, self.__antenna_rotation, self.__cr_zenith, self.__cr_azimuth):
                     if cr_zen == crz and cr_az == cra:
                         # create the detector
-                        det_temp = detector.generic_detector.GenericDetector(json_filename=self.__detector_file, antenna_by_depth=False, create_new=True, log_level='ERROR')
+                        det_temp = detector.generic_detector.GenericDetector(json_filename=self.__detector_file, create_new=True, log_level='ERROR')
                         det_temp.update(datetime.datetime(2025, 10, 1))
                         det_temp.get_channel(sid, cid)['ant_rotation_phi'] = antrot
 

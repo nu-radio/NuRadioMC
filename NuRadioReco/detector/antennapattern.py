@@ -686,6 +686,16 @@ def get_pickle_antenna_response(path, return_verified=False):
 
     # check if gziped pickle file already exists
     if not os.path.exists(path):
+        # `antenna_by_depth` (removed in v3.2) used to append these suffixes automatically
+        model_name = os.path.splitext(file_name)[0]
+        candidates = [f"{model_name}{suffix}" for suffix in ("_InfFirn", "_InfAir")
+                      if f"{model_name}{suffix}.pkl" in antenna_hashs]
+        if sha1_hash is None and candidates:
+            raise ValueError(
+                f"Antenna model '{model_name}' does not exist. Since v3.2, the antenna model is no longer extended "
+                f"by a suffix depending on the antenna depth (`antenna_by_depth` was removed). Please specify the "
+                f"full antenna model name in the detector description, e.g., {' or '.join(candidates)}.")
+
         logger.status("antenna pattern {} does not exist, file will be downloaded".format(path))
         download_file = True
 

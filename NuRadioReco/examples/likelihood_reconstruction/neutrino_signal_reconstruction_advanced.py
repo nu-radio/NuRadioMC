@@ -28,7 +28,7 @@ channelGenericNoiseAdder = channelGenericNoiseAdder()
 channelGenericNoiseAdder.begin()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 
-det = NuRadioReco.detector.detector.Detector(json_filename='../../../NuRadioReco/detector/RNO_G/RNO_single_station.json', antenna_by_depth=False)
+det = NuRadioReco.detector.detector.Detector(json_filename='../../../NuRadioReco/detector/RNO_G/RNO_single_station.json')
 
 station_id = 11 #det.get_station_ids()[0]
 n_channels_total = det.get_number_of_channels(station_id)
