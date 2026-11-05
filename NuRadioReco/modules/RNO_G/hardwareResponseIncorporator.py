@@ -7,7 +7,6 @@ from NuRadioReco.detector import detector, response
 
 import numpy as np
 import copy
-import time
 import logging
 
 
@@ -21,7 +20,6 @@ class hardwareResponseIncorporator:
         self.logger = logging.getLogger(
             "NuRadioReco.RNOG.hardwareResponseIncorporator")
         self.__time_delays = {}
-        self.__t = 0
         self.__mingainlin = None
         self.trigger_channels = None
         self.channelAddCableDelay = NuRadioReco.modules.channelAddCableDelay.channelAddCableDelay()
@@ -187,7 +185,6 @@ class hardwareResponseIncorporator:
             self.logger.warning(
                 'Please use option mode=''phase_only'' in the future, use of option phase_only will be phased out')
 
-        t = time.time()
 
         if self.trigger_channels is not None and not isinstance(det, detector.rnog_detector.Detector):
             raise ValueError("Simulating extra trigger channels is only possible with the `rnog_detector.Detector` class.")
@@ -254,14 +251,8 @@ class hardwareResponseIncorporator:
                 # (if efieldToVoltageConverterPerEfield was used).
                 self.channelAddCableDelay.run(evt, station, det, mode='subtract')
 
-        self.__t += time.time() - t
-
     def end(self):
-        from datetime import timedelta
-        self.logger.setLevel(logging.INFO)
-        dt = timedelta(seconds=self.__t)
-        self.logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass
 
     def __calculate_time_delays_amp(self, amp_type):
         """
