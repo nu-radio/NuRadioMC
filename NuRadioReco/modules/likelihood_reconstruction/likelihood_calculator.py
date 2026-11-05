@@ -126,14 +126,15 @@ class LikelihoodCalculator:
         self.Vrms = Vrms
 
         # Scale spectra to Vrms if provided:
+        spectra_normalized = spectra.copy()
         if Vrms is not None:
             for i_ant in range(self.n_antennas):
                 spectrum_power = np.sum(spectra[i_ant]**2) * (self.frequencies[1] - self.frequencies[0])
                 time_domain_power = Vrms[i_ant]**2 * self.n_samples * 1/self.sampling_rate
-                spectra[i_ant, :] = spectra[i_ant, :] / np.sqrt(spectrum_power) * np.sqrt(time_domain_power)
+                spectra_normalized[i_ant, :] = spectra[i_ant, :] / np.sqrt(spectrum_power) * np.sqrt(time_domain_power)
 
-        covariance_matrices, covariance_matrices_inverse = self._calculate_covariance_matrices_from_spectra(abs(spectra))
-        self._set_covariance_matrices(covariance_matrices, spectra, cov_inv=covariance_matrices_inverse)
+        covariance_matrices, covariance_matrices_inverse = self._calculate_covariance_matrices_from_spectra(abs(spectra_normalized))
+        self._set_covariance_matrices(covariance_matrices, spectra_normalized, cov_inv=covariance_matrices_inverse)
 
     def initialize_with_data(self, data, method="using_spectra"):
         """
@@ -693,8 +694,8 @@ class LikelihoodCalculator:
             frequency_domain : bool, optional
                 If True, calculate the Fisher information matrix in the frequency domain.
             ignore_parameters : list, optional
-                List of parameters indicies of signal_function to ignore when calculating the Fisher information matrix, e.g. [2, 5]. The method then
-                returns a lower dimensional (len(parameters_x0) - len(ignore_parameters)) Fisher information matrix.
+                List of parameter indices of signal_function to ignore when calculating the Fisher information matrix, e.g. [2, 5].
+                The corresponding rows and columns in the returned matrix are zero.
 
         Returns
         -------
@@ -702,26 +703,33 @@ class LikelihoodCalculator:
                 Fisher information matrix for the parameters given the noise spectra
 
         """
-        n_parameters = len(parameters_x0) - len(ignore_parameters)
+        n_parameters = len(parameters_x0)
 
         # Calculate derivatives:
         derivatives = np.zeros([n_parameters, self.n_antennas, self.n_samples])
         derivatives_fft = np.zeros([n_parameters, self.n_antennas, self.n_frequencies], dtype=complex)
         signal_0 = signal_function(parameters_x0)
-        i_skipped = 0
         for i_param in range(n_parameters):
             if i_param in ignore_parameters:
-                i_skipped += 1
+                continue
             paramters_x1 = np.copy(parameters_x0)
-            paramters_x1[i_param + i_skipped] = parameters_x0[i_param + i_skipped] + dx[i_param + i_skipped]
-            derivatives[i_param, :, :] = (signal_function(paramters_x1) - signal_0) / dx[i_param + i_skipped]
+            paramters_x1[i_param] = (
+                parameters_x0[i_param] + dx[i_param]
+            )
+            derivatives[i_param, :, :] = (
+                signal_function(paramters_x1) - signal_0
+            ) / dx[i_param]
             if frequency_domain:
                 derivatives_fft[i_param, :, :] = fft.time2freq(derivatives[i_param, :, :], self.sampling_rate)
 
         # Calculate Fisher information matrix
         fisher_information_matrix = np.zeros([n_parameters, n_parameters])
         for i_param in range(n_parameters):
+            if i_param in ignore_parameters:
+                continue
             for j_param in range(n_parameters):
+                if j_param in ignore_parameters:
+                    continue
                 for i_ant in range(self.n_antennas):
                     if not frequency_domain:
                         fisher_information_matrix[i_param, j_param] += np.matmul(derivatives[i_param, i_ant, :], np.matmul(self.cov_inv[i_ant, :, :], derivatives[j_param, i_ant, :]))
