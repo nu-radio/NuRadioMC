@@ -1,6 +1,5 @@
 import NuRadioReco.detector.RNO_G.db_mongo_read
 import NuRadioReco.utilities.metaclasses
-import six
 import re
 import datetime
 
@@ -10,8 +9,7 @@ import logging
 logger = logging.getLogger("NuRadioReco.MongoDBWrite")
 
 
-@six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
-class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database):
+class Database(NuRadioReco.detector.RNO_G.db_mongo_read.Database, metaclass=NuRadioReco.utilities.metaclasses.Singleton):
 
     # operation changing collections
 

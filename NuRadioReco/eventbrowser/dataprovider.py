@@ -1,6 +1,5 @@
 import threading
 import logging
-import six
 import NuRadioReco.utilities.metaclasses
 import os
 import time
@@ -20,8 +19,7 @@ except ImportError as e:
     )
     _readRNOGData_eventbrowser = None # if we don't define this we'll raise more errors later
 
-@six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
-class DataProvider(object):
+class DataProvider(metaclass=NuRadioReco.utilities.metaclasses.Singleton):
     __lock = threading.Lock()
 
     def __init__(self, filetype='auto', max_user_instances=6):
