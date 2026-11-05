@@ -3,7 +3,6 @@ import logging
 import numpy as np
 from numpy.random import Generator, Philox
 import copy
-from six import iterkeys, iteritems
 from scipy import constants, interpolate
 import h5py
 import time
@@ -62,7 +61,7 @@ def load_input_hdf5(filename):
     """
     h5fin = h5py.File(filename, 'r')
     fin = {}
-    for key, value in iteritems(h5fin):
+    for key, value in h5fin.items():
         fin[key] = np.array(value)
     h5fin.close()
     return fin
@@ -969,11 +968,11 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
                         # the energy loss or particle is in our fiducial volume
                         # save parent muon if one of its induced showers interacts in the fiducial volume
                         if(n_interaction == 1):
-                            for key in iterkeys(data_sets):
+                            for key in data_sets:
                                 data_sets_fiducial[key].append(data_sets[key][iE])
                             n_interaction = 2
 
-                        for key in iterkeys(data_sets):
+                        for key in data_sets:
                             data_sets_fiducial[key].append(data_sets[key][iE])
 
                         data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction
@@ -1283,7 +1282,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
             logger.debug("starting proposal simulation")
             init_time = time.time()
             # Initialising data_sets_fiducial with empty values
-            for key, value in iteritems(data_sets):
+            for key, value in data_sets.items():
                 if(key not in data_sets_fiducial):
                     data_sets_fiducial[key] = []
 
@@ -1319,7 +1318,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
                 # Appending event if it interacts within the fiducial volume
                 if is_in_fiducial_volume(attributes, np.array([x_nu, y_nu, z_nu])):
-                    for key in iterkeys(data_sets):
+                    for key in data_sets:
                         data_sets_fiducial[key].append(data_sets[key][iE])
 
                     first_inserted = True
@@ -1351,7 +1350,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                     copies = 1
 
                                 for icopy in range(copies):
-                                    for key in iterkeys(data_sets):
+                                    for key in data_sets:
                                         data_sets_fiducial[key].append(data_sets[key][iE])
 
                                 data_sets_fiducial['n_interaction'][-1] = n_interaction  # specify that new event is a secondary interaction

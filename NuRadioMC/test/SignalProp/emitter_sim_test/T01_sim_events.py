@@ -1,7 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from NuRadioReco.utilities import units
-from six import iterkeys, iteritems
 from scipy import constants
 from scipy.integrate import quad
 from scipy.interpolate import interp1d
