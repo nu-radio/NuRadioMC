@@ -37,7 +37,8 @@ def download_from_dataserver(remote_path, target_path, unpack_tarball=True, data
     if not os.path.exists(folder):
         os.makedirs(folder)
 
-    lockfile = target_path+".lock"
+    # hidden lock file next to the target; it is not removed afterwards (removing it could break the lock)
+    lockfile = os.path.join(folder, "." + os.path.basename(target_path) + ".lock")
     lock = filelock.FileLock(lockfile)
 
     logger.warning(f"Assuring no other process is downloading. Will wait until {lockfile} is unlocked.")
