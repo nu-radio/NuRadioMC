@@ -1,8 +1,10 @@
 #!/bin/bash
 set -e
 
-NuRadioMC/test/SingleEvents/T02RunSimulation.py NuRadioMC/test/SingleEvents/1e18_output_ARZ_reference.hdf5 NuRadioMC/test/SingleEvents/surface_station_1GHz.json NuRadioMC/test/SingleEvents/config_ARZ.yaml NuRadioMC/test/SingleEvents/1e18_output_ARZ.hdf5
-NuRadioMC/test/SingleEvents/T04validate_allmost_equal.py NuRadioMC/test/SingleEvents/1e18_output_ARZ.hdf5 NuRadioMC/test/SingleEvents/1e18_output_ARZ_reference.hdf5
+dir=NuRadioMC/test/SingleEvents
 
-# cleanup 
-rm -v NuRadioMC/test/SingleEvents/1e18_output_ARZ.hdf5
+"$dir/T02RunSimulation.py" "$dir/1e18_output_ARZ_reference.hdf5" "$dir/surface_station_1GHz.json" "$dir/config_ARZ.yaml" "$dir/1e18_output_ARZ.hdf5"
+"$dir/T04validate_allmost_equal.py" "$dir/1e18_output_ARZ.hdf5" "$dir/1e18_output_ARZ_reference.hdf5"
+
+# cleanup
+rm -v "$dir/1e18_output_ARZ.hdf5"
