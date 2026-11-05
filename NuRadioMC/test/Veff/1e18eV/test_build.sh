@@ -14,4 +14,4 @@ dir=NuRadioMC/test/Veff/1e18eV
 "$dir/T03check_output.py" output.hdf5
 
 # cleanup
-rm -v "$dir"/output.{nur,hdf5}
+rm -v "$dir"/{output.nur,output.hdf5,1e18_full.hdf5}
