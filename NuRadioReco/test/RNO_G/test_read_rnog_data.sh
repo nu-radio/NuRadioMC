@@ -2,12 +2,14 @@
 
 set -e
 
-if [ -f NuRadioReco/test/data/station23/run325/combined.root ]; then
-    echo "Using existing data file at NuRadioReco/test/data/station23/run325/combined.root"
+data_dir=NuRadioReco/test/data/station23/run325
+
+if [ -f "$data_dir/combined.root" ]; then
+    echo "Using existing data file at $data_dir/combined.root"
 else
     wget https://rnog-data.zeuthen.desy.de/rnog_share/forced_triggers/station23_run325.root
-    mkdir -p NuRadioReco/test/data/station23/run325
-    mv station23_run325.root NuRadioReco/test/data/station23/run325/combined.root
+    mkdir -p "$data_dir"
+    mv station23_run325.root "$data_dir/combined.root"
 fi
 
-python3 NuRadioReco/examples/RNOG/data_analysis_example.py NuRadioReco/test/data/station23/run325/combined.root --outputfile NuRadioReco/examples/RNOG/processed.nur
+python3 NuRadioReco/examples/RNOG/data_analysis_example.py "$data_dir/combined.root" --outputfile NuRadioReco/examples/RNOG/processed.nur
