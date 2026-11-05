@@ -4,10 +4,10 @@ reference files (e.g. ``NuRadioMC/test/SingleEvents/T04validate_allmost_equal.py
 ``NuRadioMC/test/examples/validate_radio_emitter_allmost_equal.py``).
 
 A validation is a list of `check` specifications passed to `validate_hdf5_files`, which runs all
-of them, reports every mismatch and exits non-zero if any failed. `validate_nur_files` does the
-same for the traces and channel/station parameters of ``.nur`` files.
+of them, reports every mismatch and raises an `AssertionError` if any failed (a script calling it
+then exits with code 1). `validate_nur_files` does the same for the traces and channel/station
+parameters of ``.nur`` files.
 """
-import sys
 import h5py
 import numpy as np
 from numpy import testing
@@ -132,7 +132,7 @@ def validate_hdf5_files(file1, file2, checks, station='station_101', dump_on_fai
     """
     Run all `checks` comparing the HDF5 output `file1` with the reference `file2`.
 
-    Prints every mismatch and exits with code 1 if any check failed.
+    Prints every mismatch and raises an `AssertionError` if any check failed.
 
     Parameters
     ----------
@@ -159,13 +159,12 @@ def validate_hdf5_files(file1, file2, checks, station='station_101', dump_on_fai
         print(f"The files {file1} and {file2} are (almost) identical.")
         return
 
-    print(f"\n{len(errors)} key(s) differ: {errors}")
     if dump_on_failure:
         from NuRadioMC.utilities.dump_hdf5 import dump
         for fn in (file1, file2):
             print(f"file {fn}")
             dump(fn)
-    sys.exit(1)
+    raise AssertionError(f"{len(errors)} key(s) differ: {errors}")
 
 
 def _read_nur_file(file):
@@ -226,8 +225,8 @@ def validate_nur_files(file1, file2, precision=7, parameter_rtol=PARAMETER_RTOL,
     Compare the traces, trace start times and all channel/station parameters of the ``.nur`` file
     `file1` with the reference `file2`.
 
-    Prints every mismatch and the largest relative difference of each parameter, and exits with
-    code 1 if any check failed.
+    Prints every mismatch and the largest relative difference of each parameter, and raises an
+    `AssertionError` if any check failed.
 
     Parameters
     ----------
@@ -290,5 +289,4 @@ def validate_nur_files(file1, file2, precision=7, parameter_rtol=PARAMETER_RTOL,
         return
 
     print("\n" + "\n\n".join(errors))
-    print(f"\n{len(errors)} difference(s) found ({tolerances})")
-    sys.exit(1)
+    raise AssertionError(f"{len(errors)} difference(s) found ({tolerances})")

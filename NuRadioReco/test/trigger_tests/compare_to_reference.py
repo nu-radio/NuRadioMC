@@ -3,7 +3,6 @@ import json
 import NuRadioReco.modules.io.eventReader
 import argparse
 import numpy as np
-import sys
 from NuRadioMC.utilities._test_helpers import TIME_ATOL
 
 
@@ -60,6 +59,6 @@ else:
                     found_error = True
 
 if found_error:
-    sys.exit(-1)
+    raise AssertionError("Trigger properties differ from the reference")
 else:
     print('Trigger test passed without issues')
