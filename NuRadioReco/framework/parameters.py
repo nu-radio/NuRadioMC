@@ -93,6 +93,11 @@ class stationParametersRNOG(Enum):
     coherent_impulsivity = 2  #: impulsivity of the coherently summed waveform
     coherent_entropy = 3  #: Shannon entropy of the coherently summed waveform
     coherent_kurtosis = 4  #: kurtosis of the coherently summed waveform
+    calibration_run = 5  #: True if the calibration pulser was enabled during the run
+    calibration_channel = 6  #: the channel (fiber0, fiber1, or surface) of the calibration pulser
+    calibration_type = 7  #: the type of calibration signal, either 'pulser' or 'sweep'
+    calibration_pulser_attenuation = 8  #: the attenuation of the calibration pulser
+    calibration_sweep_settings = 9  #: the settings of the calibration sweep
 
 class electricFieldParameters(Enum):
     ray_path_type = 1  #: the type of the ray tracing solution ('direct', 'refracted' or 'reflected')

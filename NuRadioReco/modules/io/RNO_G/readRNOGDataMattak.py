@@ -16,6 +16,7 @@ import NuRadioReco.framework.station
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.trigger
 from NuRadioReco.framework.parameters import channelParameters
+from NuRadioReco.framework.parameters import stationParametersRNOG as stnpRNOG
 
 from NuRadioReco.utilities import units
 
@@ -740,7 +741,7 @@ class readRNOGData:
         return True
 
 
-    def _get_event(self, event_info, waveforms):
+    def _get_event(self, event_info, waveforms, run_info=None):
         """ Return a NuRadioReco event
 
         Parameters
@@ -750,6 +751,11 @@ class readRNOGData:
 
         waveforms: np.array(n_channel, n_samples)
             Typically what dataset.wfs() returns (for one event!)
+
+        run_info: mattak.Dataset.RunInfo
+            The run info object for the event used to save relevant
+            parameters to the station object. If None, no run info
+            is saved to the station. (Default: None)
 
         Returns
         -------
@@ -777,6 +783,18 @@ class readRNOGData:
         trigger.set_triggered()
         trigger.set_trigger_time(0)  # The trigger time is relative to the event/station time
         station.set_trigger(trigger)
+
+        # save relavant run info to the station object
+        if run_info is not None:
+            run_config = run_info.get_config()
+            station.set_parameter(stnpRNOG.calibration_run, bool(run_config["calib"]["enable_cal"]))
+            if run_config["calib"]["enable_cal"]:
+                station.set_parameter(stnpRNOG.calibration_channel, run_config["calib"]["channel"])
+                station.set_parameter(stnpRNOG.calibration_type, run_config["calib"]["type"])
+                if run_config["calib"]["type"] == "pulser":
+                    station.set_parameter(stnpRNOG.calibration_pulser_attenuation, run_config["calib"]["atten"])
+                elif run_config["calib"]["type"] == "sweep":
+                    station.set_parameter(stnpRNOG.calibration_sweep_settings, run_config["calib"]["sweep"])
 
         readout_delays = event_info.readoutDelay
         for channel_id, wf in enumerate(waveforms):
@@ -817,13 +835,14 @@ class readRNOGData:
         for path in self._datasets_paths:
             dataset = self.__get_dataset(path)
             dataset.setEntries((0, dataset.N()))
+            run_info = dataset.run_info
 
             # read all event infos of the entire dataset (= run)
             for evtinfo, wf in dataset.iterate(
                     calibrated=self._read_calibrated_data, selectors=self._select_events,
                     max_entries_in_mem=self._max_in_mem):
 
-                evt = self._get_event(evtinfo, wf)
+                evt = self._get_event(evtinfo, wf, run_info)
 
                 yield evt
 
@@ -846,6 +865,7 @@ class readRNOGData:
 
         dataset = self.__get_dataset_for_event(event_index)
         event_info = dataset.eventInfo()  # returns a single eventInfo
+        run_info = dataset.run_info
 
         if not self._select_events(event_info):
             return None
@@ -853,7 +873,7 @@ class readRNOGData:
         # access data
         waveforms = dataset.wfs()
 
-        evt = self._get_event(event_info, waveforms)
+        evt = self._get_event(event_info, waveforms, run_info)
 
         self.__counter += 1
 
@@ -902,8 +922,9 @@ class readRNOGData:
 
         # access data
         waveforms = dataset.wfs()
+        run_info = dataset.run_info
 
-        evt = self._get_event(event_info, waveforms)
+        evt = self._get_event(event_info, waveforms, run_info)
 
         self.__counter += 1
 
