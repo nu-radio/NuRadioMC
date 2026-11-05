@@ -240,6 +240,13 @@ jobs:
       run: |
         python NuRadioReco/test/voltageToEfieldConverter/test-unfolding.py
 
+    - name: "Test impulsiveSignalReconstructor"
+      if: always()
+      run: |
+        python NuRadioReco/test/impulsiveSignalReconstructor/test-reconstruction.py --method=xcorr
+        python NuRadioReco/test/impulsiveSignalReconstructor/test-reconstruction.py --method=stft
+        python NuRadioReco/test/impulsiveSignalReconstructor/test-reconstruction.py --method=simple_threshold
+
     - name: "Test module structure of all modules in NuRadioReco.modules"
       if: always()
       run: |
@@ -250,7 +257,7 @@ jobs:
       run: |
         python NuRadioReco/test/framework/test_parameter_storage.py
 
-    - name: "Test trace utilities and channelSignalReconstructor"
+    - name: "Test trace utilities"
       if: always()
       run: |
         python NuRadioReco/test/utilities/test_trace_utilities.py
