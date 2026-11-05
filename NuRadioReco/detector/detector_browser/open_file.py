@@ -135,18 +135,7 @@ layout = html.Div([
                     n_clicks=0,
                     className='btn btn-primary'
                 )
-            ], id='detector-event-div', className='input-group'),
-            html.Div([
-                dcc.Checklist(
-                    id='antenna-options-checklist',
-                    options=[
-                        {'label': 'infinite firn', 'value': 'assume_inf'},
-                        {'label': 'antenna by depth', 'value': 'antenna_by_depth'}
-                    ],
-                    value=[],
-                    labelStyle={'margin': '2px 10px'}
-                )
-            ], id='antenna-options-div', className='input-group')
+            ], id='detector-event-div', className='input-group')
         ], className='panel panel-body')
     ], className='panel panel-default')
 ])
@@ -225,8 +214,7 @@ def update_file_name_options(folder_dummy, refresh_button, file_type, folder_inp
      State('default-channel-input', 'value'),
      State('need-defaults-checkbox', 'value'),
      State('detector-time-slider', 'value'),
-     State('detector-event-slider', 'value'),
-     State('antenna-options-checklist', 'value')])
+     State('detector-event-slider', 'value')])
 def open_detector(
         n_clicks,
         time_n_clicks,
@@ -237,8 +225,7 @@ def open_detector(
         default_channel,
         need_defaults,
         detector_time,
-        i_event,
-        antenna_options
+        i_event
 ):
     """
     Opens the detector. After the detector has been opened, it returns an output
@@ -262,15 +249,13 @@ def open_detector(
     if context.triggered[0]['prop_id'] == 'update-detector-event-button.n_clicks':
         detector_provider.set_event(i_event)
         return n_clicks
-    assume_inf = antenna_options.count('assume_inf') > 0
-    antenna_by_depth = antenna_options.count('antenna_by_depth') > 0
     if detector_type == 'detector':
-        detector_provider.set_detector(filename, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
+        detector_provider.set_detector(filename)
     elif detector_type == 'generic_detector':
         if len(need_defaults) > 0:
-            detector_provider.set_generic_detector(filename, default_station, default_channel, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
+            detector_provider.set_generic_detector(filename, default_station, default_channel)
         else:
-            detector_provider.set_generic_detector(filename, default_station=None, default_channel=None, assume_inf=assume_inf, antenna_by_depth=antenna_by_depth)
+            detector_provider.set_generic_detector(filename, default_station=None, default_channel=None)
     elif detector_type == 'event_file':
         detector_provider.set_event_file(filename)
     elif detector_type == 'rnog_detector':

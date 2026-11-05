@@ -52,7 +52,7 @@ args = parser.parse_args()
 if __name__ == "__main__":
     logger.info(f'Using detector file {args.det_file} on {args.input_file}')
 
-    det = Detector(json_filename=args.det_file, antenna_by_depth=False)
+    det = Detector(json_filename=args.det_file)
     det.update(astropy.time.Time('2025-1-1'))
 
     #core_positions = NuRadioReco.modules.io.coreas.readCoREASDetector.get_random_core_positions()
