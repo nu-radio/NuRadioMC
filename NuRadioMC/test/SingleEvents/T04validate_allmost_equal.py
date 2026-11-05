@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 import argparse
-from NuRadioMC.utilities._test_helpers import check, validate_hdf5_files, TIME_ATOL
+from NuRadioMC.utilities._test_helpers import check, validate_hdf5_files, DEFAULT_RTOL, TIME_ATOL
 
 parser = argparse.ArgumentParser(description='Compare two NuRadioMC hdf5 output files')
 parser.add_argument('file1')
 parser.add_argument('file2', help='reference file')
-parser.add_argument('--rtol', type=float, default=1e-4,
+parser.add_argument('--rtol', type=float, default=DEFAULT_RTOL,
                     help='relative tolerance of all keys which are not compared exactly or with an absolute tolerance')
 args = parser.parse_args()
 
