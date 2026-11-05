@@ -38,5 +38,4 @@ generate_surface_muons(os.path.join(path, '1e18_full.hdf5'),
                        2.5e3, 1e18 * units.eV, 1e18 * units.eV,
                        volume,
                        thetamin=thetamin, thetamax=thetamax,
-                       config_file="Greenland",
-                       tables_path=os.path.join(path,"tables"))
+                       config_file="Greenland")
