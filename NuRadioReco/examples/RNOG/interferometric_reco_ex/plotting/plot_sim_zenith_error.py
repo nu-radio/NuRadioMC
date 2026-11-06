@@ -11,9 +11,8 @@ zenith ``truth_zenith`` (which is the source neutrino's arrival
 direction, capped at the sim's ``thetamax`` and unrelated to the
 PA->vertex geometric angle).
 
-Plots the table's ``reco_zenith_pa`` / ``truth_zenith_pa`` columns when present; for
-older tables both are computed here with the phased-array centre from the detector
-(absolute frame, as the reco and the simulation vertices are).
+The PA-centred geometry must already be present in the table. This script
+never loads detector information or recalculates reconstruction quantities.
 
 Outputs four PNGs:
   - sim_zenith_error_hist.png   1D histogram of reco - truth, deg
@@ -22,8 +21,6 @@ Outputs four PNGs:
   - sim_truth_zenith_hist.png   1D histogram of truth PA->vertex zenith, deg
 """
 import argparse
-import datetime
-import logging
 import os
 
 import matplotlib
@@ -31,21 +28,6 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from NuRadioReco.detector.RNO_G import rnog_detector
-
-PA_CHANNELS = (0, 1, 2, 3)
-
-
-def pa_position(station, source, detector_file, date):
-    """Absolute (x, y, z) of the phased-array centre, the mean of the four PA channels, from the detector description."""
-    kwargs = dict(log_level=logging.ERROR, select_stations=[station])
-    if source == "rnog_file":
-        kwargs["detector_file"] = detector_file
-    det = rnog_detector.Detector(**kwargs)
-    det.update(datetime.datetime.fromisoformat(date))
-    origin = np.asarray(det.get_absolute_position(station), float)
-    rel = np.mean([np.asarray(det.get_relative_position(station, ch), float) for ch in PA_CHANNELS], axis=0)
-    return origin + rel
 
 
 def main():
@@ -54,10 +36,6 @@ def main():
                    help="combined_event_variables.h5 (any station; we filter to source='sim')")
     p.add_argument("--output-dir", required=True)
     p.add_argument("--label", default="sim")
-    p.add_argument("--station", type=int, required=True)
-    p.add_argument("--detector-source", default="rnog_mongo", choices=["rnog_mongo", "rnog_file"])
-    p.add_argument("--detector-file", default=None, help="MongoDB export, used with --detector-source rnog_file")
-    p.add_argument("--detector-date", default="2022-10-01")
     args = p.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
@@ -66,30 +44,21 @@ def main():
         df = df[df["source"] == "sim"]
     print(f"Loaded {len(df):,} sim rows from {args.input}")
 
-    # Use the GEOMETRIC PA->vertex zenith as truth, NOT the thrown primary
-    # zenith stored in `truth_zenith` (which is the neutrino arrival
-    # direction, capped at the sim's thetamax and not what the antennas see).
-    if {"reco_zenith_pa", "truth_zenith_pa"} <= set(df.columns):
-        keep = df[["reco_zenith_pa", "truth_zenith_pa"]].dropna()
-        reco_rad = np.radians(keep["reco_zenith_pa"].to_numpy())
-        truth_rad = np.radians(keep["truth_zenith_pa"].to_numpy())
-        print("  using the table's reco_zenith_pa / truth_zenith_pa columns")
-    else:
-        pa_abs = pa_position(args.station, args.detector_source, args.detector_file, args.detector_date)
-        print(f"  no PA-frame zenith columns in the table; computing with PA centre "
-              f"{np.round(pa_abs, 2).tolist()} (station {args.station})")
-        keep = df[["peak_0_rho", "peak_0_z", "truth_vx", "truth_vy", "truth_vz"]].dropna()
-        rho = keep["peak_0_rho"].to_numpy()
-        z = keep["peak_0_z"].to_numpy()
-        dx = keep["truth_vx"].to_numpy() - pa_abs[0]
-        dy = keep["truth_vy"].to_numpy() - pa_abs[1]
-        dz = keep["truth_vz"].to_numpy() - pa_abs[2]
-        truth_rad = np.arctan2(np.sqrt(dx**2 + dy**2), dz)
-        reco_rad = np.arctan2(rho, z - pa_abs[2])
+    required = {"reco_zenith_pa", "truth_zenith_pa", "zenith_error_pa"}
+    missing = sorted(required - set(df.columns))
+    if missing:
+        raise RuntimeError(
+            "combined table is missing saved PA-geometry columns: "
+            + ", ".join(missing)
+        )
+    keep = df[sorted(required)].apply(pd.to_numeric, errors="coerce").dropna()
+    if keep.empty:
+        raise RuntimeError("no simulation rows have complete PA-zenith values")
 
-    err_deg = np.degrees(reco_rad - truth_rad)
-    truth_deg = np.degrees(truth_rad)
-    reco_deg = np.degrees(reco_rad)
+    reco_deg = keep["reco_zenith_pa"].to_numpy()
+    truth_deg = keep["truth_zenith_pa"].to_numpy()
+    err_deg = keep["zenith_error_pa"].to_numpy()
+    print("  using saved reco_zenith_pa, truth_zenith_pa, zenith_error_pa")
     print(f"  events with all three fields: {len(keep):,}")
     print(f"  err median / p16 / p84 / p95 (deg): "
           f"{np.median(err_deg):+.2f} / {np.percentile(err_deg, 16):+.2f} / "
@@ -109,7 +78,6 @@ def main():
                    label=f"p{q}={v:+.2f} deg")
     ax.set_xlabel("Zenith error: reco - truth [deg]")
     ax.set_ylabel("Events")
-    ax.set_yscale("log")
     ax.set_title(f"{args.label}: zenith error (N={len(err_deg):,})")
     ax.grid(alpha=0.3, which="both")
     ax.legend()
@@ -131,7 +99,6 @@ def main():
                    label=f"p{q}={v:.2f} deg")
     ax.set_xlabel("|Zenith error| = |reco - truth| [deg]")
     ax.set_ylabel("Events")
-    ax.set_yscale("log")
     ax.set_title(f"{args.label}: absolute zenith error (N={len(abs_err):,})")
     ax.grid(alpha=0.3, which="both")
     ax.legend()
