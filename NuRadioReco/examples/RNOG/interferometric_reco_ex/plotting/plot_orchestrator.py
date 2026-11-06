@@ -27,8 +27,8 @@ def main(argv=None):
         "--only",
         action="append",
         choices=["reco_summary", "pa_geometry", "sim_zenith_error"],
-        help=("Run only this enabled plot group. May be repeated. By default "
-              "all groups enabled in the config are considered."),
+        help=("Run only this plot group, whether or not the config enables it. "
+              "May be repeated. By default all groups enabled in the config run."),
     )
     ap.add_argument("--output-dir", required=True)
     ap.add_argument("--label", default="burn")
@@ -38,14 +38,7 @@ def main(argv=None):
         cfg = yaml.safe_load(f) or {}
     enabled = set(cfg.get("enabled", []))
     if args.only:
-        requested = set(args.only)
-        disabled = sorted(requested - enabled)
-        if disabled:
-            raise RuntimeError(
-                "requested plot groups are not enabled in the config: "
-                + ", ".join(disabled)
-            )
-        enabled = requested
+        enabled = set(args.only)
 
     os.makedirs(args.output_dir, exist_ok=True)
 
