@@ -1,0 +1,17 @@
+# Source: Auger neutrino limit 9 years, all flavor (x3) 
+# Data type: Upper limit
+# Energy bins per decade: 2
+# Column values:
+# Log10 Energy [eV]
+# Log10 Flux [GeV cm^-2 s^-1 sr^-1]
+# Flux band minimum
+# Flux band maximum
+
+16.7523809524  4.462265901E-07  0 0
+17.2523809524  1.103901153E-07  0 0
+17.7523809524  6.487559078E-08  0 0
+18.2380952381  7.739545498E-08  0 0
+18.7523809524  1.387743075E-07  0 0
+19.2571428571  3.083827665E-07  0 0
+19.7523809524  7.467202523E-07  0 0
+20.2476190476  1.998499395E-06  0 0

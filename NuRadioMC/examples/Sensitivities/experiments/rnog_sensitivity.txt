@@ -1,0 +1,17 @@
+# Source: RNO-G whitepaper 5 years  
+# Data type: Upper limit
+# Energy bins per decade: 1
+# Column values:
+# Energy [GeV]
+# Flux [GeV cm^-2 s^-1 sr^-1]
+# Flux band minimum
+# Flux band maximum
+
+1.77827941E+07  4.51342568E-08  0 0
+5.62341325E+07  1.57748718E-08  0 0
+1.77827941E+08  1.03345333E-08  0 0
+5.62341325E+08  7.98437261E-09  0 0
+1.77827941E+09  7.22245212E-09  0 0
+5.62341325E+09  7.62588582E-09  0 0
+1.77827941E+10  9.28033358E-09  0 0
+5.62341325E+10  1.28698605E-08  0 0

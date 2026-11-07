@@ -1,0 +1,17 @@
+# Source: Auger neutrino limit (2019, 14.7 years) JCAP 10 (2019) 022 https://arxiv.org/abs/1906.07422 
+# Data type: Upper limit
+# Energy bins per decade: 2
+# Column values:
+# Log10 Energy [eV]
+# Log10 Flux [GeV cm^-2 s^-1 sr^-1]
+# Flux band minimum
+# Flux band maximum
+
+5.677E+16  9.398E-08  0 0
+1.771E+17  2.298E-08  0 0
+5.677E+17  1.467E-08  0 0
+1.771E+18  1.881E-08  0 0
+5.677E+18  3.382E-08  0 0
+1.771E+19  7.179E-08  0 0
+5.677E+19  1.725E-07  0 0
+1.771E+20  4.412E-07  0 0
