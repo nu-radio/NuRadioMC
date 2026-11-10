@@ -110,6 +110,10 @@ class electricFieldSignalReconstructor:
                 ax.plot(times_masked / units.ns, envelope_mag / units.mV * units.m)
                 ax.vlines([signal_search_window[0] + low_pos * dt, signal_search_window[0] + up_pos * dt], 0, envelope_mag.max() / units.mV * units.m, linestyles='dotted')
                 ax.vlines([signal_time - self.__signal_window_pre, signal_time + self.__signal_window_post], 0, envelope_mag.max() / units.mV * units.m, linestyles='dashed')
+                ax.set_xlabel("time [ns]")
+                ax.set_ylabel("electric field [mV/m]")
+                ax.legend(["eTheta", "ePhi", "envelope", "search window"])
+                plt.savefig("debug_signal_reconstruction.png")
                 plt.show()
 
             times = electric_field.get_times()

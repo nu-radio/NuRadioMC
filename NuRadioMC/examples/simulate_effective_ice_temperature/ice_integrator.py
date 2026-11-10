@@ -166,7 +166,9 @@ def get_ray_depth_profile(zenith, z_antenna):
     power_interp = interp1d(distance_raytracing, reflected_power, fill_value="extrapolate")
     radius_interp = interp1d(distance_raytracing, radius_raytracing, fill_value="extrapolate")
 
-    distance = np.linspace(0, 30000, 100000) * units.m
+    max_distance = distance_raytracing[-1]
+    n = int(max_distance // 0.3)
+    distance = np.linspace(0, max_distance, n) * units.m
 
     depth = depth_interp(distance)
     reflection_coef = power_interp(distance)
@@ -202,9 +204,10 @@ def temperature_integral(zenith, z_antenna, freq=400 * units.MHz, model="GL3"):
     distance, _, depth, reflection_coef = get_ray_depth_profile(zenith, z_antenna)
     d_distance = distance[1] - distance[0]
 
-    l_att = attenuation.get_attenuation_length(depth, frequency=freq, model=model)
-    meaned_l_att = np.cumsum(l_att) / np.cumsum(np.ones_like(distance))
 
+    l_att = attenuation.get_attenuation_length(depth, frequency=freq, model=model)
+
+    meaned_l_att = np.cumsum(l_att) / np.cumsum(np.ones_like(distance))
     att_factor = np.exp(-distance / meaned_l_att)
 
     assert model.startswith("GL"), "Only the Greenland ice model is supported for now (because the GRIP temperature model is hardcoded.)"
@@ -225,26 +228,29 @@ def temperature_integral(zenith, z_antenna, freq=400 * units.MHz, model="GL3"):
     if depth[ground_idx] < z_min:
         ground_idx -= 1  # get the index which is just above z_min
 
-    # print(f"Temperature at the ground: {temp_env[ground_idx]} K, Attenuation factor: {att_factor[ground_idx]}")
-    t_eff_at_antenna += temp_env[ground_idx] * att_factor[ground_idx]  * reflection_coef[ground_idx]
+    # We model the rock as a black body with perfect emissivity = 1 and also perfect absorption, hence,
+    # we only see the surface of the rock. The temperature of the rock is given by the last ice layer assuming
+    # they are in thermal equilibrium.
+    t_eff_at_antenna += temp_env[ground_idx] * att_factor[ground_idx] * reflection_coef[ground_idx]
 
     return t_eff_at_antenna
 
 
-def get_eff_temperature(z_antenna=-100, n_theta=100, plot=False, attenuation_model="GL3", fname=None):
+def get_eff_temperature(z_antenna=-100, n_theta=100, plot=False, attenuation_model="GL3", freq=400 * units.MHz, fname=None):
     import time
     t0 = time.time()
     thetas = np.linspace(0, np.pi, n_theta)
 
     eff_temperatures = []
     for theta in thetas:
-        eff_temperatures.append(float(temperature_integral(theta, z_antenna, model=attenuation_model)))
+        eff_temperatures.append(float(temperature_integral(theta, z_antenna, freq=freq, model=attenuation_model)))
 
     data = {
         "z_antenna": z_antenna,
         "theta": thetas.tolist(),
         "eff_temperature": eff_temperatures,
-        "attenuation_model": attenuation_model
+        "attenuation_model": attenuation_model,
+        "frequency": freq / units.GHz
     }
 
     if fname is None:
@@ -289,16 +295,23 @@ def plot_ray_paths(z_antenna=-100, n_theta=100):
     plt.show()
 
 def plot_ray_paths_attenuation(z_antenna=-100, n_theta=10, model="GL3"):
-    thetas = np.linspace(np.pi / 2, np.pi, n_theta)
-    # thetas = [np.pi]
+    thetas = np.linspace(0, np.pi, n_theta)[1:-1]
+
     import matplotlib as mpl
     cmap = plt.get_cmap('plasma')
 
-    norm = mpl.colors.LogNorm(vmin=5e-3, vmax=1)
-    # norm = mpl.colors.Normalize(vmin=0, vmax=1)
+    norm = mpl.colors.Normalize(vmin=0, vmax=1)
     sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
 
+    norm2 = mpl.colors.LogNorm(vmin=0.000005, vmax=0.005)
+    # norm2 = mpl.colors.Normalize(vmin=0.0003, vmax=0.004)
+    sm2 = mpl.cm.ScalarMappable(norm=norm2, cmap=cmap)
+
     fig, ax = plt.subplots()
+    fig2, ax2 = plt.subplots()
+
+    axin = ax.inset_axes([0.6, 0.6, 0.35, 0.35])
+    axin2 = ax2.inset_axes([0.6, 0.6, 0.35, 0.35])
 
     for theta in thetas:
         distance, radius, depth, reflection_coef = get_ray_depth_profile(theta, z_antenna)
@@ -312,6 +325,10 @@ def plot_ray_paths_attenuation(z_antenna=-100, n_theta=10, model="GL3"):
         assert model.startswith("GL"), "Only the Greenland ice model is supported for now (because the GRIP temperature model is hardcoded.)"
         temp_env = attenuation.get_grip_temperature(np.abs(depth))  # already in kelvin, depth is positivly defined
 
+        # We assume that we do not receive radiation from deep in the ice,
+        # hence, we are setting the att_factor to zero everything below z_min.
+        # However, we will add a black body radiation term at the end...
+        # att_factor[depth < z_min] = 0
         mask = depth < z_min
 
         # We assume that we do not receive radiation from deep in the rock ...
@@ -322,22 +339,49 @@ def plot_ray_paths_attenuation(z_antenna=-100, n_theta=10, model="GL3"):
         if depth[ground_idx] < z_min:
             ground_idx -= 1  # get the index which is just above z_min
 
-        # print(f"Temperature at the ground: {temp_env[ground_idx]} K, Attenuation factor: {att_factor[ground_idx]}")
-        eff_temp[-1] += temp_env[ground_idx] * att_factor[ground_idx] * reflection_coef[ground_idx]
+        eff_temp[ground_idx] += temp_env[ground_idx] * att_factor[ground_idx] * reflection_coef[ground_idx]
 
-        eff_temp = 1 - np.cumsum(eff_temp) / np.sum(eff_temp)
+        var1 = 1 - np.cumsum(eff_temp) / np.sum(eff_temp)
+        var2 = eff_temp / np.sum(eff_temp)
+        print(np.amax(var2), np.argmax(var2), depth[~mask][np.argmax(var2)])
 
-        ax.scatter(radius[~mask], depth[~mask], c=eff_temp, cmap=cmap, norm=norm, alpha=0.8, marker='.')
+        ax.scatter(radius[~mask], depth[~mask], c=var1, cmap=cmap, norm=norm, alpha=0.8, s=1, marker='.')
+        axin.scatter(radius[~mask], depth[~mask], c=var1, cmap=cmap, norm=norm, alpha=0.8, s=1, marker='.')
+
+        ax2.scatter(radius[~mask], depth[~mask], c=var2, cmap=cmap, norm=norm2, alpha=0.8, s=1, marker='.')
+        axin2.scatter(radius[~mask], depth[~mask], c=var2, cmap=cmap, norm=norm2, alpha=0.8, s=1, marker='.')
 
     cb = plt.colorbar(sm, ax=ax, pad=0.02)
-    cb.set_label(r"1 - $\sum T(x, z) / T_{eff}$")
+    cb.set_label(r"1 - $\sum T(x, z) / T_{tot}$")
+
+    axin.set_xlim(-30, 300)
+    axin.set_ylim(-300, 30)
+    ax.set_xlim(-200, 5000)
 
     ax.set_xlabel("x / m")
     ax.set_ylabel("z / m")
 
     # ax.set_ylim(-4000, 10)
-    ax.axhline(z_min, color='k', linestyle='--')
+    ax2.axhline(z_min, color='k', linestyle='--')
     fig.tight_layout()
+
+
+    cb2 = plt.colorbar(sm2, ax=ax2, pad=0.02)
+    cb2.set_label(r"$T(x, z) / T_{tot}$")
+    axin2.set_xlim(-30, 300)
+    axin2.set_ylim(-300, 30)
+    ax2.set_xlim(-200, 5000)
+
+    ax2.set_xlabel("x / m")
+    ax2.set_ylabel("z / m")
+
+    # ax.set_ylim(-4000, 10)
+    ax2.axhline(z_min, color='k', linestyle='--')
+    fig2.tight_layout()
+
+    fig.savefig(f"ray_paths_cum_contribution_{model}_z{z_antenna}_ntheta{n_theta}.png", dpi=300)
+    fig2.savefig(f"ray_paths_contribution_{model}_z{z_antenna}_ntheta{n_theta}.png", dpi=300)
+
     plt.show()
 
 
@@ -347,15 +391,18 @@ if __name__ == "__main__":
     parser.add_argument('--z_antenna', type=float, default=-100, help='Depth of the antenna in meters')
     parser.add_argument('--n_theta', type=int, default=100, help='Number of angles to consider (equidistant in theta from 0 to pi)')
     parser.add_argument('--plot', action='store_true', help='Plot the effective temperature as a function of the angle')
+    parser.add_argument('--frequency', type=float, default=400, help='Frequency in MHz')
 
     parser.add_argument('--attenuation_model', type=str, default="GL3", help='Specify the attenuation model to use')
     parser.add_argument('--fname', type=str, default=None, help='Filename to save the data to')
+    parser.add_argument('--label', type=str, default="", help='Filename to save the data to')
 
     args = parser.parse_args()
 
     if args.z_antenna > 0:
         raise ValueError("The antenna is at or above the surface (z=0), the depth should be negative.")
 
-    fname = args.fname or f"eff_temperature_{args.z_antenna}m_ntheta{args.n_theta}_{args.attenuation_model}.json"
 
-    get_eff_temperature(args.z_antenna, args.n_theta, args.plot, args.attenuation_model, fname)
+    # plot_ray_paths_attenuation(args.z_antenna, args.n_theta, model=args.attenuation_model)
+    fname = args.fname or f"eff_temperature_{args.z_antenna}m_ntheta{args.n_theta}_{args.attenuation_model}_{args.frequency}MHz_summer.json"
+    get_eff_temperature(args.z_antenna, args.n_theta, args.plot, args.attenuation_model, freq=args.frequency * units.MHz, fname=fname)

@@ -1,0 +1,13 @@
+name: 'Upload coverage data'
+description: 'Upload this job''s coverage data files as an artifact, for later combination and reporting'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Upload coverage data
+      uses: actions/upload-artifact@v6
+      with:
+        name: coverage-data-${{ github.job }}
+        path: .coverage.*
+        include-hidden-files: true
+        if-no-files-found: ignore

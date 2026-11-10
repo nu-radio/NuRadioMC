@@ -10,9 +10,12 @@ runs:
   using: 'composite'
   steps:
     - name: Cache CI data
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           NuRadioReco/examples/Interactive/data
           NuRadioReco/test/data
+          NuRadioReco/detector/AntennaModels
+          NuRadioMC/utilities/data/*.npz
+          NuRadioMC/SignalGen/ARZ/shower_library
         key: ${{ inputs.cache-key }}

@@ -76,6 +76,17 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         """
         return self.__run_number
 
+    def set_run_number(self, run_nr):
+        """
+        Sets the run number.
+
+        Parameters
+        ----------
+        run_nr : int
+            The run number to set.
+        """
+        self.__run_number = run_nr
+
     def get_waveforms(self, station_id=None, channel_id=None):
         """
         Returns the waveforms stored within the event.
@@ -688,12 +699,8 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
             The serialized event as a byte stream.
         """
         stations_pkl = []
-        try:
-            commit_hash = version.get_NuRadioMC_commit_hash()
-            self.set_parameter(evp.hash_NuRadioMC, commit_hash)
-        except:
-            logger.warning("Event is serialized without commit hash!")
-            self.set_parameter(evp.hash_NuRadioMC, None)
+        commit_hash = version.get_NuRadioMC_commit_hash()
+        self.set_parameter(evp.hash_NuRadioMC, commit_hash)
 
         for station in self.get_stations():
             stations_pkl.append(station.serialize(mode))

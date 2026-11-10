@@ -9,7 +9,7 @@ import healpy
 logger = logging.getLogger('NuRadioReco.efieldGalacticNoiseAdder')
 
 class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
-    """
+    r"""
     Class that simulates the noise produced by galactic radio emission
 
     Uses the pydgsm package (https://github.com/telegraphic/pygdsm), which provides
@@ -58,7 +58,7 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
             Lower and upper bound of the frequency range in which noise shall be
             added. The default (no passband specified) is [10, 1000] MHz
         """
-        if self.__noise_temperatures is None: # check if .begin has been called, give helpful error message if not
+        if self._channelGalacticNoiseAdder__noise_temperatures is None: # check if .begin has been called, give helpful error message if not
             msg = "efieldGalacticNoiseAdder was not initialized correctly. Maybe you forgot to call `.begin()`?"
             logger.error(msg)
             raise ValueError(msg)
@@ -81,7 +81,7 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
         site_latitude, site_longitude = detector.get_site_coordinates(station.get_id())
         station_time = station.get_station_time()
 
-        local_coordinates = get_local_coordinates((site_latitude, site_longitude), station_time, self.__n_side)
+        local_coordinates = get_local_coordinates((site_latitude, site_longitude), station_time, self._channelGalacticNoiseAdder__n_side)
 
         n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
         n_air = ice.get_refractive_index(depth=1, site=detector.get_site(station.get_id()))
@@ -90,7 +90,7 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
         for field in station.get_electric_fields():
             field_spectra[field.get_unique_identifier()] = field.get_frequency_spectrum()
 
-        for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
+        for i_pixel in range(healpy.pixelfunc.nside2npix(self._channelGalacticNoiseAdder__n_side)):
             azimuth = local_coordinates[i_pixel].az.rad
             zenith = np.pi / 2. - local_coordinates[i_pixel].alt.rad
 
@@ -110,7 +110,7 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
                 continue
 
             temperature_interpolator = scipy.interpolate.interp1d(
-                self.__interpolation_frequencies, np.log10(self.__noise_temperatures[:, i_pixel]), kind='quadratic')
+                self._channelGalacticNoiseAdder__interpolation_frequencies, np.log10(self._channelGalacticNoiseAdder__noise_temperatures[:, i_pixel]), kind='quadratic')
             noise_temperature = np.power(10, temperature_interpolator(freqs[passband_filter]))
 
             efield_amplitude = signal_processing.get_electric_field_from_temperature(
@@ -118,7 +118,7 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
 
             # assign random phases to electric field
             noise_spectrum = np.zeros((3, freqs.shape[0]), dtype=complex)
-            phases = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
+            phases = self._channelGalacticNoiseAdder__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
 
             noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
             noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
@@ -152,7 +152,7 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
                 delta_phases = -2 * np.pi * freqs[passband_filter] * dt
 
                 # add random polarizations and phase to electric field
-                polarizations = self.__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
+                polarizations = self._channelGalacticNoiseAdder__random_generator.uniform(0, 2. * np.pi, len(efield_amplitude))
 
                 efield_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.exp(
                     1j * delta_phases) * np.cos(polarizations) * curr_t_theta

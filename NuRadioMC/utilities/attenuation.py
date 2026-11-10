@@ -320,7 +320,6 @@ except ImportError:
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    from NuRadioMC.SignalProp.CPPAnalyticRayTracing import wrapper as cpp_wrapper
 
     z = np.linspace(-10 * units.m, -3 * units.km, 1000)
 

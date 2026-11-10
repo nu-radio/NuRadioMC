@@ -25,20 +25,28 @@ See Also
 
 from NuRadioReco.utilities import units, geometryUtilities as geo_utl, fft, trace_utilities, constants
 
-from NuRadioReco.detector import filterresponse
-import NuRadioReco.framework.base_trace
 
 from scipy.signal.windows import hann
-from scipy import signal, interpolate
+from scipy import signal, interpolate, integrate
 import numpy as np
 import fractions
 import decimal
 import copy
-
-from matplotlib import pyplot as plt  # for debugging plots
+import sys
 
 import logging
 logger = logging.getLogger("NuRadioReco.utilities.signal_processing")
+
+
+def _isinstance_if_loaded(obj, module_name, class_name):
+    """
+    Check ``isinstance(obj, module_name.class_name)`` without importing the module.
+
+    If the module was never imported, ``obj`` cannot be an instance. This keeps
+    the framework/detector packages out of the import chain of this module.
+    """
+    module = sys.modules.get(module_name)
+    return module is not None and isinstance(obj, getattr(module, class_name))
 
 
 def half_hann_window(length, half_percent=None, hann_window_length=None):
@@ -56,11 +64,14 @@ def half_hann_window(length, half_percent=None, hann_window_length=None):
         The length of the half the Hann window. If `half_percent` is set, this value will be overwritten by it.
     """
     if half_percent is not None:
-        hann_window_length = int(length * half_percent)
+        hann_window_length = max(int(length * half_percent), 1)
     elif hann_window_length is None:
         raise ValueError("Either half_percent or half_window_length should be set!")
-    hann_window = hann(2 * hann_window_length)
 
+    if hann_window_length <= 1:
+        logger.warning("The half hann window you are using is basically only a box filter - this is not intended.")
+
+    hann_window = hann(2 * hann_window_length)
     half_hann_widow = np.ones(length, dtype=np.double)
     half_hann_widow[:hann_window_length] = hann_window[:hann_window_length]
     half_hann_widow[-hann_window_length:] = hann_window[hann_window_length:]
@@ -329,6 +340,7 @@ def get_filter_response(
         )
 
     else:
+        from NuRadioReco.detector import filterresponse  # lazy: keeps the detector package out of the import chain
         return filterresponse.get_filter_response(frequencies, filter_type)
 
 
@@ -429,7 +441,7 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
     """
     # Do nothing if time_delay is 0
     if not time_delay:
-        if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
+        if _isinstance_if_loaded(trace, 'NuRadioReco.framework.base_trace', 'BaseTrace'):
             if crop_trace:
                 return trace.get_trace(), 0
             else:
@@ -440,7 +452,7 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
             else:
                 return trace
 
-    if isinstance(trace, NuRadioReco.framework.base_trace.BaseTrace):
+    if _isinstance_if_loaded(trace, 'NuRadioReco.framework.base_trace', 'BaseTrace'):
         spectrum = trace.get_frequency_spectrum()
         frequencies = trace.get_frequencies()
         if trace.get_sampling_rate() != sampling_frequency:
@@ -490,7 +502,7 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
         return delayed_trace
 
 
-def get_electric_field_from_temperature(frequencies, noise_temperature, solid_angle):
+def get_electric_field_from_temperature(frequencies, noise_temperature, solid_angle, n=1):
     """
     Calculate the electric field amplitude from the radiance of a radio signal.
 
@@ -506,20 +518,22 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
         The noise temperature to use in the Rayleigh-Jeans law
     solid_angle: float
         The solid angle over which the radiance is integrated
+    n: float (default: 1)
+        The refractive index of the medium
 
     Returns
     -------
     efield_amplitude: array of floats
         The electric field amplitude at each frequency
     """
-    c_vac = constants.c  # already in NuRadioReco units
+    c_med = constants.c / n  # already in NuRadioReco units
 
     # Calculate frequency spacing
     d_f = frequencies[2] - frequencies[1]
 
     # Calculate spectral radiance of radio signal using Rayleigh-Jeans law
     spectral_radiance = (
-        2.0 * constants.k_B * frequencies**2 * noise_temperature / c_vac**2
+        2.0 * constants.k_B * frequencies**2 * noise_temperature / c_med**2
     )
     spectral_radiance[np.isnan(spectral_radiance)] = 0
 
@@ -527,8 +541,8 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
     radiance_per_bin = spectral_radiance * d_f * solid_angle
 
     # calculate electric field per energy bin from the radiance per bin
-    # 1 / (c_vac * epsilon_0) = Z_0 the vaccum impedance, d_f term due to our fft definition
-    efield_amplitude = np.sqrt(radiance_per_bin / (c_vac * constants.epsilon_0)) / d_f
+    # wave impedance in the medium: Z = Z_0 / n = 1 / (n * c_vac * epsilon_0), d_f term due to our fft definition
+    efield_amplitude = np.sqrt(radiance_per_bin / (n * constants.c * constants.epsilon_0)) / d_f
 
     return efield_amplitude
 
@@ -573,7 +587,7 @@ def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, 
             bandwidth = bandwidth[1] - bandwidth[0]
     else:
         freqs = freqs or np.arange(0, 2500, 0.1) * units.MHz
-        bandwidth = np.trapz(np.abs(response(freqs)) ** 2, freqs)
+        bandwidth = integrate.trapezoid(np.abs(response(freqs)) ** 2, freqs)
 
     return (temperature * impedance * bandwidth * constants.k_B) ** 0.5
 
@@ -674,7 +688,10 @@ def get_channel_voltage_from_efield(
 
 
 
-def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * units.microsecond, min_diff=0.005, max_t_diff=5 * units.ns, min_island_length=1 * units.ns, show_debug=False):
+def window_response_in_time_domain(
+        resp, sampling_rate=5 * units.GHz, t0=2 * units.microsecond,
+        min_diff=0.005, max_t_diff=5 * units.ns, min_island_length=1 * units.ns,
+        show_debug=False, freqs=None):
     """ Windows a response in the time domain (i.e., sets the response to 0 outside a window).
 
     This function takes the reponse in the time domain, identifies the relevant region of the response,
@@ -688,8 +705,8 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
 
     Parameters
     ----------
-    resp: NuRadioReco.detector.response.Response or callable(freqs) -> complex response
-        The response function to be windowed.
+    resp: NuRadioReco.detector.response.Response or callable(freqs) or spectrum -> complex response
+        The response function or spectrum to be windowed. If spectrum, freqs must be supplied.
     sampling_rate: float (default: 5 * units.GHz)
         For conversion in time domain, i.e., the sampling rate to evaluate the response in the time domain.
     t0: float (default: 2 * units.microsecond)
@@ -703,19 +720,29 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
         The minimum length of an island to be considered significant.
     show_debug: bool (default: False)
         If True, show the debug plots.
+    freqs: array of float (default: None)
+        The array of frequencies used to generate the spectrum of resp. Required if resp is not a Response object or callable,
+        i.e., if resp is already a spectrum. If resp is a Response object, freqs will be generated automatically from t0 and sampling_rate.
 
     Returns
     -------
-    resp_f: callable(freqs) -> complex response
-        The windowed response function.
+    resp_f: callable(freqs) or spectrum -> complex response
+        The windowed response function or spectrum.
     """
 
-    num_samples = int(t0 * sampling_rate)
+    if _isinstance_if_loaded(resp, 'NuRadioReco.detector.response', 'Response') or callable(resp):
+        spec = resp(freqs)
+        input_response = True
+        num_samples = int(t0 * sampling_rate)
+        freqs = fft.freqs(num_samples=num_samples, sampling_rate=sampling_rate)
+    else:
+        assert freqs is not None, "freqs MUST be passed when not using the response class"
+        spec = resp
+        input_response = False
+        num_samples = 2 * (len(spec) - 1)
+        sampling_rate = freqs[-1] * 2
 
-    freqs = fft.freqs(num_samples=num_samples, sampling_rate=sampling_rate)
     times = np.arange(num_samples) / sampling_rate
-    spec = resp(freqs)
-
     time_response = fft.freq2time(spec, sampling_rate=sampling_rate)
 
     # Roll the maximum of the time response to the center
@@ -728,6 +755,7 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
     hilbert = np.abs(trace_utilities.get_hilbert_envelope(time_response))
 
     if show_debug:
+        from matplotlib import pyplot as plt
         fig, ax = plt.subplots()
         ax.plot(times, time_response / np.amax(time_response), label='time response', lw=1)
         ax.plot(times, hilbert / np.amax(hilbert), label='hilbert', lw=1)
@@ -766,12 +794,25 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
     selected_islands = islands[np.logical_and(distance_mask, size_mask)]
 
     if not np.any(selected_islands):
-        raise ValueError("No islands found that satisfy the conditions")
+        logger.warning("No islands found that satisfy the conditions. Returning original response.")
+        if input_response:
+            return resp
+        else:
+            return spec
 
     # Connect selected islands
     sample_padding = 3  # padding because we apply a window
-    selected_range = [selected_islands[0, 0] - sample_padding, selected_islands[-1, 1] + sample_padding]
-    window = half_hann_window(selected_range[1] - selected_range[0], 0.01)
+    selected_range = [max(selected_islands[0, 0] - sample_padding, 0),
+                      min(selected_islands[-1, 1] + sample_padding, len(time_response))]
+
+    try:
+        window = half_hann_window(selected_range[1] - selected_range[0], 0.01)
+    except:
+        logger.warning("Zero length window. Returning original response.")
+        if input_response:
+            return resp
+        else:
+            return spec
 
     # Windowing: Outside of the selected range, set the response to 0, inside the selected range, apply a hann window
     time_response[:selected_range[0]] = 0
@@ -802,4 +843,94 @@ def window_response_in_time_domain(resp, sampling_rate=5 * units.GHz, t0=2 * uni
     response_freq = fft.time2freq(time_response, sampling_rate=sampling_rate)
     resp_f = interpolate.interp1d(freqs, response_freq, kind='linear', bounds_error=False, fill_value=0 + 0j)
 
-    return resp_f
+    if input_response:
+        return resp_f
+    else:
+        return response_freq
+
+def impulse_response_using_hilbert_phase(response, frequencies, left_time_shift=10*units.ns, right_time_shift=100*units.ns, show_debug=False):
+    """
+    Calculates a causal impulse response using a Hilbert derived phase. The theory can be found in chapter 8 of
+    'Advanced Signal Integrity for High-Speed Digitial Designs' by Hall and Heck. The Hilbert derived phased is defined by
+    the Kramers-Kronig relations where the imaginary component of a response can be computed by the Hilbert tranformation of the real
+    component. Causality is enforced by shifting the response later in time with left_time_shift. To keep resulting signals convolved and rolled
+    with the response it will enforce causality there by doing the Kramers-Kronig on the time reversed reponse with right_time_shift.
+    The final impulse reponse is spliced between the forward and backward which windows the impulse repsponse.
+
+    There is overlap with the functionality of window_response_in_time_domain.
+
+    Parameters
+    ----------
+    response: array of complex
+        Signal chain response as a frequency spectrum.
+    frequencies: array of float
+        Frequency bins used for channel_response. Assumes np.rfft standard of odd number of frequencies from 0 to sampling_rate/2.
+    left_time_shift: float
+        Time before the impulse response needed to calculate the causal response (leading edge).
+    right_time_shift: float
+        Time after the impulse response needed to calculate the causal reponse in the reverse direction (trailing edge).
+
+    Returns
+    -------
+    response: array of complex
+        Windowed response in the frequency domain
+    impulse_response: array of float
+        Hilbert derived impulse response v(t)
+    times: array of float
+        Time bins of impulse response
+    """
+    n_bins = len(frequencies)
+    f_sampling = np.max(frequencies)*2
+    times = np.linspace(-(n_bins-1), n_bins-1, 2*(n_bins-1)) / f_sampling
+
+    # Calculate the causal impulse response.
+    shifted_response = response * np.exp(-2j*np.pi*frequencies*left_time_shift)
+    hilbert_phase = -np.imag(signal.hilbert(np.real(shifted_response)))
+    shifted_causal_response = np.real(shifted_response)+1j*hilbert_phase
+    causal_response = shifted_causal_response * np.exp(+2j*np.pi*frequencies*left_time_shift)
+    causal_impulse = fft.freq2time(causal_response, f_sampling)
+    causal_impulse = np.roll(causal_impulse,len(times)//2)
+
+    # Calculate the causal impulse response for the time reversed response.
+    rev_resp = np.conjugate(response)
+    rev_shifted = rev_resp * np.exp(-2j*np.pi*frequencies*right_time_shift)
+    rev_phase = -np.imag(signal.hilbert(np.real(rev_shifted)))
+    rev_causal = np.real(rev_shifted) + 1j*rev_phase
+    rev_causal = rev_causal * np.exp(2j*np.pi*frequencies*right_time_shift)
+    rev_causal = np.conjugate(rev_causal)
+    rev_impulse = fft.freq2time(rev_causal, f_sampling)
+    rev_impulse = np.roll(rev_impulse, len(rev_impulse)//2)
+
+    # Splice the forward and backward causal impulse responses.
+    combo = np.concatenate((causal_impulse[0:len(times)//2], rev_impulse[len(times)//2:]))
+    combo_resp=fft.time2freq(np.roll(combo,-len(times)//2),frequencies[-1]*2)
+
+    if show_debug:
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots(1,1)
+        ax.plot(frequencies, np.imag(response), label="Imag(Original)")
+        ax.plot(frequencies, np.imag(shifted_response), linestyle="dashed", label="Imag(Shifted original)")
+        ax.plot(frequencies, hilbert_phase, linestyle="dashed", label="Imag(Hilbert derived)")
+        ax.plot(frequencies, np.imag(causal_response), label="Imag(Acausal Removed)")
+        ax.legend()
+        ax.set_xlabel("Frequencies [GHz]")
+        ax.set_ylabel(f"Amplitude of Imag(Response) [V/GHz]")
+
+        original_impulse = fft.freq2time(response, f_sampling)
+        original_impulse = np.roll(original_impulse, len(times)//2)
+
+        fig_impulse, ax_impulse = plt.subplots(1,1)
+        ax_impulse.plot(times, original_impulse, label="Original Impulse")
+        ax_impulse.plot(times, causal_impulse, label="Acausal Removed Impulse")
+        ax_impulse.plot(times, rev_impulse, label="Reverse Acausal Removed Impulse")
+        ax_impulse.plot(times, combo, label="Spliced Impulse Response")
+
+        ax_impulse.legend()
+        ax_impulse.set_xlabel(f"Time [ns]")
+        ax_impulse.set_ylabel("Impulse Response [V]")
+        ax_impulse.set_xlim(left=-60, right=100)
+
+        plt.show()
+
+    return combo_resp, combo, times

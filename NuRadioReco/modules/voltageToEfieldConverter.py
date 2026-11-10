@@ -190,8 +190,8 @@ class voltageToEfieldConverter:
         evt : `NuRadioReco.framework.event.Event`
         station : `NuRadioReco.framework.base_station.BaseStation`
         det : Detector object
-        use_channels: array of ints (default: [0, 1, 2, 3])
-            the channel ids to use for the electric field reconstruction
+        use_channels: array of ints
+            The channel ids to use for the electric field reconstruction
         use_MC_direction: bool, default: False
             If True uses zenith and azimuth direction from simulated station.
             Otherwise, uses reconstructed direction from station parameters.
@@ -200,7 +200,15 @@ class voltageToEfieldConverter:
             assuming the other is 0. Otherwise (default), reconstructs electric field for both eTheta and ePhi
         """
         if use_channels is None:
-            use_channels = [0, 1, 2, 3]
+            msg = ("No channels specified for electric field reconstruction. "
+                "Please provide `use_channels` argument to the voltageToEfieldConverter.")
+            logger.error(msg)
+            raise ValueError(msg)
+        elif len(use_channels) < 2 and not force_Polarization:
+            msg = ("At least two channels with orthogonal antenna response are needed for electric field reconstruction. "
+                "Please provide at least two channels in `use_channels` or set `force_Polarization` to 'eTheta' or 'ePhi'.")
+            logger.error(msg)
+            raise ValueError(msg)
 
         if use_MC_direction:
             zenith = station.get_sim_station()[stnp.zenith]

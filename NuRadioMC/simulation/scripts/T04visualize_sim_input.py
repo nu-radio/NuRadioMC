@@ -48,7 +48,7 @@ print(f"starting plotting")
 # plot flavor ratios
 ###########################
 flavor_labels = ['e cc', r'$\bar{e}$ cc', 'e nc', r'$\bar{e}$ nc',
-           '$\mu$ cc', r'$\bar{\mu}$ cc', '$\mu$ nc', r'$\bar{\mu}$ nc',
+           r'$\mu$ cc', r'$\bar{\mu}$ cc', r'$\mu$ nc', r'$\bar{\mu}$ nc',
            r'$\tau$ cc', r'$\bar{\tau}$ cc', r'$\tau$ nc', r'$\bar{\tau}$ nc']
 flavors = np.array(flavors)
 interaction_type = np.array(interaction_type)

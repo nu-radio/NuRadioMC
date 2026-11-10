@@ -3,7 +3,7 @@ import json
 import NuRadioReco.modules.io.eventReader
 import argparse
 import numpy as np
-import sys
+from NuRadioMC.utilities._test_helpers import TIME_ATOL
 
 
 parser = argparse.ArgumentParser()
@@ -42,7 +42,10 @@ else:
         for prop in properties:
             if(prop == "trigger_time"):
                 try:
-                    np.testing.assert_allclose(np.array(trigger_results[trigger_name][prop], dtype=float), np.array(reference[trigger_name][prop], dtype=float))
+                    np.testing.assert_allclose(
+                        np.array(trigger_results[trigger_name][prop], dtype=float),
+                        np.array(reference[trigger_name][prop], dtype=float),
+                        atol=TIME_ATOL, rtol=0)  # trigger_time depends on the raytraced travel time
                 except AssertionError as e:
                     print('Property {} of trigger {} differs from reference'.format(prop, trigger_name))
                     print(e)
@@ -56,6 +59,6 @@ else:
                     found_error = True
 
 if found_error:
-    sys.exit(-1)
+    raise AssertionError("Trigger properties differ from the reference")
 else:
     print('Trigger test passed without issues')

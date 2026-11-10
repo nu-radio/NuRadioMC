@@ -3,7 +3,6 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.detector import antennapattern
-import time
 import logging
 from scipy import signal
 from NuRadioReco.utilities import fft
@@ -17,7 +16,6 @@ class calculateAmplitudePerRaySolution:
     """
 
     def __init__(self):
-        self.__t = 0
         self.__debug = None
         self.antenna_provider = None
         self.begin()
@@ -32,7 +30,6 @@ class calculateAmplitudePerRaySolution:
 
     @register_run()
     def run(self, evt, station, det):
-        t = time.time()
 
         # access simulated efield and high level parameters
         sim_station = station.get_sim_station()
@@ -55,7 +52,7 @@ class calculateAmplitudePerRaySolution:
 
                 # get antenna pattern for current channel
                 antenna_model = det.get_antenna_model(sim_station_id, channel_id, zenith)
-                antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model, interpolation_method='complex')
+                antenna_pattern = self.antenna_provider.load_antenna_pattern(antenna_model)
                 ori = det.get_antenna_orientation(sim_station_id, channel_id)
                 logger.debug("zen {:.0f}, az {:.0f}".format(zenith / units.deg, azimuth / units.deg))
                 VEL = antenna_pattern.get_antenna_response_vectorized(ff, zenith, azimuth, *ori)
@@ -74,13 +71,16 @@ class calculateAmplitudePerRaySolution:
                 if not efield.has_parameter(efp.max_amp_antenna):
                     efield[efp.max_amp_antenna] = {}
                     efield[efp.max_amp_antenna_envelope] = {}
-                efield[efp.max_amp_antenna][channel_id] = maximum
-                efield[efp.max_amp_antenna_envelope][channel_id] = maximum_envelope
 
-        self.__t += time.time() - t
+                # `get_parameter` returns a copy of the stored dict, so it needs to be
+                # written back with `set_parameter` after being updated in place.
+                max_amp_antenna = efield[efp.max_amp_antenna]
+                max_amp_antenna[channel_id] = maximum
+                efield[efp.max_amp_antenna] = max_amp_antenna
+
+                max_amp_antenna_envelope = efield[efp.max_amp_antenna_envelope]
+                max_amp_antenna_envelope[channel_id] = maximum_envelope
+                efield[efp.max_amp_antenna_envelope] = max_amp_antenna_envelope
 
     def end(self):
-        from datetime import timedelta
-        dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass

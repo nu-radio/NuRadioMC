@@ -308,7 +308,7 @@ class TBBData_Dal1:
             for i, dipole in enumerate(self.dipoleNames):
                 self.calibrationDelays[i] = self.file[self.stationKey][dipole].attrs[
                     "DIPOLE_CALIBRATION_DELAY_VALUE"
-                ]
+                ][0]
 
         # get the offset, in number of samples, needed so that each antenna starts at the same time #
         self.nominal_sample_number = np.max(self.SampleNumbers)

@@ -3,13 +3,15 @@ Some notes on conventions
 
 Units
 -----
-Physical quantities in ``NuRadioMC`` use Auger base units. To print, plot and convert dimensional quantities,
-a convenient module is included in :mod:`NuRadioReco.utilities.units`. Details are given :mod:`here<NuRadioReco.utilities.units>`.
+Physical quantities in ``NuRadio`` use Auger base units. We highly recommend ALWAYS including the units of unitful quantities
+using the :mod:`NuRadioReco.utilities.units` module. This ensures consistent unit handling,
+especially when printing, plotting or converting dimensional quantities.
+Details are given :mod:`here<NuRadioReco.utilities.units>`.
 
 Fourier transformations
 -----------------------
 To ensure Fourier transforms have the correct units, please use the convenience functions provided
-in :mod:`NuRadioReco.utilities.fft`.
+in :mod:`NuRadioReco.utilities.fft`. See the description of this module for details on the convention implemented in ``NuRadio``.
 
 Coordinates
 -----------
@@ -56,7 +58,7 @@ The electric field is stored in 'on-sky' polar coordinates with (r, :math:`e_\th
 .. image:: ../figs/cos_earth.png 
   :width: 45%
 
-Left: Comparison of the coordinate systems important for the polarization of the electic fiel.
+Left: Comparison of the coordinate systems important for the polarization of the electic field.
 The orange arrow indicates the shower axis, the purple circle indicates the shower plane.
 The natural coordinate system for the air shower electric field is given by :math:`\hat{e}_{\vec{v}}`, :math:`\hat{e}_{\vec{v} \times \vec{B}}` and :math:`\hat{e}_{\vec{v} \times \vec{v} \times \vec{B}}`.
 On ground, a coordinate system with respect to arrival direction is useful, given by :math:`\hat{e}_{\vec{v}}`, :math:`\hat{e}_\theta`, :math:`\hat{e}_\phi`.

@@ -1,0 +1,32 @@
+{
+    "auger": {
+        "latitude": -35.1,
+        "longitude": -69.55,
+        "elevation": 1552.0
+    },
+    "mooresbay": {
+        "latitude": -78.74,
+        "longitude": 165.09,
+        "elevation": 26.0
+    },
+    "southpole": {
+        "latitude": -90.0,
+        "longitude": 0.0,
+        "elevation": 2745.0
+    },
+    "summit": {
+        "latitude": 72.57,
+        "longitude": -38.46,
+        "elevation": 3203.0
+    },
+    "lofar": {
+        "latitude": 52.92,
+        "longitude": 6.87,
+        "elevation": 7.6
+    },
+    "ska": {
+        "latitude": -26.825,
+        "longitude": 116.764,
+        "elevation": 365.0
+    }
+}

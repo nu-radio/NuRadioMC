@@ -1,15 +1,15 @@
 from __future__ import absolute_import, division, print_function
 
-from NuRadioReco.utilities import fft, signal_processing
+from NuRadioReco.utilities.io_utilities import _dumps
+from NuRadioReco.utilities import fft, signal_processing, units
 import NuRadioReco.detector.response
-from NuRadioReco.utilities import units, signal_processing
 
 import numpy as np
 import logging
 import numbers
 import copy
 import pickle
-from NuRadioReco.utilities.io_utilities import _dumps
+
 logger = logging.getLogger("NuRadioReco.BaseTrace")
 
 

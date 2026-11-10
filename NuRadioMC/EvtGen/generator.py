@@ -1404,11 +1404,11 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     if write_events:
         write_events_to_hdf5(filename, data_sets_fiducial, attributes, n_events_per_file=n_events_per_file, start_file_id=start_file_id)
-        logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
+        logger.status(f"Generated {len(data_sets_fiducial['event_group_ids'])} event groups in {pretty_time_delta(time.time() - t_start)}. Write them to {filename}")
     else:
         for key, value in data_sets_fiducial.items():
             if value.dtype.kind == 'U':
                 data_sets_fiducial[key] = np.array(value, dtype=h5py.string_dtype(encoding='utf-8'))
 
-        logger.status(f"finished in {pretty_time_delta(time.time() - t_start)}")
+        logger.status(f"Generated {len(data_sets_fiducial['event_group_ids'])} event groups in {pretty_time_delta(time.time() - t_start)}")
         return data_sets_fiducial, attributes

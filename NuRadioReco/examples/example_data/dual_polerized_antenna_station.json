@@ -13,6 +13,7 @@
             "ant_rotation_theta": 90,
             "adc_n_samples": 2048,
             "adc_sampling_frequency": 0.5,
+            "cab_time_delay": 0,
             "channel_id": 0,
             "station_id": 0
         },
@@ -28,6 +29,7 @@
             "ant_rotation_theta": 90,
             "adc_n_samples": 2048,
             "adc_sampling_frequency": 0.5,
+            "cab_time_delay": 0,
             "channel_id": 1,
             "station_id": 0
         }

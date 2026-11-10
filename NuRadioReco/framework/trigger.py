@@ -42,7 +42,8 @@ class Trigger:
     base class to store different triggers
     """
 
-    def __init__(self, name, channels=None, trigger_type='default', pre_trigger_times=55 * units.ns):
+    def __init__(self, name, channels=None, trigger_type='default', pre_trigger_times=55 * units.ns,
+                 sample_block_size=0, gaussian_jitter=0 * units.ns):
         """
         initialize trigger class
 
@@ -59,6 +60,15 @@ class Trigger:
             if a dict is given, the keys are the channel_ids, and the value is the pre_trigger_time between the
             start of the trace and the trigger time.
             if only a float is given, the same pre_trigger_time is used for all channels
+        sample_block_size: int
+            range of the uniform integer jitter (in samples) caused by the
+            readout window being collected in sample blocks.
+            An integer is drawn from ``[-sample_block_size / 2, sample_block_size / 2)``.
+            Default: 0 samples(no block jitter)
+        gaussian_jitter: positive int or float
+            standard deviation of a Gaussian time smear applied to the
+            readout window position (in samples, note check the sampling rate of the detector).
+            Default: 0 samples (no Gaussian jitter)
 
         """
         self._name = name
@@ -70,6 +80,8 @@ class Trigger:
         self._triggered_channels = []
         self._pre_trigger_times = pre_trigger_times
         self._primary_trigger = False
+        self._sample_block_size = sample_block_size
+        self._gaussian_jitter = gaussian_jitter
 
     def set_primary(self, primary_trigger=True):
         """
@@ -222,6 +234,32 @@ class Trigger:
         if isinstance(self._pre_trigger_times, dict):
             return self._pre_trigger_times[channel_id]
         return self._pre_trigger_times
+
+    def set_jitter_params(self, sample_block_size=0, gaussian_jitter=0):
+        """
+        Set the readout-window jitter parameters.
+
+        Parameters
+        ----------
+        sample_block_size : int
+            Range of the uniform integer jitter (in samples) caused by the
+            readout window being collected in sample blocks.
+            Default: 0 (no block jitter)
+        gaussian_jitter : float
+            Standard deviation of a Gaussian time smear applied to the
+            readout window position (in NuRadioReco time units).
+            Default: 0 (no Gaussian jitter)
+        """
+        self._sample_block_size = sample_block_size
+        self._gaussian_jitter = gaussian_jitter
+
+    def get_sample_block_size(self):
+        """Return the sample block size for readout-window jitter."""
+        return self._sample_block_size
+
+    def get_gaussian_jitter(self):
+        """Return the Gaussian jitter spread for readout-window jitter."""
+        return self._gaussian_jitter
 
     def serialize(self):
         return _dumps(self.__dict__, protocol=4)
