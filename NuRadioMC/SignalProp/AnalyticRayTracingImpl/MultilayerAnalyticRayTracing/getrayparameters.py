@@ -11,7 +11,9 @@ from NuRadioReco.utilities import units,  constants
 
 from math import sqrt, log
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_turning_point, get_layer_index, build_y_field, get_n_1D, determine_solution_type
+from .corefunctions import \
+    layers_to_arrays, compute_offsets, get_turning_point, \
+    get_layer_index, build_y_field, get_n_1D, determine_solution_type
 
 NumbaList = list # fallback for get_path_segments function
 
@@ -572,7 +574,7 @@ def get_reflection_angle(c0, x1, x2, layers):
 
     Notes
     -----
-    The solution type is determined using :func:`determine_solution_type`.
+    The solution type is determined using :func:`.corefunctions.determine_solution_type`.
     The incidence angle is evaluated at z = -1e-12 to avoid numerical
     issues at the surface boundary.
     """
