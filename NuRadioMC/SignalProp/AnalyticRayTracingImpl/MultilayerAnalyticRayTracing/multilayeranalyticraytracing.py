@@ -492,8 +492,8 @@ class multi_layer_ray_tracing_2D():
 
         return attenuation_factor
 
-    def get_time_difference_plane_wave_analytic(self, x1, x2, src_zenith, src_azimuth, azimuth_convention = 'nuradio'):
+    def get_time_difference_plane_wave_analytic(self, x1, x2, src_zenith, src_azimuth):
 
-        dt = get_time_difference_plane_wave_analytic(x1, x2, src_zenith, src_azimuth, self._layers_arr, azimuth_convention)
+        dt = get_time_difference_plane_wave_analytic(x1, x2, src_zenith, src_azimuth, self._layers_arr)
 
         return dt
