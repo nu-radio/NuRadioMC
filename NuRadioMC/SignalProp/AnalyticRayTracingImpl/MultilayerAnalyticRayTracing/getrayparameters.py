@@ -5,7 +5,7 @@ from scipy import integrate
 from NuRadioMC.SignalProp.propagation import solution_types_revert
 from NuRadioMC.utilities import attenuation
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba import njit
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl._maybenumba import njit
 
 from NuRadioReco.utilities import units,  constants
 
