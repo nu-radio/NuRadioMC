@@ -890,7 +890,32 @@ class IceModelExpLayers(IceModel):
         """
         
         self._set_layers(layers)
-        
+
+    @classmethod
+    def from_IceModel(cls, ice_model : IceModelSimple):
+        """
+        Create a multi-layered `IceModelExpLayers` from a single-layer `IceModelSimple`.
+
+        This is mostly useful to e.g. test / use the additional functionality
+        available in the multi-layer analytic raytracer instead of the single-layer
+        raytracer.
+
+        Parameters
+        ----------
+        ice_model : `IceModelSimple`
+            An `IceModelSimple` instance to convert to a multi-layered ice model
+        """
+
+        icelayer = dict(
+            z_min = ice_model.z_bottom,
+            z_max = ice_model.z_air_boundary,
+            n_ice = ice_model.n_ice,
+            delta_n = ice_model.delta_n,
+            z_0 = ice_model.z_0,
+            region_name = 'ice'
+        )
+
+        return cls([icelayer])
 
     def _set_layers(self, layers, z_shift=0*units.meter, z_air_boundary=0*units.meter):
         """
