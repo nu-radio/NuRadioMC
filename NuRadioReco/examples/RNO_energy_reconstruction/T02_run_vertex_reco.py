@@ -104,7 +104,7 @@ vertex_reconstructor.begin(
     channel_ids=vertex_channel_ids,
     detector=Detector,
     template=efield_template,
-    distances_2d=[700, 2700],
+    distances_2d=[50, 4800],
     passband=vertex_reco_passband,
     debug_folder='plots/Vertex_reco_with_normal_trace_20'
 )
