@@ -925,8 +925,16 @@ class IceModelExpLayers(IceModel):
             z_0 = ice_model.z_0,
             region_name = 'ice'
         )
+        new_model = cls([airlayer,icelayer])
 
-        return cls([airlayer,icelayer])
+        if ice_model.reflection is not None:
+            new_model.add_reflective_bottom(
+                refl_z=ice_model.reflection,
+                refl_coef=ice_model.reflection_coefficient,
+                refl_phase_shift=ice_model.reflection_phase_shift
+            )
+
+        return new_model
 
     def _set_layers(self, layers, z_shift=0*units.meter, z_air_boundary=0*units.meter):
         """
@@ -1169,6 +1177,9 @@ class IceModelExpLayers(IceModel):
                 axis=1
             )
 
+    def add_reflective_bottom(self, refl_z, refl_coef, refl_phase_shift):
+        """Reflective layers not currently implemented in IceModelExpLayers"""
+        raise NotImplementedError("Reflective layers not currently implemented in IceModelExpLayers")
 
     @property
     def get_layers_array(self):
@@ -1272,6 +1283,21 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
         return layers_gen
 
     def __init__(self, nN, delta_nN, ls, zs):
+        """
+        Parametrizes a three-layer ice model with continuous n(z) and n'(z)
+
+        Parameters
+        ----------
+        nN : float
+            Asymptotic refractive index of the bottommost layer
+        delta_nN : float
+            Refractive index step in the bottommost layer
+        ls : list of float
+            Length scales of the layers, starting at the bottommost layer
+        zs : list of float
+            Depth of transition between layers, starting at the bottom
+        """
+
         layers = self._parametrized_layers(nN, delta_nN, ls, zs)
         super().__init__(layers)
         self._set_params(nN, delta_nN, ls, zs)
