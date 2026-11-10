@@ -431,6 +431,7 @@ def main():
             'time_delay_tables': config['time_delay_tables'],
             'interp_method': config.get('interp_method', 'linear'),
             'snr_pair_weighting': config.get('snr_pair_weighting', True),
+            'snr_window_ns': config.get('snr_window_ns'),
             'hilbert_envelope_mode': config.get('hilbert_envelope_mode', 'traces'),
             'correlation_normalization': config.get('correlation_normalization', 'normalized'),
             'apply_hann_window': config.get('apply_hann_window', False),

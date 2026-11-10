@@ -52,7 +52,10 @@ import pandas as pd
 import yaml
 from scipy import stats
 
-from NuRadioReco.modules.channelFeatureExtractor import channelFeatureExtractor
+from NuRadioReco.modules.channelFeatureExtractor import (
+    channelFeatureExtractor,
+    get_snr_window_size,
+)
 from NuRadioReco.modules.RNO_G.dataProviderRNOG import dataProviderRNOG
 from NuRadioReco.modules.RNO_G.dataProviderNuRadio import dataProviderNuRadio
 from NuRadioReco.modules.RNO_G.stationHitFilter import stationHitFilter
@@ -219,12 +222,14 @@ def _mean_over(per_ch, chs):
 
 
 def _coherent_sum_features(trace, sampling_rate, n_entropy_bins,
-                            spec_fmin, spec_fmax, spec_low):
+                            spec_fmin, spec_fmax, spec_low,
+                            snr_window_size=3):
     """Scalar features on a coherent-sum trace."""
     row = {}
     noise_rms = trace_utils.get_split_trace_noise_RMS(trace)
     row["coherent_snr"] = float(
-        trace_utils.get_signal_to_noise_ratio(trace, noise_rms))
+        trace_utils.get_signal_to_noise_ratio(
+            trace, noise_rms, window_size=snr_window_size))
     ext = trace_utils.get_impulsivity(trace, return_diagnostics=True)
     row["coherent_impulsivity"] = float(ext["impulsivity"])
     row["coherent_impulsivity_r_squared"] = ext["impulsivity_r_squared"]
@@ -338,6 +343,8 @@ def build_feature_row(per_ch, traces, sampling_rate, config):
         spec_fmin = cfg.get("spectral_fmin", 0.08)
         spec_fmax = cfg.get("spectral_fmax", 0.6)
         spec_low = cfg.get("spectral_low_band_boundary", 0.1)
+        snr_window_size = get_snr_window_size(
+            cfg.get("snr_window_ns"), sampling_rate)
 
         for group_name in groups:
             group_chs = ANTENNA_GROUPS[group_name]
@@ -349,7 +356,8 @@ def build_feature_row(per_ch, traces, sampling_rate, config):
             if cs is None:
                 continue
             cs_feats = _coherent_sum_features(
-                cs, sampling_rate, n_bins, spec_fmin, spec_fmax, spec_low)
+                cs, sampling_rate, n_bins, spec_fmin, spec_fmax, spec_low,
+                snr_window_size=snr_window_size)
             for k, v in cs_feats.items():
                 row[f"{k}_{group_name}"] = v
 
