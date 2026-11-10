@@ -906,6 +906,17 @@ class IceModelExpLayers(IceModel):
             An `IceModelSimple` instance to convert to a multi-layered ice model
         """
 
+        # the single layer raytracer treats air differently, we need to add an air-layer for the mutlilayer raytracer to work with
+        airlayer = dict(
+                z_min=ice_model.z_air_boundary,
+                z_max=np.inf,
+                n_ice=1.000001,
+                delta_n=2.7e-6,
+                z_0=-8000.0,
+                region_name="air"
+            )
+
+        # defining IceModelExpLayers parameters from input ice model
         icelayer = dict(
             z_min = ice_model.z_bottom,
             z_max = ice_model.z_air_boundary,
@@ -915,7 +926,7 @@ class IceModelExpLayers(IceModel):
             region_name = 'ice'
         )
 
-        return cls([icelayer])
+        return cls([airlayer,icelayer])
 
     def _set_layers(self, layers, z_shift=0*units.meter, z_air_boundary=0*units.meter):
         """

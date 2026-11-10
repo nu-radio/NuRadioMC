@@ -3,7 +3,7 @@ import numpy as np
 import time
 from numpy import testing
 from NuRadioMC.SignalProp import analyticraytracing as ray
-from NuRadioMC.utilities import medium
+from NuRadioMC.utilities import medium, medium_base
 from NuRadioReco.utilities import units
 import logging
 logger = logging.getLogger('NuRadioMC.test_raytracing')
@@ -14,7 +14,8 @@ this unit test compares the numerical and analytic calculation of path length an
 the numerical integration should be better than the analytic formula. For both calculations, the python version is used.
 """
 
-ice = medium.southpole_simple_layered()
+ice_simple = medium.southpole_simple()
+ice = medium_base.IceModelExpLayers.from_IceModel(ice_simple)
 
 np.random.seed(0)  # set seed to have reproducible results
 n_events = int(1e3)

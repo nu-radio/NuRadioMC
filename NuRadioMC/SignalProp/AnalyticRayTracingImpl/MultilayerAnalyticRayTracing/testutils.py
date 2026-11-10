@@ -42,7 +42,7 @@ plt.rcParams.update({
 })
 
 from NuRadioReco.utilities import units
-from NuRadioMC.utilities import medium
+from NuRadioMC.utilities import medium, medium_base
 from NuRadioMC.SignalProp import propagation
 import time
 
@@ -109,11 +109,17 @@ def timed_call(fn):
 def make_tracer(
     module_name,
     ice_model="greenland_simple",
+    make_layered = False,
     attenuation_model="GL1",
     n_freq=25,
     n_reflections=0,
 ):
-    ice = medium.get_ice_model(ice_model)
+
+    if make_layered:
+        ice_simple = medium.get_ice_model(ice_model)
+        ice = medium_base.IceModelExpLayers.from_IceModel(ice_simple)
+    else:
+        ice = medium.get_ice_model(ice_model)
 
     prop = propagation.get_propagation_module(module_name)
 

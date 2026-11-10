@@ -37,8 +37,11 @@ CONFIG = {
 
     # Ice models
     "ice_model_a": "greenland_simple",
-    "ice_model_b": "greenland_simple_layered",
+    "ice_model_b": "greenland_simple",
 
+    "layered_a": False,
+    "layered_b": True,
+    
     # Grid
     "x_range": (-3000.0, -0.11),
     "z_range": (-3000.0, -0.11),
@@ -172,6 +175,7 @@ def run_full_pipeline():
     tracer_a = make_tracer(
         CONFIG["module_a"],
         ice_model=CONFIG["ice_model_a"],
+        make_layered=CONFIG["layered_a"],
         attenuation_model=CONFIG["attenuation_model"],
         n_freq=CONFIG["n_freq"],
         n_reflections=CONFIG["n_reflections"],
@@ -182,6 +186,7 @@ def run_full_pipeline():
         tracer_b = make_tracer(
             CONFIG["module_b"],
             ice_model=CONFIG["ice_model_b"],
+            make_layered=CONFIG["layered_b"],
             attenuation_model=CONFIG["attenuation_model"],
             n_freq=CONFIG["n_freq"],
             n_reflections=CONFIG["n_reflections"],

@@ -5,15 +5,15 @@ import numpy as np
 from numpy import testing
 import time
 from NuRadioMC.SignalProp import analyticraytracing as ray
-from NuRadioMC.utilities import medium
+from NuRadioMC.utilities import medium, medium_base
 from NuRadioReco.utilities import units
 import logging
 
 logger = logging.getLogger("NuRadioMC.T04MooresBay")
 logger.setLevel(logging.INFO)
 
-ice = medium.mooresbay_simple_layered()
-
+ice_simple = medium.mooresbay_simple()
+ice = medium_base.IceModelExpLayers.from_IceModel(ice_simple)
 """
 this unit test compares the numerical and analytic calculation of path length and travel time for the Moore's Bay site with additional reflections off the bottom.
 the numerical integration should be better than the analytic formula. For both calculations, the python version is used.

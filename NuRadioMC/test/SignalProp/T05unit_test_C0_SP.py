@@ -1,7 +1,7 @@
 import numpy as np
 import time
 from NuRadioMC.SignalProp import analyticraytracing as ray
-from NuRadioMC.utilities import medium
+from NuRadioMC.utilities import medium, medium_base
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import io_utilities
 import logging
@@ -10,8 +10,8 @@ from numpy import testing
 logger = logging.getLogger('NuRadioMC.test_raytracing')
 logger.setLevel(logging.INFO)
 
-ice = medium.southpole_simple_layered()
-
+ice_simple = medium.southpole_simple()
+ice = medium_base.IceModelExpLayers.from_IceModel(ice_simple)
 np.random.seed(10)  # set seed to have reproducible results
 n_events = int(1e3)
 rmin = 50. * units.m
