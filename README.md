@@ -10,7 +10,7 @@
 | NuRadioMC/EvtGen/create\_tau\_tab.py                                                                     |       21 |       21 |      0% |      1-32 |
 | NuRadioMC/EvtGen/generate\_cylinder.py                                                                   |       34 |       34 |      0% |      1-82 |
 | NuRadioMC/EvtGen/generate\_unforced.py                                                                   |      220 |      220 |      0% |     1-602 |
-| NuRadioMC/EvtGen/generator.py                                                                            |      607 |      274 |     55% |63-68, 77-85, 114, 119, 134, 178-183, 216-224, 230-232, 237-239, 264-273, 338, 342-388, 460, 462, 464, 466, 470-496, 505, 508, 523-595, 612, 620-626, 642-676, 681-687, 700-705, 853, 871, 873, 944, 948, 1012-1015, 1165, 1168-1169, 1177-1178, 1235-1239, 1248-1252, 1283-1380, 1385-1388, 1409-1414 |
+| NuRadioMC/EvtGen/generator.py                                                                            |      606 |      274 |     55% |63-68, 77-85, 114, 119, 134, 178-183, 216-224, 230-232, 237-239, 264-273, 338, 342-388, 460, 462, 464, 466, 470-496, 505, 508, 522-594, 611, 619-625, 641-675, 680-686, 699-704, 852, 870, 872, 943, 947, 1011-1014, 1164, 1167-1168, 1176-1177, 1234-1238, 1247-1251, 1282-1379, 1384-1387, 1408-1413 |
 | NuRadioMC/EvtGen/generator\_ASCII.py                                                                     |       37 |       37 |      0% |      1-83 |
 | NuRadioMC/EvtGen/generator\_skeleton.py                                                                  |       45 |       45 |      0% |     1-116 |
 | NuRadioMC/EvtGen/hdf5\_to\_ASCII.py                                                                      |       27 |       27 |      0% |      1-34 |
@@ -21,7 +21,7 @@
 | NuRadioMC/SignalGen/ARZ/\_\_init\_\_.py                                                                  |        0 |        0 |    100% |           |
 | NuRadioMC/SignalGen/HCRB2017.py                                                                          |      127 |      127 |      0% |     1-296 |
 | NuRadioMC/SignalGen/\_\_init\_\_.py                                                                      |        0 |        0 |    100% |           |
-| NuRadioMC/SignalGen/askaryan.py                                                                          |       56 |       22 |     61% |105-119, 124, 127, 134-139, 216 |
+| NuRadioMC/SignalGen/askaryan.py                                                                          |       56 |       23 |     59% |96, 105-119, 124, 127, 134-139, 216 |
 | NuRadioMC/SignalGen/emitter.py                                                                           |      149 |      115 |     23% |85-88, 90-91, 93-96, 99, 102, 111-243, 245, 311 |
 | NuRadioMC/SignalGen/parametrizations.py                                                                  |      146 |       26 |     82% |93-108, 130, 147, 163, 165-169, 175, 179, 189, 202, 237, 265, 278 |
 | NuRadioMC/SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing/\_\_init\_\_.py                        |        0 |        0 |    100% |           |
@@ -280,7 +280,7 @@
 | NuRadioReco/utilities/trace\_utilities.py                                                                |      272 |      190 |     30% |40-42, 49-51, 57-59, 66-68, 75-77, 84-86, 133, 136-141, 149-150, 154-190, 193, 230-285, 321-345, 401-423, 499-506, 637-659, 726-729, 753-763, 793-862 |
 | NuRadioReco/utilities/units.py                                                                           |      166 |        0 |    100% |           |
 | NuRadioReco/utilities/version.py                                                                         |       27 |        5 |     81% |16, 25-27, 47 |
-| **TOTAL**                                                                                                | **32143** | **20156** | **37%** |           |
+| **TOTAL**                                                                                                | **32142** | **20157** | **37%** |           |
 
 
 ## Setup coverage badge
