@@ -56,8 +56,8 @@ print('fraction of triggered events = {:.0f}/{:.0f} = {:.3f} -> {:.6g} km^3 sr'.
 delta = (Veff / units.km ** 3 - Veff_mean) / Veff_sigma
 rdelta = (Veff / units.km ** 3 - Veff_mean) / Veff_mean
 if np.abs(delta) > 3:
-    print("Effective volume deviates by {:.0f}% from the expectation (this is not expected!)".format(100 * rdelta))
-    sys.exit(-1)
+    raise AssertionError(
+        "Effective volume deviates by {:.0f}% from the expectation (this is not expected!)".format(100 * rdelta))
 
 # calculate Veff using veff utility
 import NuRadioMC.utilities.Veff

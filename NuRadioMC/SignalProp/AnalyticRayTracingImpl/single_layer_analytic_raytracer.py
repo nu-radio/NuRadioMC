@@ -23,7 +23,10 @@ except Exception:
     try:
         import subprocess
         import os
-        subprocess.call(os.path.join(os.path.dirname(os.path.abspath(__file__)), "install.sh"))
+        import sys
+        # build with the running interpreter, which need not be `python` on PATH
+        subprocess.call(os.path.join(os.path.dirname(os.path.abspath(__file__)), "install.sh"),
+                        env=dict(os.environ, PYTHON=sys.executable))
         from NuRadioMC.SignalProp.AnalyticRayTracingImpl.CPPAnalyticRayTracing import wrapper as cpp_wrapper
         cpp_available = True
         logger.status("compilation was successful, CPP version of ray tracer is available")
