@@ -62,7 +62,8 @@ class neutrinoLikelihoodReconstructor:
             n_grid_matched_filter = 200,
             overwrite_speedup_options = True,
             use_chi2 = False,
-            debug = False
+            debug = False,
+            fix_zenith_azimuth = False,
             ):
         """
 
@@ -112,6 +113,9 @@ class neutrinoLikelihoodReconstructor:
             use_chi2: bool, optional
                 Whether to use chi2 minimization instead of likelihood. Mostly used for debugging and method comparison.
 
+            fix_zenith_azimuth: bool, optional
+                Whether to fix the neutrino arrival zenith and azimuth angles during the fit (used for profile likelihood scans).
+
             debug: bool, optional
                 Extra plots and printouts for debugging
         """
@@ -124,6 +128,7 @@ class neutrinoLikelihoodReconstructor:
         self.debug = debug
         self.config_file = config_file
         self.overwrite_speedup_options = overwrite_speedup_options
+        self.fix_zenith_azimuth = fix_zenith_azimuth
 
         self.signal_search_width = signal_search_width
         self.delta_t = 1 / self.sampling_rate
@@ -476,7 +481,7 @@ class neutrinoLikelihoodReconstructor:
                 parameters_initial = parameters_initial,
                 parameters_bounds = bounds,
                 normalization = normalization,
-                fixed = [True, False, False, False, False, False, True],
+                fixed = [True, False, False, False, False, False, True] if not self.fix_zenith_azimuth else [True, True, True, False, False, False, True],
                 debug = self.debug
             )
             m_mf = minimizer_mf.run_minimization(data=data, method="minuit")
@@ -515,7 +520,7 @@ class neutrinoLikelihoodReconstructor:
             parameters_initial = parameters_initial_llh,
             parameters_bounds = bounds,
             normalization = normalization,
-            fixed = [False, False, False, False, False, False, False],
+            fixed = [False, False, False, False, False, False, False] if not self.fix_zenith_azimuth else [False, True, True, False, False, False, False],
             debug = self.debug
         )
         m = minimizer_llh.run_minimization(data=data, method="minuit")
