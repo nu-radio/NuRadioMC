@@ -285,6 +285,6 @@ if __name__ == "__main__":
                 'SimChannels': False,
                 'SimElectricFields': False
             })
-        writer.end()
+        writer.close()
 
     # plot_trigger_effiency_snr_curve(events, None)

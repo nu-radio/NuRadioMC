@@ -10,10 +10,8 @@ from NuRadioReco.modules.io.coreas import coreas, coreasInterpolator
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities.signal_processing import half_hann_window
 
-from datetime import timedelta
 import logging
 import os
-import time
 import copy
 import numpy as np
 from collections import defaultdict
@@ -116,9 +114,6 @@ class readCoREASDetector:
     """
 
     def __init__(self):
-        self.__t = 0
-        self.__t_event_structure = 0
-        self.__t_per_event = 0
         self.__corsika_evt = None
 
         self.coreas_interpolator = None
@@ -239,14 +234,8 @@ class readCoREASDetector:
             selected_station_ids = list(selected_station_channel_ids.keys())
             self.logger.info(f"Using selected station ids: {selected_station_ids}")
 
-        t = time.time()
-        t_per_event = time.time()
-        self.__t_per_event += time.time() - t_per_event
-        self.__t += time.time() - t
-
         # Loop over all cores
         for iCore, core in enumerate(core_position_list):
-            t = time.time()
 
             # Create the Event and add the SimShower
             evt = NuRadioReco.framework.event.Event(self.__corsika_evt.get_run_number(), iCore)
@@ -300,13 +289,7 @@ class readCoREASDetector:
                 station.set_sim_station(sim_station)
 
                 evt.set_station(station)
-
-            self.__t += time.time() - t
             yield evt
 
     def end(self):
-        dt = timedelta(seconds=self.__t)
-        self.logger.info("total time used by this module is {}".format(dt))
-        self.logger.info("\tcreate event structure {}".format(timedelta(seconds=self.__t_event_structure)))
-        self.logger.info("per event {}".format(timedelta(seconds=self.__t_per_event)))
-        return dt
+        pass

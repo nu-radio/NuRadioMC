@@ -4,7 +4,6 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.trigger import HighLowTrigger
 from NuRadioReco.modules.trigger.highLowThreshold import get_majority_logic
 import numpy as np
-import time
 import logging
 logger = logging.getLogger('NuRadioReco.multiHighLowTrigger')
 
@@ -66,7 +65,6 @@ class triggerSimulator:
     """
 
     def __init__(self):
-        self.__t = 0
         self.begin()
 
     def begin(self):
@@ -116,7 +114,6 @@ class triggerSimulator:
             if True not trigger simulation will be performed and this trigger will be set to not_triggered
 
         """
-        t = time.time()
         if triggered_channels is None:
             triggered_channels = [0, 1, 2, 3]
         if threshold_low >= threshold_high:
@@ -182,10 +179,5 @@ class triggerSimulator:
 
         station.set_trigger(trigger)
 
-        self.__t += time.time() - t
-
     def end(self):
-        from datetime import timedelta
-        dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass
