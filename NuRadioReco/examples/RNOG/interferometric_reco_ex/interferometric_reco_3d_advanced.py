@@ -28,6 +28,7 @@ from NuRadioReco.modules.channelAntennaDedispersion import channelAntennaDedispe
 from NuRadioReco.modules.RNO_G.dataProviderRNOG import dataProviderRNOG
 from NuRadioReco.modules.RNO_G.dataProviderNuRadio import dataProviderNuRadio
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.trace_utilities import get_snr_window_size
 from NuRadioReco.detector.antennapattern import AntennaPatternProvider
 from NuRadioMC.SignalProp.analyticraytracing import ray_tracing
 from NuRadioMC.utilities.medium import greenland_simple
@@ -266,27 +267,35 @@ from reco_validation import (
 )
 
 
-def check_helper_snr(station, threshold=5.0):
+def check_helper_snr(station, threshold=5.0, snr_window_ns=None):
     """Check whether any helper channel exceeds SNR threshold.
 
     Args:
         station: NuRadioReco Station with preprocessed traces.
-        threshold: Minimum SNR (max|V|/noise_rms) to count as signal.
+        threshold: Minimum SNR (peak-to-peak over twice the noise RMS) to
+            count as signal, on the scale of the window in use.
+        snr_window_ns: Peak-to-peak window in ns, the same as for the pair
+            weights. None keeps the historical 3-sample window.
 
     Returns:
         True if at least one helper channel is above threshold.
     """
     traces = []
     ch_ids = []
+    sampling_rate = None
     for ch_id in HELPER_CHANNELS:
         try:
-            traces.append(station.get_channel(ch_id).get_trace())
-            ch_ids.append(ch_id)
+            channel = station.get_channel(ch_id)
+            trace = channel.get_trace()
+            sampling_rate = channel.get_sampling_rate()
         except (KeyError, AttributeError):
             continue
+        traces.append(trace)
+        ch_ids.append(ch_id)
     if not traces:
         return False
-    snrs = compute_channel_snrs(traces, ch_ids)
+    window_size = get_snr_window_size(snr_window_ns, sampling_rate)
+    snrs = compute_channel_snrs(traces, ch_ids, window_size=window_size)
     return any(s >= threshold for s in snrs.values())
 
 
@@ -571,7 +580,8 @@ def main():
             use_fallback = False
             pw_threshold = config.get('plane_wave_snr_threshold', 5.0)
             if config.get('plane_wave_fallback', False):
-                if not check_helper_snr(stn1, threshold=pw_threshold):
+                if not check_helper_snr(stn1, threshold=pw_threshold,
+                                        snr_window_ns=config.get('snr_window_ns')):
                     use_fallback = True
 
             p1_config = make_fallback_config(config) if use_fallback else config
@@ -816,6 +826,9 @@ def main():
             f.attrs['mode'] = args.mode
             f.attrs['n_events'] = n_processed
             f.attrs['validation'] = args.validation
+            snr_window_ns = config.get('snr_window_ns')
+            f.attrs['snr_window_ns'] = ('None' if snr_window_ns is None
+                                        else float(snr_window_ns))
 
         logger.info("Saved %d results to %s", len(results), args.outputfile)
 
