@@ -52,10 +52,7 @@ import pandas as pd
 import yaml
 from scipy import stats
 
-from NuRadioReco.modules.channelFeatureExtractor import (
-    channelFeatureExtractor,
-    get_snr_window_size,
-)
+from NuRadioReco.modules.channelFeatureExtractor import channelFeatureExtractor
 from NuRadioReco.modules.RNO_G.dataProviderRNOG import dataProviderRNOG
 from NuRadioReco.modules.RNO_G.dataProviderNuRadio import dataProviderNuRadio
 from NuRadioReco.modules.RNO_G.stationHitFilter import stationHitFilter
@@ -343,7 +340,7 @@ def build_feature_row(per_ch, traces, sampling_rate, config):
         spec_fmin = cfg.get("spectral_fmin", 0.08)
         spec_fmax = cfg.get("spectral_fmax", 0.6)
         spec_low = cfg.get("spectral_low_band_boundary", 0.1)
-        snr_window_size = get_snr_window_size(
+        snr_window_size = trace_utils.get_snr_window_size(
             cfg.get("snr_window_ns"), sampling_rate)
 
         for group_name in groups:

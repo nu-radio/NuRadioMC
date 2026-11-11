@@ -2153,28 +2153,17 @@ class InterferometricReco3D:
 
     @staticmethod
     def _resolve_snr_window_size(config, time_arrays):
-        """Convert an optional physical SNR window to a sample count."""
+        """Convert the optional ``snr_window_ns`` to samples at the traces' sampling rate."""
+        from NuRadioReco.utilities.trace_utilities import get_snr_window_size
+
         window_ns = config.get('snr_window_ns', None)
-        if window_ns is None:
-            return 3
-
-        window_ns = float(window_ns)
-        if not np.isfinite(window_ns) or window_ns <= 0:
-            raise ValueError(
-                f"snr_window_ns must be finite and positive, got {window_ns}")
-        if not time_arrays or len(time_arrays[0]) < 2:
-            raise ValueError(
-                "Cannot convert snr_window_ns without at least two time samples")
-
-        dt = float(np.median(np.diff(np.asarray(time_arrays[0], dtype=float))))
-        if not np.isfinite(dt) or dt <= 0:
-            raise ValueError(f"Invalid waveform sampling interval: {dt}")
-
-        window_size = max(2, int(round(window_ns * units.ns / dt)))
-        logger.debug(
-            "SNR window %.3f ns -> %d samples (dt=%.4f ns)",
-            window_ns, window_size, dt / units.ns)
-        return window_size
+        sampling_rate = None
+        if window_ns is not None:
+            if not time_arrays or len(time_arrays[0]) < 2:
+                raise ValueError(
+                    "Cannot convert snr_window_ns without at least two time samples")
+            sampling_rate = 1 / np.median(np.diff(np.asarray(time_arrays[0], dtype=float)))
+        return get_snr_window_size(window_ns, sampling_rate)
 
     @staticmethod
     def _compute_snr_pair_weights(volt_arrays, channels, window_size=3):

@@ -9,21 +9,6 @@ import logging
 logger = logging.getLogger("NuRadioReco.channelFeatureExtractor")
 
 
-def get_snr_window_size(snr_window_ns, sampling_rate):
-    """Convert an optional physical SNR window from ns to samples."""
-    if snr_window_ns is None:
-        return 3
-
-    snr_window_ns = float(snr_window_ns)
-    if not np.isfinite(snr_window_ns) or snr_window_ns <= 0:
-        raise ValueError(
-            f"snr_window_ns must be finite and positive, got {snr_window_ns}")
-    if not np.isfinite(sampling_rate) or sampling_rate <= 0:
-        raise ValueError(f"Invalid waveform sampling rate: {sampling_rate}")
-
-    return max(2, int(round(snr_window_ns * units.ns * sampling_rate)))
-
-
 class channelFeatureExtractor:
     """
     Per-channel feature extraction module.
@@ -44,7 +29,8 @@ class channelFeatureExtractor:
 
     Feature groups (controlled by ``feature_groups`` in the config):
 
-    - ``snr``: split-trace noise RMS and peak-amplitude SNR
+    - ``snr``: split-trace noise RMS and peak-to-peak SNR over
+      ``snr_window_ns`` (3 samples when unset)
     - ``rpr``: root-power ratio (needs ``snr`` to have run for noise RMS)
     - ``max_amplitude``: std-normalized peak-to-peak amplitude and
       Hilbert-envelope peak
@@ -173,7 +159,7 @@ class channelFeatureExtractor:
             row["noise_rms"] = noise_rms
 
         if compute_all or "snr" in groups:
-            snr_window_size = get_snr_window_size(
+            snr_window_size = trace_utils.get_snr_window_size(
                 cfg["snr_window_ns"], sampling_rate)
             row["snr"] = float(
                 trace_utils.get_signal_to_noise_ratio(
