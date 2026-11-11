@@ -12,16 +12,22 @@ from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units
 
-# ice model, maximum source depth, number of stored solutions, reference file
 sites = {
-    'southpole': (medium.southpole_simple_layered, -3. * units.km, 2, 'reference_C0_SP.json'),
-    'mooresbay': (medium.mooresbay_simple, -0.5 * units.km, 10, 'reference_C0_MooresBay.json'),
-    'greenland3exp': (medium.greenland_3exp_density, -3. * units.km, 10, 'reference_C0_greenland3exp.json'),
+    'southpole': dict(
+        ice_model=medium.southpole_simple(), zmax=-3. * units.km,
+        n_solutions=2, rt_kwargs={}, reference_file='reference_C0_SP.json'),
+    'mooresbay': dict(
+        ice_model=medium.mooresbay_simple(), zmax=-0.5 * units.km,
+        n_solutions=10, rt_kwargs=dict(n_reflections=2),
+        reference_file='reference_C0_MooresBay.json'),
+    'greenland3exp': dict(
+        ice_model=medium.greenland_3exp_density(), zmax=-3. * units.km,
+        n_solutions=10, rt_kwargs={}, reference_file='reference_C0_greenland3exp.json'),
 }
 
 
 def calculate_C0s(site):
-    ice_model, zmax, n_solutions, _ = sites[site]
+    site_options = sites[site]
 
     np.random.seed(10)  # set seed to have reproducible results
     n_events = int(1e3)
@@ -30,12 +36,13 @@ def calculate_C0s(site):
     zmin = 0. * units.m
     rr = np.random.triangular(rmin, rmax, rmax, n_events)
     phiphi = np.random.uniform(0, 2 * np.pi, n_events)
-    zz = np.random.uniform(zmin, zmax, n_events)
+    zz = np.random.uniform(zmin, site_options['zmax'], n_events)
     points = np.array([rr * np.cos(phiphi), rr * np.sin(phiphi), zz]).T
     x_receiver = np.array([0., 0., -5.])
 
-    C0s = np.zeros((n_events, n_solutions))
-    r = ray.ray_tracing(ice_model())
+    C0s = np.zeros((n_events, site_options['n_solutions']))
+    ice_model = site_options['ice_model']
+    r = ray.ray_tracing(ice_model, **site_options['rt_kwargs'])
     for iX, x in enumerate(points):
         r.set_start_and_end_point(x, x_receiver)
         r.find_solutions()
@@ -51,7 +58,7 @@ args = parser.parse_args()
 
 path = os.path.dirname(os.path.abspath(__file__))
 for site in args.site:
-    reference_file = os.path.join(path, sites[site][3])
+    reference_file = os.path.join(path, sites[site]['reference_file'])
     C0s = calculate_C0s(site)
     if args.create_reference:
         with open(reference_file, 'w') as fout:
