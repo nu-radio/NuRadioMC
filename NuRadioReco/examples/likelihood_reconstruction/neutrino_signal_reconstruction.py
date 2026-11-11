@@ -206,6 +206,7 @@ if args.llh_scan_2D:
 
     def reconstruct_event_scan(theta_zenith, theta_azimuth, prev_best_fit_parameters):
         # Reconstruct the event for a given zenith and azimuth, using the previous best fit parameters as initial guess:
+        det = NuRadioReco.detector.detector.Detector(json_filename='../../../NuRadioReco/detector/RNO_G/RNO_single_station.json', antenna_by_depth=False)
         evt = Event(1, 1)
         parameters_initial = np.copy(prev_best_fit_parameters)
         parameters_initial[1] = theta_zenith
@@ -254,49 +255,108 @@ if args.llh_scan_2D:
     test_statistic_true_array_scan = np.zeros([n_grid, n_grid]) #np.zeros([n_scan_points])
 
     # i_circ = 0 :
-    parameters_array_scan[coordinates_best] = np.copy(parameters_fit)
-    minus_two_LLH_scan[coordinates_best] = minus_two_llh_fit
-    test_statistic_true_array_scan[coordinates_best] = minus_two_llh_true
+    from multiprocessing import Pool
+    from collections import deque
 
-    for i_circle in range(1,n_circles):
+    # Store central reconstruction
+    parameters_array_scan[coordinates_best[0], coordinates_best[1]] = np.copy(parameters_fit)
+    minus_two_LLH_scan[coordinates_best[0], coordinates_best[1]] = minus_two_llh_fit
+    test_statistic_true_array_scan[coordinates_best[0], coordinates_best[1]] = minus_two_llh_true
 
-        print(f"i_circle: {i_circle} / {n_circles-1}")
+    # Create a queue of points ready for reconstruction
+    queue = deque()
 
-        bool_array_circ = [
-            (abs(coordinates_all[i]-coordinates_best) == i_circle).any()
-             and (max(abs(coordinates_all[i]-coordinates_best)) <= i_circle).any()
-             for i in range(n_scan_points)]
-        coordinates_circ = coordinates_all[bool_array_circ]
-        theta_phi_values_circ = theta_phi_values[bool_array_circ]
-        n_points_circ = len(coordinates_circ)
+    # Track which points have already been submitted
+    submitted = np.zeros((n_grid, n_grid), dtype=bool)
+    submitted[coordinates_best[0], coordinates_best[1]] = True
 
-        # Find previous best:
-        prev_best_fit_parameters = np.zeros([n_points_circ,7])
-        for i_point in range(n_points_circ):
-            i_x = coordinates_circ[i_point,0]
-            i_y = coordinates_circ[i_point,1]
-            if   i_x != n_grid-1 and parameters_array_scan[i_x+1, i_y  , 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x+1, i_y  , :]
-            elif i_y != n_grid-1 and parameters_array_scan[i_x  , i_y+1, 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x  , i_y+1, :]
-            elif i_x != 0        and parameters_array_scan[i_x-1, i_y  , 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x-1, i_y  , :]
-            elif i_y != 0        and parameters_array_scan[i_x  , i_y-1, 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x  , i_y-1, :]
-            else:
-                if   i_x != n_grid-1 and i_y != n_grid-1 and parameters_array_scan[i_x+1, i_y+1, 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x+1, i_y+1, :]
-                elif i_x != n_grid-1 and i_y != 0        and parameters_array_scan[i_x+1, i_y-1, 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x+1, i_y-1, :]
-                elif i_x != 0        and i_y != n_grid-1 and parameters_array_scan[i_x-1, i_y+1, 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x-1, i_y+1, :]
-                elif i_x != 0        and i_y != 0        and parameters_array_scan[i_x-1, i_y-1, 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x-1, i_y-1, :]
+    # Track completed points
+    n_completed = 1
 
-        print("Coordinates circle:", coordinates_circ)
+    def submit_ready_points(pool):
 
-        with Pool(N_cores) as pool:
-            results = [
-                pool.apply_async(reconstruct_event_scan, args=(theta_phi_values_circ[i_point,0], theta_phi_values_circ[i_point,1], prev_best_fit_parameters[i_point])) for i_point in range(n_points_circ)
-            ]
-            for ires, res in enumerate(results):
-                res_i = res.get()
-                coordinate = coordinates_circ[ires]
-                parameters_array_scan[coordinate[0],coordinate[1],:] = res_i[0]
-                minus_two_LLH_scan[coordinate[0],coordinate[1]] = res_i[1]
-                test_statistic_true_array_scan[coordinate[0],coordinate[1]] = res_i[2]
+        while queue and len(futures) < N_cores:
+
+            i, j, prev_parameters = queue.popleft()
+
+            future = pool.apply_async(
+                reconstruct_event_scan,
+                args=(
+                    theta_zenith_grid[i],
+                    theta_azimuth_grid[j],
+                    prev_parameters
+                ),
+                callback=lambda result, i=i, j=j: completed_callback(i, j, result)
+            )
+
+            futures.append(future)
+
+
+    def completed_callback(i, j, result):
+
+        global n_completed
+
+        parameters_fit_i, llh_fit_i, llh_true_i = result
+
+        parameters_array_scan[i, j, :] = parameters_fit_i
+        minus_two_LLH_scan[i, j] = llh_fit_i
+        test_statistic_true_array_scan[i, j] = llh_true_i
+
+        n_completed += 1
+
+        # Find all unsubmitted neighbours
+        for di, dj in [
+            (-1, 0), (1, 0), (0, -1), (0, 1),
+            (-1, -1), (-1, 1), (1, -1), (1, 1)
+        ]:
+
+            ni, nj = i + di, j + dj
+
+            if (0 <= ni < n_grid and 0 <= nj < n_grid
+                    and not submitted[ni, nj]):
+
+                submitted[ni, nj] = True
+
+                queue.append((
+                    ni, nj, parameters_fit_i.copy()
+                ))
+
+    futures = []
+
+    with Pool(N_cores) as pool:
+
+        # Seed the queue with the central point's neighbours
+        for di, dj in [
+            (-1, 0), (1, 0), (0, -1), (0, 1),
+            (-1, -1), (-1, 1), (1, -1), (1, 1)
+        ]:
+
+            i = coordinates_best[0] + di
+            j = coordinates_best[1] + dj
+
+            if 0 <= i < n_grid and 0 <= j < n_grid:
+
+                submitted[i, j] = True
+                queue.append((i, j, parameters_fit.copy()))
+
+        while n_completed < n_scan_points:
+
+            submit_ready_points(pool)
+
+            # Wait for at least one job to finish
+            while len(futures) == N_cores:
+                if not any(f.ready() for f in futures):
+                    continue
+
+                # Remove completed futures
+                futures = [f for f in futures if not f.ready()]
+
+                break
+
+            # Collect completed results that did not trigger callbacks yet
+            # (callbacks update the arrays asynchronously)
+            if not queue and not futures and n_completed < n_scan_points:
+                raise RuntimeError("Scan stalled: no available points")
 
     # plot result:
     plt.figure(figsize=[4.2,3])
