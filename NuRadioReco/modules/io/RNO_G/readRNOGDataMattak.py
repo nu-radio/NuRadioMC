@@ -407,6 +407,15 @@ class readRNOGData:
         """ Get run numbers of the datasets which are read in """
         return np.array(self._runs)
 
+    @lru_cache(maxsize=1)
+    def get_run_info(self, run_number):
+        """ Get run info of a specific run number """
+        if run_number not in self._runs:
+            raise ValueError(f"Run {run_number} not found in the datasets which are read in.")
+        idx = self._runs.index(run_number)
+        dataset = self.__get_dataset(self._datasets_paths[idx])
+        return dataset.run_info
+
     def get_station_id(self, except_multiple_stations=False):
         """ Get station ids of the datasets which are read in
 
