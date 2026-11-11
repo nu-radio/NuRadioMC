@@ -18,6 +18,8 @@ import matplotlib.pyplot as plt
 import scipy.integrate
 import datetime
 from radiotools import helper as hp
+import argparse
+from multiprocessing import Pool
 
 from NuRadioReco.utilities import units, signal_processing
 from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
@@ -26,8 +28,16 @@ from NuRadioReco.framework.event import Event
 import NuRadioReco.modules.channelBandPassFilter
 
 channelGenericNoiseAdder = channelGenericNoiseAdder()
-channelGenericNoiseAdder.begin()
+channelGenericNoiseAdder.begin(seed=2)
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
+
+parser = argparse.ArgumentParser(description="Process and plot RNO-G calibration data")
+parser.add_argument("--llh_scan_1D", action="store_true", help="Whether to perform a 1D likelihood around fitted parameters")
+parser.add_argument("--llh_scan_2D", action="store_true", help="Whether to perform a 2D likelihood around fitted parameters")
+parser.add_argument("--n_cores", type=int, default=10, help="Number of cores to use for parallelization of 2D likelihood scan")
+parser.add_argument("--n_grid", type=int, default=10, help="Number of grid points in the 2D likelihood scan")
+args = parser.parse_args()
+
 
 det = NuRadioReco.detector.detector.Detector(json_filename='../../../NuRadioReco/detector/RNO_G/RNO_single_station.json', antenna_by_depth=False)
 
@@ -156,9 +166,9 @@ parameters_initial = [
     vertex_azimuth_rel - 0.25 * units.deg,
     pulse_time_guess]
 
-# Run reconstruction:
+# Run reconstruction (performs 1D profile LLH scan if args.llh_scan_1D is set and saves results to llh_scan_{i_param}.pdf for each parameter):
 parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(
-    evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True, likelihood_scan=True)
+    evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True, likelihood_scan=args.llh_scan_1D)
 
 shower_reconstructed = list(evt.get_showers())[0]
 
@@ -184,3 +194,127 @@ for i_param, key in enumerate(shower_reconstructed.get_parameters().keys()):
         print(key, ":", shower_reconstructed.get_parameter(key), "+/-", shower_reconstructed.get_parameter_error(key))
     else:
         print(key, ":", shower_reconstructed.get_parameter(key))
+
+
+if args.llh_scan_2D:
+
+    # Make a 2D profile likelihood scan around the best fit parameters in the arrival
+    # direction (zenith, azimuth) plane +/- 3 sigma in each direction. The other
+    # parameters are fitted for each point in the scan, starting from the best fit
+    # parameters of the previous point. The code is parallelized using multiprocessing.Pool
+    # and goes in circles outwards from the best fit point.
+
+    def reconstruct_event_scan(theta_zenith, theta_azimuth, prev_best_fit_parameters):
+        # Reconstruct the event for a given zenith and azimuth, using the previous best fit parameters as initial guess:
+        evt = Event(1, 1)
+        parameters_initial = np.copy(prev_best_fit_parameters)
+        parameters_initial[1] = theta_zenith
+        parameters_initial[2] = theta_azimuth
+        reco = neutrinoLikelihoodReconstructor.neutrinoLikelihoodReconstructor()
+        reco.begin(
+            n_channels,
+            n_samples,
+            sampling_rate,
+            np.abs(filt),
+            noise_amplitude,
+            config_file = "./neutrino_reco_sim_config.yaml",
+            detector_simulation_filter_amp = detector_simulation_filter_amp,
+            fix_zenith_azimuth = True,
+            debug = False
+        )
+        parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(
+            evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True)
+        return parameters_fit, minus_two_llh_fit, minus_two_llh_true
+
+    N_cores = args.n_cores
+    n_grid = args.n_grid
+    if n_grid%2 == 0: n_grid += 1
+    n_scan_points = int(n_grid*n_grid)
+
+    y_sigma = uncertainties_fit[1]
+    x_sigma = uncertainties_fit[2]
+    theta_zenith_grid = np.linspace(parameters_fit[1]-3*y_sigma, parameters_fit[1]+3*y_sigma, n_grid)
+    theta_azimuth_grid = np.linspace(parameters_fit[2]-3*x_sigma, parameters_fit[2]+3*x_sigma, n_grid)
+
+    n_circles = int(n_grid/2) + 1
+
+    coordinates_all = np.zeros([int(n_grid*n_grid),2], dtype=int)
+    coordinates_best = np.array([int(n_grid/2), int(n_grid/2)], dtype=int)
+    theta_phi_values = np.zeros([int(n_grid*n_grid),2])
+    k = 0
+    for i in range(n_grid):
+        for j in range(n_grid):
+            coordinates_all[k,:] = [i,j]
+            theta_phi_values[k,0] = theta_zenith_grid[i]
+            theta_phi_values[k,1] = theta_azimuth_grid[j]
+            k += 1
+
+    parameters_array_scan = np.zeros([n_grid, n_grid, 7]) #np.zeros([n_scan_points, 7])
+    minus_two_LLH_scan = np.zeros([n_grid, n_grid]) #np.zeros([n_scan_points])
+    test_statistic_true_array_scan = np.zeros([n_grid, n_grid]) #np.zeros([n_scan_points])
+
+    # i_circ = 0 :
+    parameters_array_scan[coordinates_best] = np.copy(parameters_fit)
+    minus_two_LLH_scan[coordinates_best] = minus_two_llh_fit
+    test_statistic_true_array_scan[coordinates_best] = minus_two_llh_true
+
+    for i_circle in range(1,n_circles):
+
+        print(f"i_circle: {i_circle} / {n_circles-1}")
+
+        bool_array_circ = [
+            (abs(coordinates_all[i]-coordinates_best) == i_circle).any()
+             and (max(abs(coordinates_all[i]-coordinates_best)) <= i_circle).any()
+             for i in range(n_scan_points)]
+        coordinates_circ = coordinates_all[bool_array_circ]
+        theta_phi_values_circ = theta_phi_values[bool_array_circ]
+        n_points_circ = len(coordinates_circ)
+
+        # Find previous best:
+        prev_best_fit_parameters = np.zeros([n_points_circ,7])
+        for i_point in range(n_points_circ):
+            i_x = coordinates_circ[i_point,0]
+            i_y = coordinates_circ[i_point,1]
+            if   i_x != n_grid-1 and parameters_array_scan[i_x+1, i_y  , 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x+1, i_y  , :]
+            elif i_y != n_grid-1 and parameters_array_scan[i_x  , i_y+1, 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x  , i_y+1, :]
+            elif i_x != 0        and parameters_array_scan[i_x-1, i_y  , 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x-1, i_y  , :]
+            elif i_y != 0        and parameters_array_scan[i_x  , i_y-1, 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x  , i_y-1, :]
+            else:
+                if   i_x != n_grid-1 and i_y != n_grid-1 and parameters_array_scan[i_x+1, i_y+1, 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x+1, i_y+1, :]
+                elif i_x != n_grid-1 and i_y != 0        and parameters_array_scan[i_x+1, i_y-1, 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x+1, i_y-1, :]
+                elif i_x != 0        and i_y != n_grid-1 and parameters_array_scan[i_x-1, i_y+1, 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x-1, i_y+1, :]
+                elif i_x != 0        and i_y != 0        and parameters_array_scan[i_x-1, i_y-1, 0] != 0: prev_best_fit_parameters[i_point, :] = parameters_array_scan[i_x-1, i_y-1, :]
+
+        print("Coordinates circle:", coordinates_circ)
+
+        with Pool(N_cores) as pool:
+            results = [
+                pool.apply_async(reconstruct_event_scan, args=(theta_phi_values_circ[i_point,0], theta_phi_values_circ[i_point,1], prev_best_fit_parameters[i_point])) for i_point in range(n_points_circ)
+            ]
+            for ires, res in enumerate(results):
+                res_i = res.get()
+                coordinate = coordinates_circ[ires]
+                parameters_array_scan[coordinate[0],coordinate[1],:] = res_i[0]
+                minus_two_LLH_scan[coordinate[0],coordinate[1]] = res_i[1]
+                test_statistic_true_array_scan[coordinate[0],coordinate[1]] = res_i[2]
+
+    # plot result:
+    plt.figure(figsize=[4.2,3])
+    plt.pcolormesh(theta_azimuth_grid/np.pi*180, theta_zenith_grid/np.pi*180, minus_two_LLH_scan-minus_two_llh_fit, cmap="Blues_r", vmax=60)
+    plt.colorbar(label=r"$-2\Delta LLH$")
+    CS = plt.contour(theta_azimuth_grid/np.pi*180, theta_zenith_grid/np.pi*180, minus_two_LLH_scan-minus_two_llh_fit, levels=[1.15*2, 3.09*2], colors = ["y","r"]) #levels=[1.15*2,3.09*2,5.91*2]
+    plt.plot(azimuth/np.pi*180, zenith/np.pi*180, "r*",label="True")
+    plt.plot(parameters_fit[2]/np.pi*180, parameters_fit[1]/np.pi*180, "y.", label="Fit")
+    plt.legend()
+    plt.xlabel(r"$\phi_\nu$ [deg]")
+    plt.ylabel(r"$\theta_\nu$ [deg]")
+
+    fmt = {}
+    strs = [r'$68\%$', r'$95\%$']
+    for l, s in zip(CS.levels, strs):
+        fmt[l] = s
+    plt.clabel(CS, CS.levels[::], inline=True, fmt=fmt, fontsize=10)
+
+    plt.tight_layout()
+    plt.savefig(f"profile_likelihood_scan_{n_grid}.pdf")
+    plt.close()
