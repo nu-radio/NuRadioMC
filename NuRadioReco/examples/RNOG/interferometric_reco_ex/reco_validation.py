@@ -19,7 +19,7 @@ DEFAULT_SURF_Z_MAX = -10.0
 DEFAULT_SURF_ZEN_MAX = 65.0
 
 
-def compute_channel_snrs(volt_arrays, channels):
+def compute_channel_snrs(volt_arrays, channels, window_size=3):
     """Per-channel SNR from preprocessed voltage traces.
 
     Uses split-trace noise RMS (lowest segments) to avoid including
@@ -30,6 +30,8 @@ def compute_channel_snrs(volt_arrays, channels):
     Args:
         volt_arrays: List of voltage trace arrays, one per channel.
         channels: List of channel IDs (same order as volt_arrays).
+        window_size: Peak-to-peak window in samples, from
+            trace_utilities.get_snr_window_size.
 
     Returns:
         Dict mapping channel_id to SNR value.
@@ -40,7 +42,7 @@ def compute_channel_snrs(volt_arrays, channels):
     snrs = {}
     for v, ch in zip(volt_arrays, channels):
         noise_rms = get_split_trace_noise_RMS(v)
-        snrs[ch] = float(get_signal_to_noise_ratio(v, noise_rms)
+        snrs[ch] = float(get_signal_to_noise_ratio(v, noise_rms, window_size)
                          if noise_rms > 0 else 0.0)
     return snrs
 

@@ -29,7 +29,8 @@ class channelFeatureExtractor:
 
     Feature groups (controlled by ``feature_groups`` in the config):
 
-    - ``snr``: split-trace noise RMS and peak-amplitude SNR
+    - ``snr``: split-trace noise RMS and peak-to-peak SNR over
+      ``snr_window_ns`` (3 samples when unset)
     - ``rpr``: root-power ratio (needs ``snr`` to have run for noise RMS)
     - ``max_amplitude``: std-normalized peak-to-peak amplitude and
       Hilbert-envelope peak
@@ -54,6 +55,7 @@ class channelFeatureExtractor:
 
     _DEFAULT_CONFIG = {
         "feature_groups": None,
+        "snr_window_ns": None,
         "simple_noise_rms": False,
         "n_entropy_bins": 50,
         "spectral_fmin": 0.08 * units.GHz,
@@ -157,8 +159,11 @@ class channelFeatureExtractor:
             row["noise_rms"] = noise_rms
 
         if compute_all or "snr" in groups:
+            snr_window_size = trace_utils.get_snr_window_size(
+                cfg["snr_window_ns"], sampling_rate)
             row["snr"] = float(
-                trace_utils.get_signal_to_noise_ratio(trace, noise_rms))
+                trace_utils.get_signal_to_noise_ratio(
+                    trace, noise_rms, window_size=snr_window_size))
 
         if compute_all or "rpr" in groups:
             times = np.arange(len(trace)) / sampling_rate

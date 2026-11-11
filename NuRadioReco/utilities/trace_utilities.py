@@ -503,6 +503,40 @@ def get_signal_to_noise_ratio(trace, noise_rms, window_size=3):
     return signal_to_noise_ratio
 
 
+def get_snr_window_size(snr_window_ns, sampling_rate):
+    """
+    Converts a peak-to-peak SNR window from a duration to a number of samples.
+
+    A window given in samples covers a different duration at each sampling
+    rate (3 samples are 0.94 ns at 3.2 GHz but 0.3 ns at 10 GHz), so the SNR
+    of the same waveform changes when it is resampled. A window given as a
+    duration keeps the SNR independent of the sampling rate.
+
+    Parameters
+    ----------
+    snr_window_ns: float or None
+        Window length in ns. None keeps the historical window of 3 samples.
+    sampling_rate: float
+        Sampling rate of the trace the SNR is computed on
+
+    Returns
+    -------
+    window_size: int
+        Window length in samples, at least 2
+    """
+    if snr_window_ns is None:
+        return 3
+
+    snr_window_ns = float(snr_window_ns)
+    if not np.isfinite(snr_window_ns) or snr_window_ns <= 0:
+        raise ValueError(
+            f"snr_window_ns must be finite and positive, got {snr_window_ns}")
+    if not np.isfinite(sampling_rate) or sampling_rate <= 0:
+        raise ValueError(f"Invalid waveform sampling rate: {sampling_rate}")
+
+    return max(2, int(round(snr_window_ns * units.ns * sampling_rate)))
+
+
 def get_root_power_ratio(trace, times, noise_rms):
     """
     Computes the Root Power Ratio (RPR) of a given trace.

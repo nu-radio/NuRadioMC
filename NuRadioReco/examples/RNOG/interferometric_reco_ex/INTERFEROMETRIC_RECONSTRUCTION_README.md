@@ -139,7 +139,7 @@ All preprocessing options are set in the YAML config file and default to the val
 | `apply_cw_removal` | `false` | CW sinewave subtraction (`channelSinewaveSubtraction`) |
 | `apply_dedispersion` | `false` | Antenna phase dedispersion at broadside (`channelAntennaDedispersion`) |
 
-The reconstruction module handles additional correlation-level options internally: `hilbert_envelope_mode`, `apply_hann_window`, `correlation_normalization`, and `snr_pair_weighting`. These are also set in the config file.
+The reconstruction module handles additional correlation-level options internally: `hilbert_envelope_mode`, `apply_hann_window`, `correlation_normalization`, `snr_pair_weighting`, and `snr_window_ns`. These are also set in the config file.
 
 For simulation data, bandpass, CW removal, and dedispersion are typically unnecessary (the permutation study confirmed bandpass is negligible for neutrinos). For real data with CW contamination, enable `apply_cw_removal: true`.
 
@@ -271,7 +271,19 @@ All optional features are off by default. Enable via config YAML or CLI flags.
 | Coherent waveforms | `save_coherent_waveforms: true`, `n_coherent_waveforms: 3` | -- | false |
 | Validation metrics | `validation: true` | `--validation` | false |
 | Plane wave fallback | `plane_wave_fallback: true`, `plane_wave_snr_threshold: 5.0` | -- | false |
+| SNR window as a duration | `snr_window_ns: 20.0` | -- | unset (3 samples) |
 | Bandpass filter | `apply_bandpass: true`, `bandpass_band: [0.1, 0.7]` | -- | false |
+
+The channel SNRs (pair weights, the validation columns `ch*_snr`, `pa_avg_snr` and the
+helper counts, and the plane wave fallback check) are the peak-to-peak amplitude within a
+window over twice the split-trace noise RMS. Without `snr_window_ns` the window is 3
+samples, which is 0.3 ns on the 10 GHz traces the reconstruction sees but 0.94 ns at the
+native 3.2 GHz, so these SNRs are about a third of the feature-extraction SNRs of the same
+event. With `snr_window_ns` the window is that duration at every sampling rate, so the
+reconstruction and feature SNRs differ only through their different preprocessing, and
+the value is written to the output file attribute `snr_window_ns`. The thresholds
+`helper_snr_threshold` and `plane_wave_snr_threshold` apply to the SNR of the window in
+use, so a window set here needs thresholds chosen for it.
 
 ## Validation on reference sets
 

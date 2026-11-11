@@ -143,7 +143,7 @@ class InterferometricReco3D:
         'optimizer_method', 'optimizer_maxiter', 'n_optimizer_seeds',
         'optimizer_rho_offsets',
         'skip_optimizer', 'use_tdoa_seed',
-        'snr_pair_weighting', 'pair_weights',
+        'snr_pair_weighting', 'snr_window_ns', 'pair_weights',
         'save_results_to', 'detector_file', 'detector_date',
         'interpolation_method', 'table_type',
         'n_peaks_save', 'save_coherent_waveforms', 'n_coherent_waveforms',
@@ -155,6 +155,7 @@ class InterferometricReco3D:
         'de_window', 'de_maxiter', 'de_popsize',
         'bh_window', 'bh_niter', 'bh_stepsize',
         'plane_wave_fallback', 'plane_wave_snr_threshold',
+        'return_diagnostics',
     }
 
     def begin(self, station_id, config, det):
@@ -2151,7 +2152,21 @@ class InterferometricReco3D:
         return -best_total / w_total if w_total > 0 else 0.0
 
     @staticmethod
-    def _compute_snr_pair_weights(volt_arrays, channels):
+    def _resolve_snr_window_size(config, time_arrays):
+        """Convert the optional ``snr_window_ns`` to samples at the traces' sampling rate."""
+        from NuRadioReco.utilities.trace_utilities import get_snr_window_size
+
+        window_ns = config.get('snr_window_ns', None)
+        sampling_rate = None
+        if window_ns is not None:
+            if not time_arrays or len(time_arrays[0]) < 2:
+                raise ValueError(
+                    "Cannot convert snr_window_ns without at least two time samples")
+            sampling_rate = 1 / np.median(np.diff(np.asarray(time_arrays[0], dtype=float)))
+        return get_snr_window_size(window_ns, sampling_rate)
+
+    @staticmethod
+    def _compute_snr_pair_weights(volt_arrays, channels, window_size=3):
         """Compute per-pair weights from channel SNRs.
 
         Each pair is weighted by the geometric mean of the two channels' SNRs,
@@ -2164,6 +2179,8 @@ class InterferometricReco3D:
             Voltage traces, one per channel (same order as channels).
         channels : list
             Channel IDs (for logging only).
+        window_size : int
+            Peak-to-peak coincidence window in samples.
 
         Returns
         -------
@@ -2176,8 +2193,10 @@ class InterferometricReco3D:
         snrs = []
         for v in volt_arrays:
             noise_rms = get_split_trace_noise_RMS(v)
-            snrs.append(get_signal_to_noise_ratio(v, noise_rms)
-                        if noise_rms > 0 else 0.0)
+            snr = (get_signal_to_noise_ratio(
+                v, noise_rms, window_size=window_size)
+                if noise_rms > 0 else 0.0)
+            snrs.append(snr)
 
         channel_snrs = dict(zip(channels, snrs))
 
@@ -2190,6 +2209,52 @@ class InterferometricReco3D:
 
         logger.debug("SNR pair weights: %d pairs", len(weights))
         return weights, channel_snrs
+
+    def _build_diagnostic_payload(
+            self, mean_corr, rho_grid, phi_grid, z_grid, corr_data,
+            channels, pair_weights, rho_best, phi_best, z_best,
+            snr_window_size, snr_window_ns):
+        """Package existing reconstruction internals for opt-in diagnostics.
+
+        This does not recalculate the correlation map or pairwise correlation
+        functions. For single-ray reconstruction, it additionally evaluates
+        the expected pair delays at the best-fit point.
+        """
+        channel_pairs = list(itertools.combinations(channels, 2))
+        diagnostics = {
+            'correlation_map': mean_corr,
+            'rho_grid': np.asarray(rho_grid),
+            'phi_grid': np.degrees(np.asarray(phi_grid)),
+            'z_grid': np.asarray(z_grid),
+            'channel_pairs': np.asarray(channel_pairs, dtype=np.int64),
+            'pair_correlations': [entry[0] for entry in corr_data],
+            'pair_dt': np.asarray([entry[1] for entry in corr_data]),
+            'pair_offset': np.asarray([entry[2] for entry in corr_data]),
+            'pair_weights': (
+                np.asarray(pair_weights, dtype=float)
+                if pair_weights is not None
+                else np.ones(len(channel_pairs), dtype=float)
+            ),
+            'pair_weighting_applied': pair_weights is not None,
+            'snr_window_samples': int(snr_window_size),
+        }
+        if snr_window_ns is not None:
+            diagnostics['snr_window_ns'] = float(snr_window_ns)
+
+        if self._multi_ray_types:
+            diagnostics['predicted_pair_delays'] = None
+        else:
+            source = self._build_source_enu_matrix(
+                np.asarray([rho_best], dtype=float),
+                np.radians(np.asarray([phi_best], dtype=float)),
+                np.asarray([z_best], dtype=float),
+            )
+            delay_matrices = self._compute_delay_matrices(source, channels)
+            diagnostics['predicted_pair_delays'] = np.asarray([
+                float(delays[0, 0, 0]) for delays in delay_matrices
+            ])
+
+        return diagnostics
 
     def _build_adaptive_refine_levels(self, config, n_refinements):
         """Build refine_levels dict from n_refinements + factor + bins.
@@ -2817,10 +2882,11 @@ class InterferometricReco3D:
             volt_arrays.append(channel.get_trace())
             time_arrays.append(channel.get_times())
 
+        snr_window_size = self._resolve_snr_window_size(config, time_arrays)
         pair_weights = None
         if config.get('snr_pair_weighting', False):
             pair_weights, _ = self._compute_snr_pair_weights(
-                volt_arrays, channels
+                volt_arrays, channels, window_size=snr_window_size
             )
 
         v_pairs = list(itertools.combinations(volt_arrays, 2))
@@ -2917,11 +2983,12 @@ class InterferometricReco3D:
             volt_arrays.append(channel.get_trace())
             time_arrays.append(channel.get_times())
 
+        snr_window_size = self._resolve_snr_window_size(config, time_arrays)
         pair_weights = None
         channel_snrs = {}
         if config.get('snr_pair_weighting', False) or config.get('validation', False):
             pair_weights, channel_snrs = self._compute_snr_pair_weights(
-                volt_arrays, channels
+                volt_arrays, channels, window_size=snr_window_size
             )
             if not config.get('snr_pair_weighting', False):
                 pair_weights = None
@@ -3437,6 +3504,12 @@ class InterferometricReco3D:
             'coarse_peaks': coarse_peaks,
         }
 
+        if config.get('return_diagnostics', False):
+            result['diagnostics'] = self._build_diagnostic_payload(
+                mean_corr_c, rho_vec_c, phi_vec_c, z_vec_c, corr_data,
+                channels, pair_weights, rho_best, phi_best, z_best,
+                snr_window_size, config.get('snr_window_ns'))
+
         for i, (rho_p, phi_p, z_p, corr_p) in enumerate(saved_peaks):
             result[f'peak_{i}_rho'] = rho_p
             result[f'peak_{i}_phi'] = phi_p
@@ -3599,6 +3672,8 @@ class InterferometricReco3D:
             group_config['channels'] = active
             group_config.pop('polarization_groups', None)
             group_config.pop('hpol_weight_scale', None)
+            if group_name != primary_name:
+                group_config['return_diagnostics'] = False
 
             logger.info("Running %s reco: %d channels %s",
                         group_name, len(active), active)
@@ -3606,7 +3681,8 @@ class InterferometricReco3D:
             grp_result = self.run(evt, station, det, group_config)
 
             for key, val in grp_result.items():
-                results[f'{key}_{group_name}'] = val
+                if key != 'diagnostics':
+                    results[f'{key}_{group_name}'] = val
 
             if group_name == primary_name:
                 results.update(grp_result)
@@ -3667,9 +3743,10 @@ class InterferometricReco3D:
             volt_arrays.append(channel.get_trace())
             time_arrays.append(channel.get_times())
 
+        snr_window_size = self._resolve_snr_window_size(config, time_arrays)
         if (config.get('snr_pair_weighting', False) or config.get('validation', False)) and pair_weights is None:
             pair_weights, _ = self._compute_snr_pair_weights(
-                volt_arrays, channels
+                volt_arrays, channels, window_size=snr_window_size
             )
             if not config.get('snr_pair_weighting', False):
                 pair_weights = None
@@ -3738,7 +3815,7 @@ class InterferometricReco3D:
         self._set_station_parameters(
             station, rho_best, phi_best, z_best, corr_best)
 
-        return {
+        result = {
             'rho': rho_best,
             'phi': phi_best,
             'z': z_best,
@@ -3748,6 +3825,14 @@ class InterferometricReco3D:
             'n_peaks_found': len(peaks),
             'coarse_peaks': peaks,
         }
+
+        if config.get('return_diagnostics', False):
+            result['diagnostics'] = self._build_diagnostic_payload(
+                mean_corr, rho_vec, phi_vec, z_vec, corr_data,
+                channels, pair_weights, rho_best, phi_best, z_best,
+                snr_window_size, config.get('snr_window_ns'))
+
+        return result
 
     def end(self):
         """Clean up caches."""
