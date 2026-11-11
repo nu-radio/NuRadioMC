@@ -180,5 +180,5 @@ generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                             n_events_per_file=n_events_per_file,
                             spectrum=spectrum,
                             proposal=proposal, proposal_config=proposal_config,
-                            proposal_tables_path="./tables",
+                            # proposal_tables_path="./tables", # use if you want to store the cached proposal tables elsewhere
                             start_event_id=start_event_id)
