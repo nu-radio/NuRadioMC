@@ -277,6 +277,31 @@ class ModDetector(Detector):
                                         list(value))
 
     def set_ice_model(self, station_id, model):
+        """
+        Attach an ice model to a station.
+
+        The model is stored as the description returned by the ``get_description`` method of the
+        ice model and is reconstructed on demand by `Detector.get_ice_model`.
+
+        Parameters
+        ----------
+        station_id: int
+            The station id
+        model: `NuRadioMC.utilities.medium_base.IceModel`
+            The ice model to be attached. Has to implement the ``get_description`` method.
+
+        Notes
+        -----
+        Ice models exist only for calibrated detector descriptions (shipped as JSON files, produced with
+        `Detector.export`); the database does not provide them.
+
+        On a database-queried detector, attach the model after `update` and before `export`, since
+        re-querying the description drops it.
+
+        See Also
+        --------
+        Detector.get_ice_model
+        """
         model_spec = model.get_description()
         self._Detector__buffered_stations[station_id]["ice_model"] = model_spec
 
