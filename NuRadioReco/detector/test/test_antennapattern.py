@@ -2,7 +2,7 @@
 """
 Tests for NuRadioReco.detector.antennapattern
 
-The tests are split into two groups: everything up to `test_provider_buffering` runs
+The tests are split into two groups: everything up to `test_hash_file_matches_docs` runs
 without any antenna model file, the tests after it need antenna models which are
 downloaded on first use: RNOG_vpol_4inch_center_n1.73 (~10 MB) and, for the reference
 values, RNOG_vpol_v3_5inch_center_n1.74 and createLPDA_100MHz_v2_InfFirn_n1.4 (~700 MB
@@ -14,6 +14,10 @@ has theta nodes [0, 30, 60, 70, 80, 90, 100, 110, 120, 150, 180] deg). Deriving 
 node indices from the grid boundaries instead of looking them up produced
 discontinuities of up to 70 % in the vector effective length.
 """
+import json
+import os
+import re
+
 import numpy as np
 
 from NuRadioReco.detector.antennapattern import (
@@ -237,6 +241,43 @@ def test_provider_buffering():
 
 
 # --------------------------------------------------------------------------------------
+# antenna_models_hash.json
+# --------------------------------------------------------------------------------------
+
+DETECTOR_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+DOCS_FILE = os.path.join(
+    DETECTOR_DIR, "..", "..", "documentation", "source", "NuRadioReco", "pages", "detector", "antennamodels.rst")
+
+
+def load_hash_file():
+    with open(os.path.join(DETECTOR_DIR, "antenna_models_hash.json"), "r") as fin:
+        return json.load(fin)
+
+
+def test_hash_file_format():
+    """Every entry is [sha1 hash, comment], as expected by get_pickle_antenna_response"""
+    for file_name, entry in load_hash_file().items():
+        assert file_name.endswith(".pkl"), "{}: key has to be the file name incl. '.pkl'".format(file_name)
+        assert isinstance(entry, list) and len(entry) == 2, "{}: entry is not [hash, comment]".format(file_name)
+        assert re.fullmatch(r"[0-9a-f]{40}", entry[0]), "{}: '{}' is not a sha1 hash".format(file_name, entry[0])
+        assert isinstance(entry[1], str), "{}: comment is not a string".format(file_name)
+
+
+def test_hash_file_matches_docs():
+    """Every model in the hash file has a row in the antenna model docs and vice versa"""
+    if not os.path.exists(DOCS_FILE):  # e.g. installed package without the documentation
+        print("  skipped, {} not found".format(DOCS_FILE))
+        return
+
+    with open(DOCS_FILE, "r") as fin:
+        documented = set(re.findall(r"^\s*\* - \.\. _([^:]+):\s*$", fin.read(), re.MULTILINE))
+    hashed = {os.path.splitext(file_name)[0] for file_name in load_hash_file()}
+
+    assert hashed == documented, "only in hash file: {}, only in docs: {}".format(
+        sorted(hashed - documented), sorted(documented - hashed))
+
+
+# --------------------------------------------------------------------------------------
 # AntennaPattern, these need the antenna model file
 # --------------------------------------------------------------------------------------
 
@@ -447,7 +488,8 @@ if __name__ == "__main__":
     without_antenna_file = [
         test_interpolate_linear, test_interpolate_linear_vectorized, test_get_bracketing_indices,
         test_equidistant_shortcut, test_get_group_delay, test_antenna_rotation,
-        test_analytic_patterns, test_parametric_phase, test_provider_buffering]
+        test_analytic_patterns, test_parametric_phase, test_provider_buffering,
+        test_hash_file_format, test_hash_file_matches_docs]
 
     with_antenna_file = [
         test_interpolation_at_nodes, test_magphase_agrees_at_nodes, test_phi_wrapping,

@@ -12,8 +12,7 @@ from NuRadioReco.utilities import units
 import datetime
 
 
-det = NuRadioReco.detector.detector.Detector(json_filename='NuRadioReco/test/trigger_tests/trigger_test_detector.json',
-                                             antenna_by_depth=False)
+det = NuRadioReco.detector.detector.Detector(json_filename='NuRadioReco/test/trigger_tests/trigger_test_detector.json')
 det.update(datetime.datetime(2018, 10, 1))
 event_reader = NuRadioReco.modules.io.eventReader.eventReader()
 event_reader.begin('NuRadioReco/test/trigger_tests/trigger_test_input.nur')

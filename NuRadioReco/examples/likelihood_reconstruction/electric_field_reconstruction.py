@@ -35,7 +35,7 @@ channelLengthAdjuster = NuRadioReco.modules.channelLengthAdjuster.channelLengthA
 
 
 # Set parameters:
-det = detector.Detector(json_filename="./dual_LPDA.json", assume_inf=False, antenna_by_depth=False)
+det = detector.Detector(json_filename="./dual_LPDA.json")
 det.update(datetime.datetime.now())
 station_id = det.get_station_ids()[0]
 n_channels = det.get_number_of_channels(station_id)

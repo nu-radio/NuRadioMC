@@ -16,7 +16,7 @@ from NuRadioReco.modules.likelihood_reconstruction.shower_simulator import Showe
 
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 
-det = NuRadioReco.detector.detector.Detector(json_filename='../../../NuRadioReco/detector/RNO_G/RNO_single_station.json', antenna_by_depth=False)
+det = NuRadioReco.detector.detector.Detector(json_filename='../../../NuRadioReco/detector/RNO_G/RNO_single_station.json')
 
 def detector_simulation_filter_amp(evt, station, det):
 
