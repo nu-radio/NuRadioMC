@@ -1,14 +1,14 @@
 #!/bin/bash
 set -e
 
-example=NuRadioMC/examples/05_pulser_calibration_measurement/ARA
+EXAMPLE=NuRadioMC/examples/05_pulser_calibration_measurement/ARA
 
-python "$example/A01generate_pulser_events.py"
+python "$EXAMPLE/A01generate_pulser_events.py"
 
-python "$example/runARA02.py" \
+python "$EXAMPLE/runARA02.py" \
     emitter_event_list.hdf5 \
-    "$example/ARA02Alt.json" \
-    "$example/config.yaml" \
+    "$EXAMPLE/ARA02Alt.json" \
+    "$EXAMPLE/config.yaml" \
     output.hdf5 output.nur
 
 python NuRadioMC/test/examples/validate_radio_emitter_allmost_equal.py output.hdf5 \

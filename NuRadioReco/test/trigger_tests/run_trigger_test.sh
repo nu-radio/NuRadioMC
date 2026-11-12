@@ -2,11 +2,11 @@
 
 set -e
 
-dir=NuRadioReco/test/trigger_tests
+DIR=NuRadioReco/test/trigger_tests
 
-python3 "$dir/generate_events.py"
-python3 "$dir/trigger_tests.py"
-python3 "$dir/compare_to_reference.py"
+python3 "$DIR/generate_events.py"
+python3 "$DIR/trigger_tests.py"
+python3 "$DIR/compare_to_reference.py"
 
 # clean up
-rm -v "$dir"/{trigger_test_input.hdf5,trigger_test_input.nur,trigger_test_output.nur}
+rm -v "$DIR"/{trigger_test_input.hdf5,trigger_test_input.nur,trigger_test_output.nur}
