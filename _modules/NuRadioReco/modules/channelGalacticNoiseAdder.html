@@ -809,6 +809,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="o">=</span> <span class="n">caching</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scaling</span> <span class="o">=</span> <span class="n">scaling</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Clear the caches in case `begin` is called again on the same instance: run() only clears them</span>
+        <span class="c1"># when the frequencies change, but a new sky model / n_side also invalidates them.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_noise_temperature_for_pixel</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="ow">and</span> <span class="mi">12</span> <span class="o">*</span> <span class="n">n_side</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">&gt;</span> <span class="n">maxsize</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"Caching for the vector effective length is enabled (with `maxsize=</span><span class="si">{</span><span class="n">maxsize</span><span class="si">}</span><span class="s2">`) and `n_side=</span><span class="si">{</span><span class="n">n_side</span><span class="si">}</span><span class="s2">` is to large, and thus "</span>

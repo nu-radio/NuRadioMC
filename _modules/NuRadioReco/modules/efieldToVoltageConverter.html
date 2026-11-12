@@ -725,6 +725,9 @@
                                 <span class="s2">"The argument is ignored."</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__caching</span> <span class="o">=</span> <span class="n">caching</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__freqs</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Clear the cache in case `begin` is called again on the same instance: with `__freqs` reset,</span>
+        <span class="c1"># run() would not detect changed frequencies and would return stale antenna responses.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_cached_antenna_response</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="n">debug</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__pre_pulse_time</span> <span class="o">=</span> <span class="n">pre_pulse_time</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__post_pulse_time</span> <span class="o">=</span> <span class="n">post_pulse_time</span>
