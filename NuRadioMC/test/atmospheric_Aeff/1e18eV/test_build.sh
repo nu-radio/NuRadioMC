@@ -13,4 +13,6 @@ dir=NuRadioMC/test/atmospheric_Aeff/1e18eV
 # path relative to the working directory
 "$dir/T03check_output.py" "$dir/output.hdf5"
 
-rm "$dir"/tables/**/*.dat "$dir"/output*
+# tables/dummy is tracked
+rm -r "$dir/tables/Greenland"
+rm "$dir"/{output*,1e18_full.hdf5}
