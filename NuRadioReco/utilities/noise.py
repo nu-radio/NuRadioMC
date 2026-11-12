@@ -480,12 +480,21 @@ class thermalNoiseGeneratorPhasedArray():
             # sum over steps_per_window adjacent steps
             window_sum = np.add.reduceat(extended_reduced_array.T, np.arange(offset, np.shape(extended_reduced_array)[1], steps_per_window)).T / steps_per_window
             sliding_windows.append(window_sum)
+                
+        # pad sliding windows to the same length in order to stack them into a single array
+        max_length = max(map(lambda window: np.shape(window)[1], sliding_windows))
+        sliding_windows = np.stack(
+            np.fromiter(
+                map(lambda window: np.pad(window, ((0, 0), (0, max_length - np.shape(window)[1])), mode="constant"), sliding_windows), dtype=np.ndarray
+            )
+        )
+
         # self.max_amp = max(np.array(sliding_windows).max(), self.max_amp)
-        self.max_amp = np.array(sliding_windows).max()
+        self.max_amp = np.max(sliding_windows)
+        
 
         # check if trigger condition is fulfilled anywhere
         if self.max_amp > self.threshold:
-            sliding_windows = np.array(sliding_windows)
             tmp = np.argwhere(sliding_windows > self.threshold)
             triggered_step, triggered_beam, triggered_bin = tmp[0]
             triggered_bin *= (self.window + triggered_step * steps_per_window)
