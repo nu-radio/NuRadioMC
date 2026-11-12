@@ -9,12 +9,14 @@ for faster, numpy 2 cross-compatible pickled numpy arrays. This mostly happens
 
 import pickle
 import copyreg
+from astropy.time import Time
 import numpy as np
 import io
 from ._fastnumpyio import pack, unpack # these are essentially faster alternatives for np.load/save
 import logging
 import datetime
 import astropy.time
+from NuRadioReco.utilities import units
 
 logger = logging.getLogger('NuRadioReco.utilities.io_utilities')
 
@@ -194,3 +196,21 @@ def _time_object_to_astropy(time_object):
 
     logger.error(f"Time object not recognized: {time_object}")
     raise ValueError(f"Time object not recognized: {time_object}")
+
+
+def sub_second_from_time(t: astropy.time.Time) -> float:
+    """
+    Returns the fractional part of an astropy time object's UTC Unix second
+    in the base NuRadioMC time unit (nanoseconds).
+
+    Parameters
+    ----------
+    t: astropy.time.Time
+        The time object to be converted to a float in seconds
+
+    Returns
+    -------
+    float
+        The fractional part of the time object's UTC Unix second in the base NuRadioMC time unit
+    """
+    return (t - Time(int(t.unix), format='unix')).sec * units.s

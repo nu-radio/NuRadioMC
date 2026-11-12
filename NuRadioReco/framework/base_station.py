@@ -78,6 +78,23 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
         self._station_time.format = format
         return self._station_time
 
+    def get_station_time_subsecond(self):
+        """
+        Returns the fractional part of the station time's UTC Unix second
+        in the base NuRadioMC time unit (nanoseconds). This is, e.g., useful
+        to investigate when in a second an event triggered.
+
+        Returns
+        -------
+        float or None
+            The fractional UTC second in nanoseconds, or ``None`` if no
+            station time is set.
+        """
+        if self._station_time is None:
+            return None
+
+        return io_utilities.sub_second_from_time(self._station_time)
+
     def get_id(self):
         return self._station_id
 
