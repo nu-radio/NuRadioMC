@@ -39,6 +39,13 @@ _ADC_RANGE_AND_BITS = {
     mattak.Dataset.Digitizer.DIDAQ: (2 * units.volt, 8),
 }
 
+# Expected pedestal (median of a trace, ADC counts, inclusive limits) per digitizer, only checked
+# when remove_pedestal is True.
+_EXPECTED_PEDESTAL = {
+    mattak.Dataset.Digitizer.RADIANT: (-1, 1),
+    mattak.Dataset.Digitizer.DIDAQ: (127, 128),
+}
+
 
 def get_adc_to_voltage(digitizer):
     """
@@ -234,7 +241,8 @@ class readRNOGData:
             mattak_kwargs={},
             overwrite_sampling_rate=None,
             max_in_mem=256,
-            use_fallback_time=True):
+            use_fallback_time=True,
+            remove_pedestal=False):
         """
         Parameters
         ----------
@@ -311,6 +319,12 @@ class readRNOGData:
             If True and if the trigger time is infinity, the readout time will be used instead of the trigger time.
             Otherwise, the event will be skipped in the case of infinite trigger times.
             (Default=True)
+        remove_pedestal: bool
+            Only applies when non-calibrated data are read. If True, subtract the pedestal from each
+            channel trace, determined per event and channel as the median of the trace rounded to
+            integer ADC counts (e.g. 127 / 128 for DiDAQ). Applied before the conversion to voltage.
+            A warning is logged if the pedestal of an event is outside the expected range of the
+            digitizer (DiDAQ: 127 to 128, RADIANT: -1 to 1). (Default: False)
         """
         t0 = time.time()
 
@@ -337,6 +351,7 @@ class readRNOGData:
         self._max_in_mem = max_in_mem
 
         self._use_fallback_time = use_fallback_time
+        self._remove_pedestal = remove_pedestal
 
         # Set parameter for run selection
         self.__max_trigger_rate = max_trigger_rate
@@ -365,6 +380,7 @@ class readRNOGData:
         self.__counter = 0
         self.__skipped = 0
         self.__invalid = 0
+        self.__unexpected_pedestal = 0  # events with a channel pedestal outside the expected range
 
         self._events_information = None
         self._datasets_paths = []
@@ -820,6 +836,7 @@ class readRNOGData:
                 station.set_parameter(key, int(mask))
 
         readout_delays = event_info.readoutDelay
+        unexpected_pedestal = []
         for channel_id, wf in enumerate(waveforms):
             channel = NuRadioReco.framework.channel.Channel(channel_id)
 
@@ -827,6 +844,13 @@ class readRNOGData:
                 channel.set_trace(wf * units.V, sampling_rate * units.GHz)
             else:
                 # wf stores ADC counts
+                if self._remove_pedestal:
+                    pedestal = np.round(np.median(wf))
+                    wf = wf - pedestal
+                    limits = _EXPECTED_PEDESTAL.get(digitizer)
+                    if limits is not None and not limits[0] <= pedestal <= limits[1]:
+                        unexpected_pedestal.append((channel_id, int(pedestal)))
+
                 if self._convert_to_voltage:
                     # convert adc to voltage
                     wf = wf * get_adc_to_voltage(digitizer)
@@ -839,6 +863,14 @@ class readRNOGData:
             channel.set_trace_start_time(time_offset)  # relative to event/trigger time
 
             station.add_channel(channel)
+
+        if unexpected_pedestal:
+            if not self.__unexpected_pedestal:  # first event only
+                self.logger.warning(
+                    f"Run {event_info.run}, event {event_info.eventNumber}: pedestal (channel, ADC) "
+                    f"{unexpected_pedestal} outside the expected range {_EXPECTED_PEDESTAL[digitizer]} "
+                    f"of {digitizer.name}. Further events are only counted.")
+            self.__unexpected_pedestal += 1
 
         evt.set_station(station)
         if self._apply_baseline_correction in ['auto', 'fit', 'approximate', 'median']:
@@ -974,6 +1006,11 @@ class readRNOGData:
                 f"\n\tRead {self.__counter} events   (skipped {self.__skipped} events, {self.__invalid} invalid events)"
                 f"\n\tTime to initialize data sets  : {self._time_begin:.2f}s"
                 f"\n\tTime to read all events       : {self._time_run:.2f}s")
+
+        if self.__unexpected_pedestal:
+            self.logger.warning(
+                f"{self.__unexpected_pedestal} events have a channel with a pedestal outside the "
+                "expected range (see the first warning).")
 
         if self._blockoffsetfitter is not None:
             self._blockoffsetfitter.end()
