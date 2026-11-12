@@ -281,7 +281,7 @@ class ModDetector(Detector):
         Attach an ice model to a station.
 
         The model is stored as the description returned by the ``get_description`` method of the
-        ice model and is reconstructed on demand by `NuRadioReco.detector.RNO_G.detector.Detector.get_ice_model`.
+        ice model and is reconstructed on demand by `NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_ice_model`.
 
         Parameters
         ----------
@@ -293,14 +293,14 @@ class ModDetector(Detector):
         Notes
         -----
         Ice models exist only for calibrated detector descriptions (shipped as JSON files, produced with
-        `NuRadioReco.detector.RNO_G.detector.Detector.export`); the database does not provide them.
+        `NuRadioReco.detector.RNO_G.rnog_detector.Detector.export`); the database does not provide them.
 
         On a database-queried detector, attach the model after `update` and before `export`, since
         re-querying the description drops it.
 
         See Also
         --------
-        NuRadioReco.detector.RNO_G.detector.Detector.get_ice_model
+        NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_ice_model
         """
         model_spec = model.get_description()
         self._Detector__buffered_stations[station_id]["ice_model"] = model_spec
