@@ -325,6 +325,8 @@ jobs:
         jupyter execute NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_lofar_data.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_RNOG_data.ipynb
+        rm -v NuRadioMC/examples/Interactive/{1e19_n1e3.hdf5,1e19_n1e3_output.hdf5,1e19_n1e3_output.nur}
+        rm -v NuRadioReco/examples/Interactive/92380604.nur NuRadioReco/examples/Interactive/*_92380604.png
 
     - name: "Simulation examples"
       if: always()

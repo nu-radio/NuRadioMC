@@ -21,6 +21,9 @@
 *.npy
 *.root
 
+# lock files of downloads (NuRadioReco/utilities/dataservers.py)
+*.lock
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
