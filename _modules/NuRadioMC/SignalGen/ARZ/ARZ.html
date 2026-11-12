@@ -658,8 +658,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">six</span>
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">numba</span><span class="w"> </span><span class="kn">import</span> <span class="n">jit</span>
-    <span class="n">numba_available</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">numba</span><span class="w"> </span><span class="kn">import</span> <span class="n">jit</span><span class="p">,</span> <span class="n">config</span> <span class="k">as</span> <span class="n">numba_config</span>
+    <span class="n">numba_available</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">numba_config</span><span class="o">.</span><span class="n">DISABLE_JIT</span>  <span class="c1"># NUMBA_DISABLE_JIT turns jit into a no-op</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="n">numba_available</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -1001,7 +1001,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_library</span> <span class="o">=</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">read_pickle</span><span class="p">(</span><span class="n">library</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_use_numba</span> <span class="o">=</span> <span class="n">use_numba</span>
         <span class="k">if</span> <span class="n">use_numba</span> <span class="o">&amp;</span> <span class="p">(</span><span class="ow">not</span> <span class="n">numba_available</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">'Numba implementation was requested, but Numba is unavailable. Using Python implementation instead.'</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">'Numba implementation was requested, but Numba is unavailable (not installed or NUMBA_DISABLE_JIT is set). '</span>
+                           <span class="s1">'Using Python implementation instead.'</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_use_numba</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">status</span><span class="p">(</span>
