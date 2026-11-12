@@ -21,7 +21,7 @@
 | NuRadioMC/SignalGen/ARZ/\_\_init\_\_.py                                                                  |        0 |        0 |    100% |           |
 | NuRadioMC/SignalGen/HCRB2017.py                                                                          |      127 |      127 |      0% |     1-296 |
 | NuRadioMC/SignalGen/\_\_init\_\_.py                                                                      |        0 |        0 |    100% |           |
-| NuRadioMC/SignalGen/askaryan.py                                                                          |       56 |       23 |     59% |96, 105-119, 124, 127, 134-139, 216 |
+| NuRadioMC/SignalGen/askaryan.py                                                                          |       56 |       22 |     61% |105-119, 124, 127, 134-139, 216 |
 | NuRadioMC/SignalGen/emitter.py                                                                           |      149 |      115 |     23% |85-88, 90-91, 93-96, 99, 102, 111-243, 245, 311 |
 | NuRadioMC/SignalGen/parametrizations.py                                                                  |      146 |       26 |     82% |93-108, 130, 147, 163, 165-169, 175, 179, 189, 202, 237, 265, 278 |
 | NuRadioMC/SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing/\_\_init\_\_.py                        |        0 |        0 |    100% |           |
@@ -160,7 +160,7 @@
 | NuRadioReco/modules/channelAntennaDedispersion.py                                                        |       50 |       38 |     24% |28-44, 48-68, 89-107, 110 |
 | NuRadioReco/modules/channelBandPassFilter.py                                                             |      128 |       53 |     59% |37, 42, 47, 52, 57, 62, 136, 233, 236-292, 294, 325, 331 |
 | NuRadioReco/modules/channelCWNotchFilter.py                                                              |      108 |       58 |     46% |35-40, 146, 153-156, 176-184, 202-210, 243-297 |
-| NuRadioReco/modules/channelGalacticNoiseAdder.py                                                         |      263 |       95 |     64% |36-41, 47, 146, 154, 161, 174-175, 180-181, 184-185, 189-205, 256-259, 263-266, 303-304, 307-309, 316-317, 338-353, 359, 379-381, 388-393, 414, 417, 438-439, 448-452, 467, 487, 531-563, 626-627, 635-667 |
+| NuRadioReco/modules/channelGalacticNoiseAdder.py                                                         |      265 |       95 |     64% |36-41, 47, 146, 154, 165, 178-179, 184-185, 188-189, 193-209, 260-263, 267-270, 307-308, 311-313, 320-321, 342-357, 363, 383-385, 392-397, 418, 421, 442-443, 452-456, 471, 491, 535-567, 630-631, 639-671 |
 | NuRadioReco/modules/channelGenericNoiseAdder.py                                                          |      185 |       92 |     50% |38-39, 51-70, 111-113, 115-118, 134-135, 138, 150-151, 156, 164-165, 171, 221-250, 292-305, 335-337, 339-342, 349, 357-359, 363, 368-369, 376, 388, 433, 452-467 |
 | NuRadioReco/modules/channelIceThermalNoiseAdder.py                                                       |      139 |      117 |     16% |27, 32, 35, 47-60, 83-100, 129-212, 216-263 |
 | NuRadioReco/modules/channelLengthAdjuster.py                                                             |       38 |       22 |     42% | 52-77, 80 |
@@ -180,7 +180,7 @@
 | NuRadioReco/modules/efieldGalacticNoiseAdder.py                                                          |       78 |       66 |     15% |35, 61-167 |
 | NuRadioReco/modules/efieldRadioInterferometricReconstruction.py                                          |      290 |      256 |     12% |45-50, 70-75, 117-161, 234-279, 292-307, 335-370, 377-386, 394, 435-449, 526-607, 656-751, 778-793, 796, 810-825, 860-897, 926-956 |
 | NuRadioReco/modules/efieldTimeDirectionFitter.py                                                         |       99 |       84 |     15% |21-24, 27-29, 48-144, 147 |
-| NuRadioReco/modules/efieldToVoltageConverter.py                                                          |      190 |       35 |     82% |72, 84, 87-88, 94-95, 115, 158-166, 191-192, 237-239, 243-245, 253-256, 279-281, 311, 321, 326, 329, 337-339, 405, 412 |
+| NuRadioReco/modules/efieldToVoltageConverter.py                                                          |      191 |       35 |     82% |72, 87, 90-91, 97-98, 118, 161-169, 194-195, 240-242, 246-248, 256-259, 282-284, 314, 324, 329, 332, 340-342, 408, 415 |
 | NuRadioReco/modules/efieldToVoltageConverterPerEfield.py                                                 |       45 |        4 |     91% |52, 56, 77, 88 |
 | NuRadioReco/modules/electricFieldBandPassFilter.py                                                       |       17 |        2 |     88% |    10, 36 |
 | NuRadioReco/modules/electricFieldResampler.py                                                            |       16 |        0 |    100% |           |
@@ -280,7 +280,7 @@
 | NuRadioReco/utilities/trace\_utilities.py                                                                |      272 |      190 |     30% |40-42, 49-51, 57-59, 66-68, 75-77, 84-86, 133, 136-141, 149-150, 154-190, 193, 230-285, 321-345, 401-423, 499-506, 637-659, 726-729, 753-763, 793-862 |
 | NuRadioReco/utilities/units.py                                                                           |      166 |        0 |    100% |           |
 | NuRadioReco/utilities/version.py                                                                         |       27 |        5 |     81% |16, 25-27, 47 |
-| **TOTAL**                                                                                                | **32142** | **20157** | **37%** |           |
+| **TOTAL**                                                                                                | **32145** | **20156** | **37%** |           |
 
 
 ## Setup coverage badge
