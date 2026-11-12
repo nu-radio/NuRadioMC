@@ -846,6 +846,20 @@ class Detector():
         return np.array(self.__buffered_stations[station_id]["station_position"]["position"])
 
     @_check_detector_time
+    def get_ice_model(self, station_id):
+        
+        if _keys_not_in_dict(self.__buffered_stations, [station_id, "ice_model"]):
+            raise KeyError(
+                    f"\"ice_model\" not in buffer for station {station_id}. Is there an ice model attached to this station?")
+
+        model_spec = self.__buffered_stations[station_id]["ice_model"]
+        
+        import importlib
+        module = importlib.import_module("NuRadioMC.utilities.medium_base")
+        class_ = getattr(module, model_spec["type"])
+        return class_(**model_spec["args"])
+
+    @_check_detector_time
     def get_relative_position(self, station_id, channel_id):
         """
         Get the relative position of a specific channel/antenna with respect to the station center
@@ -1275,7 +1289,6 @@ class Detector():
         channel_info = self.__get_channel(
             station_id, channel_id, with_signal_chain=True)
         return channel_info['ant_type']
-
 
     def get_number_of_samples(self, station_id, channel_id=None):
         """ Get number of samples for recorded waveforms

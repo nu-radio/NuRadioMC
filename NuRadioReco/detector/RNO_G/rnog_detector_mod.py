@@ -276,6 +276,10 @@ class ModDetector(Detector):
         self.modify_station_description(station_id, ["devices", device_id, "device_position", "position"],
                                         list(value))
 
+    def set_ice_model(self, station_id, model):
+        model_spec = model.get_description()
+        self._Detector__buffered_stations[station_id]["ice_model"] = model_spec
+
 if __name__ == "__main__":
 
     det = ModDetector(select_stations=11)
