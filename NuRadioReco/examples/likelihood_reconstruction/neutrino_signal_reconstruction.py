@@ -19,7 +19,9 @@ import scipy.integrate
 import datetime
 from radiotools import helper as hp
 import argparse
-from multiprocessing import Pool
+import multiprocessing as mp
+mp.set_start_method("fork")
+from collections import deque
 
 from NuRadioReco.utilities import units, signal_processing
 from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
@@ -35,10 +37,10 @@ parser = argparse.ArgumentParser(description="Process and plot RNO-G calibration
 parser.add_argument("--llh_scan_1D", action="store_true", help="Whether to perform a 1D likelihood around fitted parameters")
 parser.add_argument("--llh_scan_2D", action="store_true", help="Whether to perform a 2D likelihood around fitted parameters")
 parser.add_argument("--n_cores", type=int, default=10, help="Number of cores to use for parallelization of 2D likelihood scan")
-parser.add_argument("--n_grid", type=int, default=10, help="Number of grid points in the 2D likelihood scan")
+parser.add_argument("--n_grid", type=int, default=11, help="Number of grid points in the 2D likelihood scan")
 args = parser.parse_args()
 
-
+# Initialize RNO-G detector:
 det = NuRadioReco.detector.detector.Detector(json_filename='../../../NuRadioReco/detector/RNO_G/RNO_single_station.json', antenna_by_depth=False)
 
 evt = Event(1, 1)
@@ -166,7 +168,7 @@ parameters_initial = [
     vertex_azimuth_rel - 0.25 * units.deg,
     pulse_time_guess]
 
-# Run reconstruction (performs 1D profile LLH scan if args.llh_scan_1D is set and saves results to llh_scan_{i_param}.pdf for each parameter):
+# Run reconstruction (performs 1D profile LLH scan if args.llh_scan_1D is set and saves results to llh_scan_{i_param}.png for each parameter):
 parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(
     evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True, likelihood_scan=args.llh_scan_1D)
 
@@ -201,8 +203,9 @@ if args.llh_scan_2D:
     # Make a 2D profile likelihood scan around the best fit parameters in the arrival
     # direction (zenith, azimuth) plane +/- 3 sigma in each direction. The other
     # parameters are fitted for each point in the scan, starting from the best fit
-    # parameters of the previous point. The code is parallelized using multiprocessing.Pool
-    # and goes in circles outwards from the best fit point.
+    # parameters of the previous point. The code is parallelized using multiprocessing.Pool,
+    # and the number of cores can be set with the --n_cores argument. The resulting
+    # scan is saved to profile_likelihood_scan_{n_grid}.pdf.
 
     def reconstruct_event_scan(theta_zenith, theta_azimuth, prev_best_fit_parameters):
         # Reconstruct the event for a given zenith and azimuth, using the previous best fit parameters as initial guess:
@@ -225,7 +228,7 @@ if args.llh_scan_2D:
         )
         parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(
             evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True)
-        return parameters_fit, minus_two_llh_fit, minus_two_llh_true
+        return parameters_fit, minus_two_llh_fit
 
     N_cores = args.n_cores
     n_grid = args.n_grid
@@ -250,18 +253,13 @@ if args.llh_scan_2D:
             theta_phi_values[k,1] = theta_azimuth_grid[j]
             k += 1
 
-    parameters_array_scan = np.zeros([n_grid, n_grid, 7]) #np.zeros([n_scan_points, 7])
-    minus_two_LLH_scan = np.zeros([n_grid, n_grid]) #np.zeros([n_scan_points])
-    test_statistic_true_array_scan = np.zeros([n_grid, n_grid]) #np.zeros([n_scan_points])
-
-    # i_circ = 0 :
-    from multiprocessing import Pool
-    from collections import deque
+    # Initialze arrays to store the results of the scan
+    parameters_array_scan = np.zeros([n_grid, n_grid, 7])
+    minus_two_LLH_scan = np.zeros([n_grid, n_grid])
 
     # Store central reconstruction
     parameters_array_scan[coordinates_best[0], coordinates_best[1]] = np.copy(parameters_fit)
     minus_two_LLH_scan[coordinates_best[0], coordinates_best[1]] = minus_two_llh_fit
-    test_statistic_true_array_scan[coordinates_best[0], coordinates_best[1]] = minus_two_llh_true
 
     # Create a queue of points ready for reconstruction
     queue = deque()
@@ -296,11 +294,10 @@ if args.llh_scan_2D:
 
         global n_completed
 
-        parameters_fit_i, llh_fit_i, llh_true_i = result
+        parameters_fit_i, llh_fit_i = result
 
         parameters_array_scan[i, j, :] = parameters_fit_i
         minus_two_LLH_scan[i, j] = llh_fit_i
-        test_statistic_true_array_scan[i, j] = llh_true_i
 
         n_completed += 1
 
@@ -323,7 +320,7 @@ if args.llh_scan_2D:
 
     futures = []
 
-    with Pool(N_cores) as pool:
+    with mp.Pool(N_cores) as pool:
 
         # Seed the queue with the central point's neighbours
         for di, dj in [
