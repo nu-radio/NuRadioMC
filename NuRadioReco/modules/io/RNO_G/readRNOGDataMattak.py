@@ -31,6 +31,36 @@ except ImportError as e:
     raise(e)
 
 
+# Temporary solution, hard-coded values (RADIANT: from Cosmin). Reference voltage range and number
+# of bits of the ADC per digitizer, only used when uncalibrated data is read and convert_to_voltage
+# is True.
+_ADC_RANGE_AND_BITS = {
+    mattak.Dataset.Digitizer.RADIANT: (2.5 * units.volt, 12),
+    mattak.Dataset.Digitizer.DIDAQ: (2 * units.volt, 8),
+}
+
+
+def get_adc_to_voltage(digitizer):
+    """
+    Conversion factor from ADC counts to voltage (NuRadio units).
+
+    Parameters
+    ----------
+    digitizer: mattak.Dataset.Digitizer
+        Digitizer which recorded the data (`dataset.digitizer`).
+
+    Returns
+    -------
+    factor: float
+    """
+    try:
+        voltage_range, n_bits = _ADC_RANGE_AND_BITS[digitizer]
+    except KeyError:
+        raise ValueError(f"No ADC to voltage conversion known for digitizer {digitizer!r}.")
+
+    return voltage_range / (2 ** n_bits - 1)
+
+
 def get_time_offset(trigger_type):
     """
     Mapping the offset between trace start time and trigger time (~ signal time).
@@ -305,11 +335,6 @@ class readRNOGData:
         self._convert_to_voltage = convert_to_voltage
 
         self._blockoffsetfitter = channelBlockOffsets()
-
-        # Temporary solution hard-coded values from Cosmin. Only used when uncalibrated data
-        # is read and convert_to_voltage is True.
-        self._adc_ref_voltage_range = 2.5 * units.volt
-        self._adc_n_bits = 12
 
         self._overwrite_sampling_rate = overwrite_sampling_rate
 
@@ -762,7 +787,8 @@ class readRNOGData:
                     max_entries_in_mem=self._max_in_mem):
 
                 # building the event is cheap compared to reading the data (~6%, without baseline correction)
-                evt = self._get_event(evtinfo, wfs, baseline_correction=apply_baseline_correction)
+                evt = self._get_event(
+                    evtinfo, wfs, dataset.digitizer, baseline_correction=apply_baseline_correction)
                 events_waveforms.append([channel.get_trace() for channel in evt.get_station().iter_channels()])
                 if (max_events is not None) and (len(events_waveforms) >= max_events):
                     self.logger.warning(
@@ -805,7 +831,7 @@ class readRNOGData:
         return True
 
 
-    def _get_event(self, event_info, waveforms, baseline_correction=None):
+    def _get_event(self, event_info, waveforms, digitizer, baseline_correction=None):
         """ Return a NuRadioReco event
 
         Parameters
@@ -816,6 +842,10 @@ class readRNOGData:
         waveforms: np.array(n_channel, n_samples)
             Typically what dataset.wfs() returns (for one event!). Has to contain all channels,
             ``select_channels`` (see `begin`) is applied here.
+
+        digitizer: mattak.Dataset.Digitizer
+            Digitizer which recorded the event (`dataset.digitizer`), sets the ADC to voltage
+            conversion.
 
         baseline_correction: str | None
             If not None, overwrite ``apply_baseline_correction`` (see `begin`). (Default: None)
@@ -866,7 +896,7 @@ class readRNOGData:
                 # wf stores ADC counts
                 if self._convert_to_voltage:
                     # convert adc to voltage
-                    wf = wf * (self._adc_ref_voltage_range / (2 ** (self._adc_n_bits) - 1))
+                    wf = wf * get_adc_to_voltage(digitizer)
 
                 channel.set_trace(wf, sampling_rate * units.GHz)
 
@@ -904,7 +934,7 @@ class readRNOGData:
                     calibrated=self._read_calibrated_data, selectors=self._select_events,
                     max_entries_in_mem=self._max_in_mem):
 
-                evt = self._get_event(evtinfo, wf)
+                evt = self._get_event(evtinfo, wf, dataset.digitizer)
 
                 # TODO: find a better way to do this. Also do we want to store a string, this enum lives in mattak ...
                 evt.get_station().set_parameter(stpRNOG.digitizer, dataset.digitizer)
@@ -937,7 +967,7 @@ class readRNOGData:
         # access data
         waveforms = dataset.wfs()
 
-        evt = self._get_event(event_info, waveforms)
+        evt = self._get_event(event_info, waveforms, dataset.digitizer)
 
         self.__counter += 1
 
@@ -987,7 +1017,7 @@ class readRNOGData:
         # access data
         waveforms = dataset.wfs()
 
-        evt = self._get_event(event_info, waveforms)
+        evt = self._get_event(event_info, waveforms, dataset.digitizer)
 
         self.__counter += 1
 
