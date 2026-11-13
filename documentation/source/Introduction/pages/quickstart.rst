@@ -22,6 +22,14 @@ To install NuRadioMC and NuRadioReco, you can use ``pip``:
 This installs the latest release version of NuRadioMC.
 If you want to use the development version, or intend to :doc:`contribute </Introduction/pages/contributing>`, see the installation instructions :ref:`here <Introduction/pages/installation:Development version>`.
 
+To follow the interactive notebooks below, you will also need to install Jupyter and/or the Python kernel for Jupyter:
+
+.. code-block::
+
+    pip install jupyter ipykernel
+
+If you don't use an IDE that supports Jupyter notebooks, start Jupyter with ``jupyter notebook`` and open the first example notebook in your browser.
+
 Simulating a neutrino detector with NuRadioMC
 ---------------------------------------------
 `Interactive notebook example showing how to simulate a neutrino detector <https://github.com/nu-radio/NuRadioMC/tree/develop/NuRadioMC/examples/Interactive/W01-simulate-neutrino-detector.ipynb>`_
