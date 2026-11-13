@@ -348,18 +348,7 @@ class Detector():
 
         return json.dumps(export_dir, **dumps_kwargs)
 
-    def _import_from_file(self, detector_file):
-
-        if detector_file.endswith(".json.xz"):
-            with lzma.open(detector_file, "r") as f:
-                import_dict = json.load(f)
-        elif detector_file.endswith(".json"):
-            with open(detector_file, "r") as f:
-                import_dict = json.load(f)
-        else:
-            raise ValueError(f"Unknown filetype (extension), can not import detector from {detector_file}. "
-                                "Allowed are only: \".json\" and \".json.xz\"")
-
+    def _import_from_dict(self, import_dict, source = "in-memory dict"):
         if "version" in import_dict and import_dict["version"] == 1:
             self.__buffered_stations = {}
             self.additional_data = import_dict.get("additional_data", None)
@@ -407,12 +396,26 @@ class Detector():
                 st_id: 1 for st_id in self.__buffered_stations}
             self.__default_values = import_dict["default_values"]
         else:
-            self.logger.error(f"{detector_file} with unknown version.")
-            raise ReferenceError(f"{detector_file} with unknown version.")
+            self.logger.error(f"{source} with unknown version.")
+            raise ReferenceError(f"{source} with unknown version.")
 
         # print any potential comment present in this detector description
         if self.comment is not None and self.comment != "":
             self.logger.info("\n".join(["Loaded detector description with comment:", self.comment]))
+
+    def _import_from_file(self, detector_file):
+
+        if detector_file.endswith(".json.xz"):
+            with lzma.open(detector_file, "r") as f:
+                import_dict = json.load(f)
+        elif detector_file.endswith(".json"):
+            with open(detector_file, "r") as f:
+                import_dict = json.load(f)
+        else:
+            raise ValueError(f"Unknown filetype (extension), can not import detector from {detector_file}. "
+                                "Allowed are only: \".json\" and \".json.xz\"")
+
+        self._import_from_dict(import_dict, source = detector_file)
 
     def _check_update_buffer(self):
         """
