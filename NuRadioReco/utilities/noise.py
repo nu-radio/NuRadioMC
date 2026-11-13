@@ -1,6 +1,6 @@
 import numpy as np
 from NuRadioReco.modules import channelGenericNoiseAdder
-from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities import units, fft, coding_helper
 from NuRadioReco.modules.trigger.highLowThreshold import get_high_low_triggers
 from NuRadioReco.detector import generic_detector as detector
 from scipy import constants, integrate
@@ -323,7 +323,7 @@ class thermalNoiseGeneratorPhasedArray():
         window_length: float, default 16 ns
             time interval of the integration window
         step_size: float, default 8 ns
-            duration of a stride between window calcuations
+            duration of a stride between window calculations
         main_low_angle: float, default -59.5 deg
             angle (radians) of the lowest beam
         main_high_angle: float 59.5 deg
@@ -480,12 +480,19 @@ class thermalNoiseGeneratorPhasedArray():
             # sum over steps_per_window adjacent steps
             window_sum = np.add.reduceat(extended_reduced_array.T, np.arange(offset, np.shape(extended_reduced_array)[1], steps_per_window)).T / steps_per_window
             sliding_windows.append(window_sum)
+                
+        # pad sliding windows to the same length in order to stack them into a single array
+        max_length = max(map(lambda window: np.shape(window)[1], sliding_windows))
+        sliding_windows = coding_helper.array_from_function(
+            lambda window: np.pad(window, pad_width=((0, 0), (0, max_length - np.shape(window)[1])), mode="constant"), sliding_windows
+        )
+
         # self.max_amp = max(np.array(sliding_windows).max(), self.max_amp)
-        self.max_amp = np.array(sliding_windows).max()
+        self.max_amp = np.max(sliding_windows)
+        
 
         # check if trigger condition is fulfilled anywhere
         if self.max_amp > self.threshold:
-            sliding_windows = np.array(sliding_windows)
             tmp = np.argwhere(sliding_windows > self.threshold)
             triggered_step, triggered_beam, triggered_bin = tmp[0]
             triggered_bin *= (self.window + triggered_step * steps_per_window)
