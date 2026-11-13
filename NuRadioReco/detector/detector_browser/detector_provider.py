@@ -1,4 +1,3 @@
-import six
 import NuRadioReco.detector.detector
 import NuRadioReco.detector.generic_detector
 import NuRadioReco.modules.io.NuRadioRecoio
@@ -6,8 +5,7 @@ import NuRadioReco.utilities.metaclasses
 import datetime
 import logging
 
-@six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
-class DetectorProvider(object):
+class DetectorProvider(metaclass=NuRadioReco.utilities.metaclasses.Singleton):
     """
     Class to provide the detector object to the other functions.
     By declaring this class a Singleton, all functions have access

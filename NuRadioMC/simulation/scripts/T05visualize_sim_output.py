@@ -2,7 +2,6 @@ import os
 import h5py
 import argparse
 import numpy as np
-from six import iteritems
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 
@@ -130,7 +129,7 @@ fig.savefig(os.path.join(plot_folder, 'vertex_distribution.png'), bbox_inches='t
 # loop over all stations and produce station specific plots
 ###########################
 
-for key, station in iteritems(fin):
+for key, station in fin.items():
     if isinstance(station, h5py._hl.group.Group):
         ###########################
         # recalculate triggers per station

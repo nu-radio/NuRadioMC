@@ -3,7 +3,6 @@ import numpy as np
 from NuRadioReco.utilities import units, particle_names
 import NuRadioReco.utilities.metaclasses
 import os
-import six
 import json
 import logging
 from glob import glob
@@ -208,8 +207,7 @@ def is_shower_primary(pp_type):
         return False
 
 
-@six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
-class ProposalFunctions(object):
+class ProposalFunctions(metaclass=NuRadioReco.utilities.metaclasses.Singleton):
     """
     This class serves as a container for PROPOSAL functions. The functions that
     start with double underscore take PROPOSAL units as an argument and should
