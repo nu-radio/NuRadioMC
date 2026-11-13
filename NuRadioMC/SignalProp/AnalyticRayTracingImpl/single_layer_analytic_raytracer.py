@@ -1672,7 +1672,12 @@ class ray_tracing_2D():
 
             tol = 1e-6
             results = []
-            C0s = []  # intermediate storage of results
+            logC0s = []  # logC0 of the solutions found so far
+            # The brentq searches for further roots start logC0_offset away from the first root. Roots closer than
+            # logC0_tol are the same solution: it must exceed logC0_offset (a first root found again is at least that far off)
+            # and stay below the gap between genuine solution pairs (>= ~3e-3 in T10unit_test_C0_greenland3exp).
+            logC0_offset = 1e-4
+            logC0_tol = 1e-3
 
             if(x2[1] > 0):
                 # special case of ice to air ray tracing. There is always one unique solution between C_0 = inf and C_0 that
@@ -1689,7 +1694,7 @@ class ray_tracing_2D():
                 result = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
 
                 C_0 = _get_C0_from_log(result, self.medium.n_ice)
-                C0s.append(C_0)
+                logC0s.append(result)
                 solution_type = self.determine_solution_type(x1, x2, C_0)
                 self.__logger.info("found {} solution C0 = {:.2f} (internal logC = {:.2f})".format(solution_types[solution_type], C_0, result))
                 results.append({'type': solution_type,
@@ -1723,9 +1728,9 @@ class ray_tracing_2D():
             if(result.fun < 1e-7):
                 if(plot):
                     self.plot_result(x1, x2, _get_C0_from_log(result.x[0], self.medium.n_ice), ax)
-                if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
+                if not np.any(np.isclose(result.x[0], logC0s, rtol=0, atol=logC0_tol)):
                     C_0 = _get_C0_from_log(result.x[0], self.medium.n_ice)
-                    C0s.append(C_0)
+                    logC0s.append(result.x[0])
                     solution_type = self.determine_solution_type(x1, x2, C_0)
                     self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                     results.append({'type': solution_type,
@@ -1735,7 +1740,7 @@ class ray_tracing_2D():
                                     'reflection_case': reflection_case})
 
             # check if another solution with higher logC0 exists
-            logC0_start = result.x[0] + 0.0001
+            logC0_start = result.x[0] + logC0_offset
             logC0_stop = 100
             delta_start = self.obj_delta_y(logC0_start, x1, x2, reflection, reflection_case)
             delta_stop = self.obj_delta_y(logC0_stop, x1, x2, reflection, reflection_case)
@@ -1744,9 +1749,9 @@ class ray_tracing_2D():
                 result2 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
                 if(plot):
                     self.plot_result(x1, x2, _get_C0_from_log(result2, self.medium.n_ice), ax)
-                if(np.round(result2, 3) not in np.round(C0s, 3)):
+                if not np.any(np.isclose(result2, logC0s, rtol=0, atol=logC0_tol)):
                     C_0 = _get_C0_from_log(result2, self.medium.n_ice)
-                    C0s.append(C_0)
+                    logC0s.append(result2)
                     solution_type = self.determine_solution_type(x1, x2, C_0)
                     self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                     results.append({'type': solution_type,
@@ -1758,7 +1763,7 @@ class ray_tracing_2D():
                 self.__logger.info("no solution with logC0 > {:.3f} exists".format(result.x[0]))
 
             logC0_start = -100
-            logC0_stop = result.x[0] - 0.0001
+            logC0_stop = result.x[0] - logC0_offset
             delta_start = self.obj_delta_y(logC0_start, x1, x2, reflection, reflection_case)
             delta_stop = self.obj_delta_y(logC0_stop, x1, x2, reflection, reflection_case)
             if(np.sign(delta_start) != np.sign(delta_stop)):
@@ -1767,9 +1772,9 @@ class ray_tracing_2D():
 
                 if(plot):
                     self.plot_result(x1, x2, _get_C0_from_log(result3, self.medium.n_ice), ax)
-                if(np.round(result3, 3) not in np.round(C0s, 3)):
+                if not np.any(np.isclose(result3, logC0s, rtol=0, atol=logC0_tol)):
                     C_0 = _get_C0_from_log(result3, self.medium.n_ice)
-                    C0s.append(C_0)
+                    logC0s.append(result3)
                     solution_type = self.determine_solution_type(x1, x2, C_0)
                     self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                     results.append({'type': solution_type,
