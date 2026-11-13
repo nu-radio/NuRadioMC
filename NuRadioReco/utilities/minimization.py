@@ -71,14 +71,30 @@ class Minimizer:
         self.debug = debug
 
         # Reconstruction results:
-        self.result = None
-        self.parameters = None
+        self._result = None
+        self._parameters = None
         self.covariance_matrix = None
         self.history = np.array([parameters_initial])
         self.success = None
 
         if fixed is not None:
             self.fix_parameters(fixed)
+
+    @property
+    def parameters(self):
+        """ Get the best-fit parameters from the minimization. """
+        if self._parameters is None:
+            return None
+        return np.copy(self._parameters)
+
+    @property
+    def result(self):
+        """ Get best-fit objective function value. """
+        return self._result
+
+    def fix_parameters(self, fixed):
+        assert len(fixed) == self.n_parameters, "Fixed parameters should match number of parameters"
+        self.fixed = fixed
 
     def _function_to_minimize(self, parameters_normalized):
 
@@ -100,14 +116,13 @@ class Minimizer:
 
         return result
 
-    def fix_parameters(self, fixed):
-        assert len(fixed) == self.n_parameters, "Fixed parameters should match number of parameters"
-        self.fixed = fixed
-        
     def run_minimization(self, method, data=None, **method_kwargs):
         """
         Run minimization algorithm for the objective function. If a signal_function is provided,
         a data array must be provided which the signal is fitted using the objective_function.
+
+        Fitted parameters are stored in self.parameters and the best-fit objective function value
+        is stored in self.result.
 
         Parameters
         ----------
@@ -121,6 +136,8 @@ class Minimizer:
         if self.signal_function is not None:
             assert data is not None, "Data must be provided for minimization if a signal_function is set"
             self.data = data
+
+        self.n_function_calls = 0
 
         if method == "scipy":
             result_object = self._scipy_minimization(**method_kwargs)
@@ -137,84 +154,108 @@ class Minimizer:
 
         return result_object
 
-    def parameter_scan_1D(self, method, i_parameter_scan, parameter_grid_x, parameters_best=None, data=None, profile=False, true_value=None, plot=True, **method_kwargs):
+    def parameter_scan_1D(
+            self, parameter_index, parameter_values, parameters_start=None,
+            data=None, profile=False, method="minuit", plot=False, **method_kwargs):
         """
-        Perform a (optionally profiled) parameter scan of the objective function for a provided grid of values
-        of the i_parameter_scan'th parameter. For each point in parameter_grid_x, the i_parameter_scan'th
-        parameter is fixed to the value in parameter_grid_x and the objective function evaluated. If
-        profile is True, the objective function is minimized with respect to the other parameters, e.g.,
-        to produce a profile likelihood scan. The resulting objective values are returned.
+        Perform a one-dimensional scan of the objective function.
+
+        The parameter specified by parameter_index is fixed to each value
+        in parameter_values, and the objective function is evaluated.
+
+        If profile is False, all other parameters are kept fixed. If
+        profile is True, the other free parameters are minimized at each
+        scan point, resulting in a profile scan.
+
+        The starting parameter values are determined by parameters_start.
+        If None, a minimization is performed to determine the best-fit
+        parameters. Otherwise, the provided values are used.
 
         Parameters
         ----------
-            method : str
-                Name of the method used to run the minimization
-            i_parameter_scan : int
-                Index of the parameter to perform the scan over
-            parameter_grid_x : numpy.ndarray
-                Values of the i_parameter_scan'th parameter to scan over
-            parameters_best : numpy.ndarray (optional)
-                If not provided, a minimization will be run to determine the best fit point,
-                which is used for plotting.
+            parameter_index : int
+                Index of the parameter to scan over
+            parameter_values : numpy.ndarray
+                Values of the scanned parameter at which to evaluate the objective function
+            parameters_start : numpy.ndarray (optional)
+                Initial parameter values
+                If None, a minimization is performed to determine the best-fit parameters.
+                If profile is False, all parameters except the scanned parameter are set to these values.
+                If profile is True, these values are used as starting values for the minimization at each
+                scan point. Parameters already marked as fixed in self.fixed remain fixed.
             data : numpy.ndarray (optional)
-                Data to be provided to the objective function, if self.signal_function is set.
+                Data to provide to the objective function, if self.signal_function is set
             profile : bool (optional)
-                If False, the other parameters will be fixed to their best fit values.
-                If True, the other parameters will be optimized for each point in the scan.
-            true_value : float (optional)
-                The true value of the parameter being scanned, if known. Used for plotting.
+                If False, the objective function is evaluated with all parameters except the scanned parameter fixed.
+                If True, the objective function is minimized with respect to the other free parameters at each scan point.
+            method : str
+                Minimization method used for the profile scan, default is "minuit". Only used if profile is True or if parameters_start is None.
             plot : bool (optional)
-                If True, a plot of the scan results will be displayed.
+                If True, plot the objective function relative to its value at the reference parameter point.
+
         Returns
         -------
             objective_values : numpy.ndarray
-                The values of the objective function for each point in parameter_grid_x
+                Objective function values corresponding to parameter_values.
         """
 
+        # Save the initial parameter configuration:
         parameters_initial_copy = np.copy(self.parameters_initial)
         fixed_copy = np.copy(self.fixed)
 
-        n_x = len(parameter_grid_x)
+        n_x = len(parameter_values)
         objective_values = np.zeros(n_x)
 
-        # Get best fit point:
-        if parameters_best is None:
+        if parameters_start is None:
+            # Get best fit point:
             self.run_minimization(method=method, data=data, **method_kwargs)
-            best_fit_parameters = self.parameters
-            best_fit_x = self.parameters[i_parameter_scan]
-            best_fit_value = self.result
+            parameters_reference = self.parameters
         else:
-            best_fit_parameters = np.copy(parameters_best)
-            best_fit_x = parameters_best[i_parameter_scan]
-            best_fit_value = self.objective_function(data, self.signal_function(best_fit_parameters)) if self.signal_function is not None else self.objective_function(best_fit_parameters)
+            parameters_reference = np.copy(parameters_start)
+
+        # Evaluate the objective function at the reference point:
+        if self.signal_function is not None:
+            objective_function_reference = self.objective_function(data, self.signal_function(parameters_reference))
+        else:
+            objective_function_reference = self.objective_function(parameters_reference)
 
         if profile:
-            # Now fix parameters which are being scanned:
-            self.fixed[i_parameter_scan] = True
+            # Fix parameters which are being scanned:
+            self.fixed[parameter_index] = True
 
+            # Run minimization for each value of the scanned parameter:
             for i_x in range(n_x):
-                self.parameters_initial[i_parameter_scan] = parameter_grid_x[i_x]
+                self.parameters_initial = np.copy(parameters_reference)
+                self.parameters_initial[parameter_index] = parameter_values[i_x]
                 self.run_minimization(method=method, data=data, **method_kwargs)
                 objective_values[i_x] = self.result
 
         else:
-            parameters = np.copy(best_fit_parameters)
+            # Use reference parameters for all parameters except the scanned parameter:
+            parameters = np.copy(parameters_reference)
+
+            # Evaluate the objective function for each value of the scanned parameter:
             for i_x in range(n_x):
-                parameters[i_parameter_scan] = parameter_grid_x[i_x]
-                objective_values[i_x] = self.objective_function(data, self.signal_function(parameters)) if self.signal_function is not None else self.objective_function(parameters)
+                parameters[parameter_index] = parameter_values[i_x]
+                if self.signal_function is not None:
+                    objective_values[i_x] = self.objective_function(data, self.signal_function(parameters))
+                else:
+                    objective_values[i_x] = self.objective_function(parameters)
 
         if plot:
             plt.figure(figsize=[4,3])
-            plt.plot(parameter_grid_x, objective_values-best_fit_value, "b-", label="Parameter scan")
+            plt.plot(parameter_values, objective_values - objective_function_reference, "b-", label="Parameter scan")
             axis = plt.axis()
-            if true_value is not None:
-                plt.axvline(true_value, color='r', linestyle='--', label="True")
-            plt.axvline(best_fit_x, color="y", linestyle="--", label="Best fit")
-            plt.axis([parameter_grid_x[0], parameter_grid_x[-1], axis[2], axis[3]*1.2])
-            plt.xlabel(f"Parameter {i_parameter_scan} [au]")
+            plt.axvline(
+                parameters_reference[parameter_index], color="y", linestyle="--",
+                label="Best-fit value" if parameters_start is None else "Reference value"
+            )
+            plt.axis([parameter_values[0], parameter_values[-1], axis[2], axis[3]*1.2])
+            plt.xlabel(f"Parameter {parameter_index} [au]")
             plt.ylabel(r"Delta objective value")
             plt.legend()
             plt.tight_layout()
+            plt.show()
 
         # Set initial and fixed parameters back to initial:
         self.parameters_initial = parameters_initial_copy
@@ -222,107 +263,126 @@ class Minimizer:
 
         return objective_values
 
-    def parameter_scan_2D(self, method, i_parameter_x, i_parameter_y, parameter_grid_x, parameter_grid_y, parameters_best=None, data=None, profile=True, true_values=None, plot=True, cmap="Blues_r", vmax=None, **method_kwargs):
+    def parameter_scan_2D(
+            self, parameter_index_x, parameter_index_y, parameter_values_x, parameter_values_y,
+            parameters_start=None, data=None, profile=True, method="minuit", plot=True, **method_kwargs):
         """
-        Perform a (optionally profiled) 2D parameter scan of the objective function for a provided grid of
-        values for the two parameters. For each point in the grid, the two paramters are fixed to the values
-        in parameter_grid_x and parameter_grid_y and the objective function evaluated. If profile is True,
-        the objective function is minimized with respect to the other parameters, e.g., to produce a profile
-        likelihood scan. The resulting objective values are returned.
+        Perform a two-dimensional scan of the objective function.
+
+        The two parameters specified by parameter_index_x and
+        parameter_index_y are fixed to each combination of values in
+        parameter_values_x and parameter_values_y, and the objective
+        function is evaluated.
+
+        If profile is False, all other parameters are kept fixed. If
+        profile is True, the other free parameters are minimized at each
+        grid point, resulting in a profile scan.
+
+        The starting parameter values are determined by parameters_start.
+        If None, a minimization is performed to determine the best-fit
+        parameters. Otherwise, the provided values are used.
 
         Parameters
         ----------
-            method : str
-                Name of the method used to run the minimization
-            i_parameter_x : int
-                Index of the first parameter to perform the scan over
-            i_parameter_y : int
-                Index of the second parameter to perform the scan over
-            parameter_grid_x : numpy.ndarray
-                Values of the x-axis parameter to perform the scan over
-            parameter_grid_y : numpy.ndarray
-                Values of the y-axis parameter to perform the scan over
-            parameters_best : numpy.ndarray (optional)
-                If not provided, a minimization will be run to determine the best fit point,
-                which is used for plotting.
+            parameter_index_x : int
+                Index of the parameter scanned along the x-axis.
+            parameter_index_y : int
+                Index of the parameter scanned along the y-axis.
+            parameter_values_x : numpy.ndarray
+                Values of the x-axis parameter to scan over.
+            parameter_values_y : numpy.ndarray
+                Values of the y-axis parameter to scan over.
+            parameters_start : numpy.ndarray (optional)
+                Initial parameter values
+                If None, a minimization is performed to determine the best-fit parameters.
+                If profile is False, all parameters except the scanned parameters are set to these values.
+                If profile is True, these values are used as starting values for the minimization at each
+                scan point. Parameters already marked as fixed in self.fixed remain fixed.
             data : numpy.ndarray (optional)
-                Data to be provided to the objective function, if self.signal_function is set.
+                Data to provide to the objective function, if self.signal_function is set
             profile : bool (optional)
-                If False, the other parameters will be fixed to their best fit values.
-                If True, the other parameters will be optimized for each point in the scan.
-            true_values : list(float) (optional)
-                The true values of the parameters being scanned, if known.
+                If False, the objective function is evaluated with all parameters except the scanned parameters fixed.
+                If True, the objective function is minimized with respect to the other free parameters at each scan point.
+            method : str
+                Minimization method used for the profile scan, default is "minuit". Only used if profile is True or if parameters_start is None.
             plot : bool (optional)
-                If True, a plot of the scan results will be displayed.
-            cmap : str (optional)
-                Colormap to use for the plot.
-            vmax : float (optional)
-                Maximum value for the color scale in the plot. If None, the maximum value of
-                the objective function will be used.
+                If True, plot the objective function relative to its value at the reference parameter point.
+
         Returns
         -------
             objective_values : numpy.ndarray
                 The values of the objective function for each point in the 2D parameter grid,
-                with shape [len(parameter_grid_x), len(parameter_grid_y)]
+                with shape [len(parameter_values_x), len(parameter_values_y)]
         """
         
         parameters_initial_copy = np.copy(self.parameters_initial)
         fixed_copy = np.copy(self.fixed)
 
-        n_x = len(parameter_grid_x)
-        n_y = len(parameter_grid_y)
+        n_x = len(parameter_values_x)
+        n_y = len(parameter_values_y)
         objective_values = np.zeros([n_x, n_y])
 
-        # Get best fit point:
-        if parameters_best is None:
+        if parameters_start is None:
+            # Get best fit point:
             self.run_minimization(method=method, data=data, **method_kwargs)
-            best_fit_parameters = np.copy(self.parameters)
-            best_fit_x = self.parameters[i_parameter_x]
-            best_fit_y = self.parameters[i_parameter_y]
-            best_fit_value = self.result
+            parameters_reference = self.parameters
         else:
-            best_fit_parameters = np.copy(parameters_best)
-            best_fit_x = parameters_best[i_parameter_x]
-            best_fit_y = parameters_best[i_parameter_y]
-            best_fit_value = self.objective_function(data, self.signal_function(best_fit_parameters)) if self.signal_function is not None else self.objective_function(best_fit_parameters)
+            parameters_reference = np.copy(parameters_start)
+
+        # Evaluate the objective function at the reference point:
+        if self.signal_function is not None:
+            objective_function_reference = self.objective_function(data, self.signal_function(parameters_reference))
+        else:
+            objective_function_reference = self.objective_function(parameters_reference)
 
         if profile:
-            # Now fix parameters which are being scanned:
-            fixed_copy = np.copy(self.fixed)
-            self.fixed[i_parameter_x] = True
-            self.fixed[i_parameter_y] = True
+            # Fix the parameters being scanned:
+            self.fixed[parameter_index_x] = True
+            self.fixed[parameter_index_y] = True
 
+            # Run minimization for all values of the scanned parameters:
             for i_x in range(n_x):
                 for i_y in range(n_y):
-                    self.parameters_initial[i_parameter_x] = parameter_grid_x[i_x]
-                    self.parameters_initial[i_parameter_y] = parameter_grid_y[i_y]
+                    self.parameters_initial = np.copy(parameters_reference)
+                    self.parameters_initial[parameter_index_x] = parameter_values_x[i_x]
+                    self.parameters_initial[parameter_index_y] = parameter_values_y[i_y]
                     self.run_minimization(method=method, data=data, **method_kwargs)
                     objective_values[i_x, i_y] = self.result
+
         else:
-            parameters = np.copy(best_fit_parameters)
+            # Use reference parameters for all parameters except the scanned parameters:
+            parameters = np.copy(parameters_reference)
+
+            # Evaluate the objective function for all values of the scanned parameters:
             for i_x in range(n_x):
                 for i_y in range(n_y):
-                    parameters[i_parameter_x] = parameter_grid_x[i_x]
-                    parameters[i_parameter_y] = parameter_grid_y[i_y]
-                    objective_values[i_x, i_y] = self.objective_function(data, self.signal_function(parameters)) if self.signal_function is not None else self.objective_function(parameters)
+                    parameters[parameter_index_x] = parameter_values_x[i_x]
+                    parameters[parameter_index_y] = parameter_values_y[i_y]
+                    if self.signal_function is not None:
+                        objective_values[i_x, i_y] = self.objective_function(data, self.signal_function(parameters))
+                    else:
+                        objective_values[i_x, i_y] = self.objective_function(parameters)
 
         if plot:
             plt.figure(figsize=[4.2,3])
-            plt.pcolormesh(parameter_grid_x, parameter_grid_y, objective_values.T-best_fit_value, cmap=cmap, vmax=vmax)
+            plt.pcolormesh(parameter_values_x, parameter_values_y, objective_values.T - objective_function_reference, cmap="Blues_r")
             plt.colorbar(label=r"Delta objective value")
-            if true_values is not None:
-                plt.plot(true_values[0], true_values[1], "r*",label="True")
-            plt.plot(best_fit_x, best_fit_y, "y.", label="Best fit")
+            plt.plot(
+                parameters_reference[parameter_index_x], parameters_reference[parameter_index_y], "y.",
+                label="Best-fit value" if parameters_start is None else "Reference value"
+            )
             plt.legend()
-            plt.xlabel(f"Parameter {i_parameter_x} [au]")
-            plt.ylabel(f"Parameter {i_parameter_y} [au]")
+            plt.xlabel(f"Parameter {parameter_index_x} [au]")
+            plt.ylabel(f"Parameter {parameter_index_y} [au]")
             plt.tight_layout()
+            plt.show()
 
         # Set initial and fixed parameters back to initial:
         self.parameters_initial = parameters_initial_copy
         self.fixed = fixed_copy
 
         return objective_values
+
 
     ### Minimization methods: ###
     
@@ -346,8 +406,8 @@ class Minimizer:
 
         # Save results:
         self.success = result.success
-        self.result = result.fun
-        self.parameters = result.x * self.normalization
+        self._result = result.fun
+        self._parameters = result.x * self.normalization
 
         return result
 
@@ -378,8 +438,8 @@ class Minimizer:
         
         # Save results:
         self.success = m.valid
-        self.result = m.fval
-        self.parameters = np.array(m.values) * self.normalization
+        self._result = m.fval
+        self._parameters = np.array(m.values) * self.normalization
 
         return m
     
@@ -394,8 +454,8 @@ class Minimizer:
             paired = paired)
 
         self.success = res.success
-        self.result = res.fun
-        self.parameters = np.array(res.x) * self.normalization
+        self._result = res.fun
+        self._parameters = np.array(res.x) * self.normalization
 
         return res
 
@@ -419,8 +479,8 @@ class Minimizer:
         )
 
         self.success = None
-        self.result = res.fun
-        self.parameters = np.array(res.x) * self.normalization
+        self._result = res.fun
+        self._parameters = np.array(res.x) * self.normalization
 
         return res
 
@@ -476,7 +536,7 @@ class Minimizer:
                 best_parameters = np.copy(current_parameters)
                 best_call = np.copy(call)
 
-        self.result = best_result
-        self.parameters = best_parameters * self.normalization
+        self._result = best_result
+        self._parameters = best_parameters * self.normalization
 
         return best_result
