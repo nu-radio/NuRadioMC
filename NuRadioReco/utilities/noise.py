@@ -31,13 +31,25 @@ def array_from_function(function:Callable, iterable:Iterable, dtype=np.float64) 
     Returns
     -------
     np.ndarray
-        stacked array if the function returns numpy arrays, otherwise a 1D array of scalars
+        stacked array with 1 dimension more than the output of the function
     """
-    # check that if elements of the iterable are numpy arrays
-    if any(isinstance(element, np.ndarray) for element in iterable):
-        # return array or stacked array to ensure array dtype in output 
-        return np.stack(np.fromiter(map(function, iterable), dtype=object), dtype=dtype)
-    return np.fromiter(map(function, iterable), dtype=dtype)
+    # the branch is decided by the type of the first element (assuming homogeneous elements).
+    # for generators, the first element is replayed below so that nothing is consumed
+    # without being used (the rest of the iterable stays lazily streamed into np.fromiter)
+    iterator = iter(iterable)
+    try:
+        first = next(iterator)
+    except StopIteration:
+        return np.fromiter((), dtype=dtype)
+
+    def mapped():
+        yield function(first)
+        yield from (map(function, iterator))
+
+    # return a stacked array to ensure array dtype in output
+    if isinstance(first, np.ndarray):
+        return np.stack(np.fromiter(mapped(), dtype=object), dtype=dtype)
+    return np.fromiter(mapped(), dtype=dtype)
 
 def rolled_sum_roll(traces, rolling):
     """
@@ -348,7 +360,7 @@ class thermalNoiseGeneratorPhasedArray():
         window_length: float, default 16 ns
             time interval of the integration window
         step_size: float, default 8 ns
-            duration of a stride between window calcuations
+            duration of a stride between window calculations
         main_low_angle: float, default -59.5 deg
             angle (radians) of the lowest beam
         main_high_angle: float 59.5 deg
