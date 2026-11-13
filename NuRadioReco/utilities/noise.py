@@ -9,10 +9,35 @@ import scipy
 import scipy.signal
 import copy
 import time
+from typing import Callable, Iterable
 
 import logging
 logger = logging.getLogger('noiseTriggerSimulation')
 
+def array_from_function(function:Callable, iterable:Iterable, dtype=np.float64) -> np.ndarray:
+    """
+    applies a function to each element of an iterable and returns the result as a numpy array
+
+    Parameters
+    ----------
+    function: Callable
+        function that is applied to each element of the iterable
+    iterable: Iterable
+        elements the function is applied to
+    dtype: numpy dtype, default np.float64
+        data type of the resulting array if the function returns scalars;
+        ignored if the function returns numpy arrays
+
+    Returns
+    -------
+    np.ndarray
+        stacked array if the function returns numpy arrays, otherwise a 1D array of scalars
+    """
+    # check that if elements of the iterable are numpy arrays
+    if any(isinstance(element, np.ndarray) for element in iterable):
+        # return array or stacked array to ensure array dtype in output 
+        return np.stack(np.fromiter(map(function, iterable), dtype=object), dtype=dtype)
+    return np.fromiter(map(function, iterable), dtype=dtype)
 
 def rolled_sum_roll(traces, rolling):
     """
@@ -483,10 +508,8 @@ class thermalNoiseGeneratorPhasedArray():
                 
         # pad sliding windows to the same length in order to stack them into a single array
         max_length = max(map(lambda window: np.shape(window)[1], sliding_windows))
-        sliding_windows = np.stack(
-            np.fromiter(
-                map(lambda window: np.pad(window, ((0, 0), (0, max_length - np.shape(window)[1])), mode="constant"), sliding_windows), dtype=np.ndarray
-            )
+        sliding_windows = array_from_function(
+            lambda window: np.pad(window, pad_width=((0, 0), (0, max_length - np.shape(window)[1])), mode="constant"), sliding_windows
         )
 
         # self.max_amp = max(np.array(sliding_windows).max(), self.max_amp)
