@@ -548,26 +548,31 @@ class neutrinoLikelihoodReconstructor:
                 x_min = np.min([params_fit[i_param], parameters_initial[i_param], parameters_initial_llh[i_param]])
                 x_max = np.max([params_fit[i_param], parameters_initial[i_param], parameters_initial_llh[i_param]])
                 delta_x = abs(params_fit[i_param] - parameters_initial[i_param])
-
-                minimizer_llh.parameter_scan_1D(
-                    method = "minuit",
-                    i_parameter_scan = i_param,
-                    parameter_grid_x = np.linspace(x_min - 0.2 * delta_x, x_max + 0.2 * delta_x, n_grid),
-                    parameters_best = params_fit,
+                grid_x = np.linspace(x_min - 0.2 * delta_x, x_max + 0.2 * delta_x, n_grid)
+                minus_two_llh_scan = minimizer_llh.parameter_scan_1D(
+                    parameter_index = i_param,
+                    parameter_values = grid_x,
+                    parameters_start = params_fit,
                     data = data,
                     profile = False,
-                    true_value = None,
-                    plot = True
+                    method = "minuit",
+                    plot = False,
                 )
+                plt.figure(figsize=[4.2,3.2])
+                plt.plot(grid_x, minus_two_llh_scan - minus_two_llh_fit, "b-", label="Parameter scan")
                 plt.axhline(1, linestyle=":", color="C0", label=r"$1\sigma$")
-                plt.axhline(4, linestyle=":", color="C0", label=r"$2\sigma$")
-                plt.axhline(9, linestyle=":", color="C0", label=r"$3\sigma$")
+                plt.axhline(4, linestyle=":", color="C1", label=r"$2\sigma$")
+                plt.axhline(9, linestyle=":", color="C2", label=r"$3\sigma$")
                 plt.axvline(x=parameters_initial[i_param], color="r", ls="--", label="Initial")
                 plt.axvline(x=parameters_initial_llh[i_param], color="g", ls="-.", label="Initial LLH")
+                plt.axvline(x=params_fit[i_param], color="y", linestyle="--", label="Best-fit")
                 plt.legend()
                 plt.xlabel(f"{parameter_keys[i_param]} [au]")
                 plt.ylabel(r"$-2 \Delta LLH$")
+                plt.title("Likelihood parameter scan (not profiled)")
+                plt.tight_layout()
                 plt.savefig(f"llh_scan_{i_param}.png")
+                plt.close()
 
             # Scan 2D likelihood for zenith and azimuth around fitted values:
             print("2D scan:")
@@ -575,31 +580,31 @@ class neutrinoLikelihoodReconstructor:
             grid_x = np.linspace(params_fit[2] - 3*uncertainties_fit[2], params_fit[2] + 3*uncertainties_fit[2], n_grid)
             grid_y = np.linspace(params_fit[1] - 3*uncertainties_fit[1], params_fit[1] + 3*uncertainties_fit[1], n_grid)
             minus_two_llh_scan = minimizer_llh.parameter_scan_2D(
-                method = "minuit",
-                i_parameter_x = 2,
-                i_parameter_y = 1,
-                parameter_grid_x = grid_x,
-                parameter_grid_y = grid_y,
-                parameters_best = params_fit,
+                parameter_index_x = 2,
+                parameter_index_y = 1,
+                parameter_values_x = grid_x,
+                parameter_values_y = grid_y,
+                parameters_start = params_fit,
                 data = data,
                 profile = False,
-                true_value = None,
+                method = "minuit",
                 plot = False,
             )
             plt.figure(figsize=[4.2,3.2])
-            plt.pcolormesh(grid_x,grid_y, minus_two_llh_scan.T - minus_two_llh_fit, cmap="Blues_r")
+            plt.pcolormesh(grid_x / units.deg, grid_y / units.deg, minus_two_llh_scan.T - minus_two_llh_fit, cmap="Blues_r")
             plt.colorbar(label=r"$-2 \Delta LLH$")
             axis = plt.axis()
-            plt.plot(parameters_initial[2], parameters_initial[1], "ro", label="Initial")
-            plt.plot(params_fit_mf[2], params_fit_mf[1], "g+", label="MF fit")
-            plt.plot(params_fit[2], params_fit[1], "y.", label="LLH fit")
+            plt.plot(parameters_initial[2] / units.deg, parameters_initial[1] / units.deg, "ro", label="Initial")
+            plt.plot(params_fit_mf[2] / units.deg, params_fit_mf[1] / units.deg, "g+", label="MF fit")
+            plt.plot(params_fit[2] / units.deg, params_fit[1] / units.deg, "y.", label="LLH fit")
             plt.axis(axis)
-            plt.contour(grid_x, grid_y, minus_two_llh_scan.T - minus_two_llh_fit, levels=[1.15*2, 3.09*2, 5.91*2])
+            plt.contour(grid_x / units.deg, grid_y / units.deg, minus_two_llh_scan.T - minus_two_llh_fit, levels=[1.15*2, 3.09*2, 5.91*2])
             plt.xlabel("Azimuth [deg]")
             plt.ylabel("Zenith [deg]")
             plt.title("Likelihood parameter scan (not profiled)")
             plt.legend()
             plt.tight_layout()
             plt.savefig(f"llh_scan_2D_zenith_azimuth.png")
+            plt.close()
 
         return minus_two_llh_initial, minus_two_llh_fit, params_fit, uncertainties_fit
