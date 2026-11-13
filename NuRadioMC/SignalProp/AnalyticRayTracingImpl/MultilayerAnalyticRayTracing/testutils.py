@@ -450,13 +450,6 @@ def compare_point_full(
                     fresnel_t_diff = np.nan
                     fresnel_p_diff = np.nan
 
-                '''if (entry["a"]["reflection_angle"] is not None) & (entry["b"]["reflection_angle"] is not None):
-                    r_angle_diff = safe_get(
-                        lambda : (( entry["a"]["reflection_angle"] - entry["b"]["reflection_angle"])),
-                        default=None,
-                    ),
-                else:
-                    r_angle_diff= None'''
 
                 entry["diff"] = {
                     "time_diff": (

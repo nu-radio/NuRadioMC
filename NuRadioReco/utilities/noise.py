@@ -369,7 +369,7 @@ class thermalNoiseGeneratorPhasedArray():
 
         phasing_angles = np.arcsin(np.linspace(np.sin(main_low_angle), np.sin(main_high_angle), n_beams))
         cspeed = constants.c * units.m / units.s
-        self.beam_time_delays = np.zeros((len(phasing_angles), self.n_channels), dtype=np.int)
+        self.beam_time_delays = np.zeros((len(phasing_angles), self.n_channels), dtype=np.int32)
         for iBeam, angle in enumerate(phasing_angles):
 
             delays = []
@@ -647,16 +647,16 @@ class thermalNoiseGeneratorPhasedArray():
                 else:
                     self._traces[iCh] = trace
 
-            shifts = np.zeros(self.n_channels, dtype=np.int)
+            shifts = np.zeros(self.n_channels, dtype=np.int32)
             shifted_traces = copy.copy(traces)
-            for shift1 in np.arange(-100, 100, 4, dtype=np.int):
+            for shift1 in np.arange(-100, 100, 4, dtype=np.int32):
                 shifted_traces[1] = np.roll(traces[1], shift1)
                 shifts[1] = shift1
-                for shift2 in np.arange(-100, 100, 4, dtype=np.int):
+                for shift2 in np.arange(-100, 100, 4, dtype=np.int32):
                     shifts[2] = shift2
                     shifted_traces[2] = np.roll(traces[2], shift2)
 
-                    for shift3 in np.arange(-100, 100, 4, dtype=np.int):
+                    for shift3 in np.arange(-100, 100, 4, dtype=np.int32):
                         shifts[3] = shift3
                         shifted_traces[3] = np.roll(traces[3], shift3)
                         phased_trace = np.zeros(self.n_samples * self.upsampling)

@@ -7,8 +7,8 @@ logger = logging.getLogger("NuRadioMC")
 try:
     from numba import njit
     logger.debug("Numba loaded")
-except ImportError:
-    logger.debug("Numba not available")
+except ImportError as e:
+    logger.debug("Numba not available", exc_info=e)
     def njit(*args, **kwargs):
         def dec(func):
             return func
