@@ -8,6 +8,7 @@ then performed, which calculated the matched filter SNR and finds the best match
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy as scp
 
 from NuRadioReco.utilities import units, fft, signal_processing, minimization, matched_filter
 from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
@@ -93,9 +94,16 @@ minimizer = minimization.Minimizer(
 )
 m = minimizer.run_minimization(data=data_traces[i_noise], method="minuit")
 
+# Calculate goodness of fit:
+llh_fit = minimizer.result
+n_dof_fit = likelihood_calculator.get_dof() - len(minimizer.parameters)
+p_value_fit = 1 - scp.stats.chi2.cdf(llh_fit, n_dof_fit)
+
 print("Minus two delta LLH (true):", likelihood_calculator.calculate_minus_two_delta_llh(data_traces[i_noise], signal_true))
-print("Minus two delta LLH (fit):", minimizer.result)
+print("Minus two delta LLH (fit):", llh_fit)
 print("The fitted minus two delta LLH should be slightly smaller that the minus two delta LLH of the true signal if the fit was succesful.")
+print("If this is true the p-value should be a random number between 0 and 1:")
+print("P-value (fit):", p_value_fit)
 print("True parameters:", [amplitude_true, osc_freq_true, width_true, t0_true])
 print("Fitted paramters:", minimizer.parameters)
 print("The fitted paramters should be close to the true parameters.")
