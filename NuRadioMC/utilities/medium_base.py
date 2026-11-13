@@ -1259,7 +1259,7 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
 
     def get_description(self):
         desc = {
-                    "type": type(self).__name__,
+                    "type": __class__.__name__,
                     "args": {
                         "nN": self.nN,
                         "delta_nN": self.delta_nN,
