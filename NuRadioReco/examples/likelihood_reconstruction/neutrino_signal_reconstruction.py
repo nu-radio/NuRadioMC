@@ -18,6 +18,10 @@ import matplotlib.pyplot as plt
 import scipy.integrate
 import datetime
 from radiotools import helper as hp
+import argparse
+import multiprocessing as mp
+mp.set_start_method("fork")
+from collections import deque
 
 from NuRadioReco.utilities import units, signal_processing
 from NuRadioReco.modules.channelGenericNoiseAdder import channelGenericNoiseAdder
@@ -26,9 +30,17 @@ from NuRadioReco.framework.event import Event
 import NuRadioReco.modules.channelBandPassFilter
 
 channelGenericNoiseAdder = channelGenericNoiseAdder()
-channelGenericNoiseAdder.begin()
+channelGenericNoiseAdder.begin(seed=2)
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 
+parser = argparse.ArgumentParser(description="Process and plot RNO-G calibration data")
+parser.add_argument("--llh_scan_1D", action="store_true", help="Whether to perform a 1D likelihood around fitted parameters")
+parser.add_argument("--llh_scan_2D", action="store_true", help="Whether to perform a 2D likelihood around fitted parameters")
+parser.add_argument("--n_cores", type=int, default=10, help="Number of cores to use for parallelization of 2D likelihood scan")
+parser.add_argument("--n_grid", type=int, default=11, help="Number of grid points in the 2D likelihood scan")
+args = parser.parse_args()
+
+# Initialize RNO-G detector:
 det = NuRadioReco.detector.detector.Detector(json_filename='../../../NuRadioReco/detector/RNO_G/RNO_single_station.json', antenna_by_depth=False)
 
 evt = Event(1, 1)
@@ -156,9 +168,9 @@ parameters_initial = [
     vertex_azimuth_rel - 0.25 * units.deg,
     pulse_time_guess]
 
-# Run reconstruction:
+# Run reconstruction (performs 1D profile LLH scan if args.llh_scan_1D is set and saves results to llh_scan_{i_param}.png for each parameter):
 parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(
-    evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True)
+    evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True, likelihood_scan=args.llh_scan_1D)
 
 shower_reconstructed = list(evt.get_showers())[0]
 
@@ -184,3 +196,182 @@ for i_param, key in enumerate(shower_reconstructed.get_parameters().keys()):
         print(key, ":", shower_reconstructed.get_parameter(key), "+/-", shower_reconstructed.get_parameter_error(key))
     else:
         print(key, ":", shower_reconstructed.get_parameter(key))
+
+
+if args.llh_scan_2D:
+
+    # Make a 2D profile likelihood scan around the best fit parameters in the arrival
+    # direction (zenith, azimuth) plane +/- 3 sigma in each direction. The other
+    # parameters are fitted for each point in the scan, starting from the best fit
+    # parameters of the previous point. The code is parallelized using multiprocessing.Pool,
+    # and the number of cores can be set with the --n_cores argument. The resulting
+    # scan is saved to profile_likelihood_scan_{n_grid}.pdf.
+
+    def reconstruct_event_scan(theta_zenith, theta_azimuth, prev_best_fit_parameters):
+        # Reconstruct the event for a given zenith and azimuth, using the previous best fit parameters as initial guess:
+        det = NuRadioReco.detector.detector.Detector(json_filename='../../../NuRadioReco/detector/RNO_G/RNO_single_station.json', antenna_by_depth=False)
+        evt = Event(1, 1)
+        parameters_initial = np.copy(prev_best_fit_parameters)
+        parameters_initial[1] = theta_zenith
+        parameters_initial[2] = theta_azimuth
+        reco = neutrinoLikelihoodReconstructor.neutrinoLikelihoodReconstructor()
+        reco.begin(
+            n_channels,
+            n_samples,
+            sampling_rate,
+            np.abs(filt),
+            noise_amplitude,
+            config_file = "./neutrino_reco_sim_config.yaml",
+            detector_simulation_filter_amp = detector_simulation_filter_amp,
+            fix_zenith_azimuth = True,
+            debug = False
+        )
+        parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(
+            evt, station, det, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True)
+        return parameters_fit, minus_two_llh_fit
+
+    N_cores = args.n_cores
+    n_grid = args.n_grid
+    if n_grid%2 == 0: n_grid += 1
+    n_scan_points = int(n_grid*n_grid)
+
+    y_sigma = uncertainties_fit[1]
+    x_sigma = uncertainties_fit[2]
+    theta_zenith_grid = np.linspace(parameters_fit[1]-3*y_sigma, parameters_fit[1]+3*y_sigma, n_grid)
+    theta_azimuth_grid = np.linspace(parameters_fit[2]-3*x_sigma, parameters_fit[2]+3*x_sigma, n_grid)
+
+    n_circles = int(n_grid/2) + 1
+
+    coordinates_all = np.zeros([int(n_grid*n_grid),2], dtype=int)
+    coordinates_best = np.array([int(n_grid/2), int(n_grid/2)], dtype=int)
+    theta_phi_values = np.zeros([int(n_grid*n_grid),2])
+    k = 0
+    for i in range(n_grid):
+        for j in range(n_grid):
+            coordinates_all[k,:] = [i,j]
+            theta_phi_values[k,0] = theta_zenith_grid[i]
+            theta_phi_values[k,1] = theta_azimuth_grid[j]
+            k += 1
+
+    # Initialze arrays to store the results of the scan
+    parameters_array_scan = np.zeros([n_grid, n_grid, 7])
+    minus_two_LLH_scan = np.zeros([n_grid, n_grid])
+
+    # Store central reconstruction
+    parameters_array_scan[coordinates_best[0], coordinates_best[1]] = np.copy(parameters_fit)
+    minus_two_LLH_scan[coordinates_best[0], coordinates_best[1]] = minus_two_llh_fit
+
+    # Create a queue of points ready for reconstruction
+    queue = deque()
+
+    # Track which points have already been submitted
+    submitted = np.zeros((n_grid, n_grid), dtype=bool)
+    submitted[coordinates_best[0], coordinates_best[1]] = True
+
+    # Track completed points
+    n_completed = 1
+
+    def submit_ready_points(pool):
+
+        while queue and len(futures) < N_cores:
+
+            i, j, prev_parameters = queue.popleft()
+
+            future = pool.apply_async(
+                reconstruct_event_scan,
+                args=(
+                    theta_zenith_grid[i],
+                    theta_azimuth_grid[j],
+                    prev_parameters
+                ),
+                callback=lambda result, i=i, j=j: completed_callback(i, j, result)
+            )
+
+            futures.append(future)
+
+
+    def completed_callback(i, j, result):
+
+        global n_completed
+
+        parameters_fit_i, llh_fit_i = result
+
+        parameters_array_scan[i, j, :] = parameters_fit_i
+        minus_two_LLH_scan[i, j] = llh_fit_i
+
+        n_completed += 1
+
+        # Find all unsubmitted neighbours
+        for di, dj in [
+            (-1, 0), (1, 0), (0, -1), (0, 1),
+            (-1, -1), (-1, 1), (1, -1), (1, 1)
+        ]:
+
+            ni, nj = i + di, j + dj
+
+            if (0 <= ni < n_grid and 0 <= nj < n_grid
+                    and not submitted[ni, nj]):
+
+                submitted[ni, nj] = True
+
+                queue.append((
+                    ni, nj, parameters_fit_i.copy()
+                ))
+
+    futures = []
+
+    with mp.Pool(N_cores) as pool:
+
+        # Seed the queue with the central point's neighbours
+        for di, dj in [
+            (-1, 0), (1, 0), (0, -1), (0, 1),
+            (-1, -1), (-1, 1), (1, -1), (1, 1)
+        ]:
+
+            i = coordinates_best[0] + di
+            j = coordinates_best[1] + dj
+
+            if 0 <= i < n_grid and 0 <= j < n_grid:
+
+                submitted[i, j] = True
+                queue.append((i, j, parameters_fit.copy()))
+
+        while n_completed < n_scan_points:
+
+            submit_ready_points(pool)
+
+            # Wait for at least one job to finish
+            while len(futures) == N_cores:
+                if not any(f.ready() for f in futures):
+                    continue
+
+                # Remove completed futures
+                futures = [f for f in futures if not f.ready()]
+
+                break
+
+            # Collect completed results that did not trigger callbacks yet
+            # (callbacks update the arrays asynchronously)
+            if not queue and not futures and n_completed < n_scan_points:
+                raise RuntimeError("Scan stalled: no available points")
+
+    # plot result:
+    plt.figure(figsize=[4.2,3])
+    plt.pcolormesh(theta_azimuth_grid/np.pi*180, theta_zenith_grid/np.pi*180, minus_two_LLH_scan-minus_two_llh_fit, cmap="Blues_r", vmax=60)
+    plt.colorbar(label=r"$-2\Delta LLH$")
+    CS = plt.contour(theta_azimuth_grid/np.pi*180, theta_zenith_grid/np.pi*180, minus_two_LLH_scan-minus_two_llh_fit, levels=[1.15*2, 3.09*2], colors = ["y","r"]) #levels=[1.15*2,3.09*2,5.91*2]
+    plt.plot(azimuth/np.pi*180, zenith/np.pi*180, "r*",label="True")
+    plt.plot(parameters_fit[2]/np.pi*180, parameters_fit[1]/np.pi*180, "y.", label="Fit")
+    plt.legend()
+    plt.xlabel(r"$\phi_\nu$ [deg]")
+    plt.ylabel(r"$\theta_\nu$ [deg]")
+
+    fmt = {}
+    strs = [r'$68\%$', r'$95\%$']
+    for l, s in zip(CS.levels, strs):
+        fmt[l] = s
+    plt.clabel(CS, CS.levels[::], inline=True, fmt=fmt, fontsize=10)
+
+    plt.tight_layout()
+    plt.savefig(f"profile_likelihood_scan_{n_grid}.pdf")
+    plt.close()
