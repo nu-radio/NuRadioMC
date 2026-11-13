@@ -37,8 +37,11 @@ CONFIG = {
 
     # Ice models
     "ice_model_a": "greenland_simple",
-    "ice_model_b": "greenland_simple_layered",
+    "ice_model_b": "greenland_simple",
 
+    "layered_a": False,
+    "layered_b": True,
+    
     # Grid
     "x_range": (-3000.0, -0.11),
     "z_range": (-3000.0, -0.11),
@@ -84,7 +87,8 @@ def run_tests(data_dict, keys):
     for key in [
         "time_diff", "path_diff", "angle_diff",
         "solving_time_a", "solving_time_b", "solving_time_ratio",
-        "attenuation_diff" , "focusing_diff"
+        "attenuation_diff" , "focusing_diff", "fresnel_t_diff",
+        "fresnel_p_diff"
     ]:
         if key not in data_dict:
             continue
@@ -116,6 +120,7 @@ TIME_TOL = 1e-3
 ANGLE_TOL = 1e-3
 ATTENUATION_TOL = 1e-2
 FOCUSING_TOL = 1e-2
+FRESNEL_TOL = 1e-4
 
 def run_assertions(data_dict):
     """Assert that all relative differences are below tolerances."""
@@ -124,6 +129,8 @@ def run_assertions(data_dict):
         ("angle_diff", "receive_angle_a", ANGLE_TOL),
         ("attenuation_diff", "attenuation_a", ATTENUATION_TOL),
         ("focusing_diff", "focusing_a", FOCUSING_TOL),
+        ("fresnel_t_diff", "fresnel_t_a", FRESNEL_TOL),
+        ("fresnel_p_diff", "fresnel_p_a", FRESNEL_TOL)
     ]
 
     for diff_col, ref_col, tol in checks:
@@ -168,6 +175,7 @@ def run_full_pipeline():
     tracer_a = make_tracer(
         CONFIG["module_a"],
         ice_model=CONFIG["ice_model_a"],
+        make_layered=CONFIG["layered_a"],
         attenuation_model=CONFIG["attenuation_model"],
         n_freq=CONFIG["n_freq"],
         n_reflections=CONFIG["n_reflections"],
@@ -178,6 +186,7 @@ def run_full_pipeline():
         tracer_b = make_tracer(
             CONFIG["module_b"],
             ice_model=CONFIG["ice_model_b"],
+            make_layered=CONFIG["layered_b"],
             attenuation_model=CONFIG["attenuation_model"],
             n_freq=CONFIG["n_freq"],
             n_reflections=CONFIG["n_reflections"],
