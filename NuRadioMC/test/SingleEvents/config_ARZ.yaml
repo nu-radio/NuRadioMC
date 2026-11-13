@@ -9,7 +9,7 @@ speedup:
   distance_cut: True
 propagation:
   ice_model: ARAsim_southpole
-  focusing: True
+  focusing: False  # the numerical focusing factor amplifies platform-dependent ray-tracing differences (~1e-8) to ~5e-4
 signal:
   model: ARZ2020
 trigger:
