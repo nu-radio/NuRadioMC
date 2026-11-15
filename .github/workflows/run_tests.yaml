@@ -96,8 +96,8 @@ jobs:
     - name: Single event test (ARZ - Without Numba)
       if: always()
       run: |
-        pip uninstall numba -y # easiest way to test ARZ without numba
-        NuRadioMC/test/SingleEvents/validate_ARZ.sh
+        # numba's jit decorator becomes a no-op, i.e., ARZ runs its python implementation
+        NUMBA_DISABLE_JIT=1 NuRadioMC/test/SingleEvents/validate_ARZ.sh
 
     - name: Upload coverage data
       if: always()
@@ -256,6 +256,11 @@ jobs:
       if: always()
       run: |
         python NuRadioReco/test/framework/test_parameter_storage.py
+
+    - name: "Test trace utilities"
+      if: always()
+      run: |
+        python NuRadioReco/test/utilities/test_trace_utilities.py
 
     - name: "Test light utilities import without heavy dependencies"
       if: always()

@@ -97,7 +97,7 @@ logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
 NumbaList = list # fallback for get_path_segments function
 
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import get_layer_index, get_n_1D, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn, get_turning_point, get_c0_from_theta, get_delta_y, get_skim_angle, determine_solution_type
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.solver import find_solutions, find_solutions_bulk, reduce_solutions
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.solver import find_solutions, find_solutions_bulk
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.getrayparameters import get_path, get_path_segments, get_path_length_analytic, get_travel_time_analytic, get_launch_angle, get_receiving_angle, get_reflection_angle, get_attenuation_along_path, get_focusing_factor, get_launch_vector, get_receiving_vector, ds_dz_layer, get_path_length_numerical, get_travel_time_numerical
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.planewave import get_inice_quantities, get_time_difference_plane_wave_analytic
 
@@ -246,9 +246,8 @@ class multi_layer_ray_tracing_2D():
 
         return solution_type
 
-    def find_solutions(self, x1, x2, plot=False, reduce=True, *_, **__):
+    def find_solutions(self, x1, x2, plot=False, *_, **__):
 
-        with_air = (x1[1] > 0 or x2[1] > 0)
 
         dx = abs(x2[0] - x1[0])
         dz = abs(x2[1] - x1[1])
@@ -271,12 +270,6 @@ class multi_layer_ray_tracing_2D():
             "find_solutions | x1=%s x2=%s solutions=%s",
             x1, x2, solutions
         )
-
-        if reduce:
-            try:
-                return reduce_solutions(solutions, with_air)
-            except Exception:
-                return solutions
 
         return solutions
 
