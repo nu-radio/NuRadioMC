@@ -71,7 +71,7 @@ class NuisanceInterpolator():
             else:
                 cur_var = self.variations[cur_var_id]["dn"]
 
-            # _avmnpy(abs(cur_nuis), cur_var, self.nominal, interpolated)
+            interpolated = _avmnpy(abs(cur_nuis), cur_var, self.nominal, interpolated)
 
         return interpolated
 
