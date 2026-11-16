@@ -95,8 +95,10 @@ class Detector():
             If True, query the entire detector describtion all at once when calling Detector.update(...) (if necessary).
             This value is currently set to ``False`` by default to avoid errors due to missing information in the database.
 
-        detector_file : str
-            File to import detector description instead of querying from DB. (Default: None -> query from DB)
+        detector_file : str or dict
+            File to import detector description instead of querying from DB, or an in-memory
+            detector description (as written by `Detector.export` / `Detector.export_as_string`).
+            (Default: None -> query from DB)
 
         select_stations : int or list(int) (Default: None)
             Select a station or list of stations using their station ids for which the describtion is provided.
@@ -215,6 +217,23 @@ class Detector():
 
     @classmethod
     def from_dict(cls, detector_dict, **kwargs):
+        """
+        Construct a detector description from an in-memory dictionary rather than from the DB or a file.
+
+        Parameters
+        ----------
+        detector_dict: dict
+            Detector description as exported by `Detector.export`
+
+        **kwargs:
+            Further arguments passed on to the `Detector` constructor (e.g. ``log_level`` or
+            ``select_stations``).
+
+        Returns
+        -------
+        detector: `Detector`
+            Detector description described by ``detector_dict``
+        """
         return cls(detector_file = detector_dict, **kwargs)
 
     @property
@@ -356,6 +375,19 @@ class Detector():
         return json.dumps(export_dir, **dumps_kwargs)
 
     def _import_from_dict(self, import_dict, source = "in-memory dict"):
+        """
+        Populate the internal buffers of the detector from an in-memory detector description.
+
+        Parameters
+        ----------
+        import_dict: dict
+            Detector description with entries ``version``, ``stations``, ``default_values``,
+            ``periods``, ...
+
+        source: str
+            Description of where ``import_dict`` was imported from, used for logging only.
+            (Default: "in-memory dict")
+        """
         if "version" in import_dict and import_dict["version"] == 1:
             self.__buffered_stations = {}
             self.additional_data = import_dict.get("additional_data", None)
@@ -411,6 +443,14 @@ class Detector():
             self.logger.info("\n".join(["Loaded detector description with comment:", self.comment]))
 
     def _import_from_file(self, detector_file):
+        """
+        Read a detector description from a file and populate the internal buffers with it.
+
+        Parameters
+        ----------
+        detector_file: str
+            Filename of the detector description. Allowed extensions are ".json" and ".json.xz".
+        """
 
         if detector_file.endswith(".json.xz"):
             with lzma.open(detector_file, "r") as f:

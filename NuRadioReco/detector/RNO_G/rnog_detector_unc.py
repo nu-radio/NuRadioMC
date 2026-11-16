@@ -8,8 +8,39 @@ import json
 import numpy as np
 import NuRadioReco.detector.RNO_G.rnog_detector as rnog_detector
 
-# calculates y = alpha * (var - nom) + y and returns y
 def _avmnpy(alpha, var, nom, y):
+    """
+    Add the scaled difference between a varied and a nominal quantity to ``y``, i.e. calculate
+    ``y + alpha * (var - nom)``.
+
+    Dictionaries and lists are recursed into (see `_avmnpy_dict` and `_avmnpy_list`), any other
+    type is treated as a single quantity.
+
+    Parameters
+    ----------
+    alpha: float
+        Scale factor, i.e. the nuisance parameter value
+
+    var: dict, list, float or np.ndarray
+        Quantity in the varied detector description
+
+    nom: dict, list, float or np.ndarray
+        Same quantity in the nominal detector description
+
+    y: dict, list, float or np.ndarray
+        Quantity to which the scaled difference is added
+
+    Returns
+    -------
+    y: dict, list, float or np.ndarray
+        Updated quantity
+
+    Notes
+    -----
+    Quantities which are neither dicts nor lists have to support addition, subtraction and
+    multiplication (e.g. floats or numpy arrays), otherwise a `RuntimeError` is raised. The
+    interpolation rule is selected based on the type of ``nom``.
+    """
 
     # Bail out early if nothing needs to be done
     if alpha == 0.0:
@@ -34,16 +65,66 @@ def _avmnpy(alpha, var, nom, y):
 
     return y
 
-# calculates y = alpha * (var - nom) + y for dictionaries
 def _avmnpy_dict(alpha, var, nom, y):
+    """
+    Calculate ``y + alpha * (var - nom)`` for dictionaries by recursing into each entry.
+
+    Parameters
+    ----------
+    alpha: float
+        Scale factor, i.e. the nuisance parameter value
+
+    var: dict
+        Quantity in the varied detector description
+
+    nom: dict
+        Same quantity in the nominal detector description
+
+    y: dict
+        Quantity to which the scaled difference is added
+
+    Returns
+    -------
+    y: dict
+        Updated quantity
+
+    Notes
+    -----
+    All three dictionaries are required to have identical keys.
+    """
     if not (set(var.keys()) == set(nom.keys()) == set(y.keys())):
         raise RuntimeError("Error: require keys to be identical")
     for key in var.keys():
         y[key] = _avmnpy(alpha, var[key], nom[key], y[key])
     return y
 
-# calculates y = alpha * (var - nom) + y for lists
 def _avmnpy_list(alpha, var, nom, y):
+    """
+    Calculate ``y + alpha * (var - nom)`` for lists by recursing into each element.
+
+    Parameters
+    ----------
+    alpha: float
+        Scale factor, i.e. the nuisance parameter value
+
+    var: list
+        Quantity in the varied detector description
+
+    nom: list
+        Same quantity in the nominal detector description
+
+    y: list
+        Quantity to which the scaled difference is added
+
+    Returns
+    -------
+    y: list
+        Updated quantity
+
+    Notes
+    -----
+    All three lists are required to have identical lengths.
+    """
     if not (len(var) == len(nom) == len(y)):
         raise RuntimeError("Error: require lengths to be identical")
     for ind in range(len(y)):
@@ -53,12 +134,45 @@ def _avmnpy_list(alpha, var, nom, y):
 class NuisanceInterpolator():
 
     def __init__(self, nominal, variations: dict):
+        """
+        Linear interpolation of a detector description along a set of eigenvariations.
+
+        Parameters
+        ----------
+        nominal: dict
+            Nominal detector description, e.g. as returned by `Detector.get_station`
+
+        variations: dict
+            Eigenvariations, keyed by variation id. Each entry is a dict with the keys "up"
+            and "dn", holding the detector description at +1 sigma and -1 sigma of the
+            respective variation.
+        """
         self.nominal = nominal
         self.variations = variations
-        self.var_ids = list(set(self.variations.keys()))
+        self.var_ids = list(sorted(list(set(self.variations.keys()))))
         self.num_vars = len(self.var_ids)
     
     def evaluate_at_nuisance(self, nuis):
+        """
+        Interpolate the detector description for a set of nuisance parameters.
+
+        Parameters
+        ----------
+        nuis: array of floats
+            Nuisance parameter values, one per variation, in units of sigma. They are ordered by
+            ascending variation id, see ``self.var_ids``.
+
+        Returns
+        -------
+        interpolated: dict
+            Interpolated detector description
+
+        Notes
+        -----
+        The interpolation is linear and independent for each entry, i.e. the result is
+        ``nominal + sum(nuis * (variation - nominal))``. The "+1 sigma" variation is used for
+        positive nuisance values and the "-1 sigma" variation for negative ones.
+        """
         if len(nuis) != self.num_vars:
             raise RuntimeError(f"Error: expect exactly {self.num_vars} nuisance parameters.")
 
@@ -78,16 +192,41 @@ class NuisanceInterpolator():
 class UncertaintyAwareDetector():
 
     def __init__(self, detector_folder, prefix = "calib_nuradio"):
+        """
+        Detector that can be varied continuously along a set of calibration eigenvariations.
+
+        Parameters
+        ----------
+        detector_folder: str
+            Folder containing the nominal and the varied detector descriptions
+
+        prefix: str
+            Common file name prefix of the detector descriptions. The files are expected to be
+            named ``<prefix>_nom.json.xz`` and ``<prefix>_var_<i>__<sigma>_<up|dn>.json.xz``.
+            (Default: "calib_nuradio")
+        """
         self.detector_folder = detector_folder
         self.prefix = prefix
-
-        self.nuis_names = []
 
         self.detector_time = None
         self.interpolator = None
         self.interpolated_detector = None
 
     def update(self, detector_time):
+        """
+        Load all detector descriptions and set up the interpolation.
+
+        Parameters
+        ----------
+        detector_time: `datetime.datetime`
+            Detector time at which the detector descriptions are evaluated
+
+        Notes
+        -----
+        After this call all nuisance parameters are zero, i.e. the detector corresponds to the
+        nominal description. The names of the nuisance parameters are available via
+        `get_nuisance_names`.
+        """
         self.detector_time = detector_time
 
         def _get_interpolation_obj(path):
@@ -124,7 +263,6 @@ class UncertaintyAwareDetector():
 
             if var_num not in var_objs:
                 var_objs[var_num] = {}
-                self.nuis_names.append(f"var_{var_num}")
 
             if var_type in var_objs[var_num]:
                 raise RuntimeError(f"Error: duplicate file for variation {var_num} and type {var_type}")
@@ -132,37 +270,70 @@ class UncertaintyAwareDetector():
             var_objs[var_num][var_type] = _get_interpolation_obj(path)
 
         self.interpolator = NuisanceInterpolator(nom_obj, var_objs)
+        self.nuis_names = [f"var_{var_id}" for var_id in self.interpolator.var_ids]
         self.set_nuisance_values(np.zeros(self.get_num_nuisances()))
-        self.nuis_names = sorted(self.nuis_names)
 
     def set_nuisance_values(self, nuis):
+        """
+        Interpolate the detector description for a set of nuisance parameters.
+
+        Parameters
+        ----------
+        nuis: array of floats
+            Nuisance parameter values, one per variation, in units of sigma. They are ordered by
+            ascending variation id, i.e. aligned with `get_nuisance_names`.
+        """
         self.interpolated_detector = rnog_detector.Detector.from_dict(self.interpolator.evaluate_at_nuisance(nuis))
         self.interpolated_detector.update(self.detector_time)
 
     def as_detector(self):
+        """
+        Returns
+        -------
+        detector: `NuRadioReco.detector.RNO_G.rnog_detector.Detector`
+            Detector interpolated for the current nuisance parameter values
+        """
         return self.interpolated_detector
 
     def get_nuisance_names(self):
+        """
+        Returns
+        -------
+        nuisance_names: list of str
+            Names of the nuisance parameters, sorted by variation id. This is the order expected
+            for the ``nuis`` argument of `set_nuisance_values`.
+        """
         return self.nuis_names
 
     def get_num_nuisances(self):
+        """
+        Returns
+        -------
+        num_nuisances: int
+            Number of nuisance parameters
+        """
         return len(self.get_nuisance_names())
 
     # forward these calls to rnog_detector.Detector
 
     def get_station(self, station_id):
+        """ Return the station description, forwarded to `Detector.get_station`. """
         return self.as_detector().get_station(station_id)
 
     def get_channel(self, station_id, channel_id):
+        """ Return the channel description, forwarded to `Detector.get_channel`. """
         return self.as_detector().get_channel(station_id, channel_id)
 
     def get_time_delay(self, station_id, channel_id):
+        """ Return the time delay of a channel, forwarded to `Detector.get_time_delay`. """
         return self.as_detector().get_time_delay(station_id, channel_id)
 
     def get_relative_position(self, station_id, channel_id):
+        """ Return the position of a channel, forwarded to `Detector.get_relative_position`. """
         return self.as_detector().get_relative_position(station_id, channel_id)
 
     def get_ice_model(self, station_id):
+        """ Return the ice model of a station, forwarded to `Detector.get_ice_model`. """
         return self.as_detector().get_ice_model(station_id)
 
 if __name__ == "__main__":
