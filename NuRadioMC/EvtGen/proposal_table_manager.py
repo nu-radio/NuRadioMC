@@ -96,7 +96,7 @@ def download_proposal_tables(config_file, tables_path=None):
     target_path = f"{tables_path}/{config_file}.tar.gz"
 
     logger.warning(
-        "downloading pre-calculated proposal tables for {} from {}. This can take a while...".format(config_file, remote_path))
+        "downloading pre-calculated proposal tables for {}. This can take a while...".format(config_file))
     download_from_dataserver(remote_path, target_path, unpack_tarball=True)
 
 

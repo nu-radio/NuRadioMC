@@ -340,6 +340,7 @@ class ProposalFunctions(metaclass=NuRadioReco.utilities.metaclasses.Singleton):
                 from NuRadioMC.EvtGen.proposal_table_manager import download_proposal_tables
 
                 try:
+                    raise ValueError("Temporarily disabled proposal table download")
                     download_proposal_tables(self.__config_file, tables_path=self.__tables_path)
                 except Exception as e:
                     self.__logger.warning(

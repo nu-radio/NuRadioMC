@@ -312,6 +312,7 @@ jobs:
         NuRadioMC/test/examples/test_webinar.sh
 
     - name: "Upload proposal tables as artifact"
+      if: always()
       uses: actions/upload-artifact@v7
       with:
         name: proposal_tables_artifact
