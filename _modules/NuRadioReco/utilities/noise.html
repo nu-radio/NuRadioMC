@@ -1091,21 +1091,19 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">noise</span> <span class="o">=</span> <span class="n">channelGenericNoiseAdder</span><span class="o">.</span><span class="n">channelGenericNoiseAdder</span><span class="p">()</span>
 
-        <span class="c1"># pre-calculate all parameters which will be used to simulate each triggered noise event to avoid re-calculation</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="o">.</span><span class="n">precalculate_bandlimited_noise_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">,</span>
-                                                  <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">,</span>
-                                                  <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise_type</span><span class="p">)</span>
-
     <span class="k">def</span><span class="w"> </span><span class="nf">__generation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">""" separated trace generation part for PA noise trigger """</span>
 
         <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_channels</span><span class="p">):</span>
-            <span class="c1"># spec = self.noise.bandlimited_noise(self.min_freq, self.max_freq, self.n_samples * self.upsampling,</span>
-            <span class="c1">#                                    self.sampling_rate * self.upsampling,</span>
-            <span class="c1">#                                    self.amplitude, self.noise_type, time_domain=False)</span>
-
-            <span class="c1"># function that does not re-calculate parameters in each simulated trace</span>
-            <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="o">.</span><span class="n">bandlimited_noise_from_precalculated_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noise_type</span><span class="p">,</span> <span class="n">time_domain</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="o">.</span><span class="n">bandlimited_noise</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">min_freq</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_freq</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">amplitude</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">noise_type</span><span class="p">,</span>
+                <span class="n">time_domain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
             <span class="n">spec</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filt</span>
             <span class="n">trace</span> <span class="o">=</span> <span class="n">fft</span><span class="o">.</span><span class="n">freq2time</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">upsampling</span><span class="p">)</span>
 
