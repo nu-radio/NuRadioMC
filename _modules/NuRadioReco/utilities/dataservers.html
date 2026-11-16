@@ -690,7 +690,8 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
 
-    <span class="n">lockfile</span> <span class="o">=</span> <span class="n">target_path</span><span class="o">+</span><span class="s2">".lock"</span>
+    <span class="c1"># hidden lock file next to the target; it is not removed afterwards (removing it could break the lock)</span>
+    <span class="n">lockfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="s2">"."</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">target_path</span><span class="p">)</span> <span class="o">+</span> <span class="s2">".lock"</span><span class="p">)</span>
     <span class="n">lock</span> <span class="o">=</span> <span class="n">filelock</span><span class="o">.</span><span class="n">FileLock</span><span class="p">(</span><span class="n">lockfile</span><span class="p">)</span>
 
     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Assuring no other process is downloading. Will wait until </span><span class="si">{</span><span class="n">lockfile</span><span class="si">}</span><span class="s2"> is unlocked."</span><span class="p">)</span>
