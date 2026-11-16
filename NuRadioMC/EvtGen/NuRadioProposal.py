@@ -341,8 +341,10 @@ class ProposalFunctions(metaclass=NuRadioReco.utilities.metaclasses.Singleton):
 
                 try:
                     download_proposal_tables(self.__config_file, tables_path=self.__tables_path)
-                except:
-                    self.__logger.warning("requested pre-calculated proposal tables could not be downloaded, calculating manually")
+                except Exception as e:
+                    self.__logger.warning(
+                        "requested pre-calculated proposal tables could not be downloaded, calculating manually. Error:",
+                        exc_info=e)
                     pass
                 self.__download_tables = False
 
