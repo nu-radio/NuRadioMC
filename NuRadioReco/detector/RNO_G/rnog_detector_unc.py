@@ -1,4 +1,10 @@
-import glob, os, re, datetime
+import glob
+import os
+import re
+import datetime
+import copy
+import lzma
+import json
 import numpy as np
 import NuRadioReco.detector.RNO_G.rnog_detector as rnog_detector
 
@@ -20,15 +26,29 @@ class UncertaintyAwareDetector():
 
         self.nuis_names = []
 
+        self.detector_time = None
         self.interpolator = None
         self.interpolated_detector = None
 
     def update(self, detector_time):
+        self.detector_time = detector_time
 
         def _get_interpolation_obj(path):
+            with lzma.open(path, 'rt') as det_file:
+                det_data = json.load(det_file)
+
             det = rnog_detector.Detector(detector_file = path)
             det.update(detector_time)
-            obj = {station_id: det.get_station(station_id) for station_id in det.get_station_ids()}
+            data = {station_id: copy.deepcopy(det.get_station(station_id)) 
+                    for station_id in det.get_station_ids()}
+            obj = {
+                "data": data,
+                "version": copy.deepcopy(det_data["version"]),
+                "periods": copy.deepcopy(det_data["periods"]),
+                "default_values": copy.deepcopy(det_data["default_values"]),
+                "additional_data": copy.deepcopy(det_data["additional_data"]),
+                "comment": copy.deepcopy(det_data["comment"])
+            }
             return obj
 
         def _get_var_desc(path):
@@ -43,23 +63,23 @@ class UncertaintyAwareDetector():
 
         var_objs = {}
         for path in glob.glob(os.path.join(self.detector_folder, self.prefix + "_var_*.json.xz")):
-            print(path)
-            var_num, var_dir = _get_var_desc(path)
+            var_num, var_type = _get_var_desc(path)
 
             if var_num not in var_objs:
                 var_objs[var_num] = {}
                 self.nuis_names.append(f"var_{var_num}")
 
-            if var_dir in var_objs[var_num]:
+            if var_type in var_objs[var_num]:
                 raise RuntimeError(f"Error: duplicate file for variation {var_num} and direction {var_dir}")
 
-            var_objs[var_num][var_dir] = _get_interpolation_obj(path)
+            var_objs[var_num][var_type] = _get_interpolation_obj(path)
 
         self.interpolator = NuisanceInterpolator(nom_obj, var_objs)
         self.set_nuisance_values(np.zeros(self.get_num_nuisances()))
 
     def set_nuisance_values(self, nuis):
-        self.interpolated_detector = rnog_detector.from_dict(self.interpolator.evaluate_at_nuisance(nuis))
+        self.interpolated_detector = rnog_detector.Detector.from_dict(self.interpolator.evaluate_at_nuisance(nuis))
+        self.interpolated_detector.update(self.detector_time)
 
     def as_detector(self):
         return self.interpolated_detector

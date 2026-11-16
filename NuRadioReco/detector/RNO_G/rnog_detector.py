@@ -185,7 +185,10 @@ class Detector():
         else:
             self._query_all = None  # specific case for file imported detector descriptions
             self._det_imported_from_file = True
-            self._import_from_file(detector_file)
+            if isinstance(detector_file, dict):
+                self._import_from_dict(detector_file)
+            else:
+                self._import_from_file(detector_file)
 
         # This should be set with Detector.update(..) and corresponds to the time of a measurement.
         # It will be use to decide which components are commissioned at the time of the measurement
@@ -209,6 +212,10 @@ class Detector():
 
         self.assume_inf = None  # Compatibility with other detectors classes
         self.antenna_by_depth = None  # Compatibility with other detectors classes
+
+    @classmethod
+    def from_dict(cls, detector_dict, **kwargs):
+        return cls(detector_file = detector_dict, **kwargs)
 
     @property
     def signal_chain_measurement_name(self):
