@@ -21,7 +21,7 @@
 | NuRadioMC/SignalGen/ARZ/\_\_init\_\_.py                                                                  |        0 |        0 |    100% |           |
 | NuRadioMC/SignalGen/HCRB2017.py                                                                          |      127 |      127 |      0% |     1-296 |
 | NuRadioMC/SignalGen/\_\_init\_\_.py                                                                      |        0 |        0 |    100% |           |
-| NuRadioMC/SignalGen/askaryan.py                                                                          |       56 |       22 |     61% |105-119, 124, 127, 134-139, 216 |
+| NuRadioMC/SignalGen/askaryan.py                                                                          |       56 |       23 |     59% |96, 105-119, 124, 127, 134-139, 216 |
 | NuRadioMC/SignalGen/emitter.py                                                                           |      149 |      115 |     23% |85-88, 90-91, 93-96, 99, 102, 111-243, 245, 311 |
 | NuRadioMC/SignalGen/parametrizations.py                                                                  |      146 |       26 |     82% |93-108, 130, 147, 163, 165-169, 175, 179, 189, 202, 237, 265, 278 |
 | NuRadioMC/SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing/\_\_init\_\_.py                        |        0 |        0 |    100% |           |
@@ -33,7 +33,7 @@
 | NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/solver.py                       |      192 |      182 |      5% |35, 39-42, 78-84, 123-129, 194-402, 463-673 |
 | NuRadioMC/SignalProp/AnalyticRayTracingImpl/\_\_init\_\_.py                                              |        0 |        0 |    100% |           |
 | NuRadioMC/SignalProp/AnalyticRayTracingImpl/maybenumba.py                                                |       11 |        6 |     45% |     10-15 |
-| NuRadioMC/SignalProp/AnalyticRayTracingImpl/single\_layer\_analytic\_raytracer.py                        |      868 |      523 |     40% |33-37, 45-47, 61, 73-96, 100, 107-109, 121-129, 136, 395, 462-472, 480-562, 568-569, 613-614, 634, 637-640, 654, 716-719, 722, 731, 741, 744-747, 786-790, 796-805, 812, 815, 821, 827, 870, 896-898, 948-973, 977-1005, 1108-1181, 1242-1244, 1258-1261, 1269-1363, 1497-1523, 1555-1587, 1595-1597, 1625, 1662-1663, 1673-1792, 1798-1811, 1814-1815, 1838-1843, 1863-1874, 1897, 1914-1935, 1957-2002, 2014-2025, 2054-2119, 2149-2171 |
+| NuRadioMC/SignalProp/AnalyticRayTracingImpl/single\_layer\_analytic\_raytracer.py                        |      868 |      521 |     40% |33-37, 45-47, 61, 73-96, 100, 107-109, 121-129, 136, 395, 462-472, 480-562, 568-569, 613-614, 634, 637-640, 654, 716-719, 722, 731, 741, 744-747, 786-790, 796-805, 812, 815, 821, 827, 870, 896-898, 948-973, 977-1005, 1108-1181, 1242-1244, 1269-1363, 1497-1523, 1555-1587, 1595-1597, 1625, 1662-1663, 1673-1792, 1798-1811, 1814-1815, 1838-1843, 1863-1874, 1897, 1914-1935, 1957-2002, 2014-2025, 2054-2119, 2149-2171 |
 | NuRadioMC/SignalProp/\_\_init\_\_.py                                                                     |        0 |        0 |    100% |           |
 | NuRadioMC/SignalProp/analyticraytracing.py                                                               |      431 |      194 |     55% |104-107, 133-134, 152, 159, 162, 249-264, 275-290, 311, 327, 347-360, 389-438, 475-551, 570-571, 603-604, 636-637, 684-696, 737-738, 748-754, 784-785, 795-801, 831-832, 911-912, 923-925, 963-966, 982-986, 989-993, 999, 1004, 1076, 1112-1122, 1148-1153 |
 | NuRadioMC/SignalProp/directRayTracing.py                                                                 |       45 |       45 |      0% |      1-75 |
@@ -261,7 +261,7 @@
 | NuRadioReco/utilities/analytic\_pulse.py                                                                 |       37 |       10 |     73% |27, 75, 87-95 |
 | NuRadioReco/utilities/constants.py                                                                       |       16 |        0 |    100% |           |
 | NuRadioReco/utilities/cr\_flux.py                                                                        |       84 |       73 |     13% |34-57, 74-77, 93-131, 151-160, 186-192, 216-241 |
-| NuRadioReco/utilities/dataservers.py                                                                     |       71 |       33 |     54% |14-30, 46-47, 49-50, 53, 67-80, 83-84 |
+| NuRadioReco/utilities/dataservers.py                                                                     |       71 |       33 |     54% |14-30, 47-48, 50-51, 54, 68-81, 84-85 |
 | NuRadioReco/utilities/diodeSimulator.py                                                                  |       90 |       69 |     23% |29-32, 49, 53, 57, 82-111, 150-174, 177, 215-256 |
 | NuRadioReco/utilities/fft.py                                                                             |        9 |        0 |    100% |           |
 | NuRadioReco/utilities/framework\_utilities.py                                                            |       26 |       26 |      0% |      1-41 |
@@ -280,7 +280,7 @@
 | NuRadioReco/utilities/trace\_utilities.py                                                                |      272 |      190 |     30% |40-42, 49-51, 57-59, 66-68, 75-77, 84-86, 133, 136-141, 149-150, 154-190, 193, 230-285, 321-345, 401-423, 499-506, 637-659, 726-729, 753-763, 793-862 |
 | NuRadioReco/utilities/units.py                                                                           |      166 |        0 |    100% |           |
 | NuRadioReco/utilities/version.py                                                                         |       27 |        5 |     81% |16, 25-27, 47 |
-| **TOTAL**                                                                                                | **32135** | **20159** | **37%** |           |
+| **TOTAL**                                                                                                | **32135** | **20158** | **37%** |           |
 
 
 ## Setup coverage badge
