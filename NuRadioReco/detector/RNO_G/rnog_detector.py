@@ -97,7 +97,7 @@ class Detector():
 
         detector_file : str or dict
             File to import detector description instead of querying from DB, or an in-memory
-            detector description (as written by `Detector.export` / `Detector.export_as_string`).
+            detector description (as written by ``Detector.export`` / ``Detector.export_as_string``).
             (Default: None -> query from DB)
 
         select_stations : int or list(int) (Default: None)
@@ -223,15 +223,15 @@ class Detector():
         Parameters
         ----------
         detector_dict: dict
-            Detector description as exported by `Detector.export`
+            Detector description as exported by ``Detector.export``
 
         **kwargs:
-            Further arguments passed on to the `Detector` constructor (e.g. ``log_level`` or
+            Further arguments passed on to the ``Detector`` constructor (e.g. ``log_level`` or
             ``select_stations``).
 
         Returns
         -------
-        detector: `Detector`
+        detector: ``Detector``
             Detector description described by ``detector_dict``
         """
         return cls(detector_file = detector_dict, **kwargs)

@@ -13,7 +13,7 @@ def _avmnpy(alpha, var, nom, y):
     Add the scaled difference between a varied and a nominal quantity to ``y``, i.e. calculate
     ``y + alpha * (var - nom)``.
 
-    Dictionaries and lists are recursed into (see `_avmnpy_dict` and `_avmnpy_list`), any other
+    Dictionaries and lists are recursed into (see ``_avmnpy_dict`` and ``_avmnpy_list``), any other
     type is treated as a single quantity.
 
     Parameters
@@ -140,7 +140,7 @@ class NuisanceInterpolator():
         Parameters
         ----------
         nominal: dict
-            Nominal detector description, e.g. as returned by `Detector.get_station`
+            Nominal detector description, e.g. as returned by ``Detector.get_station``
 
         variations: dict
             Eigenvariations, keyed by variation id. Each entry is a dict with the keys "up"
@@ -225,7 +225,7 @@ class UncertaintyAwareDetector():
         -----
         After this call all nuisance parameters are zero, i.e. the detector corresponds to the
         nominal description. The names of the nuisance parameters are available via
-        `get_nuisance_names`.
+        ``get_nuisance_names``.
         """
         self.detector_time = detector_time
 
@@ -281,7 +281,7 @@ class UncertaintyAwareDetector():
         ----------
         nuis: array of floats
             Nuisance parameter values, one per variation, in units of sigma. They are ordered by
-            ascending variation id, i.e. aligned with `get_nuisance_names`.
+            ascending variation id, i.e. aligned with ``get_nuisance_names``.
         """
         self.interpolated_detector = rnog_detector.Detector.from_dict(self.interpolator.evaluate_at_nuisance(nuis))
         self.interpolated_detector.update(self.detector_time)
@@ -317,23 +317,23 @@ class UncertaintyAwareDetector():
     # forward these calls to rnog_detector.Detector
 
     def get_station(self, station_id):
-        """ Return the station description, forwarded to `Detector.get_station`. """
+        """ Return the station description, forwarded to ``Detector.get_station``. """
         return self.as_detector().get_station(station_id)
 
     def get_channel(self, station_id, channel_id):
-        """ Return the channel description, forwarded to `Detector.get_channel`. """
+        """ Return the channel description, forwarded to ``Detector.get_channel``. """
         return self.as_detector().get_channel(station_id, channel_id)
 
     def get_time_delay(self, station_id, channel_id):
-        """ Return the time delay of a channel, forwarded to `Detector.get_time_delay`. """
+        """ Return the time delay of a channel, forwarded to ``Detector.get_time_delay``. """
         return self.as_detector().get_time_delay(station_id, channel_id)
 
     def get_relative_position(self, station_id, channel_id):
-        """ Return the position of a channel, forwarded to `Detector.get_relative_position`. """
+        """ Return the position of a channel, forwarded to ``Detector.get_relative_position``. """
         return self.as_detector().get_relative_position(station_id, channel_id)
 
     def get_ice_model(self, station_id):
-        """ Return the ice model of a station, forwarded to `Detector.get_ice_model`. """
+        """ Return the ice model of a station, forwarded to ``Detector.get_ice_model``. """
         return self.as_detector().get_ice_model(station_id)
 
 if __name__ == "__main__":
