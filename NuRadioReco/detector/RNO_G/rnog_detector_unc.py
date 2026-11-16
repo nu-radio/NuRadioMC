@@ -127,7 +127,7 @@ class UncertaintyAwareDetector():
                 self.nuis_names.append(f"var_{var_num}")
 
             if var_type in var_objs[var_num]:
-                raise RuntimeError(f"Error: duplicate file for variation {var_num} and direction {var_dir}")
+                raise RuntimeError(f"Error: duplicate file for variation {var_num} and type {var_type}")
 
             var_objs[var_num][var_type] = _get_interpolation_obj(path)
 
@@ -156,6 +156,9 @@ class UncertaintyAwareDetector():
     def get_channel(self, station_id, channel_id):
         return self.as_detector().get_channel(station_id, channel_id)
 
+    def get_time_delay(self, station_id, channel_id):
+        return self.as_detector().get_time_delay(station_id, channel_id)
+
     def get_relative_position(self, station_id, channel_id):
         return self.as_detector().get_relative_position(station_id, channel_id)
 
@@ -165,15 +168,40 @@ class UncertaintyAwareDetector():
 if __name__ == "__main__":
 
     path = "/cephfs/users/pwindi/tmp/nuradio_unc_test"
-    det = UncertaintyAwareDetector(path)
-    det.update(datetime.datetime(2023, 9, 1))
+    detector_time = datetime.datetime(2023, 9, 1)
+    station_id = 11
+    channel_id = 5
 
+    # Load the detector that is able to interpolate
+    det = UncertaintyAwareDetector(path)
+    det.update(detector_time)
+
+    # For comparisons, separately load the nominal detector and the +/- 1-sigma variations for variation 0
+    nom_det = rnog_detector.Detector(detector_file = os.path.join(path, "calib_nuradio_nom.json.xz"))
+    nom_det.update(detector_time)
+    var0up_det = rnog_detector.Detector(detector_file = os.path.join(path, "calib_nuradio_var_0__1_up.json.xz"))
+    var0up_det.update(detector_time)
+    var0dn_det = rnog_detector.Detector(detector_file = os.path.join(path, "calib_nuradio_var_0__1_dn.json.xz"))
+    var0dn_det.update(detector_time)
+
+    # Set all nuisance parameters to zero, which corresponds to the nominal detector
     nuis = np.zeros(det.get_num_nuisances())
     det.set_nuisance_values(nuis)
-    ice = det.get_ice_model(11)
-    print(ice.get_index_of_refraction([0, 0, -30]))
+    print(det.get_ice_model(station_id).get_index_of_refraction([0, 0, -30]))
+    print(nom_det.get_ice_model(station_id).get_index_of_refraction([0, 0, -30]))
+    print(det.get_time_delay(station_id, channel_id))
+    print(nom_det.get_time_delay(station_id, channel_id))
 
-    nuis[0] = 0.9
+    nuis[0] = 1.0
     det.set_nuisance_values(nuis)
-    ice = det.get_ice_model(11)
-    print(ice.get_index_of_refraction([0, 0, -30]))
+    print(det.get_ice_model(station_id).get_index_of_refraction([0, 0, -30]))
+    print(var0up_det.get_ice_model(station_id).get_index_of_refraction([0, 0, -30]))
+    print(det.get_time_delay(station_id, channel_id))
+    print(var0up_det.get_time_delay(station_id, channel_id))
+
+    nuis[0] = 0.5
+    det.set_nuisance_values(nuis)
+    print(det.get_ice_model(station_id).get_index_of_refraction([0, 0, -30]))
+    print(var0up_det.get_ice_model(station_id).get_index_of_refraction([0, 0, -30]))
+    print(det.get_time_delay(station_id, channel_id))
+    print(var0up_det.get_time_delay(station_id, channel_id))
