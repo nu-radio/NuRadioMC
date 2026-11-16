@@ -18,4 +18,5 @@ runs:
           NuRadioReco/detector/AntennaModels
           NuRadioMC/utilities/data/*.npz
           NuRadioMC/SignalGen/ARZ/shower_library
+          NuRadioMC/EvtGen/proposal_tables
         key: ${{ inputs.cache-key }}
