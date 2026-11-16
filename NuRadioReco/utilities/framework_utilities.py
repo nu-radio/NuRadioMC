@@ -1,11 +1,13 @@
 import numpy as np
-from NuRadioReco.framework.event import Event
 import collections
+from astropy.time import Time
+from NuRadioReco.utilities import units
 
 def get_averaged_channel_parameter(event_or_station, key, channels_to_include=None):
     """
     Return average across all channels to include for a channel parameter "param"
     """
+    from NuRadioReco.framework.event import Event
     if isinstance(event_or_station, Event):
         # This will throw an error if the event has more than one station
         station = event_or_station.get_station()
@@ -40,3 +42,19 @@ def get_averaged_channel_parameter(event_or_station, key, channels_to_include=No
 
     return params
 
+def sub_second_from_time(t: Time) -> float:
+    """
+    Returns the fractional part of an astropy time object's UTC Unix second
+    in the base NuRadioMC time unit (nanoseconds).
+
+    Parameters
+    ----------
+    t: astropy.time.Time
+        The time object to be converted to a float in seconds
+
+    Returns
+    -------
+    float
+        The fractional part of the time object's UTC Unix second in the base NuRadioMC time unit
+    """
+    return (t - Time(int(t.unix), format='unix')).sec * units.s

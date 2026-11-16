@@ -4,14 +4,13 @@ import NuRadioReco.framework.trigger
 import NuRadioReco.framework.electric_field
 import NuRadioReco.framework.parameters as parameters
 import NuRadioReco.framework.parameter_storage
-from NuRadioReco.utilities import io_utilities
+from NuRadioReco.utilities import io_utilities, framework_utilities
 
 import datetime
 import astropy.time
 import logging
 import collections
 import pickle
-from NuRadioReco.utilities.io_utilities import _dumps
 
 logger = logging.getLogger('NuRadioReco.BaseStation')
 
@@ -93,7 +92,7 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
         if self._station_time is None:
             return None
 
-        return io_utilities.sub_second_from_time(self._station_time)
+        return framework_utilities.sub_second_from_time(self._station_time)
 
     def get_id(self):
         return self._station_id
@@ -306,7 +305,7 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
             'electric_fields': efield_pkls
         })
 
-        return _dumps(data, protocol=4)
+        return io_utilities._dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
         data = pickle.loads(data_pkl)
