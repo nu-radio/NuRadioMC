@@ -8,15 +8,72 @@ import json
 import numpy as np
 import NuRadioReco.detector.RNO_G.rnog_detector as rnog_detector
 
+# calculates y = alpha * (var - nom) + y and returns y
+def _avmnpy(alpha, var, nom, y):
+
+    # Bail out early if nothing needs to be done
+    if alpha == 0.0:
+        return y
+    if var == nom:
+        return y
+
+    if isinstance(nom, dict):
+        if not (isinstance(var, dict) and isinstance(y, dict)):
+            raise RuntimeError("Error: cannot interpolate---incompatible structures.")
+        y = _avmnpy_dict(alpha, var, nom, y)
+    elif isinstance(nom, list):
+        if not (isinstance(var, list) and isinstance(y, list)):
+            raise RuntimeError("Error: cannot interpolate---incompatible structures.")
+        y = _avmnpy_list(alpha, var, nom, y)
+    else:
+        # everything else
+        try: 
+            y += alpha * (var - nom)
+        except:
+            raise RuntimeError(f"Error: dedicated interpolation rule needed for '{type(y)}'---please implement!")
+
+    return y
+
+# calculates y = alpha * (var - nom) + y for dictionaries
+def _avmnpy_dict(alpha, var, nom, y):
+    if not (set(var.keys()) == set(nom.keys()) == set(y.keys())):
+        raise RuntimeError("Error: require keys to be identical")
+    for key in var.keys():
+        y[key] = _avmnpy(alpha, var[key], nom[key], y[key])
+    return y
+
+# calculates y = alpha * (var - nom) + y for lists
+def _avmnpy_list(alpha, var, nom, y):
+    if not (len(var) == len(nom) == len(y)):
+        raise RuntimeError("Error: require lengths to be identical")
+    for ind in range(len(y)):
+        y[ind] = _avmnpy(alpha, var[ind], nom[ind], y[ind])
+    return y
+
 class NuisanceInterpolator():
 
     def __init__(self, nominal, variations: dict):
         self.nominal = nominal
         self.variations = variations
+        self.var_ids = list(set(self.variations.keys()))
+        self.num_vars = len(self.var_ids)
     
     def evaluate_at_nuisance(self, nuis):
-        # TODO: interpolation logic here
-        return self.nominal
+        if len(nuis) != self.num_vars:
+            raise RuntimeError(f"Error: expect exactly {self.num_vars} nuisance parameters.")
+
+        interpolated = copy.deepcopy(self.nominal)
+        for cur_var_id, cur_nuis in zip(self.var_ids, nuis):
+            if cur_nuis == 0.0:
+                continue
+            elif cur_nuis > 0.0:
+                cur_var = self.variations[cur_var_id]["up"]
+            else:
+                cur_var = self.variations[cur_var_id]["dn"]
+
+            # _avmnpy(abs(cur_nuis), cur_var, self.nominal, interpolated)
+
+        return interpolated
 
 class UncertaintyAwareDetector():
 
@@ -76,6 +133,7 @@ class UncertaintyAwareDetector():
 
         self.interpolator = NuisanceInterpolator(nom_obj, var_objs)
         self.set_nuisance_values(np.zeros(self.get_num_nuisances()))
+        self.nuis_names = sorted(self.nuis_names)
 
     def set_nuisance_values(self, nuis):
         self.interpolated_detector = rnog_detector.Detector.from_dict(self.interpolator.evaluate_at_nuisance(nuis))
@@ -101,10 +159,21 @@ class UncertaintyAwareDetector():
     def get_relative_position(self, station_id, channel_id):
         return self.as_detector().get_relative_position(station_id, channel_id)
 
+    def get_ice_model(self, station_id):
+        return self.as_detector().get_ice_model(station_id)
+
 if __name__ == "__main__":
+
     path = "/cephfs/users/pwindi/tmp/nuradio_unc_test"
     det = UncertaintyAwareDetector(path)
     det.update(datetime.datetime(2023, 9, 1))
-    stat = det.get_station(11)
 
-    print(stat.keys())
+    nuis = np.zeros(det.get_num_nuisances())
+    det.set_nuisance_values(nuis)
+    ice = det.get_ice_model(11)
+    print(ice.get_index_of_refraction([0, 0, -30]))
+
+    nuis[0] = 0.9
+    det.set_nuisance_values(nuis)
+    ice = det.get_ice_model(11)
+    print(ice.get_index_of_refraction([0, 0, -30]))
