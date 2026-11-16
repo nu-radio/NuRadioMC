@@ -311,6 +311,12 @@ jobs:
       run: |
         NuRadioMC/test/examples/test_webinar.sh
 
+    - name: "Upload proposal tables as artifact"
+      uses: actions/upload-artifact@v7
+      with:
+        name: proposal_tables_artifact
+        path: NuRadioMC/EvtGen/proposal_tables
+
     - name: "Test all examples"
       if: always()
       run: |
