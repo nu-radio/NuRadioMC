@@ -167,10 +167,31 @@ class UncertaintyAwareDetector():
 
 if __name__ == "__main__":
 
-    path = "/cephfs/users/pwindi/tmp/nuradio_unc_test"
+    import sys
+
+    path = sys.argv[1]
     detector_time = datetime.datetime(2023, 9, 1)
     station_id = 11
-    channel_id = 5
+    channel_ids = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 22, 23]
+
+    import itertools
+    def _test_identical(det_a, det_b, getter, station_ids, channel_ids):
+        for station_id, channel_id in itertools.product(station_ids, channel_ids):
+            val_a = getattr(det_a, getter)(station_id, channel_id)
+            val_b = getattr(det_b, getter)(station_id, channel_id)
+            if not np.allclose(val_a, val_b):
+                raise RuntimeError(f"Error: {val_a} vs {val_b} in "\
+                        "{getter}(station_id = {station_id}, channel_id = {channel_id}")
+
+    def _test_identical_if_interpolated(det, det_nom, det_var, alpha, getter, station_ids, channel_ids):
+        for station_id, channel_id in itertools.product(station_ids, channel_ids):
+            val = getattr(det, getter)(station_id, channel_id)
+            val_nom = getattr(det_nom, getter)(station_id, channel_id)
+            val_var = getattr(det_var, getter)(station_id, channel_id)
+            val_int = val_nom + (val_var - val_nom) * alpha
+            if not np.allclose(val, val_int):
+                raise RuntimeError(f"Error: {val} vs {val_int} in "\
+                        "{getter}(station_id = {station_id}, channel_id = {channel_id}")
 
     # Load the detector that is able to interpolate
     det = UncertaintyAwareDetector(path)
@@ -187,21 +208,33 @@ if __name__ == "__main__":
     # Set all nuisance parameters to zero, which corresponds to the nominal detector
     nuis = np.zeros(det.get_num_nuisances())
     det.set_nuisance_values(nuis)
-    print(det.get_ice_model(station_id).get_index_of_refraction([0, 0, -30]))
-    print(nom_det.get_ice_model(station_id).get_index_of_refraction([0, 0, -30]))
-    print(det.get_time_delay(station_id, channel_id))
-    print(nom_det.get_time_delay(station_id, channel_id))
 
+    # Check if they are indeed identical
+    _test_identical(det, nom_det, "get_time_delay", [station_id], channel_ids)
+    _test_identical(det, nom_det, "get_relative_position", [station_id], channel_ids)
+
+    # Move the first nuisance parameter to +1, which is identical to the "var0up" detector
     nuis[0] = 1.0
     det.set_nuisance_values(nuis)
-    print(det.get_ice_model(station_id).get_index_of_refraction([0, 0, -30]))
-    print(var0up_det.get_ice_model(station_id).get_index_of_refraction([0, 0, -30]))
-    print(det.get_time_delay(station_id, channel_id))
-    print(var0up_det.get_time_delay(station_id, channel_id))
+    _test_identical(det, var0up_det, "get_time_delay", [station_id], channel_ids)
+    _test_identical(det, var0up_det, "get_relative_position", [station_id], channel_ids)
 
+    # Move the first nuisance parameter to -1, which is identical to the "var0dn" detector
+    nuis[0] = -1.0
+    det.set_nuisance_values(nuis)
+    _test_identical(det, var0dn_det, "get_time_delay", [station_id], channel_ids)
+    _test_identical(det, var0dn_det, "get_relative_position", [station_id], channel_ids)
+
+    # Move the first nuisance paramter to 0.5, which results in a linear interpolation between the 'nominal'
+    # and the 'var0up' detector.
     nuis[0] = 0.5
     det.set_nuisance_values(nuis)
-    print(det.get_ice_model(station_id).get_index_of_refraction([0, 0, -30]))
-    print(var0up_det.get_ice_model(station_id).get_index_of_refraction([0, 0, -30]))
-    print(det.get_time_delay(station_id, channel_id))
-    print(var0up_det.get_time_delay(station_id, channel_id))
+    _test_identical_if_interpolated(det, nom_det, var0up_det, 0.5, "get_time_delay", [station_id], channel_ids)
+    _test_identical_if_interpolated(det, nom_det, var0up_det, 0.5, "get_relative_position", [station_id], channel_ids)
+
+    # Move the first nuisance paramter to -0.5, which results in a linear interpolation between the 'nominal'
+    # and the 'var0dn' detector.
+    nuis[0] = -0.5
+    det.set_nuisance_values(nuis)
+    _test_identical_if_interpolated(det, nom_det, var0dn_det, 0.5, "get_time_delay", [station_id], channel_ids)
+    _test_identical_if_interpolated(det, nom_det, var0dn_det, 0.5, "get_relative_position", [station_id], channel_ids)
