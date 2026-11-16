@@ -483,7 +483,7 @@ class thermalNoiseGeneratorPhasedArray():
                 
         # pad sliding windows to the same length in order to stack them into a single array
         max_length = max(map(lambda window: np.shape(window)[1], sliding_windows))
-        sliding_windows = coding_helper.array_from_function(
+        sliding_windows = coding_helper.array_from_vectorized_function(
             lambda window: np.pad(window, pad_width=((0, 0), (0, max_length - np.shape(window)[1])), mode="constant"), sliding_windows
         )
 
