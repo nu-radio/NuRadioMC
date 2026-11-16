@@ -2,13 +2,13 @@ import numpy as np
 import collections
 from astropy.time import Time
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.signal_processing import _isinstance_if_loaded
 
 def get_averaged_channel_parameter(event_or_station, key, channels_to_include=None):
     """
     Return average across all channels to include for a channel parameter "param"
     """
-    from NuRadioReco.framework.event import Event
-    if isinstance(event_or_station, Event):
+    if _isinstance_if_loaded(event_or_station, 'NuRadioReco.framework.event', 'Event'):
         # This will throw an error if the event has more than one station
         station = event_or_station.get_station()
     else:
