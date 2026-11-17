@@ -100,14 +100,6 @@ class ray_tracing(ray_tracing_base):
         self.__logger = logging.getLogger('NuRadioMC.ray_tracing')
         self.__logger.setLevel(log_level)
 
-        if not isinstance(medium, (IceModelSimple, IceModelExpLayers)):
-            self.__logger.error(
-                "The analytic raytracer can only handle ice models of the type 'IceModelSimple' "
-                "(single layer) or 'IceModelExpLayers' (multilayer) (see NuRadioMC.utilities.medium)!")
-            raise TypeError(
-                "The analytic raytracer can only handle ice models of the type 'IceModelSimple' "
-                "(single layer) or 'IceModelExpLayers' (multilayer)")
-
         super().__init__(
             medium=medium,
             attenuation_model=attenuation_model,
@@ -117,24 +109,57 @@ class ray_tracing(ray_tracing_base):
             config=config,
             detector=detector)
 
+        self._r2d = None
+        self._apply_medium(medium)
+
         self.set_config(config=config)
+
+        self._swap = None
+        self._dPhi = None
+        self._R = None
+        self._x1 = None
+        self._x2 = None
+
+        # caches for the attenuation and focusing factors. They are only valid for the current
+        # geometry and are invalidated whenever the solutions are reset. This avoids recalculating
+        # these (expensive) quantities if several showers/emitters are simulated at the same position
+        self._cache_attenuation = {}
+        self._cache_focusing = {}
+
+    def _apply_medium(self, medium):
+
+        if not isinstance(medium, (IceModelSimple, IceModelExpLayers)):
+            self.__logger.error(
+                "The analytic raytracer can only handle ice models of the type 'IceModelSimple' "
+                "(single layer) or 'IceModelExpLayers' (multilayer) (see NuRadioMC.utilities.medium)!")
+            raise TypeError(
+                "The analytic raytracer can only handle ice models of the type 'IceModelSimple' "
+                "(single layer) or 'IceModelExpLayers' (multilayer)")
+
+        self._medium = medium
 
         # `ray_tracing_2D`/`multi_layer_ray_tracing_2D` already resolve use_cpp/compile_numba
         # (from None defaults and availability) and log the outcome; we just mirror the result
         # here rather than resolving (and logging) it a second time.
         if isinstance(medium, IceModelSimple):
-            self.__logger.status("IceModelSimple was provided: using the single layer analytic ray tracer as the 2D raytracing module.")
-            self._r2d = ray_tracing_2D(
-                self._medium, self._attenuation_model, log_level=log_level,
-                n_frequencies_integration=self._n_frequencies_integration,
-                **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
+            if isinstance(self._r2d, ray_tracing_2D):
+                self._r2d.set_medium(medium)  # we stay in the same medium class, simply update
+            else:
+                self.__logger.status("IceModelSimple was provided: using the single layer analytic ray tracer as the 2D raytracing module.")
+                self._r2d = ray_tracing_2D(
+                    self._medium, self._attenuation_model, log_level=log_level,
+                    n_frequencies_integration=self._n_frequencies_integration,
+                    **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
 
         else:
-            self.__logger.status("IceModelExpLayers was provided: using the multilayer analytic ray tracer as the 2D raytracing module.")
-            self._r2d = multi_layer_ray_tracing_2D(
-                self._medium, self._attenuation_model, log_level=log_level,
-                n_frequencies_integration=self._n_frequencies_integration,
-                **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
+            if isinstance(self._r2d, multi_layer_ray_tracing_2D):
+                self._r2d.set_medium(medium)  # we stay in the same medium class, simply update
+            else:
+                self.__logger.status("IceModelExpLayers was provided: using the multilayer analytic ray tracer as the 2D raytracing module.")
+                self._r2d = multi_layer_ray_tracing_2D(
+                    self._medium, self._attenuation_model, log_level=log_level,
+                    n_frequencies_integration=self._n_frequencies_integration,
+                    **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
 
         self.use_cpp = self._r2d.use_cpp
         self.compile_numba = self._r2d.compile_numba
@@ -161,17 +186,14 @@ class ray_tracing(ray_tracing_base):
         if hasattr(self._medium, "z_shift") and self._medium.z_shift != 0:
             raise ValueError(f"The configured ice model has `z_shift != 0`. This is not supported by this raytracer!")
 
-        self._swap = None
-        self._dPhi = None
-        self._R = None
-        self._x1 = None
-        self._x2 = None
-        # caches for the attenuation and focusing factors. They are only valid for the current
-        # geometry and are invalidated whenever the solutions are reset. This avoids recalculating
-        # these (expensive) quantities if several showers/emitters are simulated at the same position
-        self._cache_attenuation = {}
-        self._cache_focusing = {}
+    def set_medium(self, medium):
+        if medium is self._medium:
+            self.__logger.debug("medium unchanged, do not reset existing solutions")
+            return
 
+        self._apply_medium(medium)
+        self._update_n_reflections()
+        self.reset_solutions()
 
     def reset_solutions(self):
         """

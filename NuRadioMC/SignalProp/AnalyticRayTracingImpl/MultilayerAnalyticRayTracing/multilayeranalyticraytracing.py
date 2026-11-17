@@ -138,7 +138,7 @@ class multi_layer_ray_tracing_2D():
         self._logger = logging.getLogger('NuRadioMC.multi_layer_ray_tracing_2D')
         self._logger.setLevel(log_level)
 
-        self.medium = medium
+        self.set_medium(medium)
 
         self.attenuation_model = attenuation_model or "SP1"
         #if self.attenuation_model not in attenuation_util.model_to_int:
@@ -213,6 +213,9 @@ class multi_layer_ray_tracing_2D():
 
                     self._logger.warning("Error in compiling methods using jit - proceeding without numba")
                     compile_numba = False
+
+    def set_medium(self, medium):
+        self.medium = medium
 
     @property
     def _layers_arr(self):
