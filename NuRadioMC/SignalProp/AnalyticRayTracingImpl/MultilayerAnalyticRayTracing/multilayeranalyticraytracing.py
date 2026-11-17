@@ -205,6 +205,14 @@ class multi_layer_ray_tracing_2D():
                     compile_numba = False
 
     def set_medium(self, medium):
+        """
+        Update the medium in which rays are propagated.
+
+        Parameters
+        ----------
+        medium: medium class
+            class describing the index-of-refraction profile (`IceModelExpLayers`)
+        """
         self.medium = medium
 
     @property
