@@ -110,6 +110,10 @@ class ray_tracing(ray_tracing_base):
             detector=detector)
 
         self._r2d = None
+        self._log_level = log_level
+        self._ray_tracing_2D_kwargs = ray_tracing_2D_kwards
+        self._use_cpp = use_cpp
+        self._compile_numba = compile_numba
         self._apply_medium(medium)
 
         self.set_config(config=config)
@@ -136,7 +140,27 @@ class ray_tracing(ray_tracing_base):
                 "The analytic raytracer can only handle ice models of the type 'IceModelSimple' "
                 "(single layer) or 'IceModelExpLayers' (multilayer)")
 
-        self._medium = medium
+        # As long as we use horizontal-translational invariant raytracing/ice models (2d)
+        # this should be fine. _n(0) is also used in _get_delta_y for air-ice raytracing
+        #n_at_surface = _n(0, medium.n_ice, medium.delta_n, medium.z_0)
+        n_at_surface = medium.get_index_of_refraction(np.array([0,0,0]))
+
+        # Some consitency checks...
+
+        # Check that `n_at_surface` is reasonably large to avoid a bug where the index of air
+        # is returned
+        if n_at_surface < 1.1:
+            raise ValueError(f"Calculated index of refraction for ice at the ice-air boundary is {n_at_surface} which is to small.")
+
+        # `z_air_boundary`/`z_shift` describe the single, flat ice-air interface `IceModelSimple`
+        # assumes; `IceModelExpLayers` has no such single interface (its `z_air_boundary`/`z_shift`
+        # properties are only kept for backwards compatibility and don't carry the same meaning)
+
+        if hasattr(medium, "z_air_boundary") and medium.z_air_boundary != 0:
+            raise ValueError(f"The configured ice model has `z_air_boundary != 0`. This is not supported by this raytracer!")
+
+        if hasattr(medium, "z_shift") and medium.z_shift != 0:
+            raise ValueError(f"The configured ice model has `z_shift != 0`. This is not supported by this raytracer!")
 
         # `ray_tracing_2D`/`multi_layer_ray_tracing_2D` already resolve use_cpp/compile_numba
         # (from None defaults and availability) and log the outcome; we just mirror the result
@@ -147,9 +171,9 @@ class ray_tracing(ray_tracing_base):
             else:
                 self.__logger.status("IceModelSimple was provided: using the single layer analytic ray tracer as the 2D raytracing module.")
                 self._r2d = ray_tracing_2D(
-                    self._medium, self._attenuation_model, log_level=log_level,
+                    medium, self._attenuation_model, log_level=self._log_level,
                     n_frequencies_integration=self._n_frequencies_integration,
-                    **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
+                    **self._ray_tracing_2D_kwargs, use_cpp=self._use_cpp, compile_numba=self._compile_numba)
 
         else:
             if isinstance(self._r2d, multi_layer_ray_tracing_2D):
@@ -157,34 +181,21 @@ class ray_tracing(ray_tracing_base):
             else:
                 self.__logger.status("IceModelExpLayers was provided: using the multilayer analytic ray tracer as the 2D raytracing module.")
                 self._r2d = multi_layer_ray_tracing_2D(
-                    self._medium, self._attenuation_model, log_level=log_level,
+                    medium, self._attenuation_model, log_level=self._log_level,
                     n_frequencies_integration=self._n_frequencies_integration,
-                    **ray_tracing_2D_kwards, use_cpp=use_cpp, compile_numba=compile_numba)
+                    **self._ray_tracing_2D_kwargs, use_cpp=self._use_cpp, compile_numba=self._compile_numba)
 
         self.use_cpp = self._r2d.use_cpp
         self.compile_numba = self._r2d.compile_numba
 
-        # As long as we use horizontal-translational invariant raytracing/ice models (2d)
-        # this should be fine. _n(0) is also used in _get_delta_y for air-ice raytracing
-        #self.n_at_surface = _n(0, self._medium.n_ice, self._medium.delta_n, self._medium.z_0)
-        self.n_at_surface = self._medium.get_index_of_refraction(np.array([0,0,0]))
+        # remove the internal raytracer used for calculation of the focusing factor to avoid that the old
+        # medium gets used
+        if hasattr(self, "_r1"):
+            del self._r1
 
-        # Some consitency checks...
-
-        # Check that `self.n_at_surface` is reasonably large to avoid a bug where the index of air
-        # is returned
-        if self.n_at_surface < 1.1:
-            raise ValueError(f"Calculated index of refraction for ice at the ice-air boundary is {self.n_at_surface} which is to small.")
-
-        # `z_air_boundary`/`z_shift` describe the single, flat ice-air interface `IceModelSimple`
-        # assumes; `IceModelExpLayers` has no such single interface (its `z_air_boundary`/`z_shift`
-        # properties are only kept for backwards compatibility and don't carry the same meaning)
-
-        if hasattr(self._medium, "z_air_boundary") and self._medium.z_air_boundary != 0:
-            raise ValueError(f"The configured ice model has `z_air_boundary != 0`. This is not supported by this raytracer!")
-
-        if hasattr(self._medium, "z_shift") and self._medium.z_shift != 0:
-            raise ValueError(f"The configured ice model has `z_shift != 0`. This is not supported by this raytracer!")
+        # if all checks above pass, set medium
+        self._medium = medium
+        self.n_at_surface = n_at_surface
 
     def set_medium(self, medium):
         if medium is self._medium:
