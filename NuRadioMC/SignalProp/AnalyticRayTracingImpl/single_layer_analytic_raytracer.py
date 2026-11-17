@@ -733,6 +733,14 @@ class ray_tracing_2D():
                 self.__logger.error(f"Error in compiling methods using jit: \"{e}\" - proceeding without numba")
 
     def set_medium(self, medium):
+        """
+        Update the medium in which rays are propagated.
+
+        Parameters
+        ----------
+        medium: medium class
+            class describing the index-of-refraction profile
+        """
 
         if medium.delta_n == 0:
             msg = ('Analytic raytracer does not work with a uniform ice model (delta_n = 0). '

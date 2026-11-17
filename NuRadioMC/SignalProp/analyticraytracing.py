@@ -131,6 +131,15 @@ class ray_tracing(ray_tracing_base):
         self._cache_focusing = {}
 
     def _apply_medium(self, medium):
+        """
+        Validate a medium and install all quantities derived from it.
+
+        Parameters
+        ----------
+        medium: medium class
+            class describing the index-of-refraction profile, must be of type
+            `IceModelSimple` or `IceModelExpLayers`
+        """
 
         if not isinstance(medium, (IceModelSimple, IceModelExpLayers)):
             self.__logger.error(
@@ -198,6 +207,20 @@ class ray_tracing(ray_tracing_base):
         self.n_at_surface = n_at_surface
 
     def set_medium(self, medium):
+        """
+        Update the medium in which rays are propagated.
+
+        Existing ray tracing solutions are invalidated (since they are only valid for the
+        medium they were originally calculated in); call `set_start_and_end_point` and
+        `find_solutions` again afterwards. Passing the same medium object as the
+        current one does not change (nor invalidate) anything.
+
+        Parameters
+        ----------
+        medium: medium class
+            class describing the index-of-refraction profile, must be of type
+            `IceModelSimple` or `IceModelExpLayers`
+        """
         if medium is self._medium:
             self.__logger.debug("medium unchanged, do not reset existing solutions")
             return
