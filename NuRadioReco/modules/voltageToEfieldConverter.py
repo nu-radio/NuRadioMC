@@ -2,7 +2,7 @@ from NuRadioReco.modules.base.module import register_run
 import numpy as np
 import copy
 from NuRadioReco.utilities import geometryUtilities as geo_utl
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, fft
 from NuRadioReco.utilities import ice
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import signal_processing
@@ -17,7 +17,7 @@ logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
 
 def get_array_of_channels(station, use_channels, det, zenith, azimuth,
-                          antenna_pattern_provider, time_domain=False, efield_position=None):
+                          antenna_pattern_provider, time_domain=False, efield_position=None, travel_time_delays=None):
     """ Get the voltage traces and antenna factors for the electric field reconstruction.
 
     Parameters
@@ -39,6 +39,9 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         If None, it raises an error.
     time_domain : bool, optional
         If True, returns the time domain traces as well. Default is False.
+    travel_time_delays : numpy array, optional
+        The travel time delays for each channel in use_channels. If not provided, the travel time delays are
+        calculated from the geometry of the station and the direction of the incoming signal.
 
     Returns
     -------
@@ -70,17 +73,21 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     for iCh, channel in enumerate(station.iter_channels(use_channels)):
         channel_id = channel.get_id()
 
-        antenna_position = det.get_relative_position(station_id, channel_id)
-        # determine refractive index of signal propagation speed between antennas
-        refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
-        if station.is_cosmic_ray():
-            if zenith > 0.5 * np.pi:
-                refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
+        if travel_time_delays is None:
+            antenna_position = det.get_relative_position(station_id, channel_id)
 
-        if station.is_neutrino():
-            refractive_index = ice.get_refractive_index(antenna_position[2], site)
+            # determine refractive index of signal propagation speed between antennas
+            refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
+            if station.is_cosmic_ray():
+                if zenith > 0.5 * np.pi:
+                    refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
 
-        time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position - efield_position, n=refractive_index)
+            if station.is_neutrino():
+                refractive_index = ice.get_refractive_index(antenna_position[2], site)
+
+            time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position - efield_position, n=refractive_index)
+        else:
+            time_shift = -travel_time_delays[iCh]
 
         t_shifts.append(time_shift)
         t_min = channel.get_trace_start_time() + time_shift
@@ -176,12 +183,14 @@ class voltageToEfieldConverter:
         self.antenna_provider = None
         self.begin()
 
-    def begin(self):
+    def begin(self, debug=False, hann_window_samples=100):
         self.antenna_provider = antennapattern.AntennaPatternProvider()
+        self.debug = debug
+        self.hann_window_samples = hann_window_samples
         pass
 
     @register_run()
-    def run(self, evt, station, det, use_channels=None, use_MC_direction=False, force_Polarization=''):
+    def run(self, evt, station, det, use_channels=None, use_MC_direction=False, force_Polarization='', travel_time_delays=None):
         """
         run method. This function is executed for each event
 
@@ -198,6 +207,12 @@ class voltageToEfieldConverter:
         force_Polarization: str, optional
             If eTheta or ePhi, then only reconstructs chosen polarization of electric field,
             assuming the other is 0. Otherwise (default), reconstructs electric field for both eTheta and ePhi
+        travel_time_delays: array of floats, optional
+            If provided, the travel time delays for each channel in use_channels are used to shift the
+            voltage traces to the same reference position. This is useful for situations where ray-tracing
+            is needed to determine the travel time delays, e.g. for antennas in deep ice. If not provided,
+            the travel time delays are calculated from the geometry of the station and the direction of the
+            incoming signal using the refractive index of air or shallow ice.
         """
         if use_channels is None:
             msg = ("No channels specified for electric field reconstruction. "
@@ -223,7 +238,38 @@ class voltageToEfieldConverter:
             for channel_id in use_channels], axis=0)
 
         times, efield_antenna_factor, V = get_array_of_channels(
-            station, use_channels, det, zenith, azimuth, self.antenna_provider, efield_position=efield_position)
+            station, use_channels, det, zenith, azimuth, self.antenna_provider, efield_position=efield_position, travel_time_delays=travel_time_delays)
+
+        if self.hann_window_samples > 0:
+            V = fft.freq2time(V, station.get_channel(use_channels[0]).get_sampling_rate())
+            hann_window = signal_processing.half_hann_window(V.shape[1], hann_window_length=self.hann_window_samples)
+            V[:, :] *= hann_window[None, :]
+            V = fft.time2freq(V, station.get_channel(use_channels[0]).get_sampling_rate())
+
+        if self.debug:
+            fig, ax = plt.subplots(len(V), 1, figsize=(10, 2*len(V)))
+            ax[0].set_title(f'Station {station.get_id()} - Event {evt.get_id()} - Run {evt.get_run_number()} - Shifted Voltage Traces')
+            for i in range(len(V)):
+                ax[i].plot(times, fft.freq2time(V[i,:], station.get_channel(use_channels[i]).get_sampling_rate()), label=f'Channel {use_channels[i]}')
+                ax[i].set_ylabel('Voltage [V]')
+                ax[i].set_xlim(times[0], times[-1])
+            ax[-1].set_xlabel('Time [ns]')
+            ax[0].legend()
+            fig.tight_layout()
+            plt.savefig("debug_voltage_traces.png")
+
+            fig, ax = plt.subplots(len(V), 1, figsize=(10, 2*len(V)))
+            frequencies = np.fft.rfftfreq(len(times), d=1/station.get_channel(use_channels[0]).get_sampling_rate())
+            ax[0].set_title(f'Station {station.get_id()} - Event {evt.get_id()} - Run {evt.get_run_number()} - Shifted Voltage Traces')
+            for i in range(len(V)):
+                ax[i].plot(frequencies, abs(efield_antenna_factor[i,0,:]), label=f'Channel {use_channels[i]}, theta')
+                ax[i].plot(frequencies, abs(efield_antenna_factor[i,1,:]), label=f'Channel {use_channels[i]}, phi')
+                ax[i].set_ylabel('Voltage [V]')
+                ax[i].set_xlim(frequencies[0], frequencies[-1])
+            ax[-1].set_xlabel('Frequency [GHz]')
+            ax[0].legend()
+            fig.tight_layout()
+            plt.savefig("debug_antenna_factors.png")
 
         n_frequencies = len(V[0])
         denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] -
@@ -245,6 +291,18 @@ class voltageToEfieldConverter:
         electric_field.set_parameter(efp.azimuth, azimuth)
         electric_field.set_trace_start_time(times[0])
         station.add_electric_field(electric_field)
+
+        if self.debug:
+            fig, ax = plt.subplots(3, 1, figsize=(10, 6))
+            ax[0].set_title(f'Station {station.get_id()} - Event {evt.get_id()} - Run {evt.get_run_number()} - Reconstructed Electric Field')
+            for i in range(3):
+                ax[i].plot(times, fft.freq2time(efield3_f[i,:], station.get_channel(use_channels[0]).get_sampling_rate()), label=f'E-field component {i}')
+                ax[i].set_ylabel('Electric Field [V/m]')
+                ax[i].set_xlim(times[0], times[-1])
+                ax[i].legend()
+            ax[-1].set_xlabel('Time [ns]')
+            fig.tight_layout()
+            plt.savefig("debug_efield_unfolded.png")
 
     def end(self):
         pass
