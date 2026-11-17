@@ -734,12 +734,13 @@ class ray_tracing_2D():
 
     def set_medium(self, medium):
 
-        self.medium = medium
-        if self.medium.delta_n == 0:
+        if medium.delta_n == 0:
             msg = ('Analytic raytracer does not work with a uniform ice model (delta_n = 0). '
                    'Abort.... ! Use direct raytracing or a non-uniform ice model instead.')
             self.__logger.error(msg)
             raise RuntimeError(msg)
+
+        self.medium = medium
 
         if not hasattr(self.medium, "reflection"):
             self.medium.reflection = None
