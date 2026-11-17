@@ -7,7 +7,6 @@ import NuRadioReco.utilities.fft
 import numpy as np
 import scipy.signal
 import copy
-import time
 import logging
 
 logger = logging.getLogger('NuRadioReco.rnog_surface_trigger')
@@ -89,7 +88,6 @@ class triggerSimulator:
     """
 
     def __init__(self):
-        self.__t = 0
         self.begin()
 
     def begin(self):
@@ -125,7 +123,6 @@ class triggerSimulator:
             a unique name of this particular trigger
         """
 
-        t = time.time()  # absolute time of system
 
         if triggered_channels is None:
             tmp_channel = station.get_trigger_channel(station.get_channel_ids()[0])
@@ -192,10 +189,6 @@ class triggerSimulator:
             logger.debug("station has NOT triggered")
 
         station.set_trigger(trigger)
-        self.__t += time.time() - t
 
     def end(self):
-        from datetime import timedelta
-        dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass

@@ -438,7 +438,7 @@ def set_volume_attributes(volume, proposal, attributes):
         dict storing hdf5 attributes
     """
 
-    n_events = attributes['n_events']
+    n_events_ref = attributes['n_events']
 
     attributes["x0"] = volume.get('x0', 0)
     attributes["y0"] = volume.get('y0', 0)
@@ -497,7 +497,7 @@ def set_volume_attributes(volume, proposal, attributes):
 
         volume_full = np.pi * (rmax ** 2 - rmin ** 2) * (zmax - zmin)
         # increase the total number of events such that we end up with the same number of events in the fiducial volume
-        n_events = int(n_events * volume_full / volume_fiducial)
+        n_events = int(n_events_ref * volume_full / volume_fiducial)
         logger.info(f"increasing rmax from {attributes['fiducial_rmax'] / units.km:.01f}km to {rmax  /units.km:.01f}km, "
                     f"zmax from {attributes['fiducial_zmax'] / units.km:.01f}km to {zmax / units.km:.01f}km")
 
@@ -507,7 +507,6 @@ def set_volume_attributes(volume, proposal, attributes):
         if attributes['fiducial_zmin'] != zmin:
             logger.info(f"decreasing zmin from {attributes['fiducial_zmin'] / units.km:.01f}km to {zmin / units.km:.01f}km")
 
-        n_events = int(n_events * volume_full / volume_fiducial)
         logger.info(f"increasing number of events from {attributes['n_events']:.6g} to {n_events:.6g}")
         attributes['n_events'] = n_events
 
@@ -577,7 +576,7 @@ def set_volume_attributes(volume, proposal, attributes):
 
         volume_full = (xmax - xmin) * (ymax - ymin) * (zmax - zmin)
 
-        n_events = int(n_events * volume_full / volume_fiducial)
+        n_events = int(n_events_ref * volume_full / volume_fiducial)
         logger.info(f"increasing number of events from {attributes['n_events']} to {n_events:.6g}")
         attributes['n_events'] = n_events
 

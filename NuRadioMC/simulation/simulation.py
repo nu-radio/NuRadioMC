@@ -1823,7 +1823,7 @@ class simulation:
         time_logger.show_time(len(unique_event_group_ids), i_event_group_id + 1, num_triggers=i_triggered_events, force=True)
 
         if self._outputfilenameNuRadioReco is not None:
-            eventWriter.end()
+            eventWriter.close()
             logger.debug("closing nur file")
 
         self._output_writer_hdf5.calculate_Veff()

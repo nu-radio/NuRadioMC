@@ -1,7 +1,5 @@
 import numpy as np
-import time
 import logging
-from datetime import timedelta
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units
@@ -37,7 +35,6 @@ class triggerSimulator:
     """
 
     def __init__(self):
-        self.__t = 0
         self.begin()
         self.logger = logging.getLogger('NuRadioReco.simpleThresholdTrigger')
 
@@ -82,7 +79,6 @@ class triggerSimulator:
             if only a float is given, the same pre_trigger_time is used for all channels
             If none, the default value of the Trigger class is used, which is currently 55ns.
         """
-        t = time.time()
 
         if triggered_channels is None:
             tmp_channel = station.get_trigger_channel(station.get_channel_ids()[0])
@@ -145,9 +141,5 @@ class triggerSimulator:
 
         station.set_trigger(trigger)
 
-        self.__t += time.time() - t
-
     def end(self):
-        dt = timedelta(seconds=self.__t)
-        self.logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass
