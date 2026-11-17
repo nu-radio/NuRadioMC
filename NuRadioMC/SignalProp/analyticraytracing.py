@@ -138,7 +138,8 @@ class ray_tracing(ray_tracing_base):
         ----------
         medium: medium class
             class describing the index-of-refraction profile, must be of type
-            `IceModelSimple` or `IceModelExpLayers`
+            `NuRadioMC.utilities.medium_base.IceModelSimple` (single layer) or
+            `NuRadioMC.utilities.medium_base.IceModelExpLayers` (multilayer)
         """
 
         if not isinstance(medium, (IceModelSimple, IceModelExpLayers)):
@@ -219,7 +220,8 @@ class ray_tracing(ray_tracing_base):
         ----------
         medium: medium class
             class describing the index-of-refraction profile, must be of type
-            `IceModelSimple` or `IceModelExpLayers`
+            `NuRadioMC.utilities.medium_base.IceModelSimple` (single layer) or
+            `NuRadioMC.utilities.medium_base.IceModelExpLayers` (multilayer)
         """
         if medium is self._medium:
             self.__logger.debug("medium unchanged, do not reset existing solutions")
