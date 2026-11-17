@@ -3,7 +3,7 @@ import numpy as np
 
 from NuRadioMC.SignalProp.propagation import solution_types_revert
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba import njit
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl._maybenumba import njit
 
 
 NumbaList = list # fallback for get_path_segments function
