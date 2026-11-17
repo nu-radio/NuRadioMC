@@ -221,7 +221,8 @@ class multi_layer_ray_tracing_2D():
         Parameters
         ----------
         medium: medium class
-            class describing the index-of-refraction profile (`IceModelExpLayers`)
+            class describing the index-of-refraction profile
+            (`NuRadioMC.utilities.medium_base.IceModelExpLayers`)
         """
         self.medium = medium
 
