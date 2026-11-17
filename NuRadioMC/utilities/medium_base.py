@@ -890,7 +890,51 @@ class IceModelExpLayers(IceModel):
         """
         
         self._set_layers(layers)
-        
+
+    @classmethod
+    def from_IceModel(cls, ice_model : IceModelSimple):
+        """
+        Create a multi-layered `IceModelExpLayers` from a single-layer `IceModelSimple`.
+
+        This is mostly useful to e.g. test / use the additional functionality
+        available in the multi-layer analytic raytracer instead of the single-layer
+        raytracer.
+
+        Parameters
+        ----------
+        ice_model : `IceModelSimple`
+            An `IceModelSimple` instance to convert to a multi-layered ice model
+        """
+
+        # the single layer raytracer treats air differently, we need to add an air-layer for the mutlilayer raytracer to work with
+        airlayer = dict(
+                z_min=ice_model.z_air_boundary,
+                z_max=np.inf,
+                n_ice=1.000001,
+                delta_n=2.7e-6,
+                z_0=-8000.0,
+                region_name="air"
+            )
+
+        # defining IceModelExpLayers parameters from input ice model
+        icelayer = dict(
+            z_min = ice_model.z_bottom,
+            z_max = ice_model.z_air_boundary,
+            n_ice = ice_model.n_ice,
+            delta_n = ice_model.delta_n,
+            z_0 = ice_model.z_0,
+            region_name = 'ice'
+        )
+        new_model = cls([airlayer,icelayer])
+
+        if ice_model.reflection is not None:
+            new_model.add_reflective_bottom(
+                refl_z=ice_model.reflection,
+                refl_coef=ice_model.reflection_coefficient,
+                refl_phase_shift=ice_model.reflection_phase_shift
+            )
+
+        return new_model
 
     def _set_layers(self, layers, z_shift=0*units.meter, z_air_boundary=0*units.meter):
         """
@@ -1133,6 +1177,9 @@ class IceModelExpLayers(IceModel):
                 axis=1
             )
 
+    def add_reflective_bottom(self, refl_z, refl_coef, refl_phase_shift):
+        """Reflective layers not currently implemented in IceModelExpLayers"""
+        raise NotImplementedError("Reflective layers not currently implemented in IceModelExpLayers")
 
     @property
     def get_layers_array(self):
@@ -1236,6 +1283,21 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
         return layers_gen
 
     def __init__(self, nN, delta_nN, ls, zs):
+        """
+        Parametrizes a three-layer ice model with continuous n(z) and n'(z)
+
+        Parameters
+        ----------
+        nN : float
+            Asymptotic refractive index of the bottommost layer
+        delta_nN : float
+            Refractive index step in the bottommost layer
+        ls : list of float
+            Length scales of the layers, starting at the bottommost layer
+        zs : list of float
+            Depth of transition between layers, starting at the bottom
+        """
+
         layers = self._parametrized_layers(nN, delta_nN, ls, zs)
         super().__init__(layers)
         self._set_params(nN, delta_nN, ls, zs)

@@ -2,6 +2,7 @@
 """
 Tests for updating the medium of the analytic ray tracer on a per-ray basis.
 
+<<<<<<< HEAD
 `ray_tracing_base.set_medium` is the generic interface; the analytic ray tracer
 (``NuRadioMC.SignalProp.analyticraytracing.ray_tracing``) extends it because it keeps
 medium-derived state that has to be refreshed: the 2D ray tracing module (single layer or
@@ -14,6 +15,11 @@ old medium. Rejected media have to leave the ray tracer unchanged (the update is
 transactional).
 
 Run with ``python test_set_medium.py`` or ``python -m pytest test_set_medium.py``.
+=======
+The reference for every check is a freshly constructed ray tracer for the new medium: an
+updated ray tracer has to reproduce it exactly, while not reproducing the results for the
+old medium.
+>>>>>>> raytracing-set-ice-model
 """
 import numpy as np
 
@@ -99,7 +105,11 @@ def test_same_medium_type_update():
 def test_switch_between_medium_types():
     """Switching between single layer and multilayer media rebuilds the 2D raytracing module."""
     model_single = medium.southpole_simple()
+<<<<<<< HEAD
     model_multi = medium.greenland_simple_layered()
+=======
+    model_multi = medium.greenland_3exp_density()
+>>>>>>> raytracing-set-ice-model
 
     propagator = _traced(model_single)
 
