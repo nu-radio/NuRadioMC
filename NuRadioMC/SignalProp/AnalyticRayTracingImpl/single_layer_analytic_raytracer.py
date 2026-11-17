@@ -711,6 +711,29 @@ class ray_tracing_2D():
         self.use_cpp, self.compile_numba = self._resolve_use_cpp_and_numba(
             use_cpp, compile_numba, cpp_available, numba_available, self.__logger)
 
+        self.set_medium(medium)
+
+        self.attenuation_model = attenuation_model or "SP1"
+        if self.attenuation_model not in attenuation_util.model_to_int:
+            raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
+
+        self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
+
+        self.__n_frequencies_integration = n_frequencies_integration or 100
+        self.__use_optimized_start_values = use_optimized_start_values
+
+        self._use_optimized_calculation = self.attenuation_model in speedup_attenuation_models
+        if overwrite_speedup is not None:
+            self._use_optimized_calculation = overwrite_speedup
+
+        if self.compile_numba:
+            try:
+                _compile_function_numba()
+            except Exception as e:
+                self.__logger.error(f"Error in compiling methods using jit: \"{e}\" - proceeding without numba")
+
+    def set_medium(self, medium):
+
         self.medium = medium
         if self.medium.delta_n == 0:
             msg = ('Analytic raytracer does not work with a uniform ice model (delta_n = 0). '
@@ -726,26 +749,7 @@ class ray_tracing_2D():
         if self.medium.reflection is not None:
             self.reflection = self.medium.reflection
 
-        self.attenuation_model = attenuation_model or "SP1"
-        if self.attenuation_model not in attenuation_util.model_to_int:
-            raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
-
-        self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
         self.__b = 2 * self.medium.n_ice
-
-        self.__n_frequencies_integration = n_frequencies_integration or 100
-        self.__use_optimized_start_values = use_optimized_start_values
-
-        self._use_optimized_calculation = self.attenuation_model in speedup_attenuation_models
-        if overwrite_speedup is not None:
-            self._use_optimized_calculation = overwrite_speedup
-
-        if self.compile_numba:
-            try:
-                _compile_function_numba()
-            except Exception as e:
-                self.__logger.error(f"Error in compiling methods using jit: \"{e}\" - proceeding without numba")
-
 
     @staticmethod
     def _resolve_use_cpp_and_numba(use_cpp, compile_numba, cpp_available, numba_available, logger):
