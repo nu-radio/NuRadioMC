@@ -1392,6 +1392,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     logger.info(f"number of fiducial showers {len(data_sets_fiducial['xx'])}")
 
+    # with several batches (or PROPOSAL secondaries) the data sets were accumulated as lists
+    for key in data_sets_fiducial:
+        data_sets_fiducial[key] = np.asarray(data_sets_fiducial[key])
+
     # assign every shower a unique id
     data_sets_fiducial["shower_ids"] = np.arange(0, len(data_sets_fiducial['shower_energies']), dtype=int)
     # make the event group ids consecutive, this is useful if secondary interactions are simulated where many of the
