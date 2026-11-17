@@ -365,7 +365,7 @@ def get_TAGZK_flux(energy):
     GZK neutrino flux from TA best fit from D. Bergmann privat communications
     """
 
-    TA_data = np.loadtxt(f"{local_dir}/data/TA_combined_fit_m3.txt")
+    TA_data = np.loadtxt(f"{local_dir}/models/TA_combined_fit_m3.txt")
     E = TA_data[:, 0] * units.GeV
     f = TA_data[:, 1] * plotUnitsFlux / E ** 2
     get_TAGZK_flux = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
@@ -377,7 +377,7 @@ def get_TAGZK_flux_ICRC2021(energy):
     GZK neutrino flux from TA best fit ICRC2021
     https://pos.sissa.it/395/338/
     """
-    TA_data = np.loadtxt(f"{local_dir}/data/TA_GZKprediction_ICRC2021.txt")
+    TA_data = np.loadtxt(f"{local_dir}/models/TA_GZKprediction_ICRC2021.txt")
     E = TA_data[:, 0] * units.GeV
     f = TA_data[:, 1] * plotUnitsFlux / E ** 2
     get_TAGZK_flux = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
@@ -388,7 +388,7 @@ def get_proton_10(energy):
     """
     10% proton flux at source for astrophysical parameters determined by Auger data, by van Vliet et al.
     """
-    vanVliet_reas = np.loadtxt(f"{local_dir}/data/ReasonableNeutrinos1.txt")
+    vanVliet_reas = np.loadtxt(f"{local_dir}/models/ReasonableNeutrinos1.txt")
     E = vanVliet_reas[0,:] * units.GeV
     f = vanVliet_reas[1,:] * plotUnitsFlux / E ** 2
     getE = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
@@ -396,7 +396,7 @@ def get_proton_10(energy):
 
 
 def get_GZK_Auger_best_fit(energy):
-    Heinze_band = np.loadtxt(f"{local_dir}/data/talys_neu_bands.out")
+    Heinze_band = np.loadtxt(f"{local_dir}/models/talys_neu_bands.out")
     E = Heinze_band[:, 0] * units.GeV
     f = Heinze_band[:, 1] / units.GeV / units.cm ** 2 / units.s / units.sr
     getE = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
@@ -718,7 +718,7 @@ def get_E2_limit_figure(diffuse=True,
 
     if show_IceCubeGen2_whitepaper:
         # flux limit for 5 years
-        gen2_data = np.loadtxt(f"{local_dir}/data/icecube_gen2_sensitivity.txt")
+        gen2_data = np.loadtxt(f"{local_dir}/experiments/icecube_gen2_sensitivity.txt")
         gen2_E = gen2_data[:,0] * units.GeV
         gen2_flux = gen2_data[:,0] * units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
         ax.plot(gen2_E / plotUnitsEnergy, gen2_flux / 2 / plotUnitsFlux, color='purple', linestyle="--")
@@ -729,7 +729,7 @@ def get_E2_limit_figure(diffuse=True,
     if show_IceCubeGen2_ICRC2021:
         # https://pos.sissa.it/395/1183/
         # flux limit for 10 years
-        gen2_E, gen2_flux = np.loadtxt(f"{local_dir}/data/Gen2radio_sensitivity_ICRC2021.txt")
+        gen2_E, gen2_flux = np.loadtxt(f"{local_dir}/experiments/Gen2radio_sensitivity_ICRC2021.txt")
         gen2_E *= units.eV
         gen2_flux *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
         ax.plot(gen2_E / plotUnitsEnergy, gen2_flux / plotUnitsFlux, color='purple', linestyle="--")
@@ -751,7 +751,6 @@ def get_E2_limit_figure(diffuse=True,
         arianna_200 = np.loadtxt(f"{local_dir}/experiments/expected_sensivity_ARIANNA-200.txt")
         arianna_200[:, 0] *= units.GeV
         arianna_200[:, 1] *= units.GeV * units.cm ** -2 * units.s ** -1
-        print(arianna_200)
 
         _plt4, = ax.plot(arianna_200[:, 0] / plotUnitsEnergy, arianna_200[:, 1] / plotUnitsFlux, label='ARIANNA-200 (5 years)', color='blue', linestyle="--")
         ax.annotate('ARIANNA-200',
