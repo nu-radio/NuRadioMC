@@ -300,8 +300,8 @@ class electricFieldLikelihoodReconstructor:
         station.add_electric_field(electric_field)
 
         # Calculate goodness of fit:
-        n_dof_fit = self.likelihood_calculator.get_dof() - (4 + 2 * self.zenith_azimuth_free + self.second_order) # 4 parameters for the efield, 2 for the arrival direction if free, 1 for the second order term if free
-        p_value_fit = 1 - scp.stats.chi2.cdf(minus_two_llh_best, n_dof_fit)
+        n_parameters_fit = len(fitted_params_best) - 2 * np.logical_not(self.zenith_azimuth_free) - np.logical_not(self.second_order)
+        p_value_fit = self.likelihood_calculator.calculate_goodness_of_fit(minus_two_llh_best, n_parameters_fit)
 
         if full_output:
             return fitted_signal, fitted_params_best, minus_two_llh_best, p_value_fit
