@@ -85,16 +85,17 @@ class electricFieldLikelihoodReconstructor:
                 Model of the electric field to be used in the reconstruction. Currently "analytic_pulse" (default) and "Alvarez2009" are supported.
 
             second_order: bool, optional
-                If True, fit includes the second order term in the frequency domain of the electric field
-                as a fitting parameter. Otherwise, the second order term is fixed to 0. Default: False
+                Only used if efield_model is "analytic_pulse". If True, fit includes the second order
+                term in the frequency domain of the electric field  as a fitting parameter. Otherwise,
+                the second order term is fixed to 0. Default: False
 
             use_chi2: bool, optional
                 Whether to use chi2 minimization instead of likelihood. Mostly used for debugging and method comparison.
 
             zenith_azimuth_free: bool, optional
-                Whether to reconstruct the zenith and azimuth arrival direction of the electric field in the minimization, or keep them fixed.
-                The initial (or fixed) value used is the reconstructed values present in the station object or the MC values in the sim_station
-                object.
+                Whether to fit the zenith and azimuth arrival direction of the electric field in the minimization, or keep them fixed.
+                The initial (or fixed) values used is the reconstructed values present in the station object (e.g., station[stnp.zenith]) or
+                the MC values in the sim_station object (e.g., station.get_sim_station()[stnp.zenith]).
 
             travel_time_shifts: np.ndarray
                 Travel times for the electric field to reach each antenna. If no travel time shifts are provided, they are calculated
