@@ -720,7 +720,7 @@ def get_E2_limit_figure(diffuse=True,
         # flux limit for 5 years
         gen2_data = np.loadtxt(f"{local_dir}/experiments/icecube_gen2_sensitivity.txt")
         gen2_E = gen2_data[:,0] * units.GeV
-        gen2_flux = gen2_data[:,0] * units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
+        gen2_flux = gen2_data[:, 1] * units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
         ax.plot(gen2_E / plotUnitsEnergy, gen2_flux / 2 / plotUnitsFlux, color='purple', linestyle="--")
         ax.annotate('IceCube-Gen2 radio',
                     xy=(.8e8 * units.GeV / plotUnitsEnergy, 1.6e-10), xycoords='data',
