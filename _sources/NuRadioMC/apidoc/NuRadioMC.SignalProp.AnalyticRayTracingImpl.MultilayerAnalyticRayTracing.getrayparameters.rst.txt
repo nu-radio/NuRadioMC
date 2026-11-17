@@ -1,0 +1,7 @@
+NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.getrayparameters module
+================================================================================================
+
+.. automodule:: NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.getrayparameters
+   :members:
+   :undoc-members:
+   :show-inheritance:

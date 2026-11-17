@@ -1864,13 +1864,56 @@
 
 <div class="viewcode-block" id="ray_tracing.get_time_difference_plane_wave">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_time_difference_plane_wave">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_time_difference_plane_wave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_zenith</span><span class="p">,</span> <span class="n">src_azimuth</span><span class="p">,</span> <span class="n">azimuth_convention</span> <span class="o">=</span> <span class="s1">'nuradio'</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_time_difference_plane_wave</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_zenith</span><span class="p">,</span> <span class="n">src_azimuth</span><span class="p">):</span>
+
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Calculate the relative arrival time difference of a plane wave at two receiver</span>
+<span class="sd">        positions, accounting for refraction at the ice surface.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        src_zenith : float</span>
+<span class="sd">            Zenith angle of the incoming plane wave in air, in radians.</span>
+<span class="sd">            The angle is measured with respect to the surface normal and must</span>
+<span class="sd">            be between 0 and pi/2 (incoming signals from above).</span>
+
+<span class="sd">        src_azimuth : float</span>
+<span class="sd">            Azimuth angle of the incoming plane wave in radians.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        delta_t : float</span>
+<span class="sd">            Relative signal arrival-time difference between the two receiver</span>
+<span class="sd">            positions, in seconds.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        NotImplementedError</span>
+<span class="sd">            If the underlying 2D ray tracer does not implement the analytic</span>
+<span class="sd">            plane-wave time difference calculation.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The calculation is only supported for incoming signals</span>
+<span class="sd">        propagating from air into ice, corresponding to zenith angles between</span>
+<span class="sd">        0 and pi/2. In air we assume n=1.0, which is needed in order for the geometric projection approach to work. </span>
+<span class="sd">        It is only implemented with the multilayerraytracer currently, so a IceModelExpLayers type medium has to be provided.</span>
+<span class="sd">        """</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="p">,</span> <span class="s1">'get_time_difference_plane_wave_analytic'</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Plane-wave time difference calculation is not supported "</span>
+                <span class="sa">f</span><span class="s2">"by the selected 2D ray tracer "</span>
+                <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">). "</span>
+                <span class="sa">f</span><span class="s2">"This functionality is currently only implemented for "</span>
+                <span class="sa">f</span><span class="s2">"the multilayer analytic ray tracer (use IceModelExpLayers or IceModelContinuousExpLayers medium)."</span>
+            <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">src_zenith</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Source zenith angle: </span><span class="si">{</span><span class="n">src_zenith</span><span class="si">:</span><span class="s2">3f</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">src_zenith</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">2f</span><span class="si">}</span><span class="s2"> deg) is above pi/2 (90 deg)! The plane wave time difference calculation only works for signals traversing from air to ice, aka coming from above, aka having theta between 0 and 90 degrees. Make sure to catch this!"</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Source zenith angle: </span><span class="si">{</span><span class="n">src_zenith</span><span class="si">:</span><span class="s2">3f</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">src_zenith</span><span class="o">/</span><span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="si">:</span><span class="s2">2f</span><span class="si">}</span><span class="s2"> deg) is above pi/2 (90 deg)! Returning nan. The plane wave time difference calculation only works for signals traversing from air to ice, aka coming from above, aka having theta between 0 and 90 degrees. Make sure to catch this!"</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
-        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_time_difference_plane_wave_analytic</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">,</span> <span class="n">src_zenith</span><span class="p">,</span> <span class="n">src_azimuth</span><span class="p">,</span> <span class="n">azimuth_convention</span><span class="p">)</span>
+        <span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_r2d</span><span class="o">.</span><span class="n">get_time_difference_plane_wave_analytic</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_X1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X2</span><span class="p">,</span> <span class="n">src_zenith</span><span class="p">,</span> <span class="n">src_azimuth</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">dt</span></div>
 </div>
 

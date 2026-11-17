@@ -1,0 +1,7 @@
+NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.solver module
+======================================================================================
+
+.. automodule:: NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.solver
+   :members:
+   :undoc-members:
+   :show-inheritance:

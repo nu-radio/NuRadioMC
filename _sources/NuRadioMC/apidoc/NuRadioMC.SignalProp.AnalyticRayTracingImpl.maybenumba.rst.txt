@@ -1,7 +1,0 @@
-NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba module
-=============================================================
-
-.. automodule:: NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba
-   :members:
-   :undoc-members:
-   :show-inheritance:

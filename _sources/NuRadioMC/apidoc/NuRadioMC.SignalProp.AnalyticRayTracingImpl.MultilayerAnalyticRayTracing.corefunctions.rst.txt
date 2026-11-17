@@ -1,0 +1,7 @@
+NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions module
+=============================================================================================
+
+.. automodule:: NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions
+   :members:
+   :undoc-members:
+   :show-inheritance:

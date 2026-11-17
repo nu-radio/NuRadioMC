@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba module &mdash; NuRadio 3.2.0-dev documentation</title>
+  <title>NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions module &mdash; NuRadio 3.2.0-dev documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/styling.css?v=3350586d" />
@@ -20,8 +20,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer module" href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer.html" />
-    <link rel="prev" title="NuRadioMC.SignalProp.AnalyticRayTracingImpl package" href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.html" /> 
+    <link rel="next" title="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.getrayparameters module" href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.getrayparameters.html" />
+    <link rel="prev" title="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing package" href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -642,9 +642,10 @@
           <li class="breadcrumb-item"><a href="../pages/code_documentation.html">Code Documentation</a></li>
           <li class="breadcrumb-item"><a href="NuRadioMC.SignalProp.html">NuRadioMC.SignalProp package</a></li>
           <li class="breadcrumb-item"><a href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.html">NuRadioMC.SignalProp.AnalyticRayTracingImpl package</a></li>
-      <li class="breadcrumb-item active">NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba module</li>
+          <li class="breadcrumb-item"><a href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.html">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing package</a></li>
+      <li class="breadcrumb-item active">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/NuRadioMC/apidoc/NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/NuRadioMC/apidoc/NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -652,17 +653,527 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba">
-<span id="nuradiomc-signalprop-analyticraytracingimpl-maybenumba-module"></span><h1>NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba module<a class="headerlink" href="#module-NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba" title="Link to this heading"></a></h1>
-<p>Function to replace the njit decorator. If numba is not available we just use a dummy decorator, otherwise &#64;njit</p>
+  <section id="module-NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions">
+<span id="nuradiomc-signalprop-analyticraytracingimpl-multilayeranalyticraytracing-corefunctions-module"></span><h1>NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions module<a class="headerlink" href="#module-NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.layers_to_arrays">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">layers_to_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#layers_to_arrays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.layers_to_arrays" title="Link to this definition"></a></dt>
+<dd><p>Convert layer definitions from dictionaries to NumPy arrays.</p>
+<p>The Numba implementation of the ray tracing solver requires all
+layer parameters to be stored in contiguous arrays rather than
+Python dictionaries. This helper function performs that conversion.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>layers</strong><span class="classifier">list of dict</span></dt><dd><p>List of layer definitions.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt>tuple of ndarray</dt><dd><p>Arrays describing the layer parameters:</p>
+<dl class="simple">
+<dt>z_min<span class="classifier">ndarray</span></dt><dd><p>Lower depth boundary of each layer.</p>
+</dd>
+<dt>z_max<span class="classifier">ndarray</span></dt><dd><p>Upper depth boundary of each layer.</p>
+</dd>
+<dt>n_ice<span class="classifier">ndarray</span></dt><dd><p>Asymptotic refractive index in each layer.</p>
+</dd>
+<dt>delta_n<span class="classifier">ndarray</span></dt><dd><p>Refractive index contrast.</p>
+</dd>
+<dt>z0<span class="classifier">ndarray</span></dt><dd><p>Exponential scale depth.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.init_layer_arrays">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">init_layer_arrays</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_ice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#init_layer_arrays"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.init_layer_arrays" title="Link to this definition"></a></dt>
+<dd><p>Validate and return layer arrays.</p>
+<p>All inputs must be array-like with same length.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>tuple of ndarray</strong></dt><dd></dd>
+<dt><strong>Arrays describing the layer parameters:</strong></dt><dd></dd>
+<dt><strong>z_min</strong><span class="classifier">ndarray</span></dt><dd><p>Lower depth boundary of each layer.</p>
+</dd>
+<dt><strong>z_max</strong><span class="classifier">ndarray</span></dt><dd><p>Upper depth boundary of each layer.</p>
+</dd>
+<dt><strong>n_ice</strong><span class="classifier">ndarray</span></dt><dd><p>Asymptotic refractive index in each layer.</p>
+</dd>
+<dt><strong>delta_n</strong><span class="classifier">ndarray</span></dt><dd><p>Refractive index contrast.</p>
+</dd>
+<dt><strong>z0</strong><span class="classifier">ndarray</span></dt><dd><p>Exponential scale depth.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.get_layer_index">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">get_layer_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_min</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_max</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#get_layer_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.get_layer_index" title="Link to this definition"></a></dt>
+<dd><p>Determine the layer index corresponding to a given depth.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z</strong><span class="classifier">float</span></dt><dd><p>Depth coordinate.</p>
+</dd>
+<dt><strong>z_min, z_max</strong><span class="classifier">ndarray</span></dt><dd><p>Arrays containing the lower and upper boundaries of each layer.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>int</dt><dd><p>Index of the layer containing the given depth.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">-1</span></code> if the depth lies outside the defined layer ranges.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.analytic_F">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">analytic_F</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_ice</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta_n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#analytic_F"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.analytic_F" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the analytic ray integral F(z) for an exponential index profile.</p>
+<p>This function represents the analytic solution of the horizontal
+ray displacement in a medium with exponential refractive index</p>
+<blockquote>
+<div><p>n(z) = n_ice - delta_n * exp(z / z0)</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z</strong><span class="classifier">float</span></dt><dd><p>Depth coordinate.</p>
+</dd>
+<dt><strong>c0</strong><span class="classifier">float</span></dt><dd><p>Ray parameter (inverse horizontal slowness).</p>
+</dd>
+<dt><strong>n_ice</strong><span class="classifier">float</span></dt><dd><p>Asymptotic refractive index of the layer.</p>
+</dd>
+<dt><strong>delta_n</strong><span class="classifier">float</span></dt><dd><p>Refractive index contrast.</p>
+</dd>
+<dt><strong>z0</strong><span class="classifier">float</span></dt><dd><p>Exponential scale depth.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Value of the analytic integral F(z).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The horizontal coordinate of the ray trajectory is given by</p>
+<blockquote>
+<div><p>y(z) = F(z) + c1</p>
+</div></blockquote>
+<p>where c1 is a layer-dependent offset constant.
+The offsets are defined from the boundary conditions (e.g. x_start) and can be calculated with
+the calculate_offsets function.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.compute_offsets">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">compute_offsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_intersection_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#compute_offsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.compute_offsets" title="Link to this definition"></a></dt>
+<dd><p>Compute horizontal offset constants for all layers.</p>
+<p>The ray trajectory is expressed as</p>
+<blockquote>
+<div><p>y(z) = F(z) + c1</p>
+</div></blockquote>
+<p>where the constant <code class="docutils literal notranslate"><span class="pre">c1</span></code> differs between layers. This function
+determines the offsets required to ensure continuity of the
+trajectory across layer boundaries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>c0</strong><span class="classifier">float</span></dt><dd><p>Ray parameter.</p>
+</dd>
+<dt><strong>y_start, z_start</strong><span class="classifier">float</span></dt><dd><p>Starting position of the ray.</p>
+</dd>
+<dt><strong>layers</strong><span class="classifier">tuple of ndarray</span></dt><dd><p>Layer parameter arrays.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>c1</strong><span class="classifier">ndarray</span></dt><dd><p>Offset constants for each layer.</p>
+</dd>
+<dt><strong>idx_start</strong><span class="classifier">int</span></dt><dd><p>Index of the layer containing the starting depth.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Offsets are propagated upward through the layer stack to enforce
+continuity of the ray path going through the chosen starting point.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.compute_offsets_plotting">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">compute_offsets_plotting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">get_intersection_point</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#compute_offsets_plotting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.compute_offsets_plotting" title="Link to this definition"></a></dt>
+<dd><p>This function takes the role of compute_offsets for situations where we are interested in creating the complete path that a signal takes 
+when being emitted from a given point (y_start, z_start) into a given direction.</p>
+<p>The compute_offsets function which is used in analyticraytracing.py on the other hand is tailored for quickly finding the path between two given points for an upwards going ray situation. 
+While being more efficient for that case, it doesn’t calculate the layer boundary offsets if they are not needed for this particular situation. 
+For visualization purposes we need this function to be able to calculate the complete signal paths all the way through the ice volume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>c0</strong><span class="classifier">float</span></dt><dd><p>Ray parameter.</p>
+</dd>
+<dt><strong>y_start, z_start</strong><span class="classifier">float</span></dt><dd><p>Starting position of the ray.</p>
+</dd>
+<dt><strong>layers</strong><span class="classifier">tuple of ndarray</span></dt><dd><p>Layer parameter arrays.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>c1</strong><span class="classifier">ndarray</span></dt><dd><p>Offset constants for each layer.</p>
+</dd>
+<dt><strong>idx_start</strong><span class="classifier">int</span></dt><dd><p>Index of the layer containing the starting depth.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Offsets are propagated upward through the layer stack to enforce
+continuity of the ray path going through the chosen starting point.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.build_y_field">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">build_y_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#build_y_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.build_y_field" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the horizontal ray trajectory y(z).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>c0</strong><span class="classifier">float</span></dt><dd><p>Ray parameter.</p>
+</dd>
+<dt><strong>z_array</strong><span class="classifier">ndarray</span></dt><dd><p>Depth coordinates at which the trajectory should be evaluated.</p>
+</dd>
+<dt><strong>layers</strong><span class="classifier">tuple of ndarray</span></dt><dd><p>Layer parameter arrays.</p>
+</dd>
+<dt><strong>c1</strong><span class="classifier">ndarray</span></dt><dd><p>Offset constants for each layer.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>y</strong><span class="classifier">ndarray</span></dt><dd><p>Horizontal coordinates corresponding to <code class="docutils literal notranslate"><span class="pre">z_array</span></code>.</p>
+</dd>
+<dt><strong>layer_idx</strong><span class="classifier">ndarray</span></dt><dd><p>Layer index for each depth.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.evaluate_y">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">evaluate_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#evaluate_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.evaluate_y" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the horizontal ray coordinate at a given depth.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>c0</strong><span class="classifier">float</span></dt><dd><p>Ray parameter.</p>
+</dd>
+<dt><strong>c1</strong><span class="classifier">ndarray</span></dt><dd><p>Offset constants for each layer.</p>
+</dd>
+<dt><strong>z</strong><span class="classifier">float</span></dt><dd><p>Depth coordinate at which the trajectory should be evaluated.</p>
+</dd>
+<dt><strong>layers</strong><span class="classifier">tuple of ndarray</span></dt><dd><p>Layer parameter arrays.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Horizontal coordinate y(z).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The ray trajectory within a layer is described by</p>
+<blockquote>
+<div><p>y(z) = F(z) + c1</p>
+</div></blockquote>
+<p>where F(z) is the analytic ray integral and c1 is a
+layer-dependent offset chosen to ensure continuity
+across layer boundaries.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.find_z_turn">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">find_z_turn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#find_z_turn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.find_z_turn" title="Link to this definition"></a></dt>
+<dd><p>Determine the depth of the ray turning point.</p>
+<p>A turning point occurs where the refractive index satisfies</p>
+<blockquote>
+<div><p>n(z) = 1 / c0</p>
+</div></blockquote>
+<p>which corresponds to horizontal propagation of the ray.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>c0</strong><span class="classifier">float</span></dt><dd><p>Ray parameter.</p>
+</dd>
+<dt><strong>layers</strong><span class="classifier">tuple of ndarray</span></dt><dd><p>Layer parameter arrays.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Depth coordinate of the turning point.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>If no turning point exists within the medium, the function returns
+the maximum depth boundary of the defined layers.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.get_turning_point">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">get_turning_point</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downgoing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_air</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#get_turning_point"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.get_turning_point" title="Link to this definition"></a></dt>
+<dd><p>Compute the coordinates of the turning point (y, z) of a ray with c0 starting from x1=(y_start,z_start).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>c0</strong><span class="classifier">float</span></dt><dd><p>Ray parameter.</p>
+</dd>
+<dt><strong>y_start, z_start</strong><span class="classifier">float</span></dt><dd><p>Starting coordinates of the ray.</p>
+</dd>
+<dt><strong>layers</strong><span class="classifier">tuple of ndarray</span></dt><dd><p>Layer parameter arrays.</p>
+</dd>
+<dt><strong>c1</strong><span class="classifier">ndarray, optional</span></dt><dd><p>Precomputed layer offsets.</p>
+</dd>
+<dt><strong>downgoing</strong><span class="classifier">bool, optional</span></dt><dd><p>Flag indicating whether the original ray propagates downward.</p>
+</dd>
+<dt><strong>with_air</strong><span class="classifier">bool, optional</span></dt><dd><p>Flag indicating whether the propagation includes an air layer.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>y_turn</strong><span class="classifier">float</span></dt><dd><p>Horizontal coordinate of the turning point.</p>
+</dd>
+<dt><strong>z_turn</strong><span class="classifier">float</span></dt><dd><p>Depth coordinate of the turning point.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>To avoid numerical issues that appeared when z_turn is set to 0.0 we shift the surface reflection slightly downwards.
+Otherwise this could cause the evaluation at z=0.0 with the layer parameters of the air layer and break the logic.
+If the ray reaches the surface and <code class="docutils literal notranslate"><span class="pre">with_air</span></code> is False, the
+turning point is clamped to the surface depth.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.get_delta_y">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">get_delta_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c0range</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downgoing</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_air</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#get_delta_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.get_delta_y" title="Link to this definition"></a></dt>
+<dd><p>Compute horizontal mismatch between a ray and a target point.</p>
+<p>This function evaluates how far a ray with parameter <code class="docutils literal notranslate"><span class="pre">c0</span></code> deviates
+from the desired receiver position. It serves as the objective
+function for root-finding during ray solution searches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>c0</strong><span class="classifier">float</span></dt><dd><p>Ray parameter.</p>
+</dd>
+<dt><strong>y1, z1</strong><span class="classifier">float</span></dt><dd><p>Starting position.</p>
+</dd>
+<dt><strong>y2, z2</strong><span class="classifier">float</span></dt><dd><p>Target position.</p>
+</dd>
+<dt><strong>layers</strong><span class="classifier">tuple of ndarray</span></dt><dd><p>Layer parameter arrays.</p>
+</dd>
+<dt><strong>c0range</strong><span class="classifier">tuple</span></dt><dd><p>Allowed range of ray parameters.</p>
+</dd>
+<dt><strong>downgoing</strong><span class="classifier">bool</span></dt><dd><p>Flag indicating reversed geometry.</p>
+</dd>
+<dt><strong>with_air</strong><span class="classifier">bool</span></dt><dd><p>Flag indicating propagation through air.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Horizontal difference between predicted and target position.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The sign of the returned value determines which side of the
+receiver the ray endpoint lies on and is therefore used by
+root-finding algorithms.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.get_n_1D">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">get_n_1D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#get_n_1D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.get_n_1D" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the refractive index at a given depth.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z</strong><span class="classifier">float</span></dt><dd><p>Depth coordinate.</p>
+</dd>
+<dt><strong>layers</strong><span class="classifier">tuple of ndarray</span></dt><dd><p>Layer parameter arrays.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Refractive index n(z).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Within each layer the refractive index follows</p>
+<blockquote>
+<div><p>n(z) = n_ice - delta_n * exp(z / z0)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.get_c0_from_theta">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">get_c0_from_theta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">z_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#get_c0_from_theta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.get_c0_from_theta" title="Link to this definition"></a></dt>
+<dd><p>Convert a launch angle to the corresponding ray parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>z_start</strong><span class="classifier">float</span></dt><dd><p>Starting depth of the ray.</p>
+</dd>
+<dt><strong>theta</strong><span class="classifier">float</span></dt><dd><p>Launch angle in radians.</p>
+</dd>
+<dt><strong>layers</strong><span class="classifier">tuple of ndarray</span></dt><dd><p>Layer parameter arrays.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Ray parameter c0.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.get_skim_angle">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">get_skim_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zskim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#get_skim_angle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.get_skim_angle" title="Link to this definition"></a></dt>
+<dd><p>Compute the critical launch angle for a ray that skims a given depth.</p>
+<p>The resulting ray reaches the specified depth with a horizontal
+propagation angle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>y1, z1</strong><span class="classifier">float</span></dt><dd><p>Starting coordinates of the ray.</p>
+</dd>
+<dt><strong>zskim</strong><span class="classifier">float</span></dt><dd><p>Depth of the plane to skim.</p>
+</dd>
+<dt><strong>layers</strong><span class="classifier">tuple of ndarray</span></dt><dd><p>Layer parameter arrays.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>c0crit</strong><span class="classifier">float</span></dt><dd><p>Ray parameter corresponding to the critical launch angle.</p>
+</dd>
+<dt><strong>thcrit</strong><span class="classifier">float</span></dt><dd><p>Critical launch angle in radians.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The critical angle is determined from the refractive index
+contrast between the launch depth and the skim depth.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.determine_solution_type">
+<span class="sig-prename descclassname"><span class="pre">NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.</span></span><span class="sig-name descname"><span class="pre">determine_solution_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">c0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downgoing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_air</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/AnalyticRayTracingImpl/MultilayerAnalyticRayTracing/corefunctions.html#determine_solution_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.determine_solution_type" title="Link to this definition"></a></dt>
+<dd><p>Determine the physical type of a ray tracing solution.</p>
+<p>This function classifies a ray trajectory based on the location of
+its turning point relative to the emitter and receiver.
+Since it is used in the find_solutions function and we are getting the flipped coordinates here,
+we just take the information for downgoing and with_air as well, makes this function a bit stupid, sorry</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>y1, z1</strong><span class="classifier">float</span></dt><dd><p>Horizontal and depth coordinates of the ray origin.</p>
+</dd>
+<dt><strong>y2, z2</strong><span class="classifier">float</span></dt><dd><p>Horizontal and depth coordinates of the receiver.</p>
+</dd>
+<dt><strong>c0</strong><span class="classifier">float</span></dt><dd><p>Ray parameter controlling the curvature of the trajectory.</p>
+</dd>
+<dt><strong>layers</strong><span class="classifier">tuple of ndarray</span></dt><dd><p>Layer parameter arrays describing the refractive index profile.</p>
+</dd>
+<dt><strong>downgoing</strong><span class="classifier">bool</span></dt><dd><p>Flag indicating that the geometry corresponds to a ray entering
+the medium from above (e.g. from the air).</p>
+</dd>
+<dt><strong>with_air</strong><span class="classifier">bool</span></dt><dd><p>Flag indicating whether propagation through the air layer is
+considered.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl>
+<dt>int</dt><dd><p>Integer identifier of the ray solution type. The returned value
+corresponds to an entry in <code class="docutils literal notranslate"><span class="pre">solution_types_revert</span></code>.</p>
+<p>Possible solution classes include</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">direct</span></code></dt><dd><p>The ray reaches the receiver before encountering a turning
+point.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">refracted</span></code></dt><dd><p>The ray reaches a turning point within the medium and then
+propagates back toward the receiver.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">reflected</span></code></dt><dd><p>The ray reaches the surface (z ≈ 0) and is reflected
+downward.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">from_air</span></code></dt><dd><p>Special case where the ray originates from the air and
+propagates downward into the medium.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The classification is determined using the turning point of the ray
+trajectory, obtained from <a class="reference internal" href="#NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.get_turning_point" title="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions.get_turning_point"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_turning_point()</span></code></a>.</p>
+<p>The logic proceeds as follows:</p>
+<ol class="arabic simple">
+<li><p>If the ray originates from air (<code class="docutils literal notranslate"><span class="pre">with_air</span></code> and <code class="docutils literal notranslate"><span class="pre">downgoing</span></code>),
+the solution is classified as direct, since there are only direct rays in this case.</p></li>
+<li><p>If the receiver lies before the turning point in horizontal
+distance (<code class="docutils literal notranslate"><span class="pre">y2</span> <span class="pre">&lt;</span> <span class="pre">y_turn</span></code>), the ray is a direct solution.</p></li>
+<li><p>If the turning point occurs at or above the surface
+(<code class="docutils literal notranslate"><span class="pre">z_turn</span> <span class="pre">≥</span> <span class="pre">0</span></code>), the ray is classified as a surface-reflected
+solution.</p></li>
+<li><p>Otherwise, the ray turns within the medium and is classified as
+a refracted solution.</p></li>
+</ol>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.html" class="btn btn-neutral float-left" title="NuRadioMC.SignalProp.AnalyticRayTracingImpl package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer.html" class="btn btn-neutral float-right" title="NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.html" class="btn btn-neutral float-left" title="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.getrayparameters.html" class="btn btn-neutral float-right" title="NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.getrayparameters module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

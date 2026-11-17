@@ -727,28 +727,31 @@ ray tracing solutions in 3D for two arbitrary points x1 and x2</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_solution_type</span></code></a>(iS)</p></td>
 <td><p>Returns the type of the solution</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_travel_time</span></code></a>(iS[, analytic])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_time_difference_plane_wave" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_time_difference_plane_wave"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_difference_plane_wave</span></code></a>(src_zenith, ...)</p></td>
+<td><p>Calculate the relative arrival time difference of a plane wave at two receiver positions, accounting for refraction at the ice surface.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_travel_time</span></code></a>(iS[, analytic])</p></td>
 <td><p>Calculates the travel time of solution iS</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_solution</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_solution</span></code></a>()</p></td>
 <td><p>checks if ray tracing solution exists</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a>()</p></td>
 <td><p>Resets the raytracing solutions back to None.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_config</span></code></a>(config)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_config</span></code></a>(config)</p></td>
 <td><p>Change the configuration file used by the raytracer</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_solution</span></code></a>(raytracing_results)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_solution</span></code></a>(raytracing_results)</p></td>
 <td><p>Read an already calculated raytracing solution from the input array</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point</span></code></a>(x1, x2[, autoswap])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point</span></code></a>(x1, x2[, autoswap])</p></td>
 <td><p>Set the start and end points of the raytracing</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point_no_swap</span></code></a>(x1, x2)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point_no_swap</span></code></a>(x1, x2)</p></td>
 <td><p>Set the start and end points of the raytracing without automatically swapping x1 and x2 if z2 &gt; z1.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_optional_function</span></code></a>(function_name, *args, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_optional_function</span></code></a>(function_name, *args, ...)</p></td>
 <td><p>Use optional function which may be different for each ray tracer.</p></td>
 </tr>
 </tbody>
@@ -759,9 +762,6 @@ ray tracing solutions in 3D for two arbitrary points x1 and x2</p>
 <td></td>
 </tr>
 <tr class="row-even"><td><p><strong>get_results</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>get_time_difference_plane_wave</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -880,28 +880,31 @@ If None, numba is used whenever it is available.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_solution_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_solution_type</span></code></a>(iS)</p></td>
 <td><p>Returns the type of the solution</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_travel_time</span></code></a>(iS[, analytic])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_time_difference_plane_wave" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_time_difference_plane_wave"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_time_difference_plane_wave</span></code></a>(src_zenith, ...)</p></td>
+<td><p>Calculate the relative arrival time difference of a plane wave at two receiver positions, accounting for refraction at the ice surface.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_travel_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_travel_time</span></code></a>(iS[, analytic])</p></td>
 <td><p>Calculates the travel time of solution iS</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_solution</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_solution</span></code></a>()</p></td>
 <td><p>checks if ray tracing solution exists</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.reset_solutions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_solutions</span></code></a>()</p></td>
 <td><p>Resets the raytracing solutions back to None.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_config</span></code></a>(config)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_config</span></code></a>(config)</p></td>
 <td><p>Change the configuration file used by the raytracer</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_solution</span></code></a>(raytracing_results)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_solution"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_solution</span></code></a>(raytracing_results)</p></td>
 <td><p>Read an already calculated raytracing solution from the input array</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point</span></code></a>(x1, x2[, autoswap])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point</span></code></a>(x1, x2[, autoswap])</p></td>
 <td><p>Set the start and end points of the raytracing</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point_no_swap</span></code></a>(x1, x2)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.set_start_and_end_point_no_swap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_start_and_end_point_no_swap</span></code></a>(x1, x2)</p></td>
 <td><p>Set the start and end points of the raytracing without automatically swapping x1 and x2 if z2 &gt; z1.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_optional_function</span></code></a>(function_name, *args, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function" title="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.use_optional_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_optional_function</span></code></a>(function_name, *args, ...)</p></td>
 <td><p>Use optional function which may be different for each ray tracer.</p></td>
 </tr>
 </tbody>
@@ -912,9 +915,6 @@ If None, numba is used whenever it is available.</p>
 <td></td>
 </tr>
 <tr class="row-even"><td><p><strong>get_results</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><strong>get_time_difference_plane_wave</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -1453,8 +1453,41 @@ pair of start and end points</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_time_difference_plane_wave">
-<span class="sig-name descname"><span class="pre">get_time_difference_plane_wave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_azimuth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">azimuth_convention</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nuradio'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_time_difference_plane_wave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_time_difference_plane_wave" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">get_time_difference_plane_wave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_zenith</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_azimuth</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioMC/SignalProp/analyticraytracing.html#ray_tracing.get_time_difference_plane_wave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_time_difference_plane_wave" title="Link to this definition"></a></dt>
+<dd><p>Calculate the relative arrival time difference of a plane wave at two receiver
+positions, accounting for refraction at the ice surface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>src_zenith</strong><span class="classifier">float</span></dt><dd><p>Zenith angle of the incoming plane wave in air, in radians.
+The angle is measured with respect to the surface normal and must
+be between 0 and pi/2 (incoming signals from above).</p>
+</dd>
+<dt><strong>src_azimuth</strong><span class="classifier">float</span></dt><dd><p>Azimuth angle of the incoming plane wave in radians.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>delta_t</strong><span class="classifier">float</span></dt><dd><p>Relative signal arrival-time difference between the two receiver
+positions, in seconds.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>NotImplementedError</dt><dd><p>If the underlying 2D ray tracer does not implement the analytic
+plane-wave time difference calculation.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The calculation is only supported for incoming signals
+propagating from air into ice, corresponding to zenith angles between
+0 and pi/2. In air we assume n=1.0, which is needed in order for the geometric projection approach to work. 
+It is only implemented with the multilayerraytracer currently, so a IceModelExpLayers type medium has to be provided.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="NuRadioMC.SignalProp.analyticraytracing.ray_tracing.has_solution">

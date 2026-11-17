@@ -1624,7 +1624,54 @@
 <span class="sd">        """</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_layers</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span>
-        
+
+<div class="viewcode-block" id="IceModelExpLayers.from_IceModel">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelExpLayers.from_IceModel">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_IceModel</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ice_model</span> <span class="p">:</span> <span class="n">IceModelSimple</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Create a multi-layered `IceModelExpLayers` from a single-layer `IceModelSimple`.</span>
+
+<span class="sd">        This is mostly useful to e.g. test / use the additional functionality</span>
+<span class="sd">        available in the multi-layer analytic raytracer instead of the single-layer</span>
+<span class="sd">        raytracer.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ice_model : `IceModelSimple`</span>
+<span class="sd">            An `IceModelSimple` instance to convert to a multi-layered ice model</span>
+<span class="sd">        """</span>
+
+        <span class="c1"># the single layer raytracer treats air differently, we need to add an air-layer for the mutlilayer raytracer to work with</span>
+        <span class="n">airlayer</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">z_min</span><span class="o">=</span><span class="n">ice_model</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="p">,</span>
+                <span class="n">z_max</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                <span class="n">n_ice</span><span class="o">=</span><span class="mf">1.000001</span><span class="p">,</span>
+                <span class="n">delta_n</span><span class="o">=</span><span class="mf">2.7e-6</span><span class="p">,</span>
+                <span class="n">z_0</span><span class="o">=-</span><span class="mf">8000.0</span><span class="p">,</span>
+                <span class="n">region_name</span><span class="o">=</span><span class="s2">"air"</span>
+            <span class="p">)</span>
+
+        <span class="c1"># defining IceModelExpLayers parameters from input ice model</span>
+        <span class="n">icelayer</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">z_min</span> <span class="o">=</span> <span class="n">ice_model</span><span class="o">.</span><span class="n">z_bottom</span><span class="p">,</span>
+            <span class="n">z_max</span> <span class="o">=</span> <span class="n">ice_model</span><span class="o">.</span><span class="n">z_air_boundary</span><span class="p">,</span>
+            <span class="n">n_ice</span> <span class="o">=</span> <span class="n">ice_model</span><span class="o">.</span><span class="n">n_ice</span><span class="p">,</span>
+            <span class="n">delta_n</span> <span class="o">=</span> <span class="n">ice_model</span><span class="o">.</span><span class="n">delta_n</span><span class="p">,</span>
+            <span class="n">z_0</span> <span class="o">=</span> <span class="n">ice_model</span><span class="o">.</span><span class="n">z_0</span><span class="p">,</span>
+            <span class="n">region_name</span> <span class="o">=</span> <span class="s1">'ice'</span>
+        <span class="p">)</span>
+        <span class="n">new_model</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">([</span><span class="n">airlayer</span><span class="p">,</span><span class="n">icelayer</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">ice_model</span><span class="o">.</span><span class="n">reflection</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new_model</span><span class="o">.</span><span class="n">add_reflective_bottom</span><span class="p">(</span>
+                <span class="n">refl_z</span><span class="o">=</span><span class="n">ice_model</span><span class="o">.</span><span class="n">reflection</span><span class="p">,</span>
+                <span class="n">refl_coef</span><span class="o">=</span><span class="n">ice_model</span><span class="o">.</span><span class="n">reflection_coefficient</span><span class="p">,</span>
+                <span class="n">refl_phase_shift</span><span class="o">=</span><span class="n">ice_model</span><span class="o">.</span><span class="n">reflection_phase_shift</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new_model</span></div>
+
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_set_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">z_shift</span><span class="o">=</span><span class="mi">0</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">,</span> <span class="n">z_air_boundary</span><span class="o">=</span><span class="mi">0</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">meter</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
@@ -1879,6 +1926,12 @@
             <span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="IceModelExpLayers.add_reflective_bottom">
+<a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelExpLayers.add_reflective_bottom">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_reflective_bottom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">refl_z</span><span class="p">,</span> <span class="n">refl_coef</span><span class="p">,</span> <span class="n">refl_phase_shift</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Reflective layers not currently implemented in IceModelExpLayers"""</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">"Reflective layers not currently implemented in IceModelExpLayers"</span><span class="p">)</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_layers_array</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1985,6 +2038,21 @@
         <span class="k">return</span> <span class="n">layers_gen</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nN</span><span class="p">,</span> <span class="n">delta_nN</span><span class="p">,</span> <span class="n">ls</span><span class="p">,</span> <span class="n">zs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Parametrizes a three-layer ice model with continuous n(z) and n'(z)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nN : float</span>
+<span class="sd">            Asymptotic refractive index of the bottommost layer</span>
+<span class="sd">        delta_nN : float</span>
+<span class="sd">            Refractive index step in the bottommost layer</span>
+<span class="sd">        ls : list of float</span>
+<span class="sd">            Length scales of the layers, starting at the bottommost layer</span>
+<span class="sd">        zs : list of float</span>
+<span class="sd">            Depth of transition between layers, starting at the bottom</span>
+<span class="sd">        """</span>
+
         <span class="n">layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parametrized_layers</span><span class="p">(</span><span class="n">nN</span><span class="p">,</span> <span class="n">delta_nN</span><span class="p">,</span> <span class="n">ls</span><span class="p">,</span> <span class="n">zs</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_params</span><span class="p">(</span><span class="n">nN</span><span class="p">,</span> <span class="n">delta_nN</span><span class="p">,</span> <span class="n">ls</span><span class="p">,</span> <span class="n">zs</span><span class="p">)</span>

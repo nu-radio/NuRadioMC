@@ -1,0 +1,20 @@
+NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing package
+================================================================================
+
+.. automodule:: NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions
+   NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.getrayparameters
+   NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.multilayeranalyticraytracing
+   NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.planewave
+   NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.solver
+   NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.testutils

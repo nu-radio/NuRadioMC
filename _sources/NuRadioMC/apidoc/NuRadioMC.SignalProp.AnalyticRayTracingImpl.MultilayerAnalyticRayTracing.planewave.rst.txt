@@ -1,0 +1,7 @@
+NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.planewave module
+=========================================================================================
+
+.. automodule:: NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.planewave
+   :members:
+   :undoc-members:
+   :show-inheritance:
