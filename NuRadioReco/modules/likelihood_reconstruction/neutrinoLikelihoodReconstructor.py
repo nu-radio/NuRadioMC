@@ -63,7 +63,7 @@ class neutrinoLikelihoodReconstructor:
             overwrite_speedup_options = True,
             use_chi2 = False,
             debug = False,
-            fix_zenith_azimuth = False,
+            additional_fixed_parameters = None,
             ):
         """
 
@@ -113,8 +113,12 @@ class neutrinoLikelihoodReconstructor:
             use_chi2: bool, optional
                 Whether to use chi2 minimization instead of likelihood. Mostly used for debugging and method comparison.
 
-            fix_zenith_azimuth: bool, optional
-                Whether to fix the neutrino arrival zenith and azimuth angles during the fit (used for profile likelihood scans).
+            additional_fixed_parameters: list[int] or int, optional
+                List of additional parameters to fix during the fit. The parameters are indexed as follows:
+                0: energy, 1: zenith, 2: azimuth, 3: vertex_r_rel, 4: vertex_theta_rel, 5: vertex_phi_rel, 6: pulse_time
+                If a single integer is provided, it will be converted to a list with one element.
+                This is, e.g., usefult to fix the neutrino zenith and azimuth angles for an externally performed profile
+                likelihood scan by setting additional_fixed_parameters = [1, 2].
 
             debug: bool, optional
                 Extra plots and printouts for debugging
@@ -128,7 +132,7 @@ class neutrinoLikelihoodReconstructor:
         self.debug = debug
         self.config_file = config_file
         self.overwrite_speedup_options = overwrite_speedup_options
-        self.fix_zenith_azimuth = fix_zenith_azimuth
+        self.additional_fixed_parameters = additional_fixed_parameters
 
         self.signal_search_width = signal_search_width
         self.delta_t = 1 / self.sampling_rate
@@ -476,13 +480,20 @@ class neutrinoLikelihoodReconstructor:
 
         # Matched filter optimization to get close to the global minimum and good initial parameters for the likelihood fit:
         if two_step_optimization:
+
+            # Fix energy and time (and additional parameters if specified) since they are profiled over in the matched filter optimization:
+            fixed_parameters = [True, False, False, False, False, False, True]
+            if self.additional_fixed_parameters is not None:
+                for i_param in np.atleast_1d(self.additional_fixed_parameters):
+                    fixed_parameters[i_param] = True
+
             minimizer_mf = minimization.Minimizer(
                 signal_function = signal_function,
                 objective_function = self._function_to_minimize_mf,
                 parameters_initial = parameters_initial,
                 parameters_bounds = bounds,
                 normalization = normalization,
-                fixed = [True, False, False, False, False, False, True] if not self.fix_zenith_azimuth else [True, True, True, False, False, False, True],
+                fixed = fixed_parameters,
                 debug = self.debug
             )
             m_mf = minimizer_mf.run_minimization(data=data, method="minuit")
@@ -509,11 +520,17 @@ class neutrinoLikelihoodReconstructor:
             m_amplitude = minimizer_amplitude.run_minimization(data=data, method="minuit")
             energy_guess = minimizer_amplitude.parameters[0]
 
+            # Set the initial parameters for the likelihood fit:
             parameters_initial_llh = np.array([energy_guess, params_fit_mf[1], params_fit_mf[2], params_fit_mf[3], params_fit_mf[4], params_fit_mf[5], t_guess])
 
         elif not two_step_optimization:
             parameters_initial_llh = np.copy(parameters_initial)
 
+        # All parameters are free in the likelihood fit, except specified parameters to fix:
+        fixed_parameters = [False, False, False, False, False, False, False]
+        if self.additional_fixed_parameters is not None:
+            for i_param in np.atleast_1d(self.additional_fixed_parameters):
+                fixed_parameters[i_param] = True
 
         minimizer_llh = minimization.Minimizer(
             signal_function = signal_function,
@@ -521,7 +538,7 @@ class neutrinoLikelihoodReconstructor:
             parameters_initial = parameters_initial_llh,
             parameters_bounds = bounds,
             normalization = normalization,
-            fixed = [False, False, False, False, False, False, False] if not self.fix_zenith_azimuth else [False, True, True, False, False, False, False],
+            fixed = fixed_parameters,
             debug = self.debug
         )
         m = minimizer_llh.run_minimization(data=data, method="minuit")

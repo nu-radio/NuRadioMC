@@ -223,7 +223,7 @@ if args.llh_scan_2D:
             noise_amplitude,
             config_file = "./neutrino_reco_sim_config.yaml",
             detector_simulation_filter_amp = detector_simulation_filter_amp,
-            fix_zenith_azimuth = True,
+            additional_fixed_parameters = [1, 2],
             debug = False
         )
         parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(
@@ -239,19 +239,7 @@ if args.llh_scan_2D:
     x_sigma = uncertainties_fit[2]
     theta_zenith_grid = np.linspace(parameters_fit[1]-3*y_sigma, parameters_fit[1]+3*y_sigma, n_grid)
     theta_azimuth_grid = np.linspace(parameters_fit[2]-3*x_sigma, parameters_fit[2]+3*x_sigma, n_grid)
-
-    n_circles = int(n_grid/2) + 1
-
-    coordinates_all = np.zeros([int(n_grid*n_grid),2], dtype=int)
     coordinates_best = np.array([int(n_grid/2), int(n_grid/2)], dtype=int)
-    theta_phi_values = np.zeros([int(n_grid*n_grid),2])
-    k = 0
-    for i in range(n_grid):
-        for j in range(n_grid):
-            coordinates_all[k,:] = [i,j]
-            theta_phi_values[k,0] = theta_zenith_grid[i]
-            theta_phi_values[k,1] = theta_azimuth_grid[j]
-            k += 1
 
     # Initialze arrays to store the results of the scan
     parameters_array_scan = np.zeros([n_grid, n_grid, 7])
