@@ -400,8 +400,9 @@ class neutrinoLikelihoodReconstructor:
         station.set_parameter(stnp.ccnc, "nc")
 
         # Calculate goodness of fit:
-        n_dof_fit = self.likelihood_calculator.get_dof() - 7
-        p_value_fit = 1 - scp.stats.chi2.cdf(minus_two_llh_fit, n_dof_fit)
+        n_parameters_fit = len(parameters_fit)
+        n_parameters_fit -= len(np.atleast_1d(self.additional_fixed_parameters)) if self.additional_fixed_parameters is not None else 0
+        p_value_fit = self.likelihood_calculator.calculate_goodness_of_fit(minus_two_llh_fit, n_parameters_fit)
 
         if full_output:
             return parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit

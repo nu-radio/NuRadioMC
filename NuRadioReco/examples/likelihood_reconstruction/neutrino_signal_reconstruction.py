@@ -96,6 +96,7 @@ vertex_zenith_temp = 90 * units.deg + 56 * units.deg # the same as zenith plus C
 vertex_azimuth_temp = 45 * units.deg # the same as azimuth
 vertex_xyz = hp.spherical_to_cartesian(vertex_zenith_temp, vertex_azimuth_temp) * vertex_r
 vertex_xyz[2] -= 100 * units.m # assuming ~100 m antenna depth. Remove this for shallow station.
+vertex_xyz += det.get_absolute_position(station_id) # displace vertex with absolute position of station
 vertex_time = 0
 
 # Simulate the event:

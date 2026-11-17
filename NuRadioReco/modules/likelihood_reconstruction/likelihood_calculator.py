@@ -778,6 +778,29 @@ class LikelihoodCalculator:
             dof += 2 * sum(self.spectra[i_ant] > np.max(self.spectra[i_ant, :]) * self.threshold_amplitude)
         return dof
 
+    def calculate_goodness_of_fit(self, minus_two_delta_llh_fit, n_fitted_parameters):
+        """
+        Get goodness of fit p-value based on the minus two delta log likelihood of a fitted signal
+        and the degrees of freedom. For a successful fit, the p-value should be a random uniformly
+        distributed number between 0 and 1.
+
+        Parameters
+        ----------
+            minus_two_delta_llh_fit : float
+                Minus two delta log likelihood of a fitted signal relative to the most probable
+                noise (calculated with calculate_minus_two_delta_llh(data, signal=signal_fit)) 
+            n_fitted_parameters : int
+                Number of fitted parameters in the signal fit
+
+        Returns
+        -------
+            float
+                Goodness of fit p-value based on the chi2 distribution with dof equal to the degrees
+                of freedom of the covariance matrices minus the number of fitted parameters.
+        """
+        n_dof_fit = self.get_dof() - n_fitted_parameters
+        return 1 - scp.stats.chi2.cdf(minus_two_delta_llh_fit, n_dof_fit)
+
     ### Plotting: ###
 
     def plot_covariance_matrix(self, cov, plot_range=None, make_new_figure=True):
