@@ -37,7 +37,8 @@ def download_from_dataserver(remote_path, target_path, unpack_tarball=True, data
     if not os.path.exists(folder):
         os.makedirs(folder)
 
-    lockfile = target_path+".lock"
+    # hidden lock file next to the target; it is not removed afterwards (removing it could break the lock)
+    lockfile = os.path.join(folder, "." + os.path.basename(target_path) + ".lock")
     lock = filelock.FileLock(lockfile)
 
     logger.warning(f"Assuring no other process is downloading. Will wait until {lockfile} is unlocked.")
@@ -64,17 +65,17 @@ def download_from_dataserver(remote_path, target_path, unpack_tarball=True, data
                 r.raise_for_status()
                 requests_status = r.status_code
                 break
-            except requests.exceptions.HTTPError:
-                logger.warning(f"HTTP Error for {dataserver}. Does the file {remote_path} exist on the server?")
+            except requests.exceptions.HTTPError as err:
+                logger.warning(f"HTTP Error for {dataserver}. Does the file {remote_path} exist on the server?", exc_info=err)
                 pass
-            except requests.exceptions.ConnectionError:
-                logger.warning(f"Error Connecting to {dataserver}. Maybe you don't have internet... or the server is down?")
+            except requests.exceptions.ConnectionError as err:
+                logger.warning(f"Error Connecting to {dataserver}. Maybe you don't have internet... or the server is down?", exc_info=err)
                 pass
-            except requests.exceptions.Timeout:
-                logger.warning(f"Timeout Error for {dataserver}.")
+            except requests.exceptions.Timeout as err:
+                logger.warning(f"Timeout Error for {dataserver}.", exc_info=err)
                 pass
             except requests.exceptions.RequestException as err:
-                logger.warning(f"An unusual error for {dataserver} occurred: {err}")
+                logger.warning(f"An unusual error for {dataserver} occurred:", exc_info=err)
                 pass
 
             logger.warning("problem downloading file {} from {}. Let's see if there is another server.".format(target_path, URL))

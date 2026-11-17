@@ -1,5 +1,4 @@
 import numpy as np
-import time
 import logging
 
 from NuRadioReco.modules.base.module import register_run
@@ -19,7 +18,6 @@ class efieldToVoltageConverterPerEfield():
     """
 
     def __init__(self, log_level=logging.NOTSET):
-        self.__t = 0
         self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverterPerEfield')
         self.logger.setLevel(log_level)
         self.antenna_provider = antennapattern.AntennaPatternProvider()
@@ -48,7 +46,6 @@ class efieldToVoltageConverterPerEfield():
         LookupError
             If the station has no electric fields.
         """
-        t = time.time()
 
         # access simulated efield and high level parameters
         if isinstance(station, NuRadioReco.framework.station.Station):
@@ -98,11 +95,5 @@ class efieldToVoltageConverterPerEfield():
                 sim_channel.set_trace_start_time(electric_field.get_trace_start_time() + travel_time_shift)
                 sim_station.add_channel(sim_channel)
 
-        self.__t += time.time() - t
-
     def end(self):
-        from datetime import timedelta
-        self.logger.setLevel(logging.INFO)
-        dt = timedelta(seconds=self.__t)
-        self.logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass

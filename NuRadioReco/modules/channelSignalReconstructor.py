@@ -1,7 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from scipy import signal
-import time
 
 from NuRadioReco.utilities import units
 from NuRadioReco.utilities import trace_utilities
@@ -19,7 +18,6 @@ class channelSignalReconstructor:
     """
 
     def __init__(self, log_level=logging.NOTSET):
-        self.__t = 0
         logger.setLevel(log_level)
         self.__conversion_factor_integrated_signal = trace_utilities.conversion_factor_integrated_signal
         self.__signal_window_start = None
@@ -222,7 +220,6 @@ class channelSignalReconstructor:
             such as impulsivity, kurtosis and entropy.
         """
 
-        t = time.time()
         max_amplitude_station = 0
         for channel in station.iter_channels():
             times = channel.get_times()
@@ -259,10 +256,6 @@ class channelSignalReconstructor:
 
         station[stnp.channels_max_amplitude] = max_amplitude_station
         station[stnp.channels_max_amplitude_norm] = self.get_max_a_norm(station)
-        self.__t = time.time() - t
 
     def end(self):
-        from datetime import timedelta
-        dt = timedelta(seconds = self.__t)
-        logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass
