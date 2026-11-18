@@ -29,10 +29,18 @@ channelGenericNoiseAdder = channelGenericNoiseAdder()
 channelGenericNoiseAdder.begin()
 channelBandPassFilter = NuRadioReco.modules.channelBandPassFilter.channelBandPassFilter()
 
+det_nominal_path = "/cephfs/users/pwindi/tmp/nuradio_unc_test/calib_nuradio_nom.json.xz"
+det_unc_path = "/cephfs/users/pwindi/tmp/nuradio_unc_test/"
+
 # Load nominal detector
-det_nominal = NuRadioReco.detector.RNO_G.rnog_detector.Detector(detector_file = "/cephfs/users/pwindi/tmp/nuradio_unc_test/calib_nuradio_nom.json.xz")
+det_nominal = NuRadioReco.detector.RNO_G.rnog_detector.Detector(detector_file = det_nominal_path)
 detector_time = datetime.datetime(2023, 3, 1)
 det_nominal.update(detector_time)
+
+# Load uncertainty-aware detector
+import NuRadioReco.detector.RNO_G.rnog_detector_unc as rnog_detector_unc
+det_unc = rnog_detector_unc.UncertaintyAwareDetector(detector_folder = det_unc_path)
+det_unc.update(detector_time)
 
 evt = Event(1, 1)
 station_id = 11 
@@ -159,8 +167,12 @@ parameters_initial = [
     pulse_time_guess]
 
 # Run reconstruction:
+det_nuis = np.zeros(det_unc.get_num_nuisances())
+det_unc.set_nuisance_values(det_nuis)
+det_var = det_unc.as_detector()
+
 parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(
-    evt, station, det_nominal, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True)
+    evt, station, det_var, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True)
 
 shower_reconstructed = list(evt.get_showers())[0]
 
