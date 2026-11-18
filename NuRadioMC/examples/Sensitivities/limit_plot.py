@@ -20,7 +20,7 @@ from types import SimpleNamespace
 import matplotlib.pyplot as plt
 import numpy as np
 
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import cr_flux, units
 from NuRadioMC.utilities import fluxes, neutrino_fluxes
 
 local_dir = os.path.abspath(os.path.dirname(__file__))
@@ -219,6 +219,11 @@ def _load_data():
     d.arianna_200 = _load("expected_sensivity_ARIANNA-200.txt")
     d.arianna_200[:, 0] *= units.GeV
     d.arianna_200[:, 1] *= units.GeV * units.cm ** -2 * units.s ** -1
+
+    # diffuse gamma-ray background (Fermi): energy, E^2 dN/dE, lower and upper bound
+    d.fermi_diffuse_gamma = _load("fermi_diffuse_gamma.txt")
+    d.fermi_diffuse_gamma[:, 0] *= units.GeV
+    d.fermi_diffuse_gamma[:, 1:] *= _E2_unit
     return d
 
 
@@ -255,7 +260,12 @@ def get_limit_figure(diffuse=True,
                      show_PUEO_100=False,
                      show_beacon=False,
                      show_ice_cube_EHE_limit_18=False,
-                     show_KM3_230213A=True):
+                     show_KM3_230213A=True,
+                     show_vanVliet_TA=False,
+                     show_agn=False,
+                     show_grb_afterglow=False,
+                     show_blazars=False,
+                     show_multimessenger=False):
     """
     Figure of E^2 dN/dE (all flavour) with published limits, data and models.
 
@@ -264,6 +274,11 @@ def get_limit_figure(diffuse=True,
     diffuse: bool
         if True, show cosmogenic models (UHECR fits of van Vliet, Heinze, TA), else models of source populations
         (TDE, LLGRB, pulsars, clusters, NS mergers)
+    show_vanVliet_TA, show_agn, show_grb_afterglow, show_blazars: bool
+        show these models in addition, independent of `diffuse`
+    show_multimessenger: bool
+        show the diffuse gamma-ray background (Fermi) and the cosmic-ray spectrum (Auger) and extend the energy
+        range down to 10 GeV, as in the multimessenger figure of the RNO-G white paper (arXiv:2010.12279)
     show_*: bool
         whether to show the respective limit, data, sensitivity or model
 
@@ -276,8 +291,8 @@ def get_limit_figure(diffuse=True,
 
     # Neutrino Models
     # Version for a diffuse flux and for a source dominated flux
+    legends = []
     if diffuse:
-        legends = []
         if show_TA:
             E, _, lower, upper = neutrino_fluxes.get_table("TA_combined_fit_m3")
             TA_m3 = ax.fill_between(*_E2(E, lower), _E2(E, upper)[1],
@@ -302,9 +317,6 @@ def get_limit_figure(diffuse=True,
             Auger_bestfit = ax.fill_between(*_E2(E, lower), _E2(E, upper)[1],
                                             label=r'UHECRs Auger combined fit (3$\sigma$), Heinze et al.', color='C1', alpha=0.5, zorder=1)
             legends.append(Auger_bestfit)
-
-        first_legend = ax.legend(handles=legends, loc=4, fontsize=legendfontsize, handlelength=4)
-        ax.add_artist(first_legend)
     else:
         E, flux, _, _ = neutrino_fluxes.get_table("FangMetzger2017_NS_merger")
         ns_merger, = ax.plot(*_E2(E, flux), color='palevioletred', label='NS-NS merger, Fang & Metzger 1707.04263', linestyle=(0, (3, 5, 1, 5)))
@@ -322,8 +334,20 @@ def get_limit_figure(diffuse=True,
         E, flux, _, _ = neutrino_fluxes.get_table("FangMurase2018_clusters")
         p_cluster, = ax.plot(*_E2(E, flux), label="Clusters, Fang & Murase, (1704.00015)", color="olive", zorder=1, linestyle=(0, (5, 10)))
 
-        first_legend = ax.legend(handles=[p_tde, p_ll_grb, p_pulsar, p_cluster, ns_merger], loc=3, fontsize=legendfontsize, handlelength=4)
-        ax.add_artist(first_legend)
+        legends += [p_tde, p_ll_grb, p_pulsar, p_cluster, ns_merger]
+
+    # models of the multimessenger figure in arXiv:2010.12279
+    for show, model, label, style in [
+            (show_vanVliet_TA, "vanVliet_TA_zmax5", "UHECRs TA composition, van Vliet et al.", dict(c='darkgoldenrod', dashes=[10, 5, 20, 5])),
+            (show_agn, "Murase2014_AGN", "AGN, Murase et al. (1403.4089)", dict(c='indianred', linestyle='-.')),
+            (show_grb_afterglow, "Murase2007_GRB_afterglow", "GRB afterglow, Murase (0707.1140)", dict(c='indianred', linestyle=(0, (3, 5, 1, 5)))),
+            (show_blazars, "Rodrigues_blazars", "Blazars, Rodrigues et al. (2003.08392)", dict(c='indianred', dashes=[5, 7, 5, 7]))]:
+        if show:
+            E, flux, _, _ = neutrino_fluxes.get_table(model)
+            legends += ax.plot(*_E2(E, flux), label=label, **style)
+
+    first_legend = ax.legend(handles=legends, loc=4 if diffuse else 3, fontsize=legendfontsize, handlelength=4)
+    ax.add_artist(first_legend)
 
     # Limits, data and sensitivities
     # -----------------------------------------------------------------------------------------------------------------
@@ -482,6 +506,18 @@ def get_limit_figure(diffuse=True,
         ax.scatter(d.KM3_230231A_E / plotUnitsEnergy, d.KM3_230231A_flux / plotUnitsFlux, color='deeppink')
         annotate('KM3-230213A', (d.KM3_230231A_E / plotUnitsEnergy * 1.1, d.KM3_230231A_flux / plotUnitsFlux * 1.1), color='deeppink')
 
+    if show_multimessenger:
+        fermi = d.fermi_diffuse_gamma
+        ax.errorbar(fermi[:, 0] / plotUnitsEnergy, fermi[:, 1] / plotUnitsFlux, linestyle='None', marker='<', color='firebrick',
+                    yerr=np.abs(fermi[:, 2:].T - fermi[:, 1]) / plotUnitsFlux)
+        annotate(r'$\gamma$-ray background' "\n" '(Fermi)', (5e1 * units.GeV / plotUnitsEnergy, 3e-7),
+                 horizontalalignment='left', color='firebrick', fontweight='bold')
+        E, J, J_err_low, J_err_up = cr_flux.get_measured_data('data_auger_19')
+        ax.errorbar(E / plotUnitsEnergy, J * E ** 2 / plotUnitsFlux, yerr=np.array([J_err_low, J_err_up]) * E ** 2 / plotUnitsFlux,
+                    linestyle='None', marker='o', color='darkorange')
+        annotate('cosmic rays \n (Auger)', (2e10 * units.GeV / plotUnitsEnergy, 3e-7),
+                 horizontalalignment='right', color='darkorange', fontweight='bold')
+
     ax.set_yscale('log')
     ax.set_xscale('log')
     ax.tick_params(which='both', labelsize=14)
@@ -492,7 +528,10 @@ def get_limit_figure(diffuse=True,
         ax.set_ylim(1e-12, 10e-6)
     else:
         ax.set_ylim(1e-11, 2e-6)
-    ax.set_xlim(1e14 * units.eV / plotUnitsEnergy, 1e20 * units.eV / plotUnitsEnergy)
+    if show_multimessenger:
+        ax.set_xlim(10 * units.GeV / plotUnitsEnergy, 4e11 * units.GeV / plotUnitsEnergy)
+    else:
+        ax.set_xlim(1e14 * units.eV / plotUnitsEnergy, 1e20 * units.eV / plotUnitsEnergy)
 
     fig.tight_layout()
     return fig, ax
