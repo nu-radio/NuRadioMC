@@ -75,7 +75,7 @@ signal_model = shower_simulator.ShowerSimulator(
             evt_time = datetime.datetime(2022, 7, 1),
             use_channels = use_channels,
             detector_simulation_filter_amp = detector_simulation_filter_amp,
-            pre_pulse_time = 100 * units.ns
+            pre_pulse_time = 80 * units.ns
         )
 
 # Simple neutrino event that is likely to give a strong signal in the detector:
@@ -146,7 +146,7 @@ minus_two_llh_true = reco._function_to_minimize_llh(traces, signal_true)
 vertex_xyz_rel = vertex_xyz - det_nominal.get_relative_position(station_id, ref_ch) - det_nominal.get_absolute_position(station_id)
 vertex_zenith_rel, vertex_azimuth_rel = hp.cartesian_to_spherical(vertex_xyz_rel[0], vertex_xyz_rel[1], vertex_xyz_rel[2])
 vertex_r_rel = np.linalg.norm(vertex_xyz_rel)
-pulse_time_guess = (np.argmax(abs(traces[ref_ch])) - 50) / sampling_rate
+pulse_time_guess = np.argmax(abs(traces[ref_ch])) / sampling_rate
 
 # Set initial parameters close to the MC true parameters:
 parameters_initial = [
