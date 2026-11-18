@@ -5,7 +5,7 @@ All fluxes are all-flavour differential fluxes dN/dE in NuRadio base units (1 / 
 Tabulated models are interpolated linearly and extrapolated outside the tabulated range; their tables are in
 ``NuRadioMC/utilities/data/neutrino_fluxes``.
 
-Use :func:`get_flux` and :func:`get_flux_band` with a model name from :data:`MODELS`, e.g.::
+Use :func:`get_flux` and :func:`get_flux_band` with a model name from ``MODELS``, e.g.::
 
     from NuRadioMC.utilities import neutrino_fluxes
     flux = neutrino_fluxes.get_flux("vanVliet2019_proton10", energies)
@@ -164,7 +164,7 @@ def get_table(model):
     Parameters
     ----------
     model: str
-        model name, a key of :data:`MODELS`
+        model name, a key of ``MODELS``
 
     Returns
     -------
@@ -194,7 +194,7 @@ def get_flux(model, energy):
     Parameters
     ----------
     model: str
-        a key of :data:`MODELS` or of :data:`ICECUBE_FITS`
+        a key of ``MODELS`` or of ``ICECUBE_FITS``
     energy: float or array
         neutrino energy
     """
@@ -213,7 +213,7 @@ def get_flux_band(model, energy):
     Parameters
     ----------
     model: str
-        a key of :data:`MODELS` or of :data:`ICECUBE_FITS`
+        a key of ``MODELS`` or of ``ICECUBE_FITS``
     energy: float or array
         neutrino energy
 
