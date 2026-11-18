@@ -39,8 +39,11 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - Added `impulsiveSignalReconstructor` module to reconstruct 'generic' impulsive signals
 
 bugfixes:
-- Fixed the examples RNO_G_trigger_simulation/noise.py and simulate_snr_trigger_curve.py (removed imports of a no longer
-  existing trigger class and of a never committed plotting module, and the reverted `store_attenuation` argument).
+- Fixed the examples RNO_G_trigger_simulation/noise.py (envelope trigger ported to the renamed `PhasedEnvelopeTriggerSimulator`)
+  and simulate_snr_trigger_curve.py (removed the import of a never committed plotting module and the reverted
+  `store_attenuation` argument).
+- `PhasedEnvelopeTriggerSimulator` (phasedarray/digitalBeamformedEnvelopeTrigger.py) failed when creating its trigger object
+  (wrong keyword argument).
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported
@@ -74,10 +77,11 @@ deprecations:
 - Replaced the readCoREASShower module with the readCoREAS module. readCoREAS returns a single station (id 0) holding all
   CoREAS observers as electric fields; use an event_builder helper (see the examples) to organize the observers into
   per-observer stations. The examples read_full_CoREAS_shower.py and RIT_sim_air_shower_reconstruction.py were updated accordingly.
-- Removed untested examples that no longer run with the current code (missing modules, old simulation API):
+- Removed untested examples that no longer run with the current code (mostly missing modules or the old simulation API):
   NuRadioMC/examples/03_station_coincidences (and its manual page), and in NuRadioReco/examples: PhasedArray
-  T02RunSNR_RNOG.py and T02RunPhasedARA.py, AliasPhasedArray T02SNRNyquist.py and Noise_trigger_rate, EnvelopePhasedArray T02RunPhasedRNO_shortband.py,
-  StandAloneScripts/A04_SNR_comparison.py and AraData.
+  T02RunSNR_RNOG.py and T02RunPhasedARA.py, AliasPhasedArray (T02SNRNyquist.py; Noise_trigger_rate, which fails on an
+  invalid filter passband), EnvelopePhasedArray T02RunPhasedRNO_shortband.py, StandAloneScripts/A04_SNR_comparison.py
+  and AraData, plus the event-list generators left without a consumer. EnvelopePhasedArray/Noise_trigger_rate is now tested.
 
 version 3.1.1
 new features:
