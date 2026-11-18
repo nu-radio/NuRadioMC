@@ -95,12 +95,14 @@ class ShowerSimulator:
         self.station_id = station_id
         self.reference_channel = reference_channel
 
-        # Initialize the relavant detector, simulation config, ice model, and propagator:
-        self.det = detector.Detector(json_filename=detectorfile) if det is None else det
+        # Initialize simulation config
         self.config = sim.get_config(config_file)
-        self.ice = medium.get_ice_model(self.config['propagation']['ice_model'])
+
+        # Initialize detector and propagator
+        det = detector.Detector(json_filename=detectorfile) if det is None else det
         prop_module = propagation.get_propagation_module(self.config['propagation']['module'])
-        self.propagator = prop_module(self.ice, detector=self.det, config=self.config)
+        self.propagator = prop_module(det.get_ice_model(station_id), detector=det, config=self.config)
+        self.set_detector(det)
 
         if use_channels is not None:
             self.channel_ids = use_channels
@@ -128,6 +130,16 @@ class ShowerSimulator:
         else:
             self.channels_are_similar = False
 
+    def set_detector(self, det):
+        self.det = det
+        try:
+            # Update ice model if it comes with the detector
+            self.ice = self.det.get_ice_model(self.station_id)
+            self.propagator.set_medium(self.ice)
+            logger.status("Using ice model attached to detector")
+        except Exception as e:
+            raise e
+            pass
 
     def simulate_showers(self, showers, trace_start_times=None):
         """
