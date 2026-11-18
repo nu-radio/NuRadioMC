@@ -40,7 +40,7 @@ n_channels_total = det_nominal.get_number_of_channels(station_id)
 n_samples = det_nominal.get_number_of_samples(station_id, 0)
 sampling_rate = det_nominal.get_sampling_frequency(station_id, 0)
 use_channels = [0, 1, 2, 3, 5, 6, 7, 9, 10, 22, 23]  # only Vpols
-ref_ch = 10 
+ref_ch = 0 
 n_channels = len(use_channels)
 
 filter_type = "butter"
@@ -86,8 +86,7 @@ vertex_r = 1 * units.km
 vertex_zenith_temp = 90 * units.deg + 58 * units.deg # the same as zenith plus Cherenkov angle
 vertex_azimuth_temp = 135 * units.deg # the same as azimuth
 vertex_xyz = hp.spherical_to_cartesian(vertex_zenith_temp, vertex_azimuth_temp) * vertex_r \
-        + det_nominal.get_absolute_position(station_id)
-vertex_xyz[2] -= 100 * units.m # assuming ~100 m antenna depth. Remove this for shallow station.
+        + det_nominal.get_relative_position(station_id, ref_ch) + det_nominal.get_absolute_position(station_id)
 vertex_time = 0
 
 # Simulate the event:
@@ -147,16 +146,16 @@ minus_two_llh_true = reco._function_to_minimize_llh(traces, signal_true)
 vertex_xyz_rel = vertex_xyz - det_nominal.get_relative_position(station_id, ref_ch) - det_nominal.get_absolute_position(station_id)
 vertex_zenith_rel, vertex_azimuth_rel = hp.cartesian_to_spherical(vertex_xyz_rel[0], vertex_xyz_rel[1], vertex_xyz_rel[2])
 vertex_r_rel = np.linalg.norm(vertex_xyz_rel)
-pulse_time_guess = np.argmax(traces[0]) / sampling_rate
+pulse_time_guess = (np.argmax(abs(traces[ref_ch])) - 50) / sampling_rate
 
 # Set initial parameters close to the MC true parameters:
 parameters_initial = [
-    E_shower * 1.5,
-    zenith + 5 * units.deg,
-    azimuth - 10 * units.deg,
-    vertex_r_rel + 20 * units.m,
-    vertex_zenith_rel + 0.5 * units.deg,
-    vertex_azimuth_rel - 0.25 * units.deg,
+    E_shower * 1.00,
+    zenith + 0.0 * units.deg,
+    azimuth - 0.0 * units.deg,
+    vertex_r_rel + 0 * units.m,
+    vertex_zenith_rel + 0.0 * units.deg,
+    vertex_azimuth_rel - 0.0 * units.deg,
     pulse_time_guess]
 
 # Run reconstruction:
