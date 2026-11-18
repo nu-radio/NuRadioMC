@@ -7,7 +7,6 @@ Manuals
    
    Manuals/veff_tutorial
    Manuals/expected_sensitivities_tutorial
-   Manuals/example-multi_station_coincidences
    Manuals/event_generation
    Manuals/signal_generation_shower
    Manuals/shower_simulation
