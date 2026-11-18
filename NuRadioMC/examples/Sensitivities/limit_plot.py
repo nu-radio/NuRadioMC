@@ -386,38 +386,31 @@ def get_limit_figure(diffuse=True,
     def annotate(text, xy, **kwargs):
         ax.annotate(text, xy=xy, xycoords='data', fontsize=legendfontsize, **kwargs)
 
+    def annotate_limit(text, xy, **kwargs):  # labels of limits follow their curves when these move with the binning
+        annotate(text, (xy[0], xy[1] * energy_bins_per_decade), **kwargs)
+
     if show_grand_10k:
         ax.plot(d.GRAND_10k_energy / plotUnitsEnergy, d.GRAND_10k / plotUnitsFlux, linestyle=":", color='saddlebrown')
-        if energy_bins_per_decade == 2:
-            annotate('GRAND 10k', (0.9e10 * units.GeV / plotUnitsEnergy, 2e-8),
-                     horizontalalignment='left', color='saddlebrown', rotation=50)
-        else:
-            annotate('GRAND 10k', (1.5e19 * units.eV / plotUnitsEnergy, 3.4e-8),
-                     horizontalalignment='left', va="bottom", color='saddlebrown', rotation=40)
+        annotate_limit('GRAND 10k', (1.5e19 * units.eV / plotUnitsEnergy, 3.4e-8),
+                 horizontalalignment='left', va="bottom", color='saddlebrown', rotation=40)
 
     if show_grand_200k:
         ax.plot(d.GRAND_200k_energy / plotUnitsEnergy, d.GRAND_200k / plotUnitsFlux, linestyle=":", color='saddlebrown', lw=2)
-        annotate('GRAND 200k', (1e10 * units.GeV / plotUnitsEnergy, 5e-10),
+        annotate_limit('GRAND 200k', (1e10 * units.GeV / plotUnitsEnergy, 5e-10),
                  horizontalalignment='left', color='saddlebrown', rotation=35)
 
     if show_radar:
         ax.fill_between(d.Radar[:, 0] / plotUnitsEnergy, d.Radar[:, 1] / plotUnitsFlux,
                         d.Radar[:, 2] / plotUnitsFlux, facecolor='None', hatch='x', edgecolor='0.8')
-        annotate('Radar', (1e9 * units.GeV / plotUnitsEnergy, 4.5e-8), horizontalalignment='left', color='0.7', rotation=45)
+        annotate_limit('Radar', (1e9 * units.GeV / plotUnitsEnergy, 4.5e-8), horizontalalignment='left', color='0.7', rotation=45)
 
     if show_ice_cube_EHE_limit_18:
         ax.plot(d.ice_cube_limit_18[2:, 0] / plotUnitsEnergy, d.ice_cube_limit_18[2:, 1] / plotUnitsFlux, color='dodgerblue')
-        if energy_bins_per_decade == 2:
-            annotate('IceCube18', (0.6e7 * units.GeV / plotUnitsEnergy, 2e-8), horizontalalignment='center', color='dodgerblue')
-        else:
-            annotate('IceCube18', (3e6 * units.GeV / plotUnitsEnergy, 3e-8), horizontalalignment='center', color='dodgerblue')
+        annotate_limit('IceCube18', (3e6 * units.GeV / plotUnitsEnergy, 3e-8), horizontalalignment='center', color='dodgerblue')
 
     if show_ice_cube_EHE_limit:
         ax.plot(d.ice_cube_limit_25[2:, 0] / plotUnitsEnergy, d.ice_cube_limit_25[2:, 1] / plotUnitsFlux, color='dodgerblue')
-        if energy_bins_per_decade == 2:
-            annotate('IceCube25', (0.6e8 * units.GeV / plotUnitsEnergy, 1.5e-8), horizontalalignment='center', color='dodgerblue')
-        else:
-            annotate('IceCube25', (8e7 * units.GeV / plotUnitsEnergy, 7e-9), horizontalalignment='center', color='dodgerblue')
+        annotate_limit('IceCube25', (8e7 * units.GeV / plotUnitsEnergy, 7e-9), horizontalalignment='center', color='dodgerblue')
 
     if show_ice_cube_HESE_data:
         hese = d.ice_cube_hese
@@ -458,80 +451,62 @@ def get_limit_figure(diffuse=True,
 
     if show_anita_I_III_limit:
         ax.plot(d.anita_limit[:, 0] / plotUnitsEnergy, d.anita_limit[:, 1] / plotUnitsFlux, color='darkorange')
-        annotate('ANITA I - III', (7e9 * units.GeV / plotUnitsEnergy, 1e-6 if energy_bins_per_decade == 2 else 5e-7),
+        annotate_limit('ANITA I - III', (7e9 * units.GeV / plotUnitsEnergy, 5e-7),
                  horizontalalignment='left', color='darkorange')
 
     if show_anita_I_IV_limit:
         ax.plot(d.anita_i_iv_limit[:, 0] / plotUnitsEnergy, d.anita_i_iv_limit[:, 1] / plotUnitsFlux, color='darkorange')
-        if energy_bins_per_decade == 2:
-            annotate('ANITA I - IV', (7e9 * units.GeV / plotUnitsEnergy, 1e-6), horizontalalignment='left', color='darkorange')
-        else:
-            annotate('ANITA I - IV', (1e19 * units.eV / plotUnitsEnergy, 1.2e-6), horizontalalignment='left', color='darkorange')
+        annotate_limit('ANITA I - IV', (1e19 * units.eV / plotUnitsEnergy, 1.2e-6), horizontalalignment='left', color='darkorange')
 
     if show_auger_limit:
         ax.plot(d.auger_limit[:, 0] / plotUnitsEnergy, d.auger_limit[:, 1] / plotUnitsFlux, color='forestgreen')
-        if energy_bins_per_decade == 2:
-            annotate('Auger', (8e16 * units.eV / plotUnitsEnergy, 2.1e-7), horizontalalignment='left', color='forestgreen')
-        else:
-            annotate('Auger', (1.5e17 * units.eV / plotUnitsEnergy, 7e-8), horizontalalignment='right', color='forestgreen', rotation=-45)
+        annotate_limit('Auger', (1.5e17 * units.eV / plotUnitsEnergy, 7e-8), horizontalalignment='right', color='forestgreen', rotation=-45)
 
     if show_ara_1year:
         ax.plot(d.ara_1year[:, 0] / plotUnitsEnergy, d.ara_1year[:, 1] / plotUnitsFlux, color='indigo')
-        if energy_bins_per_decade == 2:
-            annotate('ARA', (5e8 * units.GeV / plotUnitsEnergy, 6e-7), horizontalalignment='left', color='indigo')
-        else:
-            annotate('ARA', (2e10 * units.GeV / plotUnitsEnergy, 1.05e-6), horizontalalignment='left', color='indigo')
+        annotate_limit('ARA', (2e10 * units.GeV / plotUnitsEnergy, 1.05e-6), horizontalalignment='left', color='indigo')
 
     if show_ara:
         ax.plot(d.ara_4year_E / plotUnitsEnergy, d.ara_4year_limit / plotUnitsFlux, color='indigo')
-        if energy_bins_per_decade == 2:
-            annotate('ARA', (5e8 * units.GeV / plotUnitsEnergy, 6e-7), horizontalalignment='left', color='indigo')
-        else:
-            annotate('ARA', (1e18 * units.eV / plotUnitsEnergy, 0.7e-6), horizontalalignment='left', color='indigo')
+        annotate_limit('ARA', (1e18 * units.eV / plotUnitsEnergy, 0.7e-6), horizontalalignment='left', color='indigo')
 
     if show_ara_PA:
         ax.plot(d.ara_PA_6month_E / plotUnitsEnergy, d.ara_PA_6month_limit / plotUnitsFlux, color='blue', linestyle='-')
-        if energy_bins_per_decade == 2:
-            annotate('ARA PA', (2.95E1 * units.eV / plotUnitsEnergy, 6e-7), horizontalalignment='left', color='grey')
-        else:
-            annotate('ARA PA', (2.9E17 * units.eV / plotUnitsEnergy, 5.2e-6), horizontalalignment='left', color='blue')
+        annotate_limit('ARA PA', (2.9E17 * units.eV / plotUnitsEnergy, 5.2e-6), horizontalalignment='left', color='blue')
 
     if show_arianna:
         ax.plot(d.ARIANNA_HRA[:, 0] / plotUnitsEnergy, d.ARIANNA_HRA[:, 1] / plotUnitsFlux, color='red')
-        if energy_bins_per_decade == 2:
-            annotate('ARIANNA', (5e8 * units.GeV / plotUnitsEnergy, 6e-7), horizontalalignment='left', color='red')
-        else:
-            annotate('ARIANNA', (1e7 * units.GeV / plotUnitsEnergy, 2e-6), horizontalalignment='left', color='red')
+        annotate_limit('ARIANNA', (1e7 * units.GeV / plotUnitsEnergy, 2e-6), horizontalalignment='left', color='red')
 
     if show_IceCubeGen2_whitepaper:  # 5 years
         ax.plot(d.gen2_whitepaper_E / plotUnitsEnergy, d.gen2_whitepaper_flux / 2 / plotUnitsFlux, color='purple', linestyle="--")
-        annotate('IceCube-Gen2 radio', (.8e8 * units.GeV / plotUnitsEnergy, 1.6e-10), horizontalalignment='left', color='purple')
+        annotate_limit('IceCube-Gen2 radio', (.8e8 * units.GeV / plotUnitsEnergy, 1.6e-10), horizontalalignment='left', color='purple')
 
     if show_IceCubeGen2_ICRC2021:  # 10 years, https://pos.sissa.it/395/1183/
         E, flux = _load_unbinned("Gen2radio_sensitivity_ICRC2021.txt", energy_bins_per_decade, units.eV, _E2_unit,
                                  rows=True)
         ax.plot(E / plotUnitsEnergy, flux / plotUnitsFlux, color='purple', linestyle="--")
-        annotate('IceCube-Gen2 radio', (.8e8 * units.GeV / plotUnitsEnergy, 1.3e-10), horizontalalignment='left', color='purple')
+        annotate_limit('IceCube-Gen2 radio', (.8e8 * units.GeV / plotUnitsEnergy, 1.3e-10), horizontalalignment='left', color='purple')
 
     if show_RNOG:
         # 5 years, uses 70% uptime from RNO-G whitepaper and rescaling to 10 years
         ax.plot(d.RNOG_E / plotUnitsEnergy, d.RNOG_flux / 0.7 / 2 / plotUnitsFlux, color='red', linestyle="-.")
-        annotate('RNO-G', (8e18 * units.eV / plotUnitsEnergy, 1.5e-8), horizontalalignment='left', va="top", color='red', rotation=10)
+        annotate_limit('RNO-G', (8e18 * units.eV / plotUnitsEnergy, 1.5e-8), horizontalalignment='left', va="top", color='red', rotation=10)
 
     if show_prediction_arianna_200:
         E, flux = _load_unbinned("expected_sensivity_ARIANNA-200.txt", energy_bins_per_decade, units.GeV, _E2_unit)
         ax.plot(E / plotUnitsEnergy, flux / plotUnitsFlux, label='ARIANNA-200 (5 years)', color='blue', linestyle="--")
-        annotate('ARIANNA-200', (.9e19 * units.eV / plotUnitsEnergy, 3.15e-9), horizontalalignment='left', color='blue', rotation=30)
+        annotate_limit('ARIANNA-200', (.9e19 * units.eV / plotUnitsEnergy, 3.15e-9), horizontalalignment='left', color='blue', rotation=30)
 
     if show_PUEO_100:
-        annotate('PUEO (3 flights)', (3e18 * units.eV / plotUnitsEnergy, 2.1e-8), horizontalalignment='left', color='#EA5A06')
+        annotate_limit('PUEO (3 flights)', (3e18 * units.eV / plotUnitsEnergy, 2.1e-8), horizontalalignment='left', color='#EA5A06')
         ax.plot(d.PUEO100_energy / plotUnitsEnergy, d.PUEO100 / plotUnitsFlux, linestyle=(0, (3, 1, 1, 1, 1, 1)), color='#EA5A06',
                 label='PUEO (3 flights, 100 days)', lw=2)
 
     if show_beacon:
         ax.plot(d.BEACON_LF_1000_energy / plotUnitsEnergy, d.BEACON_LF_1000 / plotUnitsFlux,
                 linestyle="-.", color='#F97807', label='BEACON 1k', lw=2)
-        annotate('BEACON-1k', (7e18 * units.eV / plotUnitsEnergy, 9e-10), horizontalalignment='left', verticalalignment="bottom",
+        annotate_limit('BEACON-1k', (7e18 * units.eV / plotUnitsEnergy, 9e-10), horizontalalignment='left', verticalalignment="bottom",
                  color='#F97807', rotation=35)
 
     if show_KM3_230213A:
