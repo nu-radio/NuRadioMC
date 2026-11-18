@@ -10,6 +10,7 @@ from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoard
 
 from NuRadioReco.modules.trigger import highLowThreshold
 from NuRadioReco.modules.phasedarray.beamformedPowerIntegrationTrigger import BeamformedPowerIntegrationTrigger
+from NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger import PhasedEnvelopeTriggerSimulator
 import NuRadioReco.modules.channelGenericNoiseAdder
 
 from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import phasing_angles, power_trigger_kwargs, envelope_trigger_kwargs
@@ -69,8 +70,8 @@ beamformedPowerIntegrationTrigger.begin()
 
 
 
-# digitalBeamformedEnvelopeTrigger = DigitalBeamformedEnvelopeTrigger()
-# digitalBeamformedEnvelopeTrigger.begin()
+phasedEnvelopeTrigger = PhasedEnvelopeTriggerSimulator()
+phasedEnvelopeTrigger.begin()
 
 
 # Define the thresholds for the trigger simulation
@@ -278,13 +279,13 @@ def trigger_simulation(evt, station, det, vrms=None):
             **power_trigger_kwargs
         )
 
-        # pa_envelope_threshold = np.round(8 * np.sqrt(np.sum(np.array(list(threshold_high.values())))))
-        # digitalBeamformedEnvelopeTrigger.run(
-        #     evt, station, det,
-        #     trigger_name=f"pa_envelope_{thresh_key:.4f}_sigma",
-        #     threshold=pa_envelope_threshold,
-        #     **envelope_trigger_kwargs
-        # )
+        pa_envelope_threshold = np.round(8 * np.sqrt(np.sum(np.array(list(threshold_high.values())))))
+        phasedEnvelopeTrigger.run(
+            evt, station, det,
+            trigger_name=f"pa_envelope_{thresh_key:.4f}_sigma",
+            threshold=pa_envelope_threshold,
+            **envelope_trigger_kwargs
+        )
 
     return vrms_after_gain
 
