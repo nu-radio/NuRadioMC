@@ -9,6 +9,7 @@ import tempfile
 
 import matplotlib
 matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 import numpy as np
 
 from NuRadioMC.examples.Sensitivities import limit_plot
@@ -23,6 +24,7 @@ def test_figures():
         assert len(ax.lines) > 5, f"{kwargs}: figure is (almost) empty"
         xlim = ax.get_xlim()
         assert xlim[0] < xlim[1] and np.isfinite(xlim).all()
+        plt.close(fig)
 
     # the default figure with the data and models of all options switched on
     options = {name: True for name in ["show_TA", "show_TA_nominal", "show_TA_ICRC2021", "show_RNOG", "show_vanVliet_TA",
@@ -30,6 +32,8 @@ def test_figures():
     fig_all, ax_all = limit_plot.get_limit_figure(**options)
     fig, ax = limit_plot.get_limit_figure()
     assert len(ax_all.lines) > len(ax.lines)
+    plt.close(fig_all)
+    plt.close(fig)
 
 
 def test_add_limit():
@@ -41,6 +45,7 @@ def test_add_limit():
     assert len(labels) == 1 and len(ax.lines) == n_lines + 1
     y = ax.lines[-1].get_ydata()
     assert np.all(np.isfinite(y)) and np.all(y > 0)
+    plt.close(fig)
 
 
 def test_command_line():

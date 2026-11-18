@@ -112,8 +112,8 @@ def _load_data():
     # TAROGE-M: 10 stations, 5 year exposure, nutau only
     # Log(Energy) GeV       Sensitivity*E^2 (GeV/cm^2 s sr)
     taroge_m = _load("taroge_m_sensitivity.txt")
-    d.taroge_m_E = pow(10, taroge_m[::2]) * units.GeV
-    d.taroge_m_flux = taroge_m[1::2] * units.GeV * units.cm ** -2 * units.s ** -1 * 3.0
+    d.taroge_m_E = pow(10, taroge_m[:, 0]) * units.GeV
+    d.taroge_m_flux = taroge_m[:, 1] * _E2_unit * 3.0
 
     # Published data and limits
     # -------------------------------------------------------------------------------------------------------------
@@ -304,8 +304,8 @@ def get_limit_figure(diffuse=True,
             legends.append(TA_nominal)
         if show_TA_ICRC2021:
             E, flux, _, _ = neutrino_fluxes.get_table("TA_ICRC2021")
-            TA_nominal, = ax.plot(*_E2(E, flux), "k-.", label="UHECRs TA combined fit, Bergman et al.")
-            legends.append(TA_nominal)
+            TA_ICRC2021, = ax.plot(*_E2(E, flux), "k--", label="UHECRs TA fit (ICRC2021)")
+            legends.append(TA_ICRC2021)
         if show_vanVliet:
             E, vanVliet_max, _, _ = neutrino_fluxes.get_table("vanVliet2019_max")
             vanVliet_reas = neutrino_fluxes.get_table("vanVliet2019_proton10")[1]

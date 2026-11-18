@@ -178,9 +178,12 @@ def get_table(model):
         raise KeyError(f"Unknown neutrino flux model '{model}'. Available: {', '.join(MODELS)}")
     table = MODELS[model][1]()
     if len(table) == 2:
-        return table[0], table[1], None, None
-    if len(table) == 3:
-        return table[0], None, table[1], table[2]
+        table = table[0], table[1], None, None
+    elif len(table) == 3:
+        table = table[0], None, table[1], table[2]
+    for array in table:  # the result is cached and shared
+        if array is not None:
+            array.flags.writeable = False
     return table
 
 

@@ -224,12 +224,14 @@ def primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity):
             return Edep / inelasticity  # TODO: change this for taus
 
 
-def ice_cube_nu_fit(energy, slope=-2.19, offset=1.01):
+def ice_cube_nu_fit(energy, slope=neutrino_fluxes.ICECUBE_FITS["IceCube2017_numu"]["slope"],
+                    offset=neutrino_fluxes.ICECUBE_FITS["IceCube2017_numu"]["offset"]):
     # from https://doi.org/10.22323/1.301.1005
     return neutrino_fluxes.ice_cube_power_law(energy, slope, offset)
 
 
-def ice_cube_nu_fit_2022(energy, slope=-2.37, offset=1.44):
+def ice_cube_nu_fit_2022(energy, slope=neutrino_fluxes.ICECUBE_FITS["IceCube2022_numu"]["slope"],
+                         offset=neutrino_fluxes.ICECUBE_FITS["IceCube2022_numu"]["offset"]):
     # 9.5 years analysis, https://arxiv.org/abs/2111.10299
     return neutrino_fluxes.ice_cube_power_law(energy, slope, offset)
 
