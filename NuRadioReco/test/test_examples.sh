@@ -15,15 +15,8 @@ rm -rf *deg_12/
 rm output_file.hdf5
 rm output_snr.json
 # Envelope phased array
-#cd ../../EnvelopePhasedArray/Effective_volume/
-#python3 T01generate_event_list.py minimal
-#rm minimal_eventlist.hdf5
-#cd ../Noise_trigger_rate
-#python3 noise_trigger_rate.py --ntries 10
-## Alias phased array
-#cd ../../AliasPhasedArray/SNR_study
-#python3 T01_generate_events_simple.py --n_events 10
-#rm input_alias_SNR.hdf5
+cd ../../EnvelopePhasedArray/Noise_trigger_rate
+python3 noise_trigger_rate.py --ntries 10
 # Full reconstruction
 cd ../..
 python3 read_full_CoREAS_shower.py example_data/example_data.hdf5
