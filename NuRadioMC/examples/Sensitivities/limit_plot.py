@@ -233,21 +233,26 @@ def _load_data(n):
     gen2 = _load("icecube_gen2_sensitivity.txt")  # 5 years
     d.gen2_whitepaper_E = gen2[:, 0] * units.GeV
     d.gen2_whitepaper_flux = gen2[:, 1] * _E2_unit * _bins_factor("icecube_gen2_sensitivity.txt", n)
-    d.gen2_ICRC2021_E, d.gen2_ICRC2021_flux = _load("Gen2radio_sensitivity_ICRC2021.txt")  # 10 years
-    d.gen2_ICRC2021_E *= units.eV
-    d.gen2_ICRC2021_flux *= _E2_unit * _bins_factor("Gen2radio_sensitivity_ICRC2021.txt", n, native=1)  # binning not stated in the file, assumed
     rnog = _load("rnog_sensitivity.txt")  # 5 years
     d.RNOG_E = rnog[:, 0] * units.GeV
     d.RNOG_flux = rnog[:, 1] * _E2_unit * _bins_factor("rnog_sensitivity.txt", n)
-    d.arianna_200 = _load("expected_sensivity_ARIANNA-200.txt")
-    d.arianna_200[:, 0] *= units.GeV
-    d.arianna_200[:, 1] *= units.GeV * units.cm ** -2 * units.s ** -1 * _bins_factor("expected_sensivity_ARIANNA-200.txt", n, native=1)  # sliding decade bin
 
     # diffuse gamma-ray background (Fermi): energy, E^2 dN/dE, lower and upper bound
     d.fermi_diffuse_gamma = _load("fermi_diffuse_gamma.txt")
     d.fermi_diffuse_gamma[:, 0] *= units.GeV
     d.fermi_diffuse_gamma[:, 1:] *= _E2_unit
     return d
+
+
+def _load_unbinned(fname, n, energy_unit, flux_unit, rows=False):
+    """
+    Sensitivities whose files do not state their binning (no header line "Energy bins per decade"): raises a
+    ValueError, so they can only be shown once the binning is added to the file.
+    `rows`: the file holds energy and flux as two rows instead of two columns.
+    """
+    data = _load(fname)
+    E, flux = data if rows else data.T
+    return E * energy_unit, flux * flux_unit * _bins_factor(fname, n)
 
 
 def _E2(energy, flux):
@@ -502,7 +507,9 @@ def get_limit_figure(diffuse=True,
         annotate('IceCube-Gen2 radio', (.8e8 * units.GeV / plotUnitsEnergy, 1.6e-10), horizontalalignment='left', color='purple')
 
     if show_IceCubeGen2_ICRC2021:  # 10 years, https://pos.sissa.it/395/1183/
-        ax.plot(d.gen2_ICRC2021_E / plotUnitsEnergy, d.gen2_ICRC2021_flux / plotUnitsFlux, color='purple', linestyle="--")
+        E, flux = _load_unbinned("Gen2radio_sensitivity_ICRC2021.txt", energy_bins_per_decade, units.eV, _E2_unit,
+                                 rows=True)
+        ax.plot(E / plotUnitsEnergy, flux / plotUnitsFlux, color='purple', linestyle="--")
         annotate('IceCube-Gen2 radio', (.8e8 * units.GeV / plotUnitsEnergy, 1.3e-10), horizontalalignment='left', color='purple')
 
     if show_RNOG:
@@ -511,7 +518,8 @@ def get_limit_figure(diffuse=True,
         annotate('RNO-G', (8e18 * units.eV / plotUnitsEnergy, 1.5e-8), horizontalalignment='left', va="top", color='red', rotation=10)
 
     if show_prediction_arianna_200:
-        ax.plot(d.arianna_200[:, 0] / plotUnitsEnergy, d.arianna_200[:, 1] / plotUnitsFlux, label='ARIANNA-200 (5 years)', color='blue', linestyle="--")
+        E, flux = _load_unbinned("expected_sensivity_ARIANNA-200.txt", energy_bins_per_decade, units.GeV, _E2_unit)
+        ax.plot(E / plotUnitsEnergy, flux / plotUnitsFlux, label='ARIANNA-200 (5 years)', color='blue', linestyle="--")
         annotate('ARIANNA-200', (.9e19 * units.eV / plotUnitsEnergy, 3.15e-9), horizontalalignment='left', color='blue', rotation=30)
 
     if show_PUEO_100:

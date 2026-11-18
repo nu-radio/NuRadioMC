@@ -52,9 +52,9 @@ def test_energy_bins_per_decade():
     # all limits and sensitivities scale with the binning, data and measurements do not
     one, two = vars(limit_plot._load_data(1.)), vars(limit_plot._load_data(2.))
     scaled = ["GRAND_10k", "GRAND_200k", "BEACON_LF_100", "BEACON_HF_1000", "PUEO30", "PUEO100", "taroge_m_flux",
-              "ara_4year_limit", "ara_PA_6month_limit", "gen2_whitepaper_flux", "gen2_ICRC2021_flux", "RNOG_flux"]
+              "ara_4year_limit", "ara_PA_6month_limit", "gen2_whitepaper_flux", "RNOG_flux"]
     scaled_columns = ["Radar", "ice_cube_limit_18", "ice_cube_limit_25", "anita_limit", "anita_i_iv_limit",
-                      "auger_limit", "ara_1year", "ARIANNA_HRA", "arianna_200"]  # (energy, limit)
+                      "auger_limit", "ara_1year", "ARIANNA_HRA"]  # (energy, limit)
     for key in scaled:
         assert np.allclose(two[key], 2 * one[key], rtol=1e-12), key
     for key in scaled_columns:
@@ -64,6 +64,15 @@ def test_energy_bins_per_decade():
         assert np.allclose(two[key], one[key], rtol=1e-12), key
     fig, ax = limit_plot.get_limit_figure(energy_bins_per_decade=2)
     plt.close(fig)
+
+    # Gen2 ICRC2021 and ARIANNA-200 are not tested: their files do not state the binning, so showing them raises
+    for option in ["show_IceCubeGen2_ICRC2021", "show_prediction_arianna_200"]:
+        try:
+            limit_plot.get_limit_figure(**{option: True})
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"{option} should raise until the binning is added to its file")
 
 
 def test_command_line():
