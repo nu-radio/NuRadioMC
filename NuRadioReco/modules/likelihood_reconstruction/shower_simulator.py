@@ -161,14 +161,13 @@ class ShowerSimulator:
         # Calculate trace start times if not provided:
         if trace_start_times is None:
             start_point = showers[0][shp.vertex]
-            end_point = self.det.get_relative_position(self.station_id, self.reference_channel)
+            end_point = self.det.get_relative_position(self.station_id, self.reference_channel) \
+                    + self.det.get_absolute_position(self.station_id)
             self.propagator.set_start_and_end_point(start_point, end_point)
             self.propagator.find_solutions()
             if self.propagator.get_number_of_solutions() > 0:
                 reference_travel_time = self.propagator.get_travel_time(0)
-
                 reference_cable_delay = self.det.get_cable_delay(self.station_id, self.reference_channel)
-
                 trace_start_times = np.repeat(reference_travel_time + reference_cable_delay - self.pre_pulse_time, len(self.channel_ids))
             else:
                 logger.error("No ray-tracing solutions found for reference channel. It may be in the shadow zone.")
@@ -377,11 +376,11 @@ class ShowerSimulator:
         shower[shp.zenith] = zenith
         shower[shp.azimuth] = azimuth
         shower[shp.energy] = energy
-        shower[shp.vertex] = hp.spherical_to_cartesian(vertex_theta_rel, vertex_phi_rel) * vertex_r_rel + self.det.get_relative_position(self.station_id, self.reference_channel)
+        shower[shp.vertex] = hp.spherical_to_cartesian(vertex_theta_rel, vertex_phi_rel) * vertex_r_rel + self.det.get_relative_position(self.station_id, self.reference_channel) + self.det.get_absolute_position(self.station_id)
         shower[shp.type] = type
 
         # Run ray-tracer to get travel time for reference antenna:
-        self.propagator.set_start_and_end_point(self.det.get_relative_position(self.station_id, self.reference_channel), shower[shp.vertex])
+        self.propagator.set_start_and_end_point(self.det.get_relative_position(self.station_id, self.reference_channel) + self.det.get_absolute_position(self.station_id), shower[shp.vertex])
         self.propagator.find_solutions()
 
         if self.propagator.get_number_of_solutions() > 0:
