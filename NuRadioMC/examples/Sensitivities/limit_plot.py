@@ -359,7 +359,7 @@ ARIANNA_HRA[:, 1] *= energyBinsPerDecade
 
 
 
-def get_E2_limit_figure(diffuse=True,
+def get_limit_figure(diffuse=True,
                         show_ice_cube_EHE_limit=True,
                         show_ice_cube_HESE_data=True,
                         show_ice_cube_HESE_fit=True,
@@ -782,7 +782,7 @@ if __name__ == "__main__":
 
 #     strawman_pa_label = 'Strawman + PA@15m@2s'
 #     strawman_pa_label = 'One current design'
-    fig, ax = get_E2_limit_figure(diffuse=DIFFUSE)
+    fig, ax = get_limit_figure(diffuse=DIFFUSE)
     labels = []
     labels = add_limit(ax, labels, veff[:, 0], veff[:, 1], n_stations=100, livetime=5 * units.year, label=veff_label)
     labels = add_limit(ax, labels, veff[:, 0], veff[:, 1], n_stations=1000, livetime=5 * units.year, label=veff_label)
