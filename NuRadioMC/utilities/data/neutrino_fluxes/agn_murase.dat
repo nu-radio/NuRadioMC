@@ -1,4 +1,4 @@
-# Log10(Enu/GeV) Log10(Flux/(GeV cm^-2 s^-1 sr^-1))
+# Enu [GeV], E^2 Flux [GeV cm^-2 s^-1 sr^-1] (comma separated)
 1e5, 2.19301e-10
 1.02955e+5, 2.19301e-10
 1.16928e+5, 2.57279e-10

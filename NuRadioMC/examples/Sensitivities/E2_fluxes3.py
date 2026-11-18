@@ -7,9 +7,8 @@ legendfontsize = 11
 import matplotlib.pyplot as plt
 import numpy as np
 from NuRadioReco.utilities import units
-from NuRadioMC.utilities import fluxes
+from NuRadioMC.utilities import fluxes, neutrino_fluxes
 import os
-from scipy.interpolate import interp1d
 
 local_dir = os.path.abspath(os.path.dirname(__file__))
 
@@ -360,49 +359,6 @@ ARIANNA_HRA[:, 1] *= energyBinsPerDecade
 
 
 
-def get_TAGZK_flux(energy):
-    """
-    GZK neutrino flux from TA best fit from D. Bergmann privat communications
-    """
-
-    TA_data = np.loadtxt(f"{local_dir}/models/TA_combined_fit_m3.txt")
-    E = TA_data[:, 0] * units.GeV
-    f = TA_data[:, 1] * plotUnitsFlux / E ** 2
-    get_TAGZK_flux = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
-    return get_TAGZK_flux(energy)
-
-
-def get_TAGZK_flux_ICRC2021(energy):
-    """
-    GZK neutrino flux from TA best fit ICRC2021
-    https://pos.sissa.it/395/338/
-    """
-    TA_data = np.loadtxt(f"{local_dir}/models/TA_GZKprediction_ICRC2021.txt")
-    E = TA_data[:, 0] * units.GeV
-    f = TA_data[:, 1] * plotUnitsFlux / E ** 2
-    get_TAGZK_flux = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
-    return get_TAGZK_flux(energy)
-
-
-def get_proton_10(energy):
-    """
-    10% proton flux at source for astrophysical parameters determined by Auger data, by van Vliet et al.
-    """
-    vanVliet_reas = np.loadtxt(f"{local_dir}/models/ReasonableNeutrinos1.txt")
-    E = vanVliet_reas[0,:] * units.GeV
-    f = vanVliet_reas[1,:] * plotUnitsFlux / E ** 2
-    getE = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
-    return getE(energy)
-
-
-def get_GZK_Auger_best_fit(energy):
-    Heinze_band = np.loadtxt(f"{local_dir}/models/talys_neu_bands.out")
-    E = Heinze_band[:, 0] * units.GeV
-    f = Heinze_band[:, 1] / units.GeV / units.cm ** 2 / units.s / units.sr
-    getE = interp1d(E, f, bounds_error=False, fill_value="extrapolate")
-    return getE(energy)
-
-
 def get_E2_limit_figure(diffuse=True,
                         show_ice_cube_EHE_limit=True,
                         show_ice_cube_HESE_data=True,
@@ -443,89 +399,56 @@ def get_E2_limit_figure(diffuse=True,
 
     # Neutrino Models
     # Version for a diffuse flux and for a source dominated flux
+    def E2(energy, flux):
+        return energy / plotUnitsEnergy, flux * energy ** 2 / plotUnitsFlux
+
     if diffuse:
         legends = []
-        # TA combined fit
-        if(show_TA):
-            TA_data_low = np.loadtxt(f"{local_dir}/models/TA_combined_fit_low_exp_uncertainty.txt")
-            TA_data_high = np.loadtxt(f"{local_dir}/models/TA_combined_fit_high_exp_uncertainty.txt")
-            TA_m3 = ax.fill_between(TA_data_low[:, 0] * units.GeV / plotUnitsEnergy,
-                                     TA_data_low[:, 1], TA_data_high[:, 1],
-                              label=r'UHECRs TA combined fit (1$\sigma$), Bergman et al.', color='C0', alpha=0.5, zorder=-1)
+        if show_TA:
+            E, _, lower, upper = neutrino_fluxes.get_table("TA_combined_fit_m3")
+            TA_m3 = ax.fill_between(*E2(E, lower), E2(E, upper)[1],
+                                    label=r'UHECRs TA combined fit (1$\sigma$), Bergman et al.', color='C0', alpha=0.5, zorder=-1)
             legends.append(TA_m3)
-        if(show_TA_nominal):
-            TA_data = np.loadtxt(f"{local_dir}/models/TA_combined_fit_m3.txt")
-            E = TA_data[:, 0] * units.GeV
-            f = TA_data[:, 1] * plotUnitsFlux
-            TA_nominal, = ax.plot(E / plotUnitsEnergy, f / plotUnitsFlux, "k-.", label="UHECRs TA combined fit, Bergman et al.")
+        if show_TA_nominal:
+            E, flux, _, _ = neutrino_fluxes.get_table("TA_combined_fit_m3")
+            TA_nominal, = ax.plot(*E2(E, flux), "k-.", label="UHECRs TA combined fit, Bergman et al.")
             legends.append(TA_nominal)
-        if(show_TA_ICRC2021):
-            TA_data = np.loadtxt(f"{local_dir}/models/TA_GZKprediction_ICRC2021.txt")
-            E = TA_data[:, 0] * units.GeV
-            f = TA_data[:, 1] * plotUnitsFlux
-            TA_nominal, = ax.plot(E / plotUnitsEnergy, f / plotUnitsFlux, "k-.", label="UHECRs TA combined fit, Bergman et al.")
+        if show_TA_ICRC2021:
+            E, flux, _, _ = neutrino_fluxes.get_table("TA_ICRC2021")
+            TA_nominal, = ax.plot(*E2(E, flux), "k-.", label="UHECRs TA combined fit, Bergman et al.")
             legends.append(TA_nominal)
-        if(shower_Auger):
-
-            vanVliet_max_1 = np.loadtxt(f"{local_dir}/models/MaxNeutrinos1.txt")
-            vanVliet_max_2 = np.loadtxt(f"{local_dir}/models/MaxNeutrinos2.txt")
-            vanVliet_reas = np.loadtxt(f"{local_dir}/models/ReasonableNeutrinos1.txt")
-
-            vanVliet_max = np.maximum(vanVliet_max_1[1,:], vanVliet_max_2[1,:])
-
-            # prot10, = ax.plot(vanVliet_reas[0,:] * units.GeV / plotUnitsEnergy, vanVliet_reas[1,:],
-                              # label=r'10% protons in UHECRs (Auger), m=3.4, van Vliet et al.', linestyle='--', color='k')
-            # legends.append(prot10)
-
-            prot = ax.fill_between(vanVliet_max_1[0,:] * units.GeV / plotUnitsEnergy, vanVliet_max,
-                                   vanVliet_reas[1,:] / 50, color='0.9', label=r'allowed from UHECRs (Auger), van Vliet et al.', zorder=-2)
+        if shower_Auger:
+            E, vanVliet_max, _, _ = neutrino_fluxes.get_table("vanVliet2019_max")
+            vanVliet_reas = neutrino_fluxes.get_table("vanVliet2019_proton10")[1]
+            prot = ax.fill_between(*E2(E, vanVliet_max), E2(E, vanVliet_reas / 50)[1], color='0.9',
+                                   label=r'allowed from UHECRs (Auger), van Vliet et al.', zorder=-2)
             legends.append(prot)
 
-        if(show_Heinze):
-            Heinze_band = np.loadtxt(f"{local_dir}/models/talys_neu_bands.out")
-#             best_fit, = ax.plot(Heinze_band[:, 0] * units.GeV / plotUnitsEnergy, Heinze_band[:, 1] * Heinze_band[:, 0] ** 2, c='k',
-#                                 label=r'UHECR (Auger) combined fit, Heinze et al.', linestyle='-.')
-
-#             Auger_bestfit = ax.fill_between(Heinze_band[:, 0],
-#                                      Heinze_band[:, 2] * Heinze_band[:, 0] ** 2, Heinze_band[:, 3] * Heinze_band[:, 0] ** 2,
-#                               label=r'UHECRs Auger combined fit, Heinze et al.', color='C1', alpha=0.5, zorder=1)
-
-            Heinze_evo = np.loadtxt(f"{local_dir}/models/talys_neu_evolutions.out")
-            Auger_bestfit = ax.fill_between(Heinze_evo[:, 0] * units.GeV / plotUnitsEnergy,
-                                     Heinze_evo[:, 3] * Heinze_band[:, 0] ** 2, Heinze_evo[:, 4] * Heinze_band[:, 0] ** 2,
-                              label=r'UHECRs Auger combined fit (3$\sigma$), Heinze et al.', color='C1', alpha=0.5, zorder=1)
-
-#             Heinze_evo = np.loadtxt(f"{local_dir}/talys_neu_evolutions.out")
-#             best_fit_3s, = ax.plot(Heinze_evo[:, 0] * units.GeV / plotUnitsEnergy, Heinze_evo[:, 6] * Heinze_evo[:, 0] **
-#                             2, color='0.5', label=r'UHECR (Auger) combined fit + 3$\sigma$, Heinze et al.', linestyle='-.')
+        if show_Heinze:
+            E, _, lower, upper = neutrino_fluxes.get_table("Heinze2019_evolution_flat_z1")
+            Auger_bestfit = ax.fill_between(*E2(E, lower), E2(E, upper)[1],
+                                            label=r'UHECRs Auger combined fit (3$\sigma$), Heinze et al.', color='C1', alpha=0.5, zorder=1)
             legends.append(Auger_bestfit)
-#             legends.append(best_fit_3s)
 
         first_legend = plt.legend(handles=legends, loc=4, fontsize=legendfontsize, handlelength=4)
 
         plt.gca().add_artist(first_legend)
     else:
-        tde = np.loadtxt(f"{local_dir}/models/TDEneutrinos.txt")
-        ll_grb = np.loadtxt(f"{local_dir}/models/LLGRBneutrinos.txt")
-        pulsars = np.loadtxt(f"{local_dir}/models/Pulsar_Fang+_2014.txt")
-        clusters = np.loadtxt(f"{local_dir}/models/cluster_Fang_Murase_2018.txt")
+        E, flux, _, _ = neutrino_fluxes.get_table("FangMetzger2017_NS_merger")
+        ns_merger, = ax.plot(*E2(E, flux), color='palevioletred', label='NS-NS merger, Fang & Metzger 1707.04263', linestyle=(0, (3, 5, 1, 5)))
 
-        # Fang & Metzger
-        data_ns_merger = np.loadtxt(f"{local_dir}/models/ns_merger_Fang_Metzger.txt")
+        E, flux, lower, upper = neutrino_fluxes.get_table("Biehl2018_TDE")
+        ax.fill_between(*E2(E, upper), E2(E, lower)[1], color='thistle', alpha=0.5)
+        p_tde, = ax.plot(*E2(E, flux), label="TDE, Biehl et al. (1711.03555)", color='darkmagenta', linestyle=':', zorder=1)
 
-        data_ns_merger[:, 0] *= units.GeV
-        data_ns_merger[:, 1] *= units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
+        E, flux, lower, upper = neutrino_fluxes.get_table("Boncioli2019_LLGRB")
+        ax.fill_between(*E2(E, upper), E2(E, lower)[1], color='0.8')
+        p_ll_grb, = ax.plot(*E2(E, flux), label="LLGRB, Boncioli et al. (1808.07481)", linestyle='-.', c='k', zorder=1)
 
-        ns_merger, = ax.plot(data_ns_merger[:, 0] / plotUnitsEnergy, data_ns_merger[:, 1] / plotUnitsFlux, color='palevioletred', label='NS-NS merger, Fang & Metzger 1707.04263', linestyle=(0, (3, 5, 1, 5)))
-
-        ax.fill_between(tde[:, 0] * units.GeV / plotUnitsEnergy, tde[:, 2] * 3, tde[:, 3] * 3, color='thistle', alpha=0.5)
-        p_tde, = ax.plot(tde[:, 0] * units.GeV / plotUnitsEnergy, tde[:, 1] * 3, label="TDE, Biehl et al. (1711.03555)", color='darkmagenta', linestyle=':', zorder=1)
-
-        ax.fill_between(ll_grb[:, 0] * units.GeV / plotUnitsEnergy, ll_grb[:, 2] * 3, ll_grb[:, 3] * 3, color='0.8')
-        p_ll_grb, = ax.plot(ll_grb[:, 0] * units.GeV / plotUnitsEnergy, ll_grb[:, 1] * 3, label="LLGRB, Boncioli et al. (1808.07481)", linestyle='-.', c='k', zorder=1)
-
-        p_pulsar = ax.fill_between(pulsars[:, 0] * units.GeV / plotUnitsEnergy, pulsars[:, 1], pulsars[:, 2], label="Pulsar, Fang et al. (1311.2044)", color='wheat', alpha=0.5)
-        p_cluster, = ax.plot(clusters[:, 0] * units.GeV / plotUnitsEnergy, clusters[:, 1], label="Clusters, Fang & Murase, (1704.00015)", color="olive", zorder=1, linestyle=(0, (5, 10)))
+        E, _, lower, upper = neutrino_fluxes.get_table("Fang2014_pulsars")
+        p_pulsar = ax.fill_between(*E2(E, lower), E2(E, upper)[1], label="Pulsar, Fang et al. (1311.2044)", color='wheat', alpha=0.5)
+        E, flux, _, _ = neutrino_fluxes.get_table("FangMurase2018_clusters")
+        p_cluster, = ax.plot(*E2(E, flux), label="Clusters, Fang & Murase, (1704.00015)", color="olive", zorder=1, linestyle=(0, (5, 10)))
 
         first_legend = plt.legend(handles=[p_tde, p_ll_grb, p_pulsar, p_cluster, ns_merger], loc=3, fontsize=legendfontsize, handlelength=4)
 

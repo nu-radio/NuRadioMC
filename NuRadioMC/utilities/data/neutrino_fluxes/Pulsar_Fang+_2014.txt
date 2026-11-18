@@ -1,3 +1,4 @@
+# energy [GeV], E^2 * flux lower bound, E^2 * flux upper bound [GeV cm^-2 s^-1 sr^-1]
 1122.02 6.16519e-12 3.56632e-11
 1412.54 7.27340e-12 4.20738e-11
 1778.28 8.33607e-12 4.82209e-11
