@@ -11,6 +11,12 @@ Use it from Python::
     ax.legend(handles=labels, loc=2)
 
 or from the command line, with an effective volume file: ``python limit_plot.py --help``.
+
+Normalisation: limits and sensitivities depend on the width of the energy bins they are quoted for. All of them are
+shown for the same binning, ``energy_bins_per_decade`` bins per decade (default 1, i.e. one decade wide bins; it
+also applies to :func:`add_limit`). Each file in ``experiments`` states its own binning in the header line
+"# Energy bins per decade: <n>", and its values are multiplied by ``energy_bins_per_decade / n``. Fluxes
+(models, measurements) do not depend on the binning.
 """
 import argparse
 import functools
@@ -27,7 +33,6 @@ local_dir = os.path.abspath(os.path.dirname(__file__))
 
 legendfontsize = 11
 
-energyBinsPerDecade = 1.
 plotUnitsEnergy = units.eV
 plotUnitsEnergyStr = "eV"
 plotUnitsFlux = units.GeV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
@@ -73,9 +78,24 @@ def _load(fname, **kwargs):
     return np.loadtxt(os.path.join(local_dir, "experiments", fname), **kwargs)
 
 
+def _bins_factor(fname, n, native=None):
+    """
+    Factor that converts a limit or sensitivity from the energy binning of its file to `n` bins per decade (see the
+    convention in the module docstring). The binning of the file is taken from its header line
+    "Energy bins per decade: <native>" unless `native` is given.
+    """
+    if native is None:
+        with open(os.path.join(local_dir, "experiments", fname)) as f:
+            lines = [line for line in f if line.lower().startswith("# energy bins per decade:")]
+        if len(lines) != 1:
+            raise ValueError(f"{fname} needs exactly one header line '# Energy bins per decade: <n>'")
+        native = float(lines[0].split(":")[1])
+    return n / native
+
+
 @functools.lru_cache(maxsize=None)
-def _load_data():
-    """ Published data, limits and sensitivities (E^2 dN/dE in base units), loaded on first use """
+def _load_data(n):
+    """ Published data, limits and sensitivities (E^2 dN/dE in base units, limits for `n` energy bins per decade) """
     d = SimpleNamespace()
 
     # Other planned experiments
@@ -83,37 +103,40 @@ def _load_data():
     # GRAND white paper, numerical values, Bustamante.
     # The expected sensitivities for GRAND are given for 3 years, rescaling them to 10 years
     for name in ("10k", "200k"):
-        data = _load(f"grand{name}_sensitivity.txt")
+        fname = f"grand{name}_sensitivity.txt"
+        data = _load(fname)
         energy = data[:, 0] * units.GeV
         setattr(d, f"GRAND_{name}_energy", energy)
-        setattr(d, f"GRAND_{name}", data[:, 1] * _E2_unit / energy * energyBinsPerDecade * 3 / 10)
+        setattr(d, f"GRAND_{name}", data[:, 1] * _E2_unit / energy * _bins_factor(fname, n) * 3 / 10)
 
     # RADAR proposed from https://arxiv.org/pdf/1710.02883.pdf
     d.Radar = _load("radar_sensitivity.txt")
     d.Radar[:, 0] = 10 ** d.Radar[:, 0] * units.eV
-    d.Radar[:, 1:3] *= _E2_unit / 2 * energyBinsPerDecade  # half-decade bins
+    d.Radar[:, 1:3] *= _E2_unit * _bins_factor("radar_sensitivity.txt", n)
 
     # BEACON high frequency and low frequency design, 3 years, half decade, all flavor, rescaled to 10 years
     for name in ("LF_100", "LF_1000", "HF_100", "HF_1000"):
-        data = _load(f"beacon_{name.lower()}_sensitivity.txt")
+        fname = f"beacon_{name.lower()}_sensitivity.txt"
+        data = _load(fname)
         setattr(d, f"BEACON_{name}_energy", data[:, 0] * units.GeV)
-        setattr(d, f"BEACON_{name}", data[:, 1] * _E2_unit / 2 * 3 / 10)
+        setattr(d, f"BEACON_{name}", data[:, 1] * _E2_unit * _bins_factor(fname, n) * 3 / 10)
 
     # From 2020 PUEO whitepaper, 30 and 100 days livetime
     for name in ("30", "100"):
-        data = _load(f"pueo{name}_sensitivity.txt")
+        fname = f"pueo{name}_sensitivity.txt"
+        data = _load(fname)
         energy = data[:, 0] * units.eV
         setattr(d, f"PUEO{name}_energy", energy)
         setattr(d, f"PUEO{name}", data[:, 1] * energy / units.GeV * _E2_unit
                 * (4 / np.log(10))  # see discussion above about anita binning
                 * 2.44  # convert from single event sensitivity to 90% confidence level
-                * energyBinsPerDecade)
+                * _bins_factor(fname, n))
 
     # TAROGE-M: 10 stations, 5 year exposure, nutau only
     # Log(Energy) GeV       Sensitivity*E^2 (GeV/cm^2 s sr)
     taroge_m = _load("taroge_m_sensitivity.txt")
     d.taroge_m_E = pow(10, taroge_m[:, 0]) * units.GeV
-    d.taroge_m_flux = taroge_m[:, 1] * _E2_unit * 3.0
+    d.taroge_m_flux = taroge_m[:, 1] * _E2_unit * 3.0 * _bins_factor("taroge_m_sensitivity.txt", n)
 
     # Published data and limits
     # -------------------------------------------------------------------------------------------------------------
@@ -121,12 +144,12 @@ def _load_data():
     # log (E^2 * Phi [GeV cm^02 s^-1 sr^-1]) : log (E [Gev])
     d.ice_cube_limit_18 = _load("icecube_ehe18_limit.txt")
     d.ice_cube_limit_18[:, 0] = 10 ** d.ice_cube_limit_18[:, 0] * units.GeV
-    d.ice_cube_limit_18[:, 1] = 10 ** d.ice_cube_limit_18[:, 1] * _E2_unit * energyBinsPerDecade
+    d.ice_cube_limit_18[:, 1] = 10 ** d.ice_cube_limit_18[:, 1] * _E2_unit * _bins_factor("icecube_ehe18_limit.txt", n)
 
     # IceCube 2025 EHE paper. Data available at https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/JHK49D
     d.ice_cube_limit_25 = _load("icecube_ehe25_limit.txt")
     d.ice_cube_limit_25[:, 0] *= units.GeV
-    d.ice_cube_limit_25[:, 1] *= _E2_unit * energyBinsPerDecade
+    d.ice_cube_limit_25[:, 1] *= _E2_unit * _bins_factor("icecube_ehe25_limit.txt", n)
 
     # IceCube HESE 8 years
     # log(E (GeV)); log(E^2 dN/dE (GeV cm^-2 s-1 sr-1)); format x y -dy +dy
@@ -170,7 +193,7 @@ def _load_data():
     d.anita_limit[:, 0] *= units.eV
     d.anita_limit[:, 1] *= units.cm ** -2 * units.second ** -1 * units.sr ** -1
     d.anita_limit[:, 1] *= d.anita_limit[:, 0]  # convert to E^2*dN/dE
-    d.anita_limit[:, 1] *= (4 / np.log(10)) * energyBinsPerDecade  # see discussion above about strange anita binning
+    d.anita_limit[:, 1] *= (4 / np.log(10)) * _bins_factor("anita_i_iii_limit.txt", n)  # see discussion above about strange anita binning
 
     # ANITA I - IV, https://arxiv.org/abs/1902.04005, Phys. Rev. D 99, 122001 (2019)
     # NB: The ANITA I-IV is indeed weaker than the ANITA I-III limit (!!)
@@ -178,47 +201,47 @@ def _load_data():
     d.anita_i_iv_limit = _load("anita_i_iv_limit.txt")
     d.anita_i_iv_limit[:, 0] *= units.eV
     d.anita_i_iv_limit[:, 1] *= units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1
-    d.anita_i_iv_limit[:, 1] *= (4 / np.log(10)) * energyBinsPerDecade  # see discussion above about strange anita binning
+    d.anita_i_iv_limit[:, 1] *= (4 / np.log(10)) * _bins_factor("anita_i_iv_limit.txt", n)  # see discussion above about strange anita binning
 
     # Auger neutrino limit (2019, 14.7 years), JCAP 10 (2019) 022, https://arxiv.org/abs/1906.07422
     d.auger_limit = _load("auger19_limit.txt")
     d.auger_limit[:, 0] *= units.eV
-    d.auger_limit[:, 1] *= _E2_unit / 2 * 3 * energyBinsPerDecade  # half-decade binning, 3 flavors
+    d.auger_limit[:, 1] *= _E2_unit * 3 * _bins_factor("auger19_limit.txt", n)  # 3 flavors
 
     # ARA Published 2sta x 1yr analysis level limit (binning is dLogE = 1)
     d.ara_1year = _load("ara_1year_limit.txt")
     d.ara_1year[:, 0] *= units.eV
-    d.ara_1year[:, 1] *= _E2_unit * energyBinsPerDecade
+    d.ara_1year[:, 1] *= _E2_unit * _bins_factor("ara_1year_limit.txt", n)
 
     # Analysis from https://doi.org/10.1103/PhysRevD.102.043021  https://arxiv.org/abs/1912.00987
     # 2 stations (A2 and A3), approx 1100 days of livetime per station
     E, limit, _, _ = _load("limit_a23.txt", unpack=True)
     d.ara_4year_E = E * units.eV
-    d.ara_4year_limit = limit * units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1 * energyBinsPerDecade
+    d.ara_4year_limit = limit * units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1 * _bins_factor("limit_a23.txt", n)
 
     # ARA phased array 6-month limit
     E, limit, _, _ = _load("limit_ARA_PA_6months.txt", unpack=True)
     d.ara_PA_6month_E = E * units.eV
-    d.ara_PA_6month_limit = limit * units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1 * energyBinsPerDecade
+    d.ara_PA_6month_limit = limit * units.eV * units.cm ** -2 * units.second ** -1 * units.sr ** -1 * _bins_factor("limit_ARA_PA_6months.txt", n)
 
     # ARIANNA HRA
     d.ARIANNA_HRA = _load("arianna_hra_limit.txt")
     d.ARIANNA_HRA[:, 0] *= units.GeV
-    d.ARIANNA_HRA[:, 1] *= _E2_unit * energyBinsPerDecade
+    d.ARIANNA_HRA[:, 1] *= _E2_unit * _bins_factor("arianna_hra_limit.txt", n)
 
     # Sensitivities of planned radio detectors
     gen2 = _load("icecube_gen2_sensitivity.txt")  # 5 years
     d.gen2_whitepaper_E = gen2[:, 0] * units.GeV
-    d.gen2_whitepaper_flux = gen2[:, 1] * _E2_unit
+    d.gen2_whitepaper_flux = gen2[:, 1] * _E2_unit * _bins_factor("icecube_gen2_sensitivity.txt", n)
     d.gen2_ICRC2021_E, d.gen2_ICRC2021_flux = _load("Gen2radio_sensitivity_ICRC2021.txt")  # 10 years
     d.gen2_ICRC2021_E *= units.eV
-    d.gen2_ICRC2021_flux *= _E2_unit
+    d.gen2_ICRC2021_flux *= _E2_unit * _bins_factor("Gen2radio_sensitivity_ICRC2021.txt", n, native=1)  # binning not stated in the file, assumed
     rnog = _load("rnog_sensitivity.txt")  # 5 years
     d.RNOG_E = rnog[:, 0] * units.GeV
-    d.RNOG_flux = rnog[:, 1] * _E2_unit
+    d.RNOG_flux = rnog[:, 1] * _E2_unit * _bins_factor("rnog_sensitivity.txt", n)
     d.arianna_200 = _load("expected_sensivity_ARIANNA-200.txt")
     d.arianna_200[:, 0] *= units.GeV
-    d.arianna_200[:, 1] *= units.GeV * units.cm ** -2 * units.s ** -1
+    d.arianna_200[:, 1] *= units.GeV * units.cm ** -2 * units.s ** -1 * _bins_factor("expected_sensivity_ARIANNA-200.txt", n, native=1)  # sliding decade bin
 
     # diffuse gamma-ray background (Fermi): energy, E^2 dN/dE, lower and upper bound
     d.fermi_diffuse_gamma = _load("fermi_diffuse_gamma.txt")
@@ -265,7 +288,8 @@ def get_limit_figure(diffuse=True,
                      show_agn=False,
                      show_grb_afterglow=False,
                      show_blazars=False,
-                     show_multimessenger=False):
+                     show_multimessenger=False,
+                     energy_bins_per_decade=1.):
     """
     Figure of E^2 dN/dE (all flavour) with published limits, data and models.
 
@@ -281,12 +305,14 @@ def get_limit_figure(diffuse=True,
         range down to 10 GeV, as in the multimessenger figure of the RNO-G white paper (arXiv:2010.12279)
     show_*: bool
         whether to show the respective limit, data, sensitivity or model
+    energy_bins_per_decade: float
+        normalisation of all limits and sensitivities, see the module docstring
 
     Returns
     -------
     fig, ax
     """
-    d = _load_data()
+    d = _load_data(energy_bins_per_decade)
     fig, ax = plt.subplots(1, 1, figsize=(7, 6))
 
     # Neutrino Models
@@ -356,7 +382,7 @@ def get_limit_figure(diffuse=True,
 
     if show_grand_10k:
         ax.plot(d.GRAND_10k_energy / plotUnitsEnergy, d.GRAND_10k / plotUnitsFlux, linestyle=":", color='saddlebrown')
-        if energyBinsPerDecade == 2:
+        if energy_bins_per_decade == 2:
             annotate('GRAND 10k', (0.9e10 * units.GeV / plotUnitsEnergy, 2e-8),
                      horizontalalignment='left', color='saddlebrown', rotation=50)
         else:
@@ -375,14 +401,14 @@ def get_limit_figure(diffuse=True,
 
     if show_ice_cube_EHE_limit_18:
         ax.plot(d.ice_cube_limit_18[2:, 0] / plotUnitsEnergy, d.ice_cube_limit_18[2:, 1] / plotUnitsFlux, color='dodgerblue')
-        if energyBinsPerDecade == 2:
+        if energy_bins_per_decade == 2:
             annotate('IceCube18', (0.6e7 * units.GeV / plotUnitsEnergy, 2e-8), horizontalalignment='center', color='dodgerblue')
         else:
             annotate('IceCube18', (3e6 * units.GeV / plotUnitsEnergy, 3e-8), horizontalalignment='center', color='dodgerblue')
 
     if show_ice_cube_EHE_limit:
         ax.plot(d.ice_cube_limit_25[2:, 0] / plotUnitsEnergy, d.ice_cube_limit_25[2:, 1] / plotUnitsFlux, color='dodgerblue')
-        if energyBinsPerDecade == 2:
+        if energy_bins_per_decade == 2:
             annotate('IceCube25', (0.6e8 * units.GeV / plotUnitsEnergy, 1.5e-8), horizontalalignment='center', color='dodgerblue')
         else:
             annotate('IceCube25', (8e7 * units.GeV / plotUnitsEnergy, 7e-9), horizontalalignment='center', color='dodgerblue')
@@ -426,47 +452,47 @@ def get_limit_figure(diffuse=True,
 
     if show_anita_I_III_limit:
         ax.plot(d.anita_limit[:, 0] / plotUnitsEnergy, d.anita_limit[:, 1] / plotUnitsFlux, color='darkorange')
-        annotate('ANITA I - III', (7e9 * units.GeV / plotUnitsEnergy, 1e-6 if energyBinsPerDecade == 2 else 5e-7),
+        annotate('ANITA I - III', (7e9 * units.GeV / plotUnitsEnergy, 1e-6 if energy_bins_per_decade == 2 else 5e-7),
                  horizontalalignment='left', color='darkorange')
 
     if show_anita_I_IV_limit:
         ax.plot(d.anita_i_iv_limit[:, 0] / plotUnitsEnergy, d.anita_i_iv_limit[:, 1] / plotUnitsFlux, color='darkorange')
-        if energyBinsPerDecade == 2:
+        if energy_bins_per_decade == 2:
             annotate('ANITA I - IV', (7e9 * units.GeV / plotUnitsEnergy, 1e-6), horizontalalignment='left', color='darkorange')
         else:
             annotate('ANITA I - IV', (1e19 * units.eV / plotUnitsEnergy, 1.2e-6), horizontalalignment='left', color='darkorange')
 
     if show_auger_limit:
         ax.plot(d.auger_limit[:, 0] / plotUnitsEnergy, d.auger_limit[:, 1] / plotUnitsFlux, color='forestgreen')
-        if energyBinsPerDecade == 2:
+        if energy_bins_per_decade == 2:
             annotate('Auger', (8e16 * units.eV / plotUnitsEnergy, 2.1e-7), horizontalalignment='left', color='forestgreen')
         else:
             annotate('Auger', (1.5e17 * units.eV / plotUnitsEnergy, 7e-8), horizontalalignment='right', color='forestgreen', rotation=-45)
 
     if show_ara_1year:
         ax.plot(d.ara_1year[:, 0] / plotUnitsEnergy, d.ara_1year[:, 1] / plotUnitsFlux, color='indigo')
-        if energyBinsPerDecade == 2:
+        if energy_bins_per_decade == 2:
             annotate('ARA', (5e8 * units.GeV / plotUnitsEnergy, 6e-7), horizontalalignment='left', color='indigo')
         else:
             annotate('ARA', (2e10 * units.GeV / plotUnitsEnergy, 1.05e-6), horizontalalignment='left', color='indigo')
 
     if show_ara:
         ax.plot(d.ara_4year_E / plotUnitsEnergy, d.ara_4year_limit / plotUnitsFlux, color='indigo')
-        if energyBinsPerDecade == 2:
+        if energy_bins_per_decade == 2:
             annotate('ARA', (5e8 * units.GeV / plotUnitsEnergy, 6e-7), horizontalalignment='left', color='indigo')
         else:
             annotate('ARA', (1e18 * units.eV / plotUnitsEnergy, 0.7e-6), horizontalalignment='left', color='indigo')
 
     if show_ara_PA:
         ax.plot(d.ara_PA_6month_E / plotUnitsEnergy, d.ara_PA_6month_limit / plotUnitsFlux, color='blue', linestyle='-')
-        if energyBinsPerDecade == 2:
+        if energy_bins_per_decade == 2:
             annotate('ARA PA', (2.95E1 * units.eV / plotUnitsEnergy, 6e-7), horizontalalignment='left', color='grey')
         else:
             annotate('ARA PA', (2.9E17 * units.eV / plotUnitsEnergy, 5.2e-6), horizontalalignment='left', color='blue')
 
     if show_arianna:
         ax.plot(d.ARIANNA_HRA[:, 0] / plotUnitsEnergy, d.ARIANNA_HRA[:, 1] / plotUnitsFlux, color='red')
-        if energyBinsPerDecade == 2:
+        if energy_bins_per_decade == 2:
             annotate('ARIANNA', (5e8 * units.GeV / plotUnitsEnergy, 6e-7), horizontalalignment='left', color='red')
         else:
             annotate('ARIANNA', (1e7 * units.GeV / plotUnitsEnergy, 2e-6), horizontalalignment='left', color='red')
@@ -537,7 +563,8 @@ def get_limit_figure(diffuse=True,
     return fig, ax
 
 
-def add_limit(ax, limit_labels, E, Veffsr, n_stations, label, livetime=3 * units.year, linestyle='-', color='r', linewidth=3, band=False):
+def add_limit(ax, limit_labels, E, Veffsr, n_stations, label, livetime=3 * units.year, linestyle='-', color='r', linewidth=3, band=False,
+              energy_bins_per_decade=1.):
     """
     Add the sensitivity (90% CL, decade energy bins) of a detector to a limit plot.
 
@@ -560,6 +587,8 @@ def add_limit(ax, limit_labels, E, Veffsr, n_stations, label, livetime=3 * units
         line style
     band: bool
         plot a band between the sensitivities of the two effective volumes in `Veffsr`
+    energy_bins_per_decade: float
+        normalisation of the sensitivity, must be the value used for :func:`get_limit_figure`
 
     Returns
     -------
@@ -570,7 +599,7 @@ def add_limit(ax, limit_labels, E, Veffsr, n_stations, label, livetime=3 * units
 
     def get_limit(veff):
         return fluxes.get_limit_e2_flux(energy=E, veff_sr=veff, livetime=livetime, signalEff=n_stations,
-                                        energyBinsPerDecade=energyBinsPerDecade, upperLimOnEvents=2.44,
+                                        energyBinsPerDecade=energy_bins_per_decade, upperLimOnEvents=2.44,
                                         nuCrsScn='hedis_bgr18')
 
     if band:
@@ -593,6 +622,9 @@ if __name__ == "__main__":
                         help="number(s) of stations, one sensitivity curve each (default: %(default)s)")
     parser.add_argument("--livetime", type=float, default=5, help="livetime in years (default: %(default)s)")
     parser.add_argument("--label", default="One current design", help="legend label (default: %(default)s)")
+    parser.add_argument("--bins-per-decade", type=float, default=1.,
+                        help="energy bins per decade the limits and sensitivities are normalised to "
+                        "(default: %(default)s)")
     parser.add_argument("--sources", action="store_true",
                         help="show models of source populations instead of cosmogenic models")
     parser.add_argument("--output", help="output file (default: Limit_diffuse.pdf or Limit_sources.pdf)")
@@ -602,11 +634,11 @@ if __name__ == "__main__":
     veff[:, 0] *= units.eV
     veff[:, 1] *= units.km ** 3 * units.sr
 
-    fig, ax = get_limit_figure(diffuse=not args.sources)
+    fig, ax = get_limit_figure(diffuse=not args.sources, energy_bins_per_decade=args.bins_per_decade)
     labels = []
     for n_stations in args.n_stations:
         labels = add_limit(ax, labels, veff[:, 0], veff[:, 1], n_stations=n_stations, livetime=args.livetime * units.year,
-                           label=f"{args.label}, {n_stations} stations")
+                           label=f"{args.label}, {n_stations} stations", energy_bins_per_decade=args.bins_per_decade)
     ax.legend(handles=labels, loc=2)
     output = args.output or ("Limit_sources.pdf" if args.sources else "Limit_diffuse.pdf")
     fig.savefig(output)

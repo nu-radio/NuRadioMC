@@ -48,9 +48,27 @@ def test_add_limit():
     plt.close(fig)
 
 
+def test_energy_bins_per_decade():
+    # all limits and sensitivities scale with the binning, data and measurements do not
+    one, two = vars(limit_plot._load_data(1.)), vars(limit_plot._load_data(2.))
+    scaled = ["GRAND_10k", "GRAND_200k", "BEACON_LF_100", "BEACON_HF_1000", "PUEO30", "PUEO100", "taroge_m_flux",
+              "ara_4year_limit", "ara_PA_6month_limit", "gen2_whitepaper_flux", "gen2_ICRC2021_flux", "RNOG_flux"]
+    scaled_columns = ["Radar", "ice_cube_limit_18", "ice_cube_limit_25", "anita_limit", "anita_i_iv_limit",
+                      "auger_limit", "ara_1year", "ARIANNA_HRA", "arianna_200"]  # (energy, limit)
+    for key in scaled:
+        assert np.allclose(two[key], 2 * one[key], rtol=1e-12), key
+    for key in scaled_columns:
+        assert np.allclose(two[key][:, 0], one[key][:, 0], rtol=1e-12), key
+        assert np.allclose(two[key][:, 1], 2 * one[key][:, 1], rtol=1e-12), key
+    for key in ["ice_cube_hese", "nu_mu_data", "fermi_diffuse_gamma", "KM3_230231A_flux", "i3_glashow_y"]:
+        assert np.allclose(two[key], one[key], rtol=1e-12), key
+    fig, ax = limit_plot.get_limit_figure(energy_bins_per_decade=2)
+    plt.close(fig)
+
+
 def test_command_line():
     with tempfile.TemporaryDirectory() as tmp:
-        for args in [[], ["--sources", "--n-stations", "35", "--livetime", "10", "--label", "test"]]:
+        for args in [[], ["--sources", "--n-stations", "35", "--livetime", "10", "--label", "test", "--bins-per-decade", "2"]]:
             output = os.path.join(tmp, "limit.png")
             subprocess.run([sys.executable, limit_plot.__file__, *args, "--output", output], check=True,
                            env=dict(os.environ, MPLBACKEND="Agg"))
@@ -70,6 +88,7 @@ def test_removed_module():
 if __name__ == "__main__":
     test_figures()
     test_add_limit()
+    test_energy_bins_per_decade()
     test_command_line()
     test_removed_module()
     print("OK")
