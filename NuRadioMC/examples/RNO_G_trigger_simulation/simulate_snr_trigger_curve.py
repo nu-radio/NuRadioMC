@@ -20,7 +20,6 @@ from NuRadioMC.simulation.simulation import calculate_sim_efield
 
 from simulate import detector_simulation, rnog_flower_board_high_low_trigger_simulations
 
-from plot_snr_trigger_curve import plot_trigger_effiency_snr_curve
 
 import logging
 logger = logging.getLogger("NuRadioMC.RNOG_snr_trigger_curve")
@@ -97,7 +96,6 @@ def simulate_events(det, args):
         ice, attenuation_model="GL3",
         detector=det,
         use_cpp=True,
-        store_attenuation=False,
     )
 
     config = dict(
