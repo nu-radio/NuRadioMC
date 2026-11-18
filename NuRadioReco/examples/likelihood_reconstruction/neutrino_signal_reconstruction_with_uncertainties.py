@@ -127,9 +127,6 @@ plt.tight_layout()
 plt.savefig("simulated_traces.png", dpi=300)
 plt.close()
 
-import sys
-sys.exit(1)
-
 # Initialize likelihood reconstructor:
 reco = neutrinoLikelihoodReconstructor.neutrinoLikelihoodReconstructor()
 reco.begin(
