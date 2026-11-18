@@ -13,10 +13,11 @@ Use it from Python::
 or from the command line, with an effective volume file: ``python limit_plot.py --help``.
 
 Normalisation: limits and sensitivities depend on the width of the energy bins they are quoted for. All of them are
-shown for the same binning, ``energy_bins_per_decade`` bins per decade (default 1, i.e. one decade wide bins; it
-also applies to :func:`add_limit`). Each file in ``experiments`` states its own binning in the header line
-"# Energy bins per decade: <n>", and its values are multiplied by ``energy_bins_per_decade / n``. Fluxes
-(models, measurements) do not depend on the binning.
+shown for ``energy_bins_per_decade`` bins per decade (default 1; also for :func:`add_limit` and ``--bins-per-decade``).
+Each limit file in ``experiments`` states its own binning in the header line "# Energy bins per decade: <n>" and its
+values are multiplied by ``energy_bins_per_decade / n`` (no header line: error). Fluxes, models and measurements
+are not rescaled. Not shown, because their files do not state the binning: ``show_IceCubeGen2_ICRC2021`` and
+``show_prediction_arianna_200`` (raise an error until the header line is added).
 """
 import argparse
 import functools
