@@ -1,4 +1,3 @@
-from NuRadioReco.utilities import trace_utilities
 import warnings
 
 
@@ -16,4 +15,5 @@ class variableWindowSizeCorrelation:
         pass
 
     def run(self, *args, **kwargs):
+        from NuRadioReco.utilities import trace_utilities  # lazy: heavy dependencies
         return trace_utilities.get_variable_window_size_correlation(*args, **kwargs)

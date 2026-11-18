@@ -23,7 +23,10 @@ except Exception:
     try:
         import subprocess
         import os
-        subprocess.call(os.path.join(os.path.dirname(os.path.abspath(__file__)), "install.sh"))
+        import sys
+        # build with the running interpreter, which need not be `python` on PATH
+        subprocess.call(os.path.join(os.path.dirname(os.path.abspath(__file__)), "install.sh"),
+                        env=dict(os.environ, PYTHON=sys.executable))
         from NuRadioMC.SignalProp.AnalyticRayTracingImpl.CPPAnalyticRayTracing import wrapper as cpp_wrapper
         cpp_available = True
         logger.status("compilation was successful, CPP version of ray tracer is available")
@@ -652,7 +655,7 @@ def _n(z, n_ice, delta_n, z_0):
 
     return res
 
-class ray_tracing_2D(ray_tracing_base):
+class ray_tracing_2D():
 
     def __init__(self, medium, attenuation_model=None,
                  log_level=logging.NOTSET,
@@ -742,6 +745,65 @@ class ray_tracing_2D(ray_tracing_base):
                 _compile_function_numba()
             except Exception as e:
                 self.__logger.error(f"Error in compiling methods using jit: \"{e}\" - proceeding without numba")
+
+
+    @staticmethod
+    def _resolve_use_cpp_and_numba(use_cpp, compile_numba, cpp_available, numba_available, logger):
+        """
+        Decides whether the CPP or the numba-accelerated python backend should be used, given what
+        the caller requested and what is actually available, and logs the resolved choice.
+
+        This is shared so that ray tracers offering a CPP/numba backend (e.g. the analytic ray
+        tracer's `ray_tracing` and `ray_tracing_2D`) don't each have to duplicate this decision.
+
+        Function was moved here from the propagation_base_class.ray_tracing_base (24.09.2026) because it is only used by the single layer 
+        propagation module and like this we don't have to unneccessarily inherit from the ray_tracing_base here in ray_tracing_2D.
+        
+
+        Parameters
+        ----------
+        use_cpp: bool or None
+            backend explicitly requested by the caller. If None, CPP is used whenever available.
+        compile_numba: bool or None
+            whether to numba-compile the python fallback backend. Only relevant if `use_cpp`
+            (after resolution) is False. If None, numba is used whenever available.
+        cpp_available: bool
+            whether the CPP extension could be imported (or compiled on the fly)
+        numba_available: bool
+            whether the numba package is available
+        logger: logging.Logger
+            logger used to announce the resolved backend / raise warnings
+
+        Returns
+        -------
+        use_cpp: bool
+        compile_numba: bool
+        """
+        if use_cpp is None:
+            use_cpp = cpp_available
+
+        if use_cpp and not cpp_available:
+            msg = ('C++ raytracer was explicitly requested, but is not available (i.e. on-the-fly compilation failed). '
+                   'Abort.... ! Either fix the compilation or set use_cpp to False. '
+                   'For compilation see NuRadioMC/SignalProp/AnalyticRayTracingImpl/install.sh resp. NuRadioMC/SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing.')
+            logger.error(msg)
+            raise RuntimeError(msg)
+
+        if use_cpp:
+            logger.status("Using CPP version of ray tracer")
+            return True, False  # compile_numba is irrelevant when using the CPP backend
+
+        if cpp_available:
+            logger.info('C++ raytracer is available, but Python raytracer was requested. Using Python raytracer')
+
+        compile_numba = numba_available if compile_numba is None else (compile_numba and numba_available)
+        if compile_numba:
+            logger.status("Using python with numba version of ray tracer")
+        else:
+            logger.status("Using python without numba version of ray tracer")
+
+        return False, compile_numba
+
 
     def get_C_1(self, x1, C_0):
         """
@@ -1610,7 +1672,12 @@ class ray_tracing_2D(ray_tracing_base):
 
             tol = 1e-6
             results = []
-            C0s = []  # intermediate storage of results
+            logC0s = []  # logC0 of the solutions found so far
+            # The brentq searches for further roots start logC0_offset away from the first root. Roots closer than
+            # logC0_tol are the same solution: it must exceed logC0_offset (a first root found again is at least that far off)
+            # and stay below the gap between genuine solution pairs (>= ~3e-3 in T10unit_test_C0_greenland3exp).
+            logC0_offset = 1e-4
+            logC0_tol = 1e-3
 
             if(x2[1] > 0):
                 # special case of ice to air ray tracing. There is always one unique solution between C_0 = inf and C_0 that
@@ -1627,7 +1694,7 @@ class ray_tracing_2D(ray_tracing_base):
                 result = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
 
                 C_0 = _get_C0_from_log(result, self.medium.n_ice)
-                C0s.append(C_0)
+                logC0s.append(result)
                 solution_type = self.determine_solution_type(x1, x2, C_0)
                 self.__logger.info("found {} solution C0 = {:.2f} (internal logC = {:.2f})".format(solution_types[solution_type], C_0, result))
                 results.append({'type': solution_type,
@@ -1661,9 +1728,9 @@ class ray_tracing_2D(ray_tracing_base):
             if(result.fun < 1e-7):
                 if(plot):
                     self.plot_result(x1, x2, _get_C0_from_log(result.x[0], self.medium.n_ice), ax)
-                if(np.round(result.x[0], 3) not in np.round(C0s, 3)):
+                if not np.any(np.isclose(result.x[0], logC0s, rtol=0, atol=logC0_tol)):
                     C_0 = _get_C0_from_log(result.x[0], self.medium.n_ice)
-                    C0s.append(C_0)
+                    logC0s.append(result.x[0])
                     solution_type = self.determine_solution_type(x1, x2, C_0)
                     self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                     results.append({'type': solution_type,
@@ -1673,7 +1740,7 @@ class ray_tracing_2D(ray_tracing_base):
                                     'reflection_case': reflection_case})
 
             # check if another solution with higher logC0 exists
-            logC0_start = result.x[0] + 0.0001
+            logC0_start = result.x[0] + logC0_offset
             logC0_stop = 100
             delta_start = self.obj_delta_y(logC0_start, x1, x2, reflection, reflection_case)
             delta_stop = self.obj_delta_y(logC0_stop, x1, x2, reflection, reflection_case)
@@ -1682,9 +1749,9 @@ class ray_tracing_2D(ray_tracing_base):
                 result2 = optimize.brentq(self.obj_delta_y, logC0_start, logC0_stop, args=(x1, x2, reflection, reflection_case))
                 if(plot):
                     self.plot_result(x1, x2, _get_C0_from_log(result2, self.medium.n_ice), ax)
-                if(np.round(result2, 3) not in np.round(C0s, 3)):
+                if not np.any(np.isclose(result2, logC0s, rtol=0, atol=logC0_tol)):
                     C_0 = _get_C0_from_log(result2, self.medium.n_ice)
-                    C0s.append(C_0)
+                    logC0s.append(result2)
                     solution_type = self.determine_solution_type(x1, x2, C_0)
                     self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                     results.append({'type': solution_type,
@@ -1696,7 +1763,7 @@ class ray_tracing_2D(ray_tracing_base):
                 self.__logger.info("no solution with logC0 > {:.3f} exists".format(result.x[0]))
 
             logC0_start = -100
-            logC0_stop = result.x[0] - 0.0001
+            logC0_stop = result.x[0] - logC0_offset
             delta_start = self.obj_delta_y(logC0_start, x1, x2, reflection, reflection_case)
             delta_stop = self.obj_delta_y(logC0_stop, x1, x2, reflection, reflection_case)
             if(np.sign(delta_start) != np.sign(delta_stop)):
@@ -1705,9 +1772,9 @@ class ray_tracing_2D(ray_tracing_base):
 
                 if(plot):
                     self.plot_result(x1, x2, _get_C0_from_log(result3, self.medium.n_ice), ax)
-                if(np.round(result3, 3) not in np.round(C0s, 3)):
+                if not np.any(np.isclose(result3, logC0s, rtol=0, atol=logC0_tol)):
                     C_0 = _get_C0_from_log(result3, self.medium.n_ice)
-                    C0s.append(C_0)
+                    logC0s.append(result3)
                     solution_type = self.determine_solution_type(x1, x2, C_0)
                     self.__logger.info("found {} solution C0 = {:.2f}".format(solution_types[solution_type], C_0))
                     results.append({'type': solution_type,

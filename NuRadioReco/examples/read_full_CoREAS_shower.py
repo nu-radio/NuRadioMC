@@ -143,5 +143,5 @@ if __name__ == '__main__':
             efieldToVoltageConverter.run(event, station, det)
         eventWriter.run(event, det)
 
-    nevents = eventWriter.end()
-    print("Finished processing, {} events".format(nevents))
+    eventWriter.close()
+    print("Finished processing, {} events".format(eventWriter.get_n_events()))

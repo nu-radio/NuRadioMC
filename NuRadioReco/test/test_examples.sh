@@ -37,3 +37,4 @@ cd ../..
 python3 read_full_CoREAS_shower.py example_data/example_data.hdf5
 python3 SimpleMCReconstruction.py
 python3 CustomHybridDetector.py
+rm -v Full_CoREAS_shower.nur MC_example_station_32.nur custom_detector.nur

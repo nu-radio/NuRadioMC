@@ -42,7 +42,7 @@ plt.rcParams.update({
 })
 
 from NuRadioReco.utilities import units
-from NuRadioMC.utilities import medium
+from NuRadioMC.utilities import medium, medium_base
 from NuRadioMC.SignalProp import propagation
 import time
 
@@ -109,11 +109,17 @@ def timed_call(fn):
 def make_tracer(
     module_name,
     ice_model="greenland_simple",
+    make_layered = False,
     attenuation_model="GL1",
     n_freq=25,
     n_reflections=0,
 ):
-    ice = medium.get_ice_model(ice_model)
+
+    if make_layered:
+        ice_simple = medium.get_ice_model(ice_model)
+        ice = medium_base.IceModelExpLayers.from_IceModel(ice_simple)
+    else:
+        ice = medium.get_ice_model(ice_model)
 
     prop = propagation.get_propagation_module(module_name)
 
@@ -121,7 +127,7 @@ def make_tracer(
         ice,
         attenuation_model,
         n_frequencies_integration=n_freq,
-        n_reflections=n_reflections,
+        n_reflections=n_reflections, use_cpp = False
     )
 
 def make_grid(x_range, z_range, n_x, n_z, y=0.0):
@@ -275,7 +281,20 @@ def compare_point_full(
                 freqs = np.linspace(100*units.MHz, 700*units.MHz, 1)
                 att_a = tracer_a.get_attenuation(i_a,freqs)[0]
                 foc_a = tracer_a.get_focusing(i_a)
-                #ra_a = tracer_a.get_receive_angle(i_a)
+                type_a = tracer_a.get_solution_type(i_a)
+                c0_a = tracer_a.get_C0(i_a)
+
+                if type_a == 3:
+                    ra_a = tracer_a.get_reflection_angle(i_a)
+                    fc_a = tracer_a.get_fresnel_coefficients(i_a)
+
+                    fresnel_t_a = np.abs(fc_a[0]["theta"])
+                    fresnel_p_a = np.abs(fc_a[0]["phi"])
+                else:
+                    ra_a = np.nan
+                    
+                    fresnel_t_a = np.nan
+                    fresnel_p_a = np.nan
 
                 entry["a"] = {
                     "travel_time_ns": safe_get(
@@ -309,7 +328,23 @@ def compare_point_full(
                         lambda : foc_a,
                         default=None,
                         warning=f"focusing failed (A, group {group})",
-                    )
+                    ),
+                    "type":safe_get(
+                        lambda : type_a,
+                        default = None,
+                        warning=f"type failed (A, group {group})",
+                    ),
+                    "c0":safe_get(
+                        lambda : c0_a,
+                        default = None,
+                        warning=f"c0 failed (A, group {group})",
+                    ),
+
+                    "r_angle":ra_a,
+                    "fresnel_t": fresnel_t_a,
+                    "fresnel_p": fresnel_p_a,
+
+
                 }
 
             # ==================================================
@@ -328,7 +363,19 @@ def compare_point_full(
                 freqs = np.linspace(100*units.MHz, 700*units.MHz, 1)
                 att_b = tracer_b.get_attenuation(i_b,freqs)[0]
                 foc_b = tracer_b.get_focusing(i_b)
-                #ra_b = tracer_b.get_receive_angle(i_b)
+                type_b = tracer_b.get_solution_type(i_b)
+                c0_b = tracer_b.get_C0(i_b)
+                if type_b == 3:
+                    ra_b = tracer_b.get_reflection_angle(i_b)
+                    fc_b = tracer_b.get_fresnel_coefficients(i_b)
+
+                    fresnel_t_b = np.abs(fc_b[0]["theta"])
+                    fresnel_p_b = np.abs(fc_b[0]["phi"])
+                else:
+                    ra_b = np.nan
+                    
+                    fresnel_t_b = np.nan
+                    fresnel_p_b = np.nan
 
                 entry["b"] = {
                     "travel_time_ns": safe_get(
@@ -362,14 +409,47 @@ def compare_point_full(
                         lambda : foc_b,
                         default=None,
                         warning=f"focusing failed (B, group {group})",
-                    )
+                    ),
+                    "type":safe_get(
+                        lambda : type_b,
+                        default = None,
+                        warning=f"type failed (B, group {group})",
+                    ),
+                    "c0":safe_get(
+                        lambda : c0_b,
+                        default = None,
+                        warning=f"c0 failed (B, group {group})",
+                    ),
                     
+                    "r_angle":ra_b,
+                    "fresnel_t": fresnel_t_b,
+                    "fresnel_p": fresnel_p_b,
                 }
 
             # ==================================================
             # DIFFERENCES
             # ==================================================
             if entry["a"] is not None and entry["b"] is not None:
+                if (entry["a"]["type"] == 3 and entry["b"]["type"] == 3):
+                    r_angle_diff = safe_get(
+                        lambda: entry["b"]["r_angle"] - entry["a"]["r_angle"],
+                        default=np.nan,
+                    )
+
+                    fresnel_t_diff = safe_get(
+                        lambda: entry["b"]["fresnel_t"] - entry["a"]["fresnel_t"],
+                        default=np.nan,
+                    )
+
+                    fresnel_p_diff = safe_get(
+                        lambda: entry["b"]["fresnel_p"] - entry["a"]["fresnel_p"],
+                        default=np.nan,
+                    )
+                else:
+                    r_angle_diff = np.nan
+                    fresnel_t_diff = np.nan
+                    fresnel_p_diff = np.nan
+
 
                 entry["diff"] = {
                     "time_diff": (
@@ -399,16 +479,20 @@ def compare_point_full(
                     ),
                     "attenuation_diff": safe_get(
                         lambda : (entry["b"]["attenuation"]-entry["a"]["attenuation"]),
-                        default=None,
+                        default=np.nan,
                         warning=f"attenuation diff failed (group {group})",
                     ),
                     "focusing_diff": safe_get(
                         lambda : (entry["b"]["focusing"]-entry["a"]["focusing"]),
-                        default=None,
+                        default=np.nan,
                         warning=f"focusing diff failed (group {group})",
-                    )
-
+                    ),
+                    "r_angle_diff": r_angle_diff,
+                    "fresnel_t_diff": fresnel_t_diff,
+                    "fresnel_p_diff": fresnel_p_diff,
                 }
+
+
 
             out["solutions"][group] = entry
 
@@ -491,6 +575,12 @@ def flatten_full(results):
                 row["receive_angle_a"] = sol["a"]["receive_angle"]
                 row["attenuation_a"] = sol["a"]["attenuation"]
                 row["focusing_a"] = sol["a"]["focusing"]
+                row['type_a'] = sol["a"]["type"]
+                row['c0_a'] = sol["a"]["c0"]
+                row["reflection_angle_a"] = sol["a"]["r_angle"]
+                row["fresnel_t_a"] = sol["a"]["fresnel_t"]
+                row["fresnel_p_a"] = sol["a"]["fresnel_p"]
+
 
             # -------------------------
             # module B
@@ -502,6 +592,11 @@ def flatten_full(results):
                 row["receive_angle_b"] = sol["b"]["receive_angle"]
                 row["attenuation_b"] = sol["b"]["attenuation"]
                 row["focusing_b"] = sol["b"]["focusing"]
+                row['type_b'] = sol["b"]["type"]
+                row['c0_b'] = sol["b"]["c0"]
+                row["reflection_angle_b"] = sol["b"]["r_angle"]
+                row["fresnel_t_b"] = sol["b"]["fresnel_t"]
+                row["fresnel_p_b"] = sol["b"]["fresnel_p"]
 
             # -------------------------
             # differences
@@ -514,6 +609,9 @@ def flatten_full(results):
                 row["solving_time_ratio"] = sol["diff"]["solving_time_ratio"]
                 row["attenuation_diff"] = sol["diff"]["attenuation_diff"]
                 row["focusing_diff"] = sol["diff"]["focusing_diff"]
+                row['r_angle_diff'] = sol['diff']['r_angle_diff']
+                row["fresnel_t_diff"] = sol["diff"]["fresnel_t_diff"]
+                row["fresnel_p_diff"] = sol["diff"]["fresnel_p_diff"]
 
             # NEW: solution existence flags
             row["has_a"] = sol["a"] is not None
