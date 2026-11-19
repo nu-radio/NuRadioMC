@@ -8,10 +8,12 @@ from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import signal_processing
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
+from NuRadioMC.SignalProp import propagation
 import matplotlib.pyplot as plt
 import logging
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+from radiotools import helper as hp
 
 logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
@@ -20,7 +22,8 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_p
                           time_domain=False, efield_position=None, propagator=None, travel_time_delays=None):
     """ Get the time-alligned voltage traces and antenna factors for electric field reconstruction using unfolding.
 
-    If the efield_position is at the same position as the antennas, the travel time delays are zero. Otherwise, the travel time delays are calculated
+    If the efield_position is at the same position as the antennas, the travel time delays are zero. Otherwise, the
+    travel time delays are calculated
 
     If station.is_cosmic_ray() is True, the travel time delays are calculated from the geometry of the station and
     the direction of the incoming signal using the refractive index of air or shallow ice assuming a plane wave.
@@ -49,6 +52,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_p
         The antenna pattern provider to get the antenna response functions.
     efield_position : numpy array, optional
         The position where the electric field is calculated - determines time shift of the voltage traces.
+        Should be the position relative to the station center.
         If None, it raises an error.
     time_domain : bool, optional
         If True, returns the time domain traces as well. Default is False.
@@ -87,6 +91,21 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_p
 
     station_id = station.get_id()
     site = det.get_site(station_id)
+
+    if station.is_neutrino() and travel_time_delays is None:
+        if propagator is None:
+            raise ValueError("For neutrino events, a propagator must be provided if travel_time_delays is not provided.")
+
+        # Calculate the travel time from the vertex to the efield_position to get a reference time:
+        vertex_position = station.get_parameter(stnp.nu_vertex)
+        efield_absolute_position = efield_position + det.get_absolute_position(station.get_id()) # assuming that the vertex_position is absolute, the absolute position is needed here
+        propagator.set_start_and_end_point(vertex_position, efield_absolute_position)
+        propagator.find_solutions()
+        if propagator.get_number_of_solutions() > 0:
+            efield_travel_time = propagator.get_travel_time(0) # using first solution
+        else:
+            raise ValueError(f"No propagation solution found for channel {channel_id}. Please check the geometry. Vertex: {vertex_position}, Antenna: {antenna_position}.")
+
     for iCh, channel in enumerate(station.iter_channels(use_channels)):
         channel_id = channel.get_id()
 
@@ -107,11 +126,8 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_p
                 time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position - efield_position, n=refractive_index)
 
             elif station.is_neutrino():
-                if propagator is None:
-                    raise ValueError("For neutrino events, a propagator must be provided.")
 
                 # Calculate the travel time delays using the propagator
-                vertex_position = station.get_parameter(stnp.nu_vertex)
                 antenna_position = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station.get_id()) # assuming that the vertex_position is absolute, the absolute position is needed here
                 propagator.set_start_and_end_point(vertex_position, antenna_position)
                 propagator.find_solutions()
@@ -121,17 +137,16 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_p
                     raise ValueError(f"No propagation solution found for channel {channel_id}. Please check the geometry. Vertex: {vertex_position}, Antenna: {antenna_position}.")
 
                 # Warning if ray-traced arrival direction is not consistent with zenith and azimuth
-                ray_traced_direction = propagator.get_receive_vector(0)
-                ray_traced_zenith = np.arccos(ray_traced_direction[2])
-                ray_traced_azimuth = np.arctan2(ray_traced_direction[1], ray_traced_direction[0])
-                if not (np.isclose(ray_traced_zenith, zenith, atol=3 * units.deg) and np.isclose(ray_traced_azimuth, azimuth, atol=3 * units.deg)):
+                receive_vector = propagator.get_receive_vector(0)
+                zenith_receive, azimuth_receive = hp.cartesian_to_spherical(receive_vector[0], receive_vector[1], receive_vector[2])
+                if not (np.isclose(zenith_receive, zenith, atol=3 * units.deg) and np.isclose(azimuth_receive, azimuth, atol=3 * units.deg)):
                     logger.warning(
-                        f"Ray-traced arrival direction (zenith: {ray_traced_zenith}, azimuth: {ray_traced_azimuth}) is not "
+                        f"Ray-traced arrival direction (zenith: {zenith_receive / units.deg}, azimuth: {azimuth_receive / units.deg}) is not "
                         f"consistent with the provided zenith ({zenith / units.deg}) and azimuth ({azimuth / units.deg}) angles. "
                         f"Please check the geometry and the reconstruction and provided angles. Vertex: {vertex_position}, Antenna: {antenna_position}."
                     )
 
-                time_shift = -travel_time
+                time_shift = - (travel_time - efield_travel_time)
 
             else:
                 raise ValueError(
@@ -249,7 +264,7 @@ class voltageToEfieldConverter:
         self.antenna_provider = None
         self.begin()
 
-    def begin(self, debug=False, hann_window_duration=100 * units.ns, propagator=None):
+    def begin(self, debug=False, hann_window_duration=30 * units.ns, ice_model=None, config=None):
         """
         Initialize the voltageToEfieldConverter.
 
@@ -259,16 +274,28 @@ class voltageToEfieldConverter:
             If True, enables debug mode.
         hann_window_duration : float, optional
             A Hann window is applied to the edges of the voltage traces to reduce artifacts from the
-            FFT and unfolding. The default duration is 100 ns at each edge, but can be set to 0 to disable the Hann window.
-        propagator : `NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base`, optional
-            A propagator object to calculate the travel time delays for neutrino events.
-            An instance of ``ray_tracing_base`` or any class derived from it.
+            FFT and unfolding. The default duration is 30 ns at each edge, but can be set to 0 to disable
+            the Hann window.
+        ice_model : `NuRadioReco.utilities.medium.ice_model`, optional
+            The ice model to use for the propagation module. If None, the default ice model is used.
+            Only needed if station.is_neutrino() is True, otherwise ignored.
+        config : dict, optional
+            A simulation configuration dictionary used to initialize the propagator. If config is None
+            or 'module' not in config['propagation'], the analytic ray-tracing propagation module is used.
+            Only needed if station.is_neutrino() is True, otherwise ignored.
         """
         self.antenna_provider = antennapattern.AntennaPatternProvider()
         self.debug = debug
         self.hann_window_duration = hann_window_duration
-        self.propagator = propagator
-        pass
+
+        if ice_model is not None:
+            if config is None or 'module' not in config['propagation']:
+                propagation_module = propagation.get_propagation_module('analytic')
+            else:
+                propagation_module = propagation.get_propagation_module(config['module'])
+            self.propagator = propagation_module(ice_model, detector=None, config=config)
+        else:
+            self.propagator = None
 
     @register_run()
     def run(self, evt, station, det, use_channels=None, use_MC_direction=False, force_Polarization='', travel_time_delays=None):
