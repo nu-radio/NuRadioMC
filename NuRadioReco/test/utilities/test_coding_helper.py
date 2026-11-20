@@ -7,6 +7,7 @@ import pytest
 from NuRadioReco.utilities.coding_helper import (
     array_from_scalar_function,
     array_from_vectorized_function,
+    get_rng,
 )
 
 
@@ -139,6 +140,34 @@ class TestArrayFromVectorizedFunction:
         helper = array_from_vectorized_function(vector_f, xs)
         comprehension = np.stack([vector_f(x) for x in xs])
         np.testing.assert_array_equal(helper, comprehension)
+
+
+class TestGetRng:
+    """Tests for :func:`get_rng`."""
+
+    def test_same_seed_same_numbers(self):
+        assert np.array_equal(get_rng(42).random(10), get_rng(42).random(10))
+        assert not np.array_equal(get_rng(42).random(10), get_rng(43).random(10))
+
+    def test_philox_matches_explicit_construction(self):
+        """Same stream as the ``Generator(Philox(seed))`` pattern used in the modules."""
+        expected = np.random.Generator(np.random.Philox(42)).random(10)
+        assert np.array_equal(get_rng(42).random(10), expected)
+
+    def test_generator_is_passed_through(self):
+        rng = np.random.default_rng(1)
+        assert get_rng(rng) is rng
+
+    def test_none_gives_independent_generators(self):
+        assert isinstance(get_rng(), np.random.Generator)
+        assert not np.array_equal(get_rng().random(10), get_rng().random(10))
+
+    def test_global_state_untouched(self):
+        np.random.seed(0)
+        expected = np.random.random(5)
+        np.random.seed(0)
+        get_rng(1).random(100)
+        assert np.array_equal(np.random.random(5), expected)
 
 
 if __name__ == "__main__":

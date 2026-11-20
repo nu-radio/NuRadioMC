@@ -272,6 +272,11 @@ jobs:
       run: |
         python NuRadioMC/test/examples/test_limit_plot.py
 
+    - name: "Test coding helpers"
+      if: always()
+      run: |
+        python NuRadioReco/test/utilities/test_coding_helper.py
+
     - name: "Test light utilities import without heavy dependencies"
       if: always()
       run: |

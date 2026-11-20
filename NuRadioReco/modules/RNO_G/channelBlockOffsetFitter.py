@@ -10,6 +10,7 @@ in the `NuRadioReco.framework.parameters.channelParameters.block_offsets` parame
 """
 
 from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities.coding_helper import get_rng
 from NuRadioReco.framework.parameters import channelParameters
 from NuRadioReco.modules.base.module import register_run
 
@@ -22,7 +23,7 @@ logger = logging.getLogger('NuRadioReco.RNO_G.channelBlockOffsetFitter')
 
 class channelBlockOffsets:
 
-    def __init__(self, block_size=128, max_frequency=51*units.MHz):
+    def __init__(self, block_size=128, max_frequency=51*units.MHz, seed=None):
         """
         Add or remove block offsets to channel traces
 
@@ -36,6 +37,9 @@ class channelBlockOffsets:
         max_frequency: float (default: 51 MHz)
             The maximum frequency to include in the out-of-band
             block offset fit
+        seed: int | None (default: None)
+            Seed for the random generator used by `add_offsets`
+            (see `NuRadioReco.utilities.coding_helper.get_rng`)
 
         """
         self.sampling_rate = None
@@ -44,6 +48,7 @@ class channelBlockOffsets:
         self._offset_inject = dict()
         self._max_frequency = max_frequency
         self._counter = defaultdict(int)
+        self._rng = get_rng(seed)
 
     def add_offsets(self, event, station, offsets=1*units.mV, channel_ids=None):
         """
@@ -91,7 +96,7 @@ class channelBlockOffsets:
             # if entry is a single float (or array with length 1),
             # generate a random offset for each block
             if len(np.atleast_1d(add_offsets)) == 1:
-                add_offsets = np.random.normal(
+                add_offsets = self._rng.normal(
                     0, add_offsets, (channel.get_number_of_samples() // self.block_size)
                 )
 
