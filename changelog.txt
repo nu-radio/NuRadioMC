@@ -37,6 +37,11 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   The `AntennaPattern.VEL`, `AntennaPattern.VEL_theta` and `AntennaPattern.VEL_phi` attributes are deprecated, the cube is
   stored in `AntennaPattern._vel`.
 - Added `impulsiveSignalReconstructor` module to reconstruct 'generic' impulsive signals
+- Triggers store their values as `triggerParameters` (`Trigger` is a `ParameterStorage`), e.g.
+  `trigger[triggerParameters.threshold]`; only name and type remain attributes. Constructors and getters/setters are
+  unchanged; `.nur` files written before are read into the new parameters. API changes: the keys of
+  `get_trigger_settings()` follow the parameter names (`triggered`, `trigger_time`, `triggered_channels` unchanged); the
+  private attributes (`_threshold`, ...) are gone.
 
 bugfixes:
 - Fixing several trigger bugs: `.nur` files with an `EnvelopePhasedTrigger` (type 'analog_envelope_phased') could not be read;
