@@ -82,13 +82,22 @@ def format_files(filenames, hunks):
     return returncode
 
 
+def escape(value, is_property=False):
+    """Escape a value for a GitHub Actions workflow command."""
+    value = value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    if is_property:
+        value = value.replace(":", "%3A").replace(",", "%2C")
+    return value
+
+
 def lint_files(filenames, hunks):
     """Run flake8 and print the violations on changed lines as warnings (exit code 0, like the CI)."""
     lines = collections.defaultdict(set)
     for filename in filenames:
         for start, count in hunks[filename]:
-            # +1: blank-line errors (E30x) are reported at the statement after the inserted/removed lines
-            lines[filename].update(range(start, start + count + 1))
+            # Blank-line errors (E30x) are reported at the statement after the inserted lines (+1); for a deletion
+            # (count 0), start is the line before the removed ones.
+            lines[filename].update(range(start, start + max(count, 1) + 1))
 
     result = subprocess.run([sys.executable, "-m", "flake8"] + FLAKE8_ARGS + filenames, capture_output=True, text=True)
     if result.returncode and not result.stdout:  # flake8 failed (e.g. not installed): do not pass silently
@@ -103,7 +112,8 @@ def lint_files(filenames, hunks):
         filename, lineno, column, code, message = match.groups()
         if int(lineno) in lines[filename]:
             if os.environ.get("GITHUB_ACTIONS") == "true":  # annotation shown in the PR diff
-                line = f"::warning file={filename},line={lineno},col={column},title=flake8 {code}::{message}"
+                properties = f"file={escape(filename, True)},line={lineno},col={column},title=flake8 {code}"
+                line = f"::warning {properties}::{escape(message)}"
             violations.append(line)
 
     if violations:
