@@ -375,6 +375,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.html#dependencies">Dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html">NuRadioReco.utilities.analytic_pulse module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.coding_helper.html">NuRadioReco.utilities.coding_helper module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.constants.html">NuRadioReco.utilities.constants module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html">NuRadioReco.utilities.cr_flux module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioReco/apidoc/NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
@@ -508,6 +509,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html">NuRadioMC.utilities.medium_base module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioMC/apidoc/NuRadioMC.utilities.merge_hdf5.html">NuRadioMC.utilities.merge_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html">NuRadioMC.utilities.muon_flux module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioMC/apidoc/NuRadioMC.utilities.neutrino_fluxes.html">NuRadioMC.utilities.neutrino_fluxes module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioMC/apidoc/NuRadioMC.utilities.plotting.html">NuRadioMC.utilities.plotting module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner.html">NuRadioMC.utilities.runner module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner_example.html">NuRadioMC.utilities.runner_example module</a></li>
@@ -658,6 +660,7 @@
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.coding_helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_rng</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">channelParameters</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 
@@ -672,7 +675,7 @@
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">channelBlockOffsets</span><span class="p">:</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mi">51</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">max_frequency</span><span class="o">=</span><span class="mi">51</span><span class="o">*</span><span class="n">units</span><span class="o">.</span><span class="n">MHz</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Add or remove block offsets to channel traces</span>
 
@@ -686,6 +689,9 @@
 <span class="sd">        max_frequency: float (default: 51 MHz)</span>
 <span class="sd">            The maximum frequency to include in the out-of-band</span>
 <span class="sd">            block offset fit</span>
+<span class="sd">        seed: int | None (default: None)</span>
+<span class="sd">            Seed for the random generator used by `add_offsets`</span>
+<span class="sd">            (see `NuRadioReco.utilities.coding_helper.get_rng`)</span>
 
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sampling_rate</span> <span class="o">=</span> <span class="kc">None</span>
@@ -694,6 +700,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_offset_inject</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_max_frequency</span> <span class="o">=</span> <span class="n">max_frequency</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_counter</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_rng</span> <span class="o">=</span> <span class="n">get_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
 
 <div class="viewcode-block" id="channelBlockOffsets.add_offsets">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.html#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.add_offsets">[docs]</a>
@@ -743,7 +750,7 @@
             <span class="c1"># if entry is a single float (or array with length 1),</span>
             <span class="c1"># generate a random offset for each block</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">add_offsets</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">add_offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span>
+                <span class="n">add_offsets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span>
                     <span class="mi">0</span><span class="p">,</span> <span class="n">add_offsets</span><span class="p">,</span> <span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">get_number_of_samples</span><span class="p">()</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_size</span><span class="p">)</span>
                 <span class="p">)</span>
 

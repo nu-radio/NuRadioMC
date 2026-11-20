@@ -375,6 +375,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.html#dependencies">Dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html">NuRadioReco.utilities.analytic_pulse module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.coding_helper.html">NuRadioReco.utilities.coding_helper module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.constants.html">NuRadioReco.utilities.constants module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html">NuRadioReco.utilities.cr_flux module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco/apidoc/NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
@@ -508,6 +509,7 @@
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html">NuRadioMC.utilities.medium_base module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC/apidoc/NuRadioMC.utilities.merge_hdf5.html">NuRadioMC.utilities.merge_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html">NuRadioMC.utilities.muon_flux module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioMC/apidoc/NuRadioMC.utilities.neutrino_fluxes.html">NuRadioMC.utilities.neutrino_fluxes module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC/apidoc/NuRadioMC.utilities.plotting.html">NuRadioMC.utilities.plotting module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC/apidoc/NuRadioMC.utilities.runner.html">NuRadioMC.utilities.runner module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioMC/apidoc/NuRadioMC.utilities.runner_example.html">NuRadioMC.utilities.runner_example module</a></li>
@@ -820,8 +822,6 @@
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.db_mongo_write.html#NuRadioReco.detector.RNO_G.db_mongo_write.Database.add_time_dependent_entry_to_database">add_time_dependent_entry_to_database() (NuRadioReco.detector.RNO_G.db_mongo_write.Database method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.add_to_trace">add_to_trace() (NuRadioReco.framework.base_trace.BaseTrace method)</a>
 
       <ul>
@@ -832,6 +832,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_channel.html#NuRadioReco.framework.sim_channel.SimChannel.add_to_trace">(NuRadioReco.framework.sim_channel.SimChannel method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.base_trace.html#NuRadioReco.framework.base_trace.BaseTrace.add_trace_start_time">add_trace_start_time() (NuRadioReco.framework.base_trace.BaseTrace method)</a>
 
       <ul>
@@ -941,6 +943,10 @@
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.generatorAttributes.area">area (NuRadioReco.framework.parameters.generatorAttributes attribute)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.ARIANNAParameters">ARIANNAParameters (class in NuRadioReco.framework.parameters)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.coding_helper.html#NuRadioReco.utilities.coding_helper.array_from_scalar_function">array_from_scalar_function() (in module NuRadioReco.utilities.coding_helper)</a>
+</li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.coding_helper.html#NuRadioReco.utilities.coding_helper.array_from_vectorized_function">array_from_vectorized_function() (in module NuRadioReco.utilities.coding_helper)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalGen.ARZ.ARZ.html#NuRadioMC.SignalGen.ARZ.ARZ.ARZ">ARZ (class in NuRadioMC.SignalGen.ARZ.ARZ)</a>
 </li>
@@ -2766,6 +2772,10 @@
       </ul></li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.fluxes.html#NuRadioMC.utilities.fluxes.get_fluence_limit">get_fluence_limit() (in module NuRadioMC.utilities.fluxes)</a>
 </li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.neutrino_fluxes.html#NuRadioMC.utilities.neutrino_fluxes.get_flux">get_flux() (in module NuRadioMC.utilities.neutrino_fluxes)</a>
+</li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.neutrino_fluxes.html#NuRadioMC.utilities.neutrino_fluxes.get_flux_band">get_flux_band() (in module NuRadioMC.utilities.neutrino_fluxes)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html#NuRadioReco.utilities.cr_flux.get_flux_per_energy_bin">get_flux_per_energy_bin() (in module NuRadioReco.utilities.cr_flux)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.analyticraytracing.html#NuRadioMC.SignalProp.analyticraytracing.ray_tracing.get_focusing">get_focusing() (NuRadioMC.SignalProp.analyticraytracing.ray_tracing method)</a>
@@ -3784,6 +3794,8 @@
         <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.radioproparaytracing.html#NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing.get_results">(NuRadioMC.SignalProp.radioproparaytracing.radiopropa_ray_tracing method)</a>
 </li>
       </ul></li>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.coding_helper.html#NuRadioReco.utilities.coding_helper.get_rng">get_rng() (in module NuRadioReco.utilities.coding_helper)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.trace_utilities.html#NuRadioReco.utilities.trace_utilities.get_root_power_ratio">get_root_power_ratio() (in module NuRadioReco.utilities.trace_utilities)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.event.html#NuRadioReco.framework.event.Event.get_run_number">get_run_number() (NuRadioReco.framework.event.Event method)</a>
@@ -4015,6 +4027,8 @@
       <li><a href="NuRadioMC/apidoc/NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer.html#NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer.ray_tracing_2D.get_surface_pulse">get_surface_pulse() (NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer.ray_tracing_2D method)</a>
 </li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.ARA.analog_components.html#NuRadioReco.detector.ARA.analog_components.get_system_response">get_system_response() (in module NuRadioReco.detector.ARA.analog_components)</a>
+</li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.neutrino_fluxes.html#NuRadioMC.utilities.neutrino_fluxes.get_table">get_table() (in module NuRadioMC.utilities.neutrino_fluxes)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.get_tau_95_length">get_tau_95_length() (in module NuRadioMC.EvtGen.generator)</a>
 </li>
@@ -4628,6 +4642,8 @@
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.ice_cube_nu_fit_2022">ice_cube_nu_fit_2022() (in module NuRadioMC.EvtGen.generator)</a>
 </li>
+      <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.neutrino_fluxes.html#NuRadioMC.utilities.neutrino_fluxes.ice_cube_power_law">ice_cube_power_law() (in module NuRadioMC.utilities.neutrino_fluxes)</a>
+</li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModel">IceModel (class in NuRadioMC.utilities.medium_base)</a>
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html#NuRadioMC.utilities.medium_base.IceModelBirefringence">IceModelBirefringence (class in NuRadioMC.utilities.medium_base)</a>
@@ -4708,10 +4724,10 @@
 </li>
       <li><a href="NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.intersection_box_ray">intersection_box_ray() (in module NuRadioMC.EvtGen.generator)</a>
 </li>
-      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.is_candidate">is_candidate() (NuRadioReco.framework.sim_station.SimStation method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="NuRadioReco/apidoc/NuRadioReco.framework.sim_station.html#NuRadioReco.framework.sim_station.SimStation.is_candidate">is_candidate() (NuRadioReco.framework.sim_station.SimStation method)</a>
+</li>
       <li><a href="NuRadioReco/apidoc/NuRadioReco.detector.detector_base.html#NuRadioReco.detector.detector_base.DetectorBase.is_channel_noiseless">is_channel_noiseless() (NuRadioReco.detector.detector_base.DetectorBase method)</a>
 
       <ul>
@@ -5047,6 +5063,8 @@
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.merge_hdf5.html#module-NuRadioMC.utilities.merge_hdf5">NuRadioMC.utilities.merge_hdf5</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html#module-NuRadioMC.utilities.muon_flux">NuRadioMC.utilities.muon_flux</a>
+</li>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.neutrino_fluxes.html#module-NuRadioMC.utilities.neutrino_fluxes">NuRadioMC.utilities.neutrino_fluxes</a>
 </li>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.plotting.html#module-NuRadioMC.utilities.plotting">NuRadioMC.utilities.plotting</a>
 </li>
@@ -5385,6 +5403,8 @@
         <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.html#module-NuRadioReco.utilities">NuRadioReco.utilities</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html#module-NuRadioReco.utilities.analytic_pulse">NuRadioReco.utilities.analytic_pulse</a>
+</li>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.coding_helper.html#module-NuRadioReco.utilities.coding_helper">NuRadioReco.utilities.coding_helper</a>
 </li>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.constants.html#module-NuRadioReco.utilities.constants">NuRadioReco.utilities.constants</a>
 </li>
@@ -5874,6 +5894,13 @@
 
       <ul>
         <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html#module-NuRadioMC.utilities.muon_flux">module</a>
+</li>
+      </ul></li>
+      <li>
+    NuRadioMC.utilities.neutrino_fluxes
+
+      <ul>
+        <li><a href="NuRadioMC/apidoc/NuRadioMC.utilities.neutrino_fluxes.html#module-NuRadioMC.utilities.neutrino_fluxes">module</a>
 </li>
       </ul></li>
       <li>
@@ -7069,6 +7096,13 @@
 
       <ul>
         <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html#module-NuRadioReco.utilities.analytic_pulse">module</a>
+</li>
+      </ul></li>
+      <li>
+    NuRadioReco.utilities.coding_helper
+
+      <ul>
+        <li><a href="NuRadioReco/apidoc/NuRadioReco.utilities.coding_helper.html#module-NuRadioReco.utilities.coding_helper">module</a>
 </li>
       </ul></li>
       <li>

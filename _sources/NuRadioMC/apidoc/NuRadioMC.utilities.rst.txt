@@ -24,6 +24,7 @@ Submodules
    NuRadioMC.utilities.medium_base
    NuRadioMC.utilities.merge_hdf5
    NuRadioMC.utilities.muon_flux
+   NuRadioMC.utilities.neutrino_fluxes
    NuRadioMC.utilities.plotting
    NuRadioMC.utilities.runner
    NuRadioMC.utilities.runner_example

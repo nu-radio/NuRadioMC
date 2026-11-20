@@ -1,0 +1,7 @@
+NuRadioReco.utilities.coding\_helper module
+===========================================
+
+.. automodule:: NuRadioReco.utilities.coding_helper
+   :members:
+   :undoc-members:
+   :show-inheritance:

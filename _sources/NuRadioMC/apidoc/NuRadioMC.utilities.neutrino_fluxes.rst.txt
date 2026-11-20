@@ -1,0 +1,7 @@
+NuRadioMC.utilities.neutrino\_fluxes module
+===========================================
+
+.. automodule:: NuRadioMC.utilities.neutrino_fluxes
+   :members:
+   :undoc-members:
+   :show-inheritance:

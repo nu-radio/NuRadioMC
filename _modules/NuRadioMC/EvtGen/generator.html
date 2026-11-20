@@ -375,6 +375,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html#dependencies">Dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html">NuRadioReco.utilities.analytic_pulse module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.coding_helper.html">NuRadioReco.utilities.coding_helper module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.constants.html">NuRadioReco.utilities.constants module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html">NuRadioReco.utilities.cr_flux module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
@@ -508,6 +509,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html">NuRadioMC.utilities.medium_base module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.merge_hdf5.html">NuRadioMC.utilities.merge_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html">NuRadioMC.utilities.muon_flux module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.neutrino_fluxes.html">NuRadioMC.utilities.neutrino_fluxes module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.plotting.html">NuRadioMC.utilities.plotting module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner.html">NuRadioMC.utilities.runner module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner_example.html">NuRadioMC.utilities.runner_example module</a></li>
@@ -657,7 +659,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioMC</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">inelasticities</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">inelasticities</span><span class="p">,</span> <span class="n">neutrino_fluxes</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.simulation.time_logger</span><span class="w"> </span><span class="kn">import</span> <span class="n">pretty_time_delta</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">particle_names</span>
 
@@ -886,23 +888,24 @@
 
 <div class="viewcode-block" id="ice_cube_nu_fit">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.ice_cube_nu_fit">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">ice_cube_nu_fit</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">slope</span><span class="o">=-</span><span class="mf">2.19</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">1.01</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">ice_cube_nu_fit</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">slope</span><span class="o">=</span><span class="n">neutrino_fluxes</span><span class="o">.</span><span class="n">ICECUBE_FITS</span><span class="p">[</span><span class="s2">"IceCube2017_numu"</span><span class="p">][</span><span class="s2">"slope"</span><span class="p">],</span>
+                    <span class="n">offset</span><span class="o">=</span><span class="n">neutrino_fluxes</span><span class="o">.</span><span class="n">ICECUBE_FITS</span><span class="p">[</span><span class="s2">"IceCube2017_numu"</span><span class="p">][</span><span class="s2">"offset"</span><span class="p">]):</span>
     <span class="c1"># from https://doi.org/10.22323/1.301.1005</span>
-    <span class="c1"># ApJ slope=-2.13, offset=0.9</span>
-    <span class="n">flux</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">offset</span> <span class="o">*</span> <span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">TeV</span><span class="p">))</span> <span class="o">**</span> <span class="n">slope</span> <span class="o">*</span> <span class="mf">1e-18</span> <span class="o">*</span> \
-        <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">flux</span></div>
+    <span class="k">return</span> <span class="n">neutrino_fluxes</span><span class="o">.</span><span class="n">ice_cube_power_law</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">slope</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="ice_cube_nu_fit_2022">
 <a class="viewcode-back" href="../../../NuRadioMC/apidoc/NuRadioMC.EvtGen.generator.html#NuRadioMC.EvtGen.generator.ice_cube_nu_fit_2022">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">ice_cube_nu_fit_2022</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">slope</span><span class="o">=-</span><span class="mf">2.37</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">1.44</span><span class="p">):</span>
-    <span class="c1"># 9.5 years analysis 2.37+0.09−0.09, offset 1.44 + 0.25 - 0.26, Astrophysical normalization @ 100TeV: 1.44+0.25−0.26 × 10−18 GeV−1cm−2s−1 sr−1</span>
-    <span class="n">flux</span> <span class="o">=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">offset</span> <span class="o">*</span> <span class="p">(</span><span class="n">energy</span> <span class="o">/</span> <span class="p">(</span><span class="mi">100</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">TeV</span><span class="p">))</span> <span class="o">**</span> <span class="n">slope</span> <span class="o">*</span> <span class="mf">1e-18</span> <span class="o">*</span> \
-        <span class="p">(</span><span class="n">units</span><span class="o">.</span><span class="n">GeV</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">cm</span> <span class="o">**</span> <span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">second</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">sr</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">flux</span></div>
+<span class="k">def</span><span class="w"> </span><span class="nf">ice_cube_nu_fit_2022</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">slope</span><span class="o">=</span><span class="n">neutrino_fluxes</span><span class="o">.</span><span class="n">ICECUBE_FITS</span><span class="p">[</span><span class="s2">"IceCube2022_numu"</span><span class="p">][</span><span class="s2">"slope"</span><span class="p">],</span>
+                         <span class="n">offset</span><span class="o">=</span><span class="n">neutrino_fluxes</span><span class="o">.</span><span class="n">ICECUBE_FITS</span><span class="p">[</span><span class="s2">"IceCube2022_numu"</span><span class="p">][</span><span class="s2">"offset"</span><span class="p">]):</span>
+    <span class="c1"># 9.5 years analysis, https://arxiv.org/abs/2111.10299</span>
+    <span class="k">return</span> <span class="n">neutrino_fluxes</span><span class="o">.</span><span class="n">ice_cube_power_law</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">slope</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_proton_10</span><span class="p">(</span><span class="n">energy</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">neutrino_fluxes</span><span class="o">.</span><span class="n">get_flux</span><span class="p">(</span><span class="s2">"vanVliet2019_proton10"</span><span class="p">,</span> <span class="n">energy</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="get_energy_from_flux">
@@ -998,7 +1001,7 @@
 <span class="sd">        * 'E-?': E to the -? spectrum where ? can be any float</span>
 <span class="sd">        * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)</span>
 <span class="sd">        * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for</span>
-<span class="sd">          10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)</span>
+<span class="sd">          10% proton fraction (model 'vanVliet2019_proton10' in NuRadioMC.utilities.neutrino_fluxes)</span>
 <span class="sd">        * 'GZK-2': GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)</span>
 <span class="sd">        * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</span>
 <span class="sd">        * 'GZK-1+IceCube-nu-2022': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux</span>
@@ -1030,31 +1033,27 @@
 <span class="sd">        a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,</span>
 <span class="sd">        and a proton fraction of 10% at E = 10^19.6 eV</span>
 <span class="sd">        """</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.examples.Sensitivities.E2_fluxes3</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_proton_10</span>
-        <span class="n">energies</span> <span class="o">=</span> <span class="n">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">get_proton_10</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
+        <span class="n">energies</span> <span class="o">=</span> <span class="n">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">_get_proton_10</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
     <span class="k">elif</span><span class="p">(</span><span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">"IceCube-nu-2017"</span><span class="p">):</span>
         <span class="n">energies</span> <span class="o">=</span> <span class="n">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">ice_cube_nu_fit</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
     <span class="k">elif</span><span class="p">(</span><span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">"IceCube-nu-2022"</span><span class="p">):</span>
         <span class="n">energies</span> <span class="o">=</span> <span class="n">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">ice_cube_nu_fit_2022</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
     <span class="k">elif</span><span class="p">(</span><span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">"GZK-1+IceCube-nu-2017"</span><span class="p">):</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.examples.Sensitivities.E2_fluxes3</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_proton_10</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">J</span><span class="p">(</span><span class="n">E</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">ice_cube_nu_fit</span><span class="p">(</span><span class="n">E</span><span class="p">)</span> <span class="o">+</span> <span class="n">get_proton_10</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ice_cube_nu_fit</span><span class="p">(</span><span class="n">E</span><span class="p">)</span> <span class="o">+</span> <span class="n">_get_proton_10</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
 
         <span class="n">energies</span> <span class="o">=</span> <span class="n">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
     <span class="k">elif</span><span class="p">(</span><span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">"GZK-1+IceCube-nu-2022"</span><span class="p">):</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.examples.Sensitivities.E2_fluxes3</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_proton_10</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">J</span><span class="p">(</span><span class="n">E</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">ice_cube_nu_fit_2022</span><span class="p">(</span><span class="n">E</span><span class="p">)</span> <span class="o">+</span> <span class="n">get_proton_10</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ice_cube_nu_fit_2022</span><span class="p">(</span><span class="n">E</span><span class="p">)</span> <span class="o">+</span> <span class="n">_get_proton_10</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
 
         <span class="n">energies</span> <span class="o">=</span> <span class="n">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
     <span class="k">elif</span><span class="p">(</span><span class="n">spectrum_type</span> <span class="o">==</span> <span class="s2">"GZK-2+IceCube-nu-2022"</span><span class="p">):</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioMC.examples.Sensitivities.E2_fluxes3</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_TAGZK_flux_ICRC2021</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">J</span><span class="p">(</span><span class="n">E</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">ice_cube_nu_fit_2022</span><span class="p">(</span><span class="n">E</span><span class="p">)</span> <span class="o">+</span> <span class="n">get_TAGZK_flux_ICRC2021</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ice_cube_nu_fit_2022</span><span class="p">(</span><span class="n">E</span><span class="p">)</span> <span class="o">+</span> <span class="n">neutrino_fluxes</span><span class="o">.</span><span class="n">get_flux</span><span class="p">(</span><span class="s2">"TA_ICRC2021"</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
 
         <span class="n">energies</span> <span class="o">=</span> <span class="n">get_energy_from_flux</span><span class="p">(</span><span class="n">Emin</span><span class="p">,</span> <span class="n">Emax</span><span class="p">,</span> <span class="n">n_events</span><span class="p">,</span> <span class="n">J</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -1512,7 +1511,7 @@
 <span class="sd">        * 'E-?': E to the -? spectrum where ? can be any float</span>
 <span class="sd">        * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)</span>
 <span class="sd">        * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1</span>
-<span class="sd">          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)</span>
+<span class="sd">          for 10% proton fraction (model 'vanVliet2019_proton10' in NuRadioMC.utilities.neutrino_fluxes)</span>
 <span class="sd">        * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</span>
 
 <span class="sd">    start_file_id: int (default 0)</span>
@@ -1813,7 +1812,7 @@
 <span class="sd">        * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)</span>
 <span class="sd">        * 'IceCube-nu-2022': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.48550/arXiv.2111.10299)</span>
 <span class="sd">        * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1</span>
-<span class="sd">          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)</span>
+<span class="sd">          for 10% proton fraction (model 'vanVliet2019_proton10' in NuRadioMC.utilities.neutrino_fluxes)</span>
 <span class="sd">        * 'GZK-2': GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)</span>
 <span class="sd">        * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux</span>
 <span class="sd">        * 'GZK-1+IceCube-nu-2022': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux</span>

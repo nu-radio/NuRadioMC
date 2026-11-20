@@ -378,6 +378,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.utilities.html#dependencies">Dependencies</a></li>
 <li class="toctree-l4 current"><a class="reference internal" href="NuRadioReco.utilities.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.analytic_pulse.html">NuRadioReco.utilities.analytic_pulse module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.coding_helper.html">NuRadioReco.utilities.coding_helper module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.constants.html">NuRadioReco.utilities.constants module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.cr_flux.html">NuRadioReco.utilities.cr_flux module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
@@ -511,6 +512,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html">NuRadioMC.utilities.medium_base module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.merge_hdf5.html">NuRadioMC.utilities.merge_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html">NuRadioMC.utilities.muon_flux module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.neutrino_fluxes.html">NuRadioMC.utilities.neutrino_fluxes module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.plotting.html">NuRadioMC.utilities.plotting module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.runner.html">NuRadioMC.utilities.runner module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.runner_example.html">NuRadioMC.utilities.runner_example module</a></li>
@@ -737,7 +739,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.utilities.noise.thermalNoiseGenerator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">thermalNoiseGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_coincidence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_majority</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_coincidence_majority</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rayleigh'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_full_band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGenerator" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.utilities.noise.</span></span><span class="sig-name descname"><span class="pre">thermalNoiseGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampling_rate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Vrms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_coincidence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_majority</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_coincidence_majority</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trigger_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rayleigh'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_full_band</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/utilities/noise.html#thermalNoiseGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.utilities.noise.thermalNoiseGenerator" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Efficient algorithms to generate thermal noise fluctuations that fulfill a high/low trigger + a majority
 coincidence logic (as used by ARIANNA)</p>
@@ -773,6 +775,8 @@ if only one array is supplied, it is assumed to be the same for all channels</p>
 </dd>
 <dt><strong>keep_full_band: bool</strong></dt><dd><p>Flag to keep the full-band waveform instead of the one with the filter applied. Allows for
 triggering on a different (i.e. <em class="xref py py-obj">filt</em>) band than what is returned, (default is False)</p>
+</dd>
+<dt><strong>seed: int or None</strong></dt><dd><p>Seed for the noise generation and the trigger-time placement (default: None, not reproducible)</p>
 </dd>
 </dl>
 </dd>
@@ -848,7 +852,7 @@ if <em class="xref py py-obj">None</em>, a default filter is calculated from 96 
 </dd>
 <dt><strong>window_length: float, default 16 ns</strong></dt><dd><p>time interval of the integration window</p>
 </dd>
-<dt><strong>step_size: float, default 8 ns</strong></dt><dd><p>duration of a stride between window calcuations</p>
+<dt><strong>step_size: float, default 8 ns</strong></dt><dd><p>duration of a stride between window calculations</p>
 </dd>
 <dt><strong>main_low_angle: float, default -59.5 deg</strong></dt><dd><p>angle (radians) of the lowest beam</p>
 </dd>

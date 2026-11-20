@@ -378,6 +378,7 @@
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.utilities.html#dependencies">Dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="NuRadioReco.utilities.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.analytic_pulse.html">NuRadioReco.utilities.analytic_pulse module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.coding_helper.html">NuRadioReco.utilities.coding_helper module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.constants.html">NuRadioReco.utilities.constants module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.cr_flux.html">NuRadioReco.utilities.cr_flux module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
@@ -511,6 +512,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html">NuRadioMC.utilities.medium_base module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.merge_hdf5.html">NuRadioMC.utilities.merge_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html">NuRadioMC.utilities.muon_flux module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.neutrino_fluxes.html">NuRadioMC.utilities.neutrino_fluxes module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.plotting.html">NuRadioMC.utilities.plotting module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.runner.html">NuRadioMC.utilities.runner module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../NuRadioMC/apidoc/NuRadioMC.utilities.runner_example.html">NuRadioMC.utilities.runner_example module</a></li>
@@ -662,7 +664,7 @@ directly on a NuRadioMC/imported <code class="docutils literal notranslate"><spa
 in the <a class="reference internal" href="NuRadioReco.framework.parameters.html#NuRadioReco.framework.parameters.channelParameters.block_offsets" title="NuRadioReco.framework.parameters.channelParameters.block_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.framework.parameters.channelParameters.block_offsets</span></code></a> parameter.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.</span></span><span class="sig-name descname"><span class="pre">channelBlockOffsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.051000000000000004</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelBlockOffsetFitter.html#channelBlockOffsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.</span></span><span class="sig-name descname"><span class="pre">channelBlockOffsets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_frequency</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.051000000000000004</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/NuRadioReco/modules/RNO_G/channelBlockOffsetFitter.html#channelBlockOffsets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Add or remove block offsets to channel traces</p>
 <p>This module adds, fits or removes ‘block offsets’ by fitting
@@ -674,6 +676,9 @@ them in a specified out-of-band region in frequency space.</p>
 </dd>
 <dt><strong>max_frequency: float (default: 51 MHz)</strong></dt><dd><p>The maximum frequency to include in the out-of-band
 block offset fit</p>
+</dd>
+<dt><strong>seed: int | None (default: None)</strong></dt><dd><p>Seed for the random generator used by <a class="reference internal" href="#NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.add_offsets" title="NuRadioReco.modules.RNO_G.channelBlockOffsetFitter.channelBlockOffsets.add_offsets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_offsets</span></code></a>
+(see <a class="reference internal" href="NuRadioReco.utilities.coding_helper.html#NuRadioReco.utilities.coding_helper.get_rng" title="NuRadioReco.utilities.coding_helper.get_rng"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NuRadioReco.utilities.coding_helper.get_rng</span></code></a>)</p>
 </dd>
 </dl>
 </dd>

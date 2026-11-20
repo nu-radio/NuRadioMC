@@ -375,6 +375,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html#dependencies">Dependencies</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.html#submodules">Submodules</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.analytic_pulse.html">NuRadioReco.utilities.analytic_pulse module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.coding_helper.html">NuRadioReco.utilities.coding_helper module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.constants.html">NuRadioReco.utilities.constants module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.cr_flux.html">NuRadioReco.utilities.cr_flux module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.dataservers.html">NuRadioReco.utilities.dataservers module</a></li>
@@ -508,6 +509,7 @@
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.medium_base.html">NuRadioMC.utilities.medium_base module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.merge_hdf5.html">NuRadioMC.utilities.merge_hdf5 module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.muon_flux.html">NuRadioMC.utilities.muon_flux module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.neutrino_fluxes.html">NuRadioMC.utilities.neutrino_fluxes module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.plotting.html">NuRadioMC.utilities.plotting module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner.html">NuRadioMC.utilities.runner module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="../../../NuRadioMC/apidoc/NuRadioMC.utilities.runner_example.html">NuRadioMC.utilities.runner_example module</a></li>
@@ -659,6 +661,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.modules.base.module</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_run</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">antennapattern</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span><span class="p">,</span> <span class="n">fft</span><span class="p">,</span> <span class="n">ice</span><span class="p">,</span> <span class="n">geometryUtilities</span> <span class="k">as</span> <span class="n">geo_utl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.coding_helper</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_rng</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.efieldToVoltageConverter'</span><span class="p">)</span>
 
@@ -691,7 +694,7 @@
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.modules.efieldToVoltageConverter.html#NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter.begin">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">uncertainty</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">time_resolution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">pre_pulse_time</span><span class="o">=</span><span class="mi">200</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span> <span class="n">post_pulse_time</span><span class="o">=</span><span class="mi">400</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">ns</span><span class="p">,</span>
-              <span class="n">caching</span><span class="o">=</span><span class="kc">True</span>
+              <span class="n">caching</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span>
               <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Begin method, sets general parameters of module</span>
@@ -718,6 +721,9 @@
 <span class="sd">            length of empty samples that is added after the simulated trace</span>
 <span class="sd">        caching: bool</span>
 <span class="sd">            enable/disable caching of antenna response to save loading times (default: True)</span>
+<span class="sd">        seed: int or None (default: None)</span>
+<span class="sd">            Seed for the random generator used for the uncertainties (see</span>
+<span class="sd">            `NuRadioReco.utilities.coding_helper.get_rng`).</span>
 <span class="sd">        """</span>
 
         <span class="k">if</span> <span class="n">time_resolution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -731,16 +737,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__debug</span> <span class="o">=</span> <span class="n">debug</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__pre_pulse_time</span> <span class="o">=</span> <span class="n">pre_pulse_time</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__post_pulse_time</span> <span class="o">=</span> <span class="n">post_pulse_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__rng</span> <span class="o">=</span> <span class="n">get_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
 
         <span class="c1"># some uncertainties are systematic, fix them here</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span> <span class="o">=</span> <span class="n">uncertainty</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'sys_dx'</span><span class="p">,</span> <span class="s1">'sys_dy'</span><span class="p">,</span> <span class="s1">'sys_dz'</span><span class="p">]:</span>
             <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="s1">'sys_amp'</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">iCh</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="s1">'sys_amp'</span><span class="p">]:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="s1">'sys_amp'</span><span class="p">][</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="s1">'sys_amp'</span><span class="p">][</span><span class="n">iCh</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="s1">'sys_amp'</span><span class="p">][</span><span class="n">iCh</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="s1">'sys_amp'</span><span class="p">][</span><span class="n">iCh</span><span class="p">])</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__antenna_provider</span> <span class="o">=</span> <span class="n">antennapattern</span><span class="o">.</span><span class="n">AntennaPatternProvider</span><span class="p">()</span></div>
 
@@ -981,7 +988,7 @@
                         <span class="n">label</span><span class="o">=</span><span class="s2">"</span><span class="si">{}</span><span class="s2">, zen = </span><span class="si">{:.0f}</span><span class="s2">deg"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">electric_field</span><span class="p">[</span><span class="n">efp</span><span class="o">.</span><span class="n">ray_path_type</span><span class="p">],</span> <span class="n">zenith</span> <span class="o">/</span> <span class="n">units</span><span class="o">.</span><span class="n">deg</span><span class="p">))</span>
 
                 <span class="k">if</span> <span class="s1">'amp'</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">:</span>
-                    <span class="n">voltage_fft</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="s1">'amp'</span><span class="p">][</span><span class="n">channel_id</span><span class="p">])</span>
+                    <span class="n">voltage_fft</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="s1">'amp'</span><span class="p">][</span><span class="n">channel_id</span><span class="p">])</span>
 
                 <span class="k">if</span> <span class="s1">'sys_amp'</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">:</span>
                     <span class="n">voltage_fft</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__uncertainty</span><span class="p">[</span><span class="s1">'sys_amp'</span><span class="p">][</span><span class="n">channel_id</span><span class="p">]</span>
