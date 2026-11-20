@@ -13,7 +13,6 @@ that have not been deployed to the field), one can use the `Database` class dire
 
 """
 
-import six
 import os
 import urllib.parse
 import datetime
@@ -46,8 +45,7 @@ def _check_database_time(method):
     return _impl
 
 
-@six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
-class Database(object):
+class Database(metaclass=NuRadioReco.utilities.metaclasses.Singleton):
 
     def __init__(self, database_connection="RNOG_public", database_name=None, mongo_kwargs={}):
         """

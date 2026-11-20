@@ -14,7 +14,6 @@ from tinydb.storages import MemoryStorage
 import astropy.time
 from datetime import datetime
 from tinydb_serialization import Serializer
-import six  # # used for compatibility between py2 and py3
 import warnings
 import json
 try:
@@ -134,8 +133,7 @@ def buffer_db(in_memory, filename=None):
     return db
 
 
-@six.add_metaclass(NuRadioReco.utilities.metaclasses.Singleton)
-class DetectorBase(object):
+class DetectorBase(metaclass=NuRadioReco.utilities.metaclasses.Singleton):
     """
     main detector class which provides access to the detector description
 

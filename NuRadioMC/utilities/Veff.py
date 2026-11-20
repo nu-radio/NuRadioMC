@@ -3,7 +3,6 @@ import h5py
 from scipy import interpolate
 from scipy.interpolate import interp1d
 import glob
-from six import iteritems
 import json
 import os
 import copy
@@ -295,7 +294,7 @@ def get_Veff_Aeff_single(
         logger.warning(f"file {filename} is empty")
         for iT, trigger_name in enumerate(trigger_names):
             out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
-        for trigger_name, values in iteritems(trigger_combinations):
+        for trigger_name, values in trigger_combinations.items():
             out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
         
         return out
@@ -327,7 +326,7 @@ def get_Veff_Aeff_single(
     if triggered.size == 0:
         for iT, trigger_name in enumerate(trigger_names):
             out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
-        for trigger_name, values in iteritems(trigger_combinations):
+        for trigger_name, values in trigger_combinations.items():
             out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
         
         return out
@@ -337,7 +336,7 @@ def get_Veff_Aeff_single(
         triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
         out[veff_aeff][trigger_name] = get_veff_output(volume_proj_area, np.sum(weights[triggered]), n_events)
 
-    for trigger_name, values in iteritems(trigger_combinations):
+    for trigger_name, values in trigger_combinations.items():
         indiv_triggers = values['triggers']
         triggered = np.zeros_like(fin['multiple_triggers'][:, 0], dtype=bool)
         

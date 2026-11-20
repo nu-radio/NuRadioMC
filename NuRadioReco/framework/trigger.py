@@ -1,7 +1,6 @@
 import pickle
 from NuRadioReco.utilities.io_utilities import _dumps
 import numpy as np
-from six import iteritems
 
 from NuRadioReco.utilities import units
 
@@ -265,12 +264,12 @@ class Trigger:
         return _dumps(self.__dict__, protocol=4)
 
     def deserialize(self, data_pkl):
-        for key, value in iteritems(pickle.loads(data_pkl)):
+        for key, value in pickle.loads(data_pkl).items():
             setattr(self, key, value)
 
     def __str__(self):
         output = ""
-        for key, value in iteritems(self.__dict__):
+        for key, value in self.__dict__.items():
             output += "{}: {}\n".format(key[1:], value)
         return output
 
@@ -305,7 +304,7 @@ class Trigger:
 
     def get_trigger_settings(self):
         output = {}
-        for key, value in iteritems(self.__dict__):
+        for key, value in self.__dict__.items():
             output[key[1:]] = value
         return output
 

@@ -15,7 +15,6 @@ from NuRadioReco.utilities import io_utilities, version
 
 import astropy.time
 import datetime
-from six import itervalues
 import numpy as np
 import collections
 import pickle
@@ -206,7 +205,7 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         """
         Returns an iterator over all stations in the event.
         """
-        for station in itervalues(self.__stations):
+        for station in self.__stations.values():
             yield station
 
     def get_station_ids(self):

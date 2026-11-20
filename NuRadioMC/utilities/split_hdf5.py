@@ -2,7 +2,6 @@ import os
 import argparse
 import logging
 import math
-from six import iteritems
 import numpy as np
 import h5py
 logger = logging.getLogger("NuRadioMC.HDF5-split")
@@ -53,7 +52,7 @@ def split_hdf5_input_file(input_filename, output_filename, number_of_events_per_
                 n_data[key] = 0
             n_data[key] += len(data[key])
 
-    for key, value in iteritems(fin.attrs):
+    for key, value in fin.attrs.items():
         attributes[key] = value
 #     logger.info(f"setting number of events from {attributes['n_events']} to the actual number of events in this file {len(data_sets['event_ids'])}")
     fin.close()
