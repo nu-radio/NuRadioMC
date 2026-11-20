@@ -8,7 +8,6 @@ from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import signal_processing
 import NuRadioReco.framework.base_trace
 import NuRadioReco.framework.electric_field
-from NuRadioMC.SignalProp import propagation
 import matplotlib.pyplot as plt
 import logging
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -18,23 +17,54 @@ from radiotools import helper as hp
 logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
 
+def _get_ray_traced_travel_time(propagator, source_position, receiver_position, zenith, azimuth,
+                                label="receiver", warn=True, max_angle_deviation=3 * units.deg):
+    """ Ray-trace from ``source_position`` to ``receiver_position`` (both absolute) and return the travel time
+    of the solution whose arrival direction is closest to (zenith, azimuth). """
+    propagator.set_start_and_end_point(source_position, receiver_position)
+    propagator.find_solutions()
+    n_solutions = propagator.get_number_of_solutions()
+    if n_solutions == 0:
+        raise ValueError(
+            f"No propagation solution found for {label}. Please check the geometry. "
+            f"Source: {source_position}, receiver: {receiver_position}.")
+
+    receive_vector_provided = hp.spherical_to_cartesian(zenith, azimuth)
+    space_angle_differences = [hp.get_angle(receive_vector_provided, propagator.get_receive_vector(iS))
+                               for iS in range(n_solutions)]
+    solution_index = int(np.argmin(space_angle_differences))
+
+    if warn and space_angle_differences[solution_index] > max_angle_deviation:
+        logger.warning(
+            f"{label}: the closest ray-traced arrival direction deviates by "
+            f"{space_angle_differences[solution_index] / units.deg:.1f} deg from the provided direction "
+            f"(zenith {zenith / units.deg:.1f} deg, azimuth {azimuth / units.deg:.1f} deg). "
+            f"Please check the geometry and the provided angles.")
+
+    return propagator.get_travel_time(solution_index)
+
+
 def get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_pattern_provider,
-                          time_domain=False, efield_position=None, propagator=None, travel_time_delays=None):
-    """ Get the time-alligned voltage traces and antenna factors for electric field reconstruction using unfolding.
+                          time_domain=False, efield_position=None, time_delay_mode="plane_wave",
+                          propagator=None, travel_time_delays=None, ice_model=None, source_position=None):
+    """ Get the time-aligned voltage traces and antenna factors for electric field reconstruction using unfolding.
 
-    If the efield_position is at the same position as the antennas, the travel time delays are zero. Otherwise, the
-    travel time delays are calculated
+    Each channel trace is shifted by the signal arrival time delay between ``efield_position`` and the channel,
+    and all traces are cut to their common time window. Channels at the same position as ``efield_position``
+    are not shifted. How the delays are determined is set by ``time_delay_mode``:
 
-    If station.is_cosmic_ray() is True, the travel time delays are calculated from the geometry of the station and
-    the direction of the incoming signal using the refractive index of air or shallow ice assuming a plane wave.
+    * 'plane_wave' (default): plane wave arriving from (zenith, azimuth). For cosmic rays arriving from above
+      (``station.is_cosmic_ray()`` and zenith <= 90 deg), the in-air propagation speed is used. Otherwise, the
+      refractive index at the antenna depth is used: from ``ice_model`` if provided, else from
+      ``NuRadioReco.utilities.ice``, which is only allowed for antennas shallower than 10 m.
+      Suited for distant sources.
+    * 'ray_tracing': ray tracing with ``propagator`` from ``source_position`` to each channel and to
+      ``efield_position``. For each ray, the solution whose arrival direction is closest to (zenith, azimuth)
+      is used. Suited for sources close to the station, e.g. in shallow ice.
+    * 'user_defined': the delays are given directly via ``travel_time_delays``, for geometries not covered
+      by the above (e.g. plane waves from air observed with deep antennas).
 
-    If station.is_neutrino() is True, a propagator must be provided to calculate the travel time delays, using
-    station.get_parameter(stnp.nu_vertex) and a previously reconstructed (or MC true) absolute vertex position must
-    hence be saved in stnp.nu_vertex.
-
-    Alternatively, the travel time delays can be provided directly via the travel_time_delays argument, which overrides
-    the automatic calculation of the travel time delays. This is useful for geometries not supported by the automatic
-    calculation, e.g. plane waves in air observed with deep antennas.
+    All channels need to have the same sampling rate.
 
     Parameters
     ----------
@@ -56,13 +86,20 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_p
         If None, it raises an error.
     time_domain : bool, optional
         If True, returns the time domain traces as well. Default is False.
-    propagator : `NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base`, optional
-        Propagator module used to calculate the travel times for a neutrino event.
-        An instance of ``ray_tracing_base`` or any class derived from it.
-    travel_time_delays : numpy array, optional
-        The travel time delays for each channel in use_channels. If not provided (default), the travel time
-        delays are calculated from the geometry of the station and the direction of the incoming signal. Must
-        have same length as use_channels if provided.
+    time_delay_mode : {'plane_wave', 'ray_tracing', 'user_defined'}, default: 'plane_wave'
+        How the signal arrival time delays between the channels are determined (see above).
+    propagator : instance of ``NuRadioMC.SignalProp.propagation_base_class.ray_tracing_base``, optional
+        Propagator used to calculate the travel times. Required for ``time_delay_mode='ray_tracing'``.
+    travel_time_delays : array of floats, optional
+        Signal arrival time at each channel in ``use_channels`` (same order) relative to ``efield_position``;
+        positive values mean that the channel sees the signal later. Required for
+        ``time_delay_mode='user_defined'``, ignored (with a warning) otherwise.
+    ice_model : ``NuRadioMC.utilities.medium`` ice model, optional
+        Used for ``time_delay_mode='plane_wave'`` to get the refractive index at the antenna depth.
+        Required if any antenna is deeper than 10 m (unless the signal is a cosmic ray from above).
+    source_position : numpy array, optional
+        Absolute position of the signal source (e.g. neutrino vertex or pulser), in the same coordinate system
+        as ``det.get_absolute_position``. Required for ``time_delay_mode='ray_tracing'``.
 
     Returns
     -------
@@ -76,7 +113,6 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_p
         The time domain traces for the selected channels, if `time_domain` is True.
     """
 
-
     if efield_position is None:
         raise ValueError(
             "Function signature changed. Please provide `efield_position`. "
@@ -85,6 +121,35 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_p
             "of the deconvolved electric field traces is returned as first "
             "argument (see documentation)!")
 
+    if time_delay_mode not in ('plane_wave', 'ray_tracing', 'user_defined'):
+        raise ValueError(f"Unknown time_delay_mode {time_delay_mode!r}.")
+
+    if time_delay_mode == 'user_defined':
+        if travel_time_delays is None or len(travel_time_delays) != len(use_channels):
+            raise ValueError(
+                "time_delay_mode='user_defined' requires `travel_time_delays` with one entry per channel in `use_channels`.")
+    else:
+        if travel_time_delays is not None:
+            logger.warning(
+                "travel_time_delays is provided but will be ignored for time_delay_mode != 'user_defined'."
+            )
+
+    if time_delay_mode == "ray_tracing":
+        if propagator is None:
+            raise ValueError(
+                "For time_delay_mode='ray_tracing', a propagator must be provided."
+            )
+        if source_position is None:
+            raise ValueError(
+                "For time_delay_mode='ray_tracing', a source_position must be provided."
+            )
+
+    sampling_rates = [channel.get_sampling_rate() for channel in station.iter_channels(use_channels)]
+    if np.unique(sampling_rates).size != 1:
+        raise ValueError(
+            "All channels used for unfolding must have the same sampling rate"
+        )
+
     t_mins = []
     t_maxs = []
     t_shifts = []
@@ -92,70 +157,46 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_p
     station_id = station.get_id()
     site = det.get_site(station_id)
 
-    if station.is_neutrino() and travel_time_delays is None:
-        if propagator is None:
-            raise ValueError("For neutrino events, a propagator must be provided if travel_time_delays is not provided.")
-
-        # Calculate the travel time from the vertex to the efield_position to get a reference time:
-        vertex_position = station.get_parameter(stnp.nu_vertex)
-        efield_absolute_position = efield_position + det.get_absolute_position(station.get_id()) # assuming that the vertex_position is absolute, the absolute position is needed here
-        propagator.set_start_and_end_point(vertex_position, efield_absolute_position)
-        propagator.find_solutions()
-        if propagator.get_number_of_solutions() > 0:
-            efield_travel_time = propagator.get_travel_time(0) # using first solution
-        else:
-            raise ValueError(f"No propagation solution found for channel {channel_id}. Please check the geometry. Vertex: {vertex_position}, Antenna: {antenna_position}.")
+    if time_delay_mode == "ray_tracing":
+        # reference travel time from the source to the efield position (absolute positions)
+        station_position = det.get_absolute_position(station_id)
+        efield_travel_time = _get_ray_traced_travel_time(
+            propagator, source_position, station_position + efield_position, zenith, azimuth,
+            label="efield position")
 
     for iCh, channel in enumerate(station.iter_channels(use_channels)):
         channel_id = channel.get_id()
 
-        if travel_time_delays is None:
-
-            if np.linalg.norm(det.get_relative_position(station_id, channel_id) - efield_position) < 0.01 * units.mm:
-                time_shift = 0.0
-
-            elif station.is_cosmic_ray():
-                antenna_position = det.get_relative_position(station_id, channel_id) # here, only the relative position is needed
-
-                # determine refractive index of signal propagation speed between antennas
-                if zenith <= 0.5 * np.pi:
-                    refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
-                elif zenith > 0.5 * np.pi:
-                    refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
-
-                time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position - efield_position, n=refractive_index)
-
-            elif station.is_neutrino():
-
-                # Calculate the travel time delays using the propagator
-                antenna_position = det.get_relative_position(station_id, channel_id) + det.get_absolute_position(station.get_id()) # assuming that the vertex_position is absolute, the absolute position is needed here
-                propagator.set_start_and_end_point(vertex_position, antenna_position)
-                propagator.find_solutions()
-                if propagator.get_number_of_solutions() > 0:
-                    travel_time = propagator.get_travel_time(0) # using first solution
-                else:
-                    raise ValueError(f"No propagation solution found for channel {channel_id}. Please check the geometry. Vertex: {vertex_position}, Antenna: {antenna_position}.")
-
-                # Warning if ray-traced arrival direction is not consistent with zenith and azimuth
-                receive_vector = propagator.get_receive_vector(0)
-                zenith_receive, azimuth_receive = hp.cartesian_to_spherical(receive_vector[0], receive_vector[1], receive_vector[2])
-                if not (np.isclose(zenith_receive, zenith, atol=3 * units.deg) and np.isclose(azimuth_receive, azimuth, atol=3 * units.deg)):
-                    logger.warning(
-                        f"Ray-traced arrival direction (zenith: {zenith_receive / units.deg}, azimuth: {azimuth_receive / units.deg}) is not "
-                        f"consistent with the provided zenith ({zenith / units.deg}) and azimuth ({azimuth / units.deg}) angles. "
-                        f"Please check the geometry and the reconstruction and provided angles. Vertex: {vertex_position}, Antenna: {antenna_position}."
-                    )
-
-                time_shift = - (travel_time - efield_travel_time)
-
-            else:
-                raise ValueError(
-                    "Please set station.set_is_cosmic_ray(True) for cosmic ray events (plane wave air or shallow ice), "
-                    "station.set_is_neutrino(True) for neutrino events (deep ice), or provide user-defined travel_time_delays."
-                    )
-
-        else:
+        if time_delay_mode == "user_defined":
             time_shift = -travel_time_delays[iCh]
+
+        elif np.linalg.norm(det.get_relative_position(station_id, channel_id) - efield_position) < 0.01 * units.mm:
+            time_shift = 0.0
+
+        elif time_delay_mode == "ray_tracing":
+            antenna_position = station_position + det.get_relative_position(station_id, channel_id)
+            travel_time = _get_ray_traced_travel_time(
+                propagator, source_position, antenna_position, zenith, azimuth,
+                label=f"Channel {channel_id}", warn=False)
+            time_shift = -(travel_time - efield_travel_time)
+
+        elif time_delay_mode == "plane_wave":
+            antenna_position = det.get_relative_position(station_id, channel_id) # here, only the relative position is needed
+
+            # plane wave: in-air speed for cosmic rays from above, otherwise n at the antenna depth
+            if station.is_cosmic_ray() and zenith <= 0.5 * np.pi:
+                refractive_index = ice.get_refractive_index(1, site)
+            else:
+                if ice_model is not None:
+                    refractive_index = ice_model.get_index_of_refraction(antenna_position)
+                elif antenna_position[2] > -10 * units.m:
+                    refractive_index = ice.get_refractive_index(antenna_position[2], site)
+                else:
+                    raise ValueError(
+                        "For time_delay_mode='plane_wave', the ice_model must be provided for antennas below 10 m depth."
+                    )
+            time_shift = -geo_utl.get_time_delay_from_direction(
+                zenith, azimuth, antenna_position - efield_position, n=refractive_index)
 
         t_shifts.append(time_shift)
         t_min = channel.get_trace_start_time() + time_shift
@@ -246,59 +287,69 @@ class voltageToEfieldConverter:
     Alternatively, the polarization of the resulting efield could be forced to a
     single polarization component. In that case, a single antenna is sufficient.
 
-    The module automatically calculates the relavant time delays for channels, if they are not at the same position.
+    The electric field is reconstructed at the mean position of the used channels. If the channels are not
+    at the same position, their voltage traces are first aligned in time. The signal arrival time delays
+    are determined according to ``time_delay_mode`` (set in `begin`):
 
-    If station.is_cosmic_ray() is True, the travel time delays are calculated from the geometry of the station and
-    the direction of the incoming signal using the refractive index of air or shallow ice assuming a plane wave.
+    * 'plane_wave' (default): plane wave arriving from (zenith, azimuth). Suited for distant sources.
+      For antennas deeper than 10 m, an ``ice_model`` is required.
+    * 'ray_tracing': ray tracing from a source position (``source_position`` in `run`, or the station
+      parameter ``stnp.nu_vertex``) to the channels. Suited for sources close to the station,
+      e.g. in shallow ice. Requires an ``ice_model``.
+    * 'user_defined': delays provided via ``travel_time_delays`` in `run`, for geometries not covered by
+      the above.
 
-    If station.is_neutrino() is True, a propagator must be provided to calculate the travel time delays, using
-    station.get_parameter(stnp.nu_vertex) and a previously reconstructed (or MC true) absolute vertex position must
-    hence be saved in stnp.nu_vertex.
-
-    Alternatively, the travel time delays can be provided directly via the travel_time_delays argument, which overrides
-    the automatic calculation of the travel time delays. This is useful for geometries not supported by the automatic
-    calculation, e.g. plane waves in air observed with deep antennas.
+    All channels in ``use_channels`` need to have the same sampling rate.
     """
 
     def __init__(self):
         self.antenna_provider = None
         self.begin()
 
-    def begin(self, debug=False, hann_window_duration=30 * units.ns, ice_model=None, config=None):
+    def begin(self, hann_window_duration=30 * units.ns, time_delay_mode='plane_wave', ice_model=None, propagation_module='analytic', debug=False):
         """
         Initialize the voltageToEfieldConverter.
 
         Parameters
         ----------
-        debug : bool, optional
-            If True, enables debug mode.
         hann_window_duration : float, optional
             A Hann window is applied to the edges of the voltage traces to reduce artifacts from the
             FFT and unfolding. The default duration is 30 ns at each edge, but can be set to 0 to disable
             the Hann window.
-        ice_model : `NuRadioReco.utilities.medium.ice_model`, optional
-            The ice model to use for the propagation module. If None, the default ice model is used.
-            Only needed if station.is_neutrino() is True, otherwise ignored.
-        config : dict, optional
-            A simulation configuration dictionary used to initialize the propagator. If config is None
-            or 'module' not in config['propagation'], the analytic ray-tracing propagation module is used.
-            Only needed if station.is_neutrino() is True, otherwise ignored.
+        time_delay_mode : {'plane_wave', 'ray_tracing', 'user_defined'}, default: 'plane_wave'
+            How the signal arrival time delays between the channels are determined:
+
+            * 'plane_wave': plane wave arriving from (zenith, azimuth), using the in-air propagation speed
+              for cosmic rays from above and the refractive index at the antenna depth otherwise.
+            * 'ray_tracing': ray tracing from the source position to the channels. Requires ``ice_model``,
+              and ``source_position`` in `run` (or the station parameter ``stnp.nu_vertex``).
+            * 'user_defined': delays given via ``travel_time_delays`` in `run`.
+
+        ice_model : ``NuRadioMC.utilities.medium`` ice model, optional
+            Required for ``time_delay_mode='ray_tracing'`` (used to set up the propagator). For 'plane_wave',
+            it provides the refractive index at the antenna depth and is required for antennas deeper than
+            10 m. If None (default), no propagator is created.
+        propagation_module : str, default: 'analytic'
+            Propagation module name passed to ``propagation.get_propagation_module``. Only used together with
+            ``ice_model``. Options are: 'analytic', 'radiopropa', 'direct_ray'.
+        debug : bool, optional
+            If True, saves debug plots of the aligned voltage traces, antenna factors and unfolded
+            electric field.
         """
         self.antenna_provider = antennapattern.AntennaPatternProvider()
-        self.debug = debug
+        self.time_delay_mode = time_delay_mode
+        self.ice_model = ice_model
         self.hann_window_duration = hann_window_duration
+        self.debug = debug
 
         if ice_model is not None:
-            if config is None or 'module' not in config['propagation']:
-                propagation_module = propagation.get_propagation_module('analytic')
-            else:
-                propagation_module = propagation.get_propagation_module(config['module'])
-            self.propagator = propagation_module(ice_model, detector=None, config=config)
+            from NuRadioMC.SignalProp import propagation  # lazy: only needed for ray-traced time delays
+            self.propagator = propagation.get_propagation_module(propagation_module)(ice_model)
         else:
             self.propagator = None
 
     @register_run()
-    def run(self, evt, station, det, use_channels=None, use_MC_direction=False, force_Polarization='', travel_time_delays=None):
+    def run(self, evt, station, det, use_channels=None, use_MC_direction=False, force_Polarization='', travel_time_delays=None, source_position=None):
         """
         run method. This function is executed for each event
 
@@ -316,11 +367,14 @@ class voltageToEfieldConverter:
             If eTheta or ePhi, then only reconstructs chosen polarization of electric field,
             assuming the other is 0. Otherwise (default), reconstructs electric field for both eTheta and ePhi
         travel_time_delays: array of floats, optional
-            If provided, the travel time delays for each channel in use_channels are used to shift the
-            voltage traces to the same reference position. This is useful for situations where ray-tracing
-            is needed to determine the travel time delays, e.g. for antennas in deep ice. If not provided,
-            the travel time delays are calculated from the geometry of the station and the direction of the
-            incoming signal using the refractive index of air or shallow ice.
+            Signal arrival time at each channel in ``use_channels`` (same order) relative to the electric
+            field position (the mean position of ``use_channels``); positive values mean that the channel
+            sees the signal later. Required for ``time_delay_mode='user_defined'``, ignored (with a warning)
+            otherwise.
+        source_position: numpy array, optional
+            Absolute position of the signal source (e.g. neutrino vertex or pulser), in the same coordinate
+            system as ``det.get_absolute_position``. Used for ``time_delay_mode='ray_tracing'``. If None,
+            the station parameter ``stnp.nu_vertex`` is used.
         """
         if use_channels is None:
             msg = ("No channels specified for electric field reconstruction. "
@@ -332,6 +386,9 @@ class voltageToEfieldConverter:
                 "Please provide at least two channels in `use_channels` or set `force_Polarization` to 'eTheta' or 'ePhi'.")
             logger.error(msg)
             raise ValueError(msg)
+
+        if any(channel_id not in station.get_channel_ids() for channel_id in use_channels):
+            raise ValueError("Some channels in `use_channels` are not present in the station. Please check the channel ids.")
 
         if use_MC_direction:
             zenith = station.get_sim_station()[stnp.zenith]
@@ -345,15 +402,28 @@ class voltageToEfieldConverter:
             det.get_relative_position(station.get_id(), channel_id)
             for channel_id in use_channels], axis=0)
 
-        times, efield_antenna_factor, traces_freq_domain = get_array_of_channels(
-            station, use_channels, det, zenith, azimuth, self.antenna_provider, efield_position=efield_position, propagator=self.propagator, travel_time_delays=travel_time_delays)
+        if self.time_delay_mode == "ray_tracing" and source_position is None:
+            if not station.has_parameter(stnp.nu_vertex):
+                raise ValueError("For time_delay_mode='ray_tracing', provide `source_position` or set stnp.nu_vertex.")
+            source_position = station.get_parameter(stnp.nu_vertex)
 
-        if self.hann_window_duration > 0:
-            hann_window_samples = int(self.hann_window_duration * station.get_channel(use_channels[0]).get_sampling_rate())
-            traces_time_domain = fft.freq2time(traces_freq_domain, station.get_channel(use_channels[0]).get_sampling_rate())
+        times, efield_antenna_factor, traces_freq_domain = get_array_of_channels(
+            station, use_channels, det, zenith, azimuth, self.antenna_provider,
+            efield_position=efield_position,
+            ice_model=self.ice_model,
+            source_position=source_position,
+            time_delay_mode=self.time_delay_mode,
+            propagator=self.propagator,
+            travel_time_delays=travel_time_delays
+        )
+
+        if self.hann_window_duration > 0 * units.ns:
+            sampling_rate = station.get_channel(use_channels[0]).get_sampling_rate()
+            hann_window_samples = int(self.hann_window_duration * sampling_rate)
+            traces_time_domain = fft.freq2time(traces_freq_domain, sampling_rate)
             hann_window = signal_processing.half_hann_window(traces_time_domain.shape[1], hann_window_length=hann_window_samples)
             traces_time_domain[:, :] *= hann_window[None, :]
-            traces_freq_domain = fft.time2freq(traces_time_domain, station.get_channel(use_channels[0]).get_sampling_rate())
+            traces_freq_domain = fft.time2freq(traces_time_domain, sampling_rate)
 
         if self.debug:
             fig, ax = plt.subplots(len(use_channels), 1, figsize=(10, 2*len(use_channels)))
@@ -367,19 +437,21 @@ class voltageToEfieldConverter:
             ax[0].legend()
             fig.tight_layout()
             plt.savefig("debug_voltage_traces.png")
+            plt.close()
 
             fig, ax = plt.subplots(len(use_channels), 1, figsize=(10, 2*len(use_channels)))
-            frequencies = np.fft.rfftfreq(len(times), d=1/station.get_channel(use_channels[0]).get_sampling_rate())
+            frequencies = fft.freqs(len(times), sampling_rate=station.get_channel(use_channels[0]).get_sampling_rate())
             ax[0].set_title(f'Station {station.get_id()} - Event {evt.get_id()} - Run {evt.get_run_number()} - Shifted Voltage Traces')
             for i_ch in range(len(traces_freq_domain)):
                 ax[i_ch].plot(frequencies, abs(efield_antenna_factor[i_ch,0,:]), label=f'Channel {use_channels[i_ch]}, theta')
                 ax[i_ch].plot(frequencies, abs(efield_antenna_factor[i_ch,1,:]), label=f'Channel {use_channels[i_ch]}, phi')
-                ax[i_ch].set_ylabel('Voltage [V]')
+                ax[i_ch].set_ylabel('|Antenna factor| [m]')
                 ax[i_ch].set_xlim(frequencies[0], frequencies[-1])
             ax[-1].set_xlabel('Frequency [GHz]')
             ax[0].legend()
             fig.tight_layout()
             plt.savefig("debug_antenna_factors.png")
+            plt.close()
 
         n_frequencies = len(traces_freq_domain[0])
         denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] -
@@ -413,6 +485,7 @@ class voltageToEfieldConverter:
             ax[-1].set_xlabel('Time [ns]')
             fig.tight_layout()
             plt.savefig("debug_efield_unfolded.png")
+            plt.close()
 
     def end(self):
         pass
