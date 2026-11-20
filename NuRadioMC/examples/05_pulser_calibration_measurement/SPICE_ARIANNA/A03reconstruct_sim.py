@@ -28,6 +28,7 @@ import NuRadioReco.modules.channelTimeWindow
 import NuRadioReco.modules.channelSignalReconstructor
 import NuRadioReco.modules.eventTypeIdentifier
 
+from NuRadioMC.simulation.simulation import get_config
 from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from radiotools import helper as hp
@@ -54,6 +55,8 @@ if __name__ == "__main__":
     efieldTimeDirectionFitter.begin(debug=plot)
     channelTimeWindow.begin(debug=False)
     correlationDirectionFitter.begin(debug=False, log_level=logging.DEBUG)
+    ice_model = medium.get_ice_model(get_config('config_spice.yaml')['propagation']['ice_model'])
+    voltageToEfieldConverter.begin(time_delay_mode='ray_tracing', ice_model=ice_model)
 
     electricFieldSignalReconstructor.begin(log_level=logging.WARNING)
 
@@ -215,7 +218,7 @@ if __name__ == "__main__":
                 fig.savefig("plots/efields/d_{:04.0f}m.png".format(d))
                 plt.close("all")
     #             a = 1/0
-
+            station.set_parameter(stnp.nu_vertex, evt.get_first_sim_emitter()[ep.position])
             voltageToEfieldConverter.run(evt, station, det, use_channels=[0,1,2,3], use_MC_direction=True)
             for efield in station.get_electric_fields_for_channels([0,1,2,3]):
                 etrace = efield.get_trace()
