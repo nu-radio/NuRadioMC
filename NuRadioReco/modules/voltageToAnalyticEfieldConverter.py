@@ -12,7 +12,7 @@ from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units, fft, trace_utilities, signal_processing
 from NuRadioReco.utilities import analytic_pulse as pulse
-from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
+from NuRadioReco.modules.voltageToEfieldConverter import _get_array_of_channels
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
 import NuRadioReco.framework.electric_field
@@ -326,7 +326,7 @@ class voltageToAnalyticEfieldConverter:
             det.get_relative_position(station.get_id(), channel_id)
             for channel_id in use_channels], axis=0)
 
-        times, efield_antenna_factor, V, V_timedomain = get_array_of_channels(
+        times, efield_antenna_factor, V, V_timedomain = _get_array_of_channels(
             station, use_channels, det, zenith, azimuth, self.antenna_provider,
             time_domain=True, efield_position=efield_position)
 
