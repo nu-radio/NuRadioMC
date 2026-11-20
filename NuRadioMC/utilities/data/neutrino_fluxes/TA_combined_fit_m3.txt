@@ -1,5 +1,6 @@
 # combined fit to TA energy and Xmax data (from Douglas Bergman)
 # best fit parameters:  gamma=2.0, Rcut=1514 EeV, assuming source evolution m=3
+# energy [GeV], E^2 * flux [GeV cm^-2 s^-1 sr^-1]
 1.01e+06 6.20e-11
 1.04e+06 6.31e-11
 1.06e+06 6.47e-11

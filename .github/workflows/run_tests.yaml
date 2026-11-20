@@ -262,6 +262,16 @@ jobs:
       run: |
         python NuRadioReco/test/utilities/test_trace_utilities.py
 
+    - name: "Test neutrino flux models"
+      if: always()
+      run: |
+        python NuRadioMC/test/utilities/test_neutrino_fluxes.py
+
+    - name: "Test limit plot"
+      if: always()
+      run: |
+        python NuRadioMC/test/examples/test_limit_plot.py
+
     - name: "Test coding helpers"
       if: always()
       run: |

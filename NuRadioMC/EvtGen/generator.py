@@ -9,7 +9,7 @@ import h5py
 import time
 
 import NuRadioMC
-from NuRadioMC.utilities import inelasticities
+from NuRadioMC.utilities import inelasticities, neutrino_fluxes
 from NuRadioMC.simulation.time_logger import pretty_time_delta
 from NuRadioReco.utilities import units, version, particle_names
 
@@ -224,19 +224,20 @@ def primary_energy_from_deposited(Edep, ccnc, flavor, inelasticity):
             return Edep / inelasticity  # TODO: change this for taus
 
 
-def ice_cube_nu_fit(energy, slope=-2.19, offset=1.01):
+def ice_cube_nu_fit(energy, slope=neutrino_fluxes.ICECUBE_FITS["IceCube2017_numu"]["slope"],
+                    offset=neutrino_fluxes.ICECUBE_FITS["IceCube2017_numu"]["offset"]):
     # from https://doi.org/10.22323/1.301.1005
-    # ApJ slope=-2.13, offset=0.9
-    flux = 3 * offset * (energy / (100 * units.TeV)) ** slope * 1e-18 * \
-        (units.GeV ** -1 * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-    return flux
+    return neutrino_fluxes.ice_cube_power_law(energy, slope, offset)
 
 
-def ice_cube_nu_fit_2022(energy, slope=-2.37, offset=1.44):
-    # 9.5 years analysis 2.37+0.09−0.09, offset 1.44 + 0.25 - 0.26, Astrophysical normalization @ 100TeV: 1.44+0.25−0.26 × 10−18 GeV−1cm−2s−1 sr−1
-    flux = 3 * offset * (energy / (100 * units.TeV)) ** slope * 1e-18 * \
-        (units.GeV ** -1 * units.cm ** -2 * units.second ** -1 * units.sr ** -1)
-    return flux
+def ice_cube_nu_fit_2022(energy, slope=neutrino_fluxes.ICECUBE_FITS["IceCube2022_numu"]["slope"],
+                         offset=neutrino_fluxes.ICECUBE_FITS["IceCube2022_numu"]["offset"]):
+    # 9.5 years analysis, https://arxiv.org/abs/2111.10299
+    return neutrino_fluxes.ice_cube_power_law(energy, slope, offset)
+
+
+def _get_proton_10(energy):
+    return neutrino_fluxes.get_flux("vanVliet2019_proton10", energy)
 
 
 def get_energy_from_flux(Emin, Emax, n_events, flux, rnd=None):
@@ -324,7 +325,7 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1 for
-          10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
+          10% proton fraction (model 'vanVliet2019_proton10' in NuRadioMC.utilities.neutrino_fluxes)
         * 'GZK-2': GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
         * 'GZK-1+IceCube-nu-2022': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux
@@ -356,31 +357,27 @@ def get_energies(n_events, Emin, Emax, spectrum_type, rnd=None):
         a spectral index of the injection spectrum of α = 2.5, a cut-oﬀ rigidity of R = 100 EeV,
         and a proton fraction of 10% at E = 10^19.6 eV
         """
-        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_proton_10
-        energies = get_energy_from_flux(Emin, Emax, n_events, get_proton_10, rnd)
+        energies = get_energy_from_flux(Emin, Emax, n_events, _get_proton_10, rnd)
     elif(spectrum_type == "IceCube-nu-2017"):
         energies = get_energy_from_flux(Emin, Emax, n_events, ice_cube_nu_fit, rnd)
     elif(spectrum_type == "IceCube-nu-2022"):
         energies = get_energy_from_flux(Emin, Emax, n_events, ice_cube_nu_fit_2022, rnd)
     elif(spectrum_type == "GZK-1+IceCube-nu-2017"):
-        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_proton_10
 
         def J(E):
-            return ice_cube_nu_fit(E) + get_proton_10(E)
+            return ice_cube_nu_fit(E) + _get_proton_10(E)
 
         energies = get_energy_from_flux(Emin, Emax, n_events, J, rnd)
     elif(spectrum_type == "GZK-1+IceCube-nu-2022"):
-        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_proton_10
 
         def J(E):
-            return ice_cube_nu_fit_2022(E) + get_proton_10(E)
+            return ice_cube_nu_fit_2022(E) + _get_proton_10(E)
 
         energies = get_energy_from_flux(Emin, Emax, n_events, J, rnd)
     elif(spectrum_type == "GZK-2+IceCube-nu-2022"):
-        from NuRadioMC.examples.Sensitivities.E2_fluxes3 import get_TAGZK_flux_ICRC2021
 
         def J(E):
-            return ice_cube_nu_fit_2022(E) + get_TAGZK_flux_ICRC2021(E)
+            return ice_cube_nu_fit_2022(E) + neutrino_fluxes.get_flux("TA_ICRC2021", E)
 
         energies = get_energy_from_flux(Emin, Emax, n_events, J, rnd)
     else:
@@ -817,7 +814,7 @@ def generate_surface_muons(filename, n_events, Emin, Emax,
         * 'E-?': E to the -? spectrum where ? can be any float
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1
-          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
+          for 10% proton fraction (model 'vanVliet2019_proton10' in NuRadioMC.utilities.neutrino_fluxes)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
 
     start_file_id: int (default 0)
@@ -1115,7 +1112,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         * 'IceCube-nu-2017': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.22323/1.301.1005)
         * 'IceCube-nu-2022': astrophysical neutrino flux measured with IceCube muon sample (https://doi.org/10.48550/arXiv.2111.10299)
         * 'GZK-1': GZK neutrino flux model from van Vliet et al., 2019, https://arxiv.org/abs/1901.01899v1
-          for 10% proton fraction (see get_proton_10 in examples/Sensitivities/E2_fluxes3.py for details)
+          for 10% proton fraction (model 'vanVliet2019_proton10' in NuRadioMC.utilities.neutrino_fluxes)
         * 'GZK-2': GZK neutrino flux model from fit to TA data (https://pos.sissa.it/395/338/)
         * 'GZK-1+IceCube-nu-2017': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2017) flux
         * 'GZK-1+IceCube-nu-2022': a combination of the cosmogenic (GZK-1) and astrophysical (IceCube nu 2022) flux
