@@ -37,6 +37,8 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   The `AntennaPattern.VEL`, `AntennaPattern.VEL_theta` and `AntennaPattern.VEL_phi` attributes are deprecated, the cube is
   stored in `AntennaPattern._vel`.
 - Added `impulsiveSignalReconstructor` module to reconstruct 'generic' impulsive signals
+- pre-commit formats the changed lines of Python files with black and warns about flake8 violations on them;
+  CI reports the latter as warnings (non-blocking). See the contributing guide.
 
 bugfixes:
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH

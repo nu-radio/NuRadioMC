@@ -59,6 +59,27 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --max-complexity=10 --max-line-length=127 --statistics  --exit-zero
 
+  lint-changed-lines:
+    name: Lint changed lines (warnings only)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0  # for the merge base with the target branch
+        filter: blob:none  # file contents are fetched on demand
+
+    - uses: actions/setup-python@v6
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: flake8 on lines changed with respect to the target branch
+      env:
+        PRE_COMMIT_FROM_REF: origin/${{ github.base_ref || 'develop' }}
+        PRE_COMMIT_TO_REF: HEAD
+      run: |
+        pip install flake8==7.1.2
+        python .github/git_hooks/changed-lines.py lint
+
   single-events:
     name: Single event simulation | signal and trigger simulation validation
     runs-on: ${{ inputs.os || 'ubuntu-latest' }}

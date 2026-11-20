@@ -94,10 +94,13 @@ def lint_files(filenames, hunks):
 
     violations = []
     for line in result.stdout.splitlines():  # <file>:<line>:<column>: <code> <message>
-        match = re.match(r"(.+?):(\d+):\d+: ", line)
+        match = re.match(r"(.+?):(\d+):(\d+): (\S+) (.*)", line)
         if match is None:
             fail(f"can not parse the flake8 output line {line!r}")
-        if int(match.group(2)) in lines[match.group(1)]:
+        filename, lineno, column, code, message = match.groups()
+        if int(lineno) in lines[filename]:
+            if os.environ.get("GITHUB_ACTIONS") == "true":  # annotation shown in the PR diff
+                line = f"::warning file={filename},line={lineno},col={column},title=flake8 {code}::{message}"
             violations.append(line)
 
     if violations:
