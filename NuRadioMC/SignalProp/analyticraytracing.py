@@ -1031,7 +1031,7 @@ class ray_tracing(ray_tracing_base):
         if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
         else:
-            focusing = 1
+            focusing = 1.
 
         output_dict = {
             'ray_tracing_C0': self.get_results()[i_solution]['C0'],

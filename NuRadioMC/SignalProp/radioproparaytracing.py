@@ -1292,7 +1292,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
         else:
-            focusing = 1
+            focusing = 1.
         output_dict = {
             'sphere_sizes': self._sphere_sizes,
             'launch_vector': self.get_launch_vector(i_solution),
