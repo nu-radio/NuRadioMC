@@ -31,6 +31,7 @@ In general we try to follow 'industry' coding workflow conventions. So, if somet
 * Coding conventions
 
 NuRadioMC/Reco follows PEP-8 coding conventions, https://www.python.org/dev/peps/pep-0008/
+New and changed lines are formatted with black (settings in `pyproject.toml`); the pre-commit hook does this automatically.
 
 Please document your code extensively, especially the physics behind it. Each function should come with its doc string where all variables are defined. 
 

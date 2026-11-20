@@ -61,7 +61,7 @@ Navigate to the ``NuRadioMC`` folder and run:
 (note the ``-e`` flag!). This will install the core dependencies, as well as the optional ``dev`` dependencies (use ``[dev,all]`` instead to also install all optional dependencies),
 and tell ``python`` to look for ``NuRadioMC`` and ``NuRadioReco`` in this folder, so that you can edit and contribute to the codebase while using it.
 The last line, ``pre-commit install`` installs a git hook using `pre-commit <https://pre-commit.com>`__. **This is highly recommended for developers as it
-helps to keep the repository clean from accidentally added large files**. More details are given :ref:`here <Introduction/pages/contributing:Installing NuRadioMC for developers>`.
+helps to keep the repository clean from accidentally added large files** and formats the lines you change (black). More details are given :ref:`here <Introduction/pages/contributing:Installing NuRadioMC for developers>`.
 
 .. Note::
 
@@ -184,8 +184,8 @@ for :ref:`specific detectors or data formats <Introduction/pages/installation:Ot
 
 - ``[dev]``
 
-  For developers, we use `pre-commit <https://pre-commit.com>`__ to prevent the accidental addition of large files that would clutter the repository, as well as run some simple
-  code formatting checks (see :ref:`here <Introduction/pages/contributing:Installing NuRadioMC for developers>` for more details):
+  For developers, we use `pre-commit <https://pre-commit.com>`__ to prevent the accidental addition of large files that would clutter the repository, as well as format the lines you
+  change with black and warn about style violations (see :ref:`here <Introduction/pages/contributing:Installing NuRadioMC for developers>` for more details):
 
   .. code-block:: bash
 

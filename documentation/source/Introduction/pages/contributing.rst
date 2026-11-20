@@ -111,6 +111,8 @@ Coding conventions
 In general we try to follow 'industry' coding workflow conventions. So, if
 something is not explicitly mentioned here, please resort to 'best practices'.
 NuRadioMC tries to follow `PEP-8 coding conventions <https://www.python.org/dev/peps/pep-0008/>`_.
+New and changed lines are formatted with `black <https://black.readthedocs.io>`__ (settings in ``pyproject.toml``);
+the pre-commit hook does this automatically.
 
 Please document your code extensively, especially the physics behind it.
 Each function should come with a docstring where all variables are defined.
