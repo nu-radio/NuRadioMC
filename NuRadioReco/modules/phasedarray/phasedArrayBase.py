@@ -521,7 +521,8 @@ class PhasedArrayBase():
                     for channel_id in beam_rolls[iTrace]}
 
                 triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(sig_trace > threshold)))
-                trigger_times[iTrace] = np.abs(np.min(list(trigger_delays[iTrace]))) + triggered_bins * step * time_step + channel_trace_start_time
+                # the smallest roll is 0, so the phased trace keeps the time axis of the undelayed channel
+                trigger_times[iTrace] = triggered_bins * step * time_step + channel_trace_start_time
 
                 logger.debug(
                     "Station has triggered, at bins {}\n".format(triggered_bins) +
