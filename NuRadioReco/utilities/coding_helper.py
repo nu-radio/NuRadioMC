@@ -79,3 +79,29 @@ def array_from_vectorized_function(function: Callable, iterable: Iterable, dtype
     array and an explicit ``numpy.stack``.
     """
     return np.stack(np.fromiter(map(function, iterable), dtype=object), dtype=dtype)
+
+
+def get_rng(seed=None):
+    """
+    Return a random number generator.
+
+    NuRadio code does not draw from numpy's global random state (``np.random.uniform``, ``np.random.seed``, ...)
+    nor from the ``random`` module of the standard library. Each module or function creates its own generator
+    with this function and exposes the seed, e.g. ``self._rng = get_rng(seed)`` in a module's ``begin(..., seed=None)``,
+    or ``rng = get_rng(rng)`` in a function with an ``rng=None`` argument.
+
+    Parameters
+    ----------
+    seed: None, int, array of int, `numpy.random.SeedSequence` or `numpy.random.Generator` (default: None)
+        Seed for a new `numpy.random.Generator` with a `numpy.random.Philox` bit generator. None seeds it from
+        the operating system's entropy (not reproducible). A `numpy.random.Generator` is returned as is,
+        so a caller can pass on its own generator.
+
+    Returns
+    -------
+    rng: `numpy.random.Generator`
+    """
+    if isinstance(seed, np.random.Generator):
+        return seed
+
+    return np.random.Generator(np.random.Philox(seed))
