@@ -75,8 +75,7 @@ region : str
 region_name : str
     Human-readable name of the region. For plotting.
 
-Internally these definitions are converted to arrays using
-:func:`layers_to_arrays` in order to support Numba compilation.
+Internally these definitions are converted to arrays in order to support Numba compilation.
 
 Contact: hannes.warnhofer@desy.de
 Created 2026
@@ -93,8 +92,6 @@ from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 
 import logging
 logger = logging.getLogger("NuRadioMC.analytic_ray_tracing")
-
-NumbaList = list # fallback for get_path_segments function
 
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import get_layer_index, get_n_1D, analytic_F, compute_offsets, build_y_field, evaluate_y, find_z_turn, get_turning_point, get_c0_from_theta, get_delta_y, get_skim_angle, determine_solution_type
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.solver import find_solutions, find_solutions_bulk
@@ -141,15 +138,10 @@ class multi_layer_ray_tracing_2D():
         self.medium = medium
 
         self.attenuation_model = attenuation_model or "SP1"
-        #if self.attenuation_model not in attenuation_util.model_to_int:
-        #    raise NotImplementedError("attenuation model {} is not implemented".format(self.attenuation_model))
-
-        #self.attenuation_model_int = attenuation_util.model_to_int[self.attenuation_model]
 
         self.__n_frequencies_integration = n_frequencies_integration
         self.dz = dz
         self.use_cpp = False # For compatibility with old raytracer
-        #self.compile_numba = None # For compatibility with old raytracer
         self.compile_numba = compile_numba
 
         numba_available = False
@@ -158,12 +150,10 @@ class multi_layer_ray_tracing_2D():
         try:
             from numba import njit
             from numba.core.registry import CPUDispatcher
-            from numba.typed import List as NumbaList
             numba_available = True
             self._logger.status("Numba version of raytracer is available")
         except ImportError:
             self._logger.warning("Numba is not available")
-            NumbaList = list # fallback for get_path_segments function
             numba_available = False
 
         use_ensure_jitted = False
@@ -495,8 +485,8 @@ class multi_layer_ray_tracing_2D():
 
         return attenuation_factor
 
-    def get_time_difference_plane_wave_analytic(self, x1, x2, src_zenith, src_azimuth, azimuth_convention = 'nuradio'):
+    def get_time_difference_plane_wave_analytic(self, x1, x2, src_zenith, src_azimuth):
 
-        dt = get_time_difference_plane_wave_analytic(x1, x2, src_zenith, src_azimuth, self._layers_arr, azimuth_convention)
+        dt = get_time_difference_plane_wave_analytic(x1, x2, src_zenith, src_azimuth, self._layers_arr)
 
         return dt
