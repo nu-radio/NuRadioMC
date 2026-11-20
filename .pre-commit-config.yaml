@@ -30,4 +30,5 @@ repos:
         additional_dependencies: [flake8==7.1.2]
         entry: python .github/git_hooks/changed-lines.py lint
         types: [python]
+        verbose: true  # the hook only warns: show its output although it passes
 

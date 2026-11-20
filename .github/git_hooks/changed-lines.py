@@ -80,7 +80,7 @@ def format_files(filenames, hunks):
 
 
 def lint_files(filenames, hunks):
-    """Run flake8 and report the violations on changed lines."""
+    """Run flake8 and print the violations on changed lines as warnings (exit code 0, like the CI)."""
     lines = collections.defaultdict(set)
     for filename in filenames:
         for start, count in hunks[filename]:
@@ -101,8 +101,7 @@ def lint_files(filenames, hunks):
             violations.append(line)
 
     if violations:
-        print("\n".join(violations) + f"\n\n{len(violations)} flake8 violation(s) on changed lines.")
-        return 1
+        print("\n".join(violations) + f"\n\nWarning: {len(violations)} flake8 violation(s) on changed lines.")
 
     return 0
 

@@ -21,6 +21,14 @@ In particular, we strongly recommend that you install the `pre-commit hook <http
 This will run a small set of checks every time you try to add a commit to the repository, which prevents you from
 accidentally adding large files, makes sure you don't commit to a protected branch,
 as well as another couple of small checks.
+It also formats the lines you changed with `black <https://black.readthedocs.io>`__ (the rest of the file is left untouched).
+If it reformatted something, the commit stops: review the changes, ``git add`` them and commit again.
+Remaining style violations (``flake8``) on the changed lines are printed as warnings and do not block the commit.
+To format and check all changes of your branch at once, run
+
+.. code-block:: bash
+
+  pre-commit run --from-ref origin/develop --to-ref HEAD
 
 Workflow
 --------
