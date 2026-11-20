@@ -22,7 +22,7 @@ def deserialize(triggers_pkl):
             trigger = EnvelopeTrigger(None, None, None, None)
         elif trigger_type == 'int_power':
             trigger = IntegratedPowerTrigger(None, None, None)
-        elif trigger_type == 'envelope_phased':
+        elif trigger_type in ('analog_envelope_phased', 'envelope_phased'):
             trigger  = EnvelopePhasedTrigger(None, None, None, None)
         elif trigger_type == 'digital_envelope_phased':
             trigger  = DigitalEnvelopePhasedTrigger(None, None, None, None)
@@ -159,14 +159,15 @@ class Trigger:
 
         Returns
         -------
-        trigger_times : np.ndarray
-            Array of all times where the trigger condition was satisfied
+        trigger_times : np.ndarray or None
+            Array of all times where the trigger condition was satisfied.
+            None if no trigger time is set.
 
         See Also
         --------
         get_trigger_time : method to return the (first) trigger time
         """
-        if self._trigger_times is None and not np.isnan(self._trigger_time):
+        if self._trigger_times is None and self._trigger_time is not None and not np.isnan(self._trigger_time):
             return np.array(self._trigger_time)
         return self._trigger_times
 
@@ -485,8 +486,14 @@ class SimplePhasedTrigger(Trigger):
         self._trigger_delays = trigger_delays
         self._sec_trigger_delays = sec_trigger_delays
         self._window_size = window_size
-        self._step_side = step_size
+        self._step_size = step_size
         self._maximum_amps = maximum_amps
+
+    def deserialize(self, data_pkl):
+        Trigger.deserialize(self, data_pkl)
+        # files written before NuRadioReco 3.2 store the step size as `_step_side`
+        if hasattr(self, '_step_side'):
+            self._step_size = self.__dict__.pop('_step_side')
 
 
 class HighLowTrigger(Trigger):

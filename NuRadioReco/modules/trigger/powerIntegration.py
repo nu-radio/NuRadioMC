@@ -121,8 +121,9 @@ class triggerSimulator:
             for channel in station.iter_trigger_channels():
                 max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
             station.set_parameter(stnp.channels_max_amplitude, max_signal)
-        trigger = IntegratedPowerTrigger(trigger_name, threshold, triggered_channels,
-                                         number_concidences, integration_window=integration_window)
+        trigger = IntegratedPowerTrigger(trigger_name, threshold, coinc_window, channels=triggered_channels,
+                                         number_of_coincidences=number_concidences,
+                                         integration_window=integration_window)
         trigger.set_triggered_channels(channels_that_passed_trigger)
         if has_triggered:
             trigger.set_triggered(True)
