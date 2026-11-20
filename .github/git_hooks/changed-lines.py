@@ -7,7 +7,8 @@ Usage: ``changed-lines.py {format,lint} [files]``. Without files, all changed ``
 
 Changed lines are those between HEAD and the working tree (in a pre-commit run, unstaged changes are stashed:
 the staged lines plus any edits of the format hook). With PRE_COMMIT_FROM_REF and PRE_COMMIT_TO_REF set, e.g. by
-``pre-commit run --from-ref origin/develop --to-ref HEAD``, they are those since the merge base of both refs.
+``pre-commit run --from-ref origin/develop --to-ref HEAD``, they are those since the merge base of both refs
+(PRE_COMMIT_TO_REF must be HEAD). Both hooks do nothing while a merge is in progress.
 """
 
 import argparse
@@ -39,10 +40,10 @@ def diff_refs():
     from_ref, to_ref = os.environ.get("PRE_COMMIT_FROM_REF"), os.environ.get("PRE_COMMIT_TO_REF")
     if not (from_ref and to_ref):
         return ["HEAD"]
-    if git("rev-parse", to_ref) == git("rev-parse", "HEAD"):
-        # compare to the working tree, so that line numbers include the edits of the format hook
-        return ["--merge-base", from_ref]
-    return [f"{from_ref}...{to_ref}"]
+    if git("rev-parse", to_ref) != git("rev-parse", "HEAD"):
+        fail(f"--to-ref {to_ref} is not the checked-out commit (HEAD), but the hooks process the working tree")
+    # compare to the working tree, so that line numbers include the edits of the format hook
+    return ["--merge-base", from_ref]
 
 
 def changed_hunks():
@@ -114,6 +115,11 @@ def main():
     parser.add_argument("mode", choices=["format", "lint"])
     parser.add_argument("files", nargs="*")
     args = parser.parse_args()
+
+    if subprocess.run(["git", "rev-parse", "-q", "--verify", "MERGE_HEAD"], capture_output=True).returncode == 0:
+        # the diff to HEAD contains all lines of the merged branch, not only those changed by the user
+        print("changed-lines: skipped while a merge is in progress")
+        return 0
 
     hunks = changed_hunks()
     filenames = args.files or [filename for filename in hunks if filename.endswith(".py")]
