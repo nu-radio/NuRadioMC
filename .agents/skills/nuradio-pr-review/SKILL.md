@@ -18,6 +18,7 @@ description: "Use when reviewing a NuRadio pull request."
 - Public API is deprecated, not removed or renamed (`deprecated` in `NuRadioReco/utilities/logging.py`).
 - New `framework/parameters.py` enum members are appended at the bottom with new values and a `#:` comment.
 - Units via `NuRadioReco.utilities.units`, FFTs via `NuRadioReco.utilities.fft`.
+- Random numbers come from a dedicated, seedable `Generator(Philox(seed))` (Conventions in `AGENTS.md`). Each use of numpy's global random state, `RandomState`, stdlib `random`, or an unseeded `default_rng()` without a `seed`/`rng` parameter in new or changed code is a finding.
 - New modules: `run(evt, station, det, ...)` with `@register_run()`, plus `begin` and `end`.
 - New tests are added as steps in `.github/workflows/run_tests.yaml`.
 - Physics-output changes come with before/after numbers and justified reference updates.
