@@ -3,6 +3,7 @@ Tests that triggers survive a write / read cycle through a ``.nur`` file and tha
 `Trigger.get_trigger_times` handles triggers without a trigger time.
 """
 import os
+import pickle
 import tempfile
 
 import numpy as np
@@ -71,9 +72,9 @@ def test_simple_phased_trigger_step_size_nur_roundtrip():
     assert settings_read["window_size"] == 16
     assert settings_read["step_size"] == 8
 
-    # files written before the fix store the step size as `_step_side`
-    trigger.__dict__["_step_side"] = trigger.__dict__.pop("_step_size")
-    settings_read = trg.deserialize([trigger.serialize()])["simple_phased"].get_trigger_settings()
+    # files written before the fix store the step size as `_step_side` (legacy format: pickled `__dict__`)
+    legacy = {"_name": "simple_phased", "_trigger_type": "simple_phased", "_window_size": 16, "_step_side": 8}
+    settings_read = trg.deserialize([pickle.dumps(legacy)])["simple_phased"].get_trigger_settings()
     assert settings_read["step_size"] == 8
     assert "step_side" not in settings_read
 

@@ -114,7 +114,7 @@ Parameter Storage
 ----------------------
 NuRadioReco offers a flexible way to store properties in the data structure via
 parameter storage. Certain classes (``Particle``, ``Station``, ``SimStation``, ``Channel``,
-``ElectricField``, ``RadioShower`` and ``HybridShower``) provide ``get_parameter``
+``ElectricField``, ``RadioShower``, ``HybridShower`` and ``Trigger``) provide ``get_parameter``
 and ``set_parameter`` functions that allow parameters to be stored in those
 objects along with their uncertainties and correlation to any other parameters.
 The parameters are defined in an enumerated type *enum*, so to add a new parameter,
@@ -195,6 +195,8 @@ It can be accessed by the ``get_station`` and ``get_stations`` methods of the ``
 Trigger
 ____________
 The :class:`Trigger<NuRadioReco.framework.trigger>` contains information about the station trigger - trigger type, threshold, trigger time and whether the trigger condition was satisfied.
+Apart from its name and type, all values of a trigger are stored as ``triggerParameters``
+(see :ref:`parameter storage <label_parameter_storage>`), e.g. ``trigger[triggerParameters.threshold]``.
 
 SimStation
 ____________
