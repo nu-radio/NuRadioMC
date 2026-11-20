@@ -116,7 +116,7 @@ def rolled_sum_slicing(traces, rolling):
 class thermalNoiseGenerator():
 
     def __init__(self, n_samples, sampling_rate, Vrms, threshold, time_coincidence, n_majority, time_coincidence_majority,
-                 n_channels, trigger_time, filt, noise_type="rayleigh", keep_full_band=False):
+                 n_channels, trigger_time, filt, noise_type="rayleigh", keep_full_band=False, seed=None):
         """
         Efficient algorithms to generate thermal noise fluctuations that fulfill a high/low trigger + a majority
         coincidence logic (as used by ARIANNA)
@@ -153,6 +153,8 @@ class thermalNoiseGenerator():
         keep_full_band: bool
             Flag to keep the full-band waveform instead of the one with the filter applied. Allows for
             triggering on a different (i.e. `filt`) band than what is returned, (default is False)
+        seed: int or None
+            Seed for the noise generation and the trigger-time placement (default: None, not reproducible)
         """
         self.n_samples = n_samples
         self.sampling_rate = sampling_rate
@@ -216,7 +218,11 @@ class thermalNoiseGenerator():
             self.norm[i] = integrate.trapezoid(np.abs(self.filt[i]) ** 2, self.ff)
             self.amplitude[i] = (self.max_freq - self.min_freq) ** 0.5 / self.norm[i] ** 0.5 * self.Vrms[i]
 
+        # independent streams for the noise and the placement of the trigger times
+        noise_seed, placement_seed = np.random.SeedSequence(seed).spawn(2)
         self.noise = channelGenericNoiseAdder.channelGenericNoiseAdder()
+        self.noise.begin(seed=noise_seed)
+        self.__rng = coding_helper.get_rng(placement_seed)
 
         self.keep_full_band = keep_full_band
 
@@ -250,7 +256,7 @@ class thermalNoiseGenerator():
                             if number_of_triggers == 1:
                                 n_traces[iCh] = np.roll(trace_to_keep, self.trigger_bin - np.argwhere(triggered_bins == True)[0])
                             else:
-                                tmp = np.random.randint(self.trigger_bin_low, self.trigger_bin)
+                                tmp = self.__rng.integers(self.trigger_bin_low, self.trigger_bin)
                                 n_traces[iCh] = np.roll(trace_to_keep, tmp - np.argwhere(triggered_bins == True)[0])
                 if number_of_triggers == self.n_majority:
                     # this additional break is needed because another channel might trigger

@@ -1,5 +1,6 @@
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, interferometry
+from NuRadioReco.utilities.coding_helper import get_rng
 
 from NuRadioReco.framework.parameters import showerParameters as shp
 
@@ -47,9 +48,10 @@ class efieldInterferometricDepthReco:
         self._tab = None
         self._interpolation = None
         self._signal_kind = None
+        self._rng = get_rng()
         pass
 
-    def begin(self, interpolation=True, signal_kind="power", debug=False):
+    def begin(self, interpolation=True, signal_kind="power", debug=False, seed=None):
         """
         Set module config.
 
@@ -66,8 +68,13 @@ class efieldInterferometricDepthReco:
 
         debug : bool
             If true, show some debug plots (Default: False).
+
+        seed : int or None
+            Seed for the random generator used by `efieldInterferometricAxisReco` for the search grid and the smearing
+            of the MC axis (see `NuRadioReco.utilities.coding_helper.get_rng`, Default: None).
         """
         self._debug = debug
+        self._rng = get_rng(seed)
         self._interpolation = interpolation
         self._signal_kind = signal_kind
 
@@ -538,8 +545,8 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         dr_ref_target = np.tan(deg_resolution) * dist
         if relative:
             # ensure that true xmax is within the search grid but not on a grid point
-            xlims = (np.array([-1.2, 1.2]) + np.random.uniform(0, .1, 2)) * np.abs(mc_vB[0])
-            ylims = (np.array([-1.2, 1.2]) + np.random.uniform(0, .1, 2)) * np.abs(mc_vB[1])
+            xlims = (np.array([-1.2, 1.2]) + self._rng.uniform(0, .1, 2)) * np.abs(mc_vB[0])
+            ylims = (np.array([-1.2, 1.2]) + self._rng.uniform(0, .1, 2)) * np.abs(mc_vB[1])
 
             xs = np.linspace(*xlims, 20)
             ys = np.linspace(*ylims, 20)
@@ -547,10 +554,10 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
         else:
             if centered_around_truth:
                 xs = np.arange(mc_vB[0] - cross_section_size / 2 -
-                            np.random.uniform(0, initial_grid_spacing, 1),
+                            self._rng.uniform(0, initial_grid_spacing, 1),
                             mc_vB[0] + cross_section_size / 2, initial_grid_spacing)
                 ys = np.arange(mc_vB[1] - cross_section_size / 2 -
-                            np.random.uniform(0, initial_grid_spacing, 1),
+                            self._rng.uniform(0, initial_grid_spacing, 1),
                             mc_vB[1] + cross_section_size / 2, initial_grid_spacing)
 
             else:
@@ -558,10 +565,10 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
                 max_dist = np.amax(
                     [np.abs(mc_vB[0]), np.abs(mc_vB[1]), 3 * initial_grid_spacing]) + initial_grid_spacing
                 xlims = np.array([-max_dist, max_dist]) + \
-                    np.random.uniform(-0.1 * initial_grid_spacing,
+                    self._rng.uniform(-0.1 * initial_grid_spacing,
                                     0.1 * initial_grid_spacing, 2)
                 ylims = np.array([-max_dist, max_dist]) + \
-                    np.random.uniform(-0.1 * initial_grid_spacing,
+                    self._rng.uniform(-0.1 * initial_grid_spacing,
                                     0.1 * initial_grid_spacing, 2)
                 xs = np.arange(xlims[0], xlims[1] +
                             initial_grid_spacing, initial_grid_spacing)
@@ -657,8 +664,8 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
             zenith_mc, azimuth_mc = hp.cartesian_to_spherical(*shower_axis)
 
             # smeare mc axis.
-            zenith_inital = zenith_mc + np.deg2rad(np.random.normal(0, 0.5))
-            azimuth_inital = azimuth_mc + np.deg2rad(np.random.normal(0, 0.5))
+            zenith_inital = zenith_mc + np.deg2rad(self._rng.normal(0, 0.5))
+            azimuth_inital = azimuth_mc + np.deg2rad(self._rng.normal(0, 0.5))
             shower_axis_inital = hp.spherical_to_cartesian(
                 zenith=zenith_inital, azimuth=azimuth_inital)
 
@@ -677,7 +684,7 @@ class efieldInterferometricAxisReco(efieldInterferometricDepthReco):
 
         if is_mc:
             core_inital = cs.transform_from_vxB_vxvxB_2D(
-                np.array([np.random.normal(0, 100), np.random.normal(0, 100), 0]), core)
+                np.array([self._rng.normal(0, 100), self._rng.normal(0, 100), 0]), core)
 
         depths = [500, 600, 700, 800, 900, 1000]
         deg_resolution = np.deg2rad(0.005)
