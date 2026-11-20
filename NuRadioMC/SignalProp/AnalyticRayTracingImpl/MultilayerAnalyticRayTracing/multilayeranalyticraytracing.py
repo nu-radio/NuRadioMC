@@ -135,7 +135,7 @@ class multi_layer_ray_tracing_2D():
         self._logger = logging.getLogger('NuRadioMC.multi_layer_ray_tracing_2D')
         self._logger.setLevel(log_level)
 
-        self.medium = medium
+        self.set_medium(medium)
 
         self.attenuation_model = attenuation_model or "SP1"
 
@@ -203,6 +203,18 @@ class multi_layer_ray_tracing_2D():
 
                     self._logger.warning("Error in compiling methods using jit - proceeding without numba")
                     compile_numba = False
+
+    def set_medium(self, medium):
+        """
+        Update the medium in which rays are propagated.
+
+        Parameters
+        ----------
+        medium: medium class
+            class describing the index-of-refraction profile
+            (`NuRadioMC.utilities.medium_base.IceModelExpLayers`)
+        """
+        self.medium = medium
 
     @property
     def _layers_arr(self):

@@ -127,12 +127,32 @@ class ray_tracing_base:
         if self._attenuation_model is None:
             self._attenuation_model = attenuation_model or 'SP1'
 
-        if self._n_reflections:
-            if not hasattr(self._medium, "reflection") or self._medium.reflection is None:
+        # remember the requested number of reflections before any medium-dependent adjustments are
+        # made. The effective number of reflections is re-evaluated whenever the medium is updated
+        # (see `set_medium`), which requires access to the originally requested value.
+        self._n_reflections_requested = self._n_reflections
+        self._update_n_reflections()
+
+    def _update_n_reflections(self):
+        """ Helper function to keep the effective number of bottom reflections consistent
+        with the current medium.
+
+        Rays can only reflect off the bottom if the medium has a reflective layer. If the
+        current medium does not have one, the effective number of reflections
+        (``self._n_reflections``) is set to zero; otherwise, the requested number of
+        reflections (``self._n_reflections_requested``) is used.
+        """
+        if self._n_reflections_requested and (
+                not hasattr(self._medium, "reflection") or self._medium.reflection is None):
+            # warn only if the effective value actually changes to avoid repeated
+            # warnings when updating media without a reflective layer
+            if self._n_reflections:
                 self.__logger.warning(
                     "Ray paths with bottom reflections requested but medium does "
                     "not have any reflective layer, setting number of reflections to zero.")
-                self._n_reflections = 0
+            self._n_reflections = 0
+        else:
+            self._n_reflections = self._n_reflections_requested
 
     def reset_solutions(self):
         self._X1 = None
@@ -185,6 +205,33 @@ class ray_tracing_base:
                     self._medium.reflection / units.m))
 
         return True
+
+    def set_medium(self, medium):
+        """
+        Update the medium in which rays are propagated.
+
+        Existing ray tracing solutions are invalidated (they are only valid for
+        the medium they were calculated in); call `set_start_and_end_point` and
+        `find_solutions` again afterwards. Passing the same medium object as the
+        current one is a no-op and keeps existing solutions.
+
+        The base class implementation only replaces the medium reference (and
+        adjusts the number of bottom reflections); subclasses that cache
+        medium-derived quantities have to extend this function accordingly.
+
+        Parameters
+        ----------
+        medium: medium class
+            class describing the index-of-refraction profile
+        """
+        if medium is self._medium:
+            self.__logger.debug("medium is unchanged, keeping existing ray tracing solutions")
+            return
+
+        self.__logger.debug("updating medium, resetting ray tracing solutions")
+        self._medium = medium
+        self._update_n_reflections()
+        self.reset_solutions()
 
     def use_optional_function(self, function_name, *args, **kwargs):
         """

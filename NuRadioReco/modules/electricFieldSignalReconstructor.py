@@ -102,17 +102,18 @@ class electricFieldSignalReconstructor:
             trace = electric_field.get_trace()
 
             if(debug):
-                fig, ax = plt.subplots(1, 1)
+                fig, ax = plt.subplots(1, 1, figsize=[10,4])
                 tt = electric_field.get_times()
                 dt = 1. / electric_field.get_sampling_rate()
-                ax.plot(tt / units.ns, trace[1] / units.mV * units.m)
-                ax.plot(tt / units.ns, trace[2] / units.mV * units.m)
+                ax.plot(tt / units.ns, trace[1] / units.mV * units.m , alpha=0.5)
+                ax.plot(tt / units.ns, trace[2] / units.mV * units.m, alpha=0.5)
                 ax.plot(times_masked / units.ns, envelope_mag / units.mV * units.m)
-                ax.vlines([signal_search_window[0] + low_pos * dt, signal_search_window[0] + up_pos * dt], 0, envelope_mag.max() / units.mV * units.m, linestyles='dotted')
+                ax.vlines([signal_search_window[0], signal_search_window[1]], 0, envelope_mag.max() / units.mV * units.m, linestyles='dotted')
                 ax.vlines([signal_time - self.__signal_window_pre, signal_time + self.__signal_window_post], 0, envelope_mag.max() / units.mV * units.m, linestyles='dashed')
                 ax.set_xlabel("time [ns]")
                 ax.set_ylabel("electric field [mV/m]")
-                ax.legend(["eTheta", "ePhi", "envelope", "search window"])
+                ax.legend(["eTheta", "ePhi", "envelope", "search window", "signal window"])
+                plt.tight_layout()
                 plt.savefig("debug_signal_reconstruction.png")
                 plt.show()
 
