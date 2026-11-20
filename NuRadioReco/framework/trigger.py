@@ -22,7 +22,7 @@ def deserialize(triggers_pkl):
             trigger = EnvelopeTrigger(None, None, None, None)
         elif trigger_type == 'int_power':
             trigger = IntegratedPowerTrigger(None, None, None)
-        elif trigger_type == 'envelope_phased':
+        elif trigger_type in ('analog_envelope_phased', 'envelope_phased'):
             trigger  = EnvelopePhasedTrigger(None, None, None, None)
         elif trigger_type == 'digital_envelope_phased':
             trigger  = DigitalEnvelopePhasedTrigger(None, None, None, None)
