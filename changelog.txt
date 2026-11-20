@@ -6,7 +6,7 @@ version 3.2.0-dev
 new features:
 - Added AGENTS.md (imported by .claude/CLAUDE.md) describing code structure, data structure and conventions for AI coding agents
   and new developers.
-- Added agent skills in .agents/skills (.claude/skills links to it) for adding tests / updating references and for reviewing PRs.
+- Added agent skills in .agents/skills (.claude/skills links to it) for adding tests / updating references, writing PR descriptions and reviewing PRs.
 - Added automatic test coverage measurement to CI. Coverage is combined across all test jobs and reported as a PR
   comment and a README badge; see the "Test coverage" section of the contributing guide for details.
 - Store shower Xmax in simulated shower when simulating with ARZ Askaryan emission models.
