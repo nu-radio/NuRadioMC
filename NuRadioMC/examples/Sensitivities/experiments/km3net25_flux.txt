@@ -1,0 +1,11 @@
+# Source: KM3-230231A flux KM3NeT https://www.nature.com/articles/s41586-024-08543-1 
+# Data type: Measurement 
+# Column values:
+# Energy [PeV]
+# Energy error down [PeV]
+# Energy error up [PeV]
+# Flux [GeV cm^-2 s^-1 sr^-1]
+# Flux error down
+# Flux error up
+
+220 148 2380 5.8e-8 3.7e-8 10.1e-8
