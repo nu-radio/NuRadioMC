@@ -20,9 +20,10 @@ import sys
 from typing import NoReturn
 
 # Explicit output formats: user configs (e.g. diff.noprefix, flake8 format=) must not change what is parsed.
-# E203, E701: conflict with black (see black's docs, "Using Black with other tools")
+# Differs from the CI's full flake8 job: E203, E701 conflict with black (see black's docs, "Using Black with other
+# tools"); no --max-complexity, as C901 is reported per function, not per changed line.
 FLAKE8_ARGS = ["--max-line-length=127", "--extend-ignore=E203,E701", "--format=default"]
-GIT_DIFF_ARGS = ["-U0", "--no-color", "--no-ext-diff", "--src-prefix=a/", "--dst-prefix=b/"]
+GIT_DIFF_ARGS = ["-U0", "--no-color", "--no-ext-diff", "--no-relative", "--src-prefix=a/", "--dst-prefix=b/"]
 
 
 def fail(message) -> NoReturn:
@@ -32,7 +33,8 @@ def fail(message) -> NoReturn:
 
 
 def git(*args):
-    return subprocess.check_output(["git"] + list(args)).decode()
+    # errors="replace": changed files may not be UTF-8 (only paths and hunk headers are parsed)
+    return subprocess.check_output(["git"] + list(args)).decode(errors="replace")
 
 
 def diff_refs():
@@ -57,7 +59,7 @@ def changed_hunks():
             if line == "+++ /dev/null":  # deleted file
                 filename = None
             elif line.startswith("+++ b/"):
-                filename = line[len("+++ b/") :]
+                filename = line[len("+++ b/") :].rstrip("\t")  # git appends a tab to paths with spaces
             else:  # e.g. a quoted path with special characters
                 fail(f"can not parse the diff line {line!r}")
         elif line.startswith("@@") and filename:
