@@ -10,5 +10,3 @@ python3 W05ElectricFields.py
 rm -r results
 rm input_3.2e+17_1.0e+19.hdf5
 rm input_3.2e+18_1.0e+19.hdf5.part00??
-# tables/dummmy is tracked
-rm -r tables/Greenland
