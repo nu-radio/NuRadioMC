@@ -357,7 +357,7 @@ class neutrinoLikelihoodReconstructor:
             plt.tight_layout()
             plt.savefig("debug_neutrinoLikelihoodReconstructor_spectra.png")
 
-        minus_two_llh_initial, minus_two_llh_fit, parameters_fit, uncertainties_fit = self._reconstruct_signal(traces, signal_model_wrapper, signal_parameters_initial, nuis_parameters_initial = nuis_initial or [], two_step_optimization=two_step_optimization, bounds=bounds, likelihood_scan=likelihood_scan)
+        minus_two_llh_initial, minus_two_llh_fit, parameters_fit, uncertainties_fit = self._reconstruct_signal(traces, signal_model_wrapper, signal_parameters_initial, nuis_parameters_initial = nuis_initial, two_step_optimization=two_step_optimization, bounds=bounds, likelihood_scan=likelihood_scan)
 
         signal_fit = signal_model_wrapper(parameters_fit)
 

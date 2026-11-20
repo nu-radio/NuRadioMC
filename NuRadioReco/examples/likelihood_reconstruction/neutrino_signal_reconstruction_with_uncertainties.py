@@ -42,7 +42,7 @@ import NuRadioReco.detector.RNO_G.rnog_detector_unc as rnog_detector_unc
 det_unc = rnog_detector_unc.UncertaintyAwareDetector(detector_folder = det_unc_path)
 det_unc.update(detector_time)
 
-reconstruct_with_uncertainties = False
+reconstruct_with_uncertainties = True
 
 evt = Event(1, 1)
 station_id = 11 
@@ -171,7 +171,7 @@ signal_parameters_initial = [
 # Run reconstruction:
 
 parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(
-    evt, station, det if reconstruct_with_uncertainties else det_nominal, signal_parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True, likelihood_scan = False, with_det_uncertainty = reconstruct_with_uncertainties)
+    evt, station, det_unc if reconstruct_with_uncertainties else det_nominal, signal_parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True, likelihood_scan = False, with_det_uncertainty = reconstruct_with_uncertainties)
 
 signal_parameters_fit = parameters_fit[:7]
 nuisance_parameters_fit = parameters_fit[7:]
