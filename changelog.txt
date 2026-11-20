@@ -42,6 +42,7 @@ bugfixes:
 - Store parameters with consistent types: reflection coefficients always complex, `focusing_factor` always float,
   generator attributes read from HDF5 arrays (e.g. `flavors`) as lists, the particle weight as float (was a 0-d array
   for neutrinos from above).
+- `weight_mode: None` in the simulation config raised a KeyError instead of setting the particle weight to 1.
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported

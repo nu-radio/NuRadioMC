@@ -955,7 +955,7 @@ def calculate_particle_weight(event_group, idx, cfg, fin=None):
             logger.error(
                 "config file specifies to use weights from the input hdf5 file but the input file does not contain this information.")
     elif cfg['weights']['weight_mode'] is None:
-        primary[simp.weight][simp.weight] = 1.
+        primary[simp.weight] = 1.
     else:
         # float(): get_weight returns a 0-d array for neutrinos from above
         primary[simp.weight] = float(get_weight(
