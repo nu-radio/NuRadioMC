@@ -5,35 +5,13 @@ description: "Use when writing or editing a NuRadio pull request title or descri
 
 # Writing a NuRadio PR
 
-Base branch: `develop`. Before opening, check that `changelog.txt` has a line under the current `-dev` version ("new features" or "bugfixes").
+Before opening, the checks in the comment at the top of `pull_request_template.md` hold: base `develop`, docstrings for new functions and classes, a `changelog.txt` line under the current `-dev` version ("new features" or "bugfixes").
 
 **Title:** imperative. For a bug fix, name the bug, not the solution (`Fix wrong amplitude units after trace resampling`); otherwise name the effect a user sees.
 
 **Labels:** at least one. Pick from `gh label list`: a component (`NuRadioMC`, `NuRadioReco`, `RNO-G`, `Detector`, ...) plus a type (`Bug`, `New Feature`, `cleanup`, `Documentation/CI/Examples`).
 
-**Body:** this template replaces the text of `pull_request_template.md`. Use the terms of `GLOSSARY.md`. Every claim is something verified; anything else is left out.
-
-```markdown
-## Summary
-
-<1-3 sentences: what was wrong or missing, what changes. Link the issue if there is one.>
-<optional: diagram, diff sketch, or call tree>
-
-## Evidence
-
-- <test or check run> → <result>
-- <size of the effect, if outputs change>
-- Not tested: <paths the checks did not exercise>
-
-## Backwards compatibility & downstream impact
-
-- **API:** <unchanged | extended | breaking> — <what calling code must change>
-- **Data:** <unchanged | changed> — <existing input files/configs still read? files written still readable by older versions?>
-- **Results:** <unchanged | changed> — <which outputs, for which inputs/settings, by how much>
-- **Migration:** <what users do to keep old behaviour or adapt; omit if nothing>
-
-<optional: merge order, related PRs/branches, follow-ups>
-```
+**Body:** fill in the sections of `pull_request_template.md` and drop its HTML comments. After the sections, optionally: merge order, related PRs, follow-ups. Use the terms of `GLOSSARY.md`. Every claim is something verified; anything else is left out.
 
 ## Summary
 
