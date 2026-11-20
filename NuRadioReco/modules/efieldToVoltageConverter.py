@@ -11,6 +11,7 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import units, fft, ice, geometryUtilities as geo_utl
+from NuRadioReco.utilities.coding_helper import get_rng
 
 logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
 
@@ -39,7 +40,7 @@ class efieldToVoltageConverter():
 
     def begin(self, debug=False, uncertainty=None, time_resolution=None,
               pre_pulse_time=200 * units.ns, post_pulse_time=400 * units.ns,
-              caching=True
+              caching=True, seed=None
               ):
         """
         Begin method, sets general parameters of module
@@ -66,6 +67,9 @@ class efieldToVoltageConverter():
             length of empty samples that is added after the simulated trace
         caching: bool
             enable/disable caching of antenna response to save loading times (default: True)
+        seed: int or None (default: None)
+            Seed for the random generator used for the uncertainties (see
+            `NuRadioReco.utilities.coding_helper.get_rng`).
         """
 
         if time_resolution is not None:
@@ -79,16 +83,17 @@ class efieldToVoltageConverter():
         self.__debug = debug
         self.__pre_pulse_time = pre_pulse_time
         self.__post_pulse_time = post_pulse_time
+        self.__rng = get_rng(seed)
 
         # some uncertainties are systematic, fix them here
         self.__uncertainty = uncertainty or {}
         for key in ['sys_dx', 'sys_dy', 'sys_dz']:
             if key in self.__uncertainty:
-                self.__uncertainty[key] = np.random.normal(0, self.__uncertainty[key])
+                self.__uncertainty[key] = self.__rng.normal(0, self.__uncertainty[key])
 
         if 'sys_amp' in self.__uncertainty:
             for iCh in self.__uncertainty['sys_amp']:
-                self.__uncertainty['sys_amp'][iCh] = np.random.normal(1, self.__uncertainty['sys_amp'][iCh])
+                self.__uncertainty['sys_amp'][iCh] = self.__rng.normal(1, self.__uncertainty['sys_amp'][iCh])
 
         self.__antenna_provider = antennapattern.AntennaPatternProvider()
 
@@ -326,7 +331,7 @@ class efieldToVoltageConverter():
                         label="{}, zen = {:.0f}deg".format(electric_field[efp.ray_path_type], zenith / units.deg))
 
                 if 'amp' in self.__uncertainty:
-                    voltage_fft *= np.random.normal(1, self.__uncertainty['amp'][channel_id])
+                    voltage_fft *= self.__rng.normal(1, self.__uncertainty['amp'][channel_id])
 
                 if 'sys_amp' in self.__uncertainty:
                     voltage_fft *= self.__uncertainty['sys_amp'][channel_id]

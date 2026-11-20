@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from NuRadioMC.utilities import fluxes
-from NuRadioMC.examples.Sensitivities import E2_fluxes3 as limit
+from NuRadioMC.examples.Sensitivities import limit_plot as limit
 from NuRadioReco.utilities import units
 import json
 legendfontsize = 11
@@ -47,16 +47,13 @@ pyrex_100[:,2] *= units.km**3
 
 #
 
-fig, ax = limit.get_E2_limit_figure(diffuse = True,
+fig, ax = limit.get_limit_figure(diffuse = True,
                     show_ice_cube_EHE_limit=True,
                     show_ice_cube_HESE_fit=False,
                     show_ice_cube_HESE_data=True,
                     show_ice_cube_mu=True,
                     show_anita_I_III_limit=True,
                     show_auger_limit=True,
-                    show_neutrino_best_fit=True,
-                    show_neutrino_best_case=True,
-                    show_neutrino_worst_case=True,
                     show_ara=True,
                     show_grand_10k=True,
                     show_grand_200k=False,

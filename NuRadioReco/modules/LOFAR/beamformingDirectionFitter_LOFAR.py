@@ -9,6 +9,7 @@ from scipy.optimize import minimize, fmin_powell, Bounds
 
 from NuRadioReco.utilities import fft
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.coding_helper import get_rng
 from NuRadioReco.framework.parameters import stationParameters, channelParameters, showerParameters
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.voltageToEfieldConverter import voltageToEfieldConverter
@@ -27,8 +28,9 @@ class beamformingDirectionFitter:
 
         self.__max_iter = None
         self.__cr_snr = None
+        self.__rng = None
 
-    def begin(self, max_iter, cr_snr=3, logger_level=logging.NOTSET):
+    def begin(self, max_iter, cr_snr=3, logger_level=logging.NOTSET, seed=None):
         """
         Set the values for the fitting procedures.
 
@@ -40,8 +42,11 @@ class beamformingDirectionFitter:
             The minimum SNR a channel should have to be considered having a CR signal.
         logger_level : int, default=logging.NOTSET
             Use this parameter to override the logging level for this module.
+        seed : int or None, default=None
+            Seed for the random selection of traces (see `NuRadioReco.utilities.coding_helper.get_rng`).
         """
         self.__max_iter = max_iter
+        self.__rng = get_rng(seed)
         self.__cr_snr = cr_snr
 
         self.logger.setLevel(logger_level)
@@ -60,7 +65,7 @@ class beamformingDirectionFitter:
         freq = station.get_electric_fields()[0].get_frequencies()
 
         # Determine dominant polarisation in Efield by looking for strongest signal in 5 randomly selected traces
-        random_traces = np.random.choice(station.get_electric_fields(), size=5)
+        random_traces = self.__rng.choice(station.get_electric_fields(), size=5)
         dominant_pol_traces = []
         for trace in random_traces:
             trace_envelope = np.abs(hilbert(trace.get_trace(), axis=0))

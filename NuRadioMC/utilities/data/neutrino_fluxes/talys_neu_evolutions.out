@@ -4,7 +4,7 @@
 # 3 sigma lower/upper limit for cutoff at z=1
 # 3 sigma lower/upper limit for flat evo above z=1
 # 3 sigma lower/upper limit for citoff at z=3
-# all fluxes in [GeV^-1 cm^-1 s^-1 sr^-1]
+# all fluxes in [GeV^-1 cm^-2 s^-1 sr^-1]
 # 
 1.037393e+03 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00
 1.114977e+03 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00

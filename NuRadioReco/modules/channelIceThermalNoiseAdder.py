@@ -9,6 +9,7 @@ import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, ice, geometryUtilities, signal_processing
+from NuRadioReco.utilities.coding_helper import get_rng
 
 import logging
 logger = logging.getLogger('NuRadioReco.channelThermalNoiseAdder')
@@ -61,7 +62,7 @@ class channelIceThermalNoiseAdder:
 
 
 
-    def begin(self, eff_temperature_files, nr_phi_bins=64, channel_depth_matching_error=10, debug=False):
+    def begin(self, eff_temperature_files, nr_phi_bins=64, channel_depth_matching_error=10, debug=False, seed=None):
         """
         Set up important parameters for the module
 
@@ -79,6 +80,8 @@ class channelIceThermalNoiseAdder:
             then the module will not match the temperature at 40m to this channel and throw an error
         debug : bool
             If True removes randomization of electric field phases and polarizations to speed up testing
+        seed : int or None (default: None)
+            Seed for the random generator (see `NuRadioReco.utilities.coding_helper.get_rng`)
         """
         self.temperature_files = eff_temperature_files
         self.channel_depth_matching_error = channel_depth_matching_error
@@ -94,6 +97,7 @@ class channelIceThermalNoiseAdder:
         self.nr_theta_bins = len(self.thetas)
 
         self.debug = debug
+        self.__rng = get_rng(seed)
         if self.debug:
             nr_phi_bins = 32
         self.phis = np.linspace(0 * units.degree, 360 * units.degree, nr_phi_bins)
@@ -176,7 +180,7 @@ class channelIceThermalNoiseAdder:
                     if self.debug:
                         phases = np.zeros(len(efield_amplitude))
                     else:
-                        phases = np.random.uniform(0, 2 * np.pi, len(efield_amplitude))
+                        phases = self.__rng.uniform(0, 2 * np.pi, len(efield_amplitude))
 
                         noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
                         noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude
@@ -190,7 +194,7 @@ class channelIceThermalNoiseAdder:
                         if self.debug:
                             polarizations = np.zeros(len(efield_amplitude))
                         else:
-                            polarizations = np.random.uniform(0, 2 * np.pi, len(efield_amplitude))
+                            polarizations = self.__rng.uniform(0, 2 * np.pi, len(efield_amplitude))
 
                         channel_noise_spec[1][passband_filter] = noise_spectrum[1][passband_filter] * np.cos(polarizations)
                         channel_noise_spec[2][passband_filter] = noise_spectrum[2][passband_filter] * np.sin(polarizations)
