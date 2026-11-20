@@ -1083,8 +1083,9 @@ class ray_tracing(ray_tracing_base):
         # Multiple relfections are possible if a reflective bottom layer exists.
         for fresnel_coefficients in self.get_fresnel_coefficients(i_solution):
             if fresnel_coefficients['case'] == 'reflection':
-                efield[efp.reflection_coefficient_theta] = fresnel_coefficients['theta']
-                efield[efp.reflection_coefficient_phi] = fresnel_coefficients['phi']
+                # real below the critical angle, complex above: stored as complex
+                efield[efp.reflection_coefficient_theta] = complex(fresnel_coefficients['theta'])
+                efield[efp.reflection_coefficient_phi] = complex(fresnel_coefficients['phi'])
 
             spec[1] *= fresnel_coefficients['theta']
             spec[2] *= fresnel_coefficients['phi']

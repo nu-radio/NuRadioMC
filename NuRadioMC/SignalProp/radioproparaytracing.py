@@ -1219,8 +1219,9 @@ class radiopropa_ray_tracing(ray_tracing_base):
             r_phi = geometryUtilities.get_fresnel_r_s(zenith_reflection,
                 n_2=self._medium.get_index_of_refraction(np.array([self._X2[0], self._X2[1], +1 * units.cm])),
                 n_1=self._medium.get_index_of_refraction(np.array([self._X2[0], self._X2[1], -1 * units.cm])))
-            efield[efp.reflection_coefficient_theta] = r_theta
-            efield[efp.reflection_coefficient_phi] = r_phi
+            # real below the critical angle, complex above: stored as complex
+            efield[efp.reflection_coefficient_theta] = complex(r_theta)
+            efield[efp.reflection_coefficient_phi] = complex(r_phi)
 
             spec[1] *= r_theta
             spec[2] *= r_phi
