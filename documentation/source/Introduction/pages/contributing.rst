@@ -21,6 +21,14 @@ In particular, we strongly recommend that you install the `pre-commit hook <http
 This will run a small set of checks every time you try to add a commit to the repository, which prevents you from
 accidentally adding large files, makes sure you don't commit to a protected branch,
 as well as another couple of small checks.
+It also formats the lines you changed with `black <https://black.readthedocs.io>`__ (the rest of the file is left untouched).
+If it reformatted something, the commit stops: review the changes, ``git add`` them and commit again.
+Remaining style violations (``flake8``) on the changed lines are printed as warnings and do not block the commit.
+To format and check all changes of your branch at once, run
+
+.. code-block:: bash
+
+  pre-commit run --from-ref origin/develop --to-ref HEAD
 
 Workflow
 --------
@@ -103,6 +111,8 @@ Coding conventions
 In general we try to follow 'industry' coding workflow conventions. So, if
 something is not explicitly mentioned here, please resort to 'best practices'.
 NuRadioMC tries to follow `PEP-8 coding conventions <https://www.python.org/dev/peps/pep-0008/>`_.
+New and changed lines are formatted with `black <https://black.readthedocs.io>`__ (settings in ``pyproject.toml``);
+the pre-commit hook does this automatically.
 
 Please document your code extensively, especially the physics behind it.
 Each function should come with a docstring where all variables are defined.
