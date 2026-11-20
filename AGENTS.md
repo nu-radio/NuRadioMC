@@ -26,7 +26,8 @@ python documentation/make_docs.py                                     # build do
 - CI: `.github/workflows/run_tests.yaml` (flake8 + test jobs: single events, signal processing, Veff/Aeff with fixed seeds, RNO-G, examples, module structure). Coverage is combined across jobs and commented on PRs.
 - Python: write code for Python 3.8+ (currently the minimum). The supported versions are set by `.github/workflows/python_version_compatibility.yaml`, which runs `run_tests.yaml` for each version only on pushes to `develop`, not on PRs; PR CI runs only 3.10.
 - Many tests are scripts compared against reference output (fixed seeds). A change in physics output breaks them intentionally; update references only with a justification.
-- Antenna models (up to ~700 MB each) are downloaded on first use into `NuRadioReco/detector/AntennaModels/` (sha1-checked, see `antenna_models_hash.json`, `utilities/dataservers.py`). They are not in git.
+- A new test script runs in CI only once it is added as a step in `run_tests.yaml`. The `*.sh` test scripts call `python3`; if that is not your env's interpreter, run their lines with the env's `python`.
+- Antenna models (up to ~700 MB each) are downloaded on first use into `NuRadioReco/detector/AntennaModels/` (sha1-checked, see `antenna_models_hash.json`, `utilities/dataservers.py`). They are not in git, so a new worktree or clone downloads them again; symlink the folder from an existing checkout instead.
 
 ## Code map
 
@@ -126,6 +127,7 @@ Manuals: `documentation/source/NuRadioMC/pages/Manuals/` (config, event generati
 - **FFT filtering is circular**: multiplying spectra wraps pulses around short traces; pad or use `channelStopFilter`.
 - **Filter-then-sum ≠ sum-then-filter** on short windows; changes to the order of detector-response steps can alter trigger rates / Veff.
 - `AntennaPattern.get_antenna_response_vectorized` returns 0-d values for a single frequency.
+- `channelGalacticNoiseAdder`: the `passband` of `run()` must lie within the `freq_range` of `begin()` (default 10–1000 MHz), else the interpolation raises `ValueError`.
 
 ## Working as an agent
 
