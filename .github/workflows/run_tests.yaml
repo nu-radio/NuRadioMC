@@ -257,6 +257,11 @@ jobs:
       run: |
         python NuRadioReco/test/framework/test_parameter_storage.py
 
+    - name: "Test trigger write / read via .nur"
+      if: always()
+      run: |
+        python NuRadioReco/test/framework/test_trigger_io.py
+
     - name: "Test trace utilities"
       if: always()
       run: |
