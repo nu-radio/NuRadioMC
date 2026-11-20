@@ -27,9 +27,6 @@ channelLengthAdjuster = NuRadioReco.modules.channelLengthAdjuster.channelLengthA
 import logging
 logger = logging.getLogger('NuRadioReco.neutrinoLikelihoodReconstructor')
 
-def _llh_nuis_constraint(nuis):
-    return np.sum(np.square(nuis))
-
 class neutrinoLikelihoodReconstructor:
     """
     Class for reconstructing a neutrino shower in a station. This class forward-folds a simulated hadronic
@@ -308,6 +305,8 @@ class neutrinoLikelihoodReconstructor:
             if with_det_uncertainty:
                 nuis_values = parameters[num_signal_parameters:]
                 assert len(nuis_values) == num_nuis
+                print("setting the following nuisance parameters")
+                print(nuis_values)
                 det.set_nuisance_values(nuis_values)
                 signal_model.set_detector(det.as_detector())
 
@@ -431,33 +430,31 @@ class neutrinoLikelihoodReconstructor:
         if full_output:
             return parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit
 
-    def _function_to_minimize_mf(self, data, signal, nuis = None):
+    def _function_to_minimize_mf(self, data, signal):
         """
         Calculate the objective function for the first minimization.
         """
-        nuis_constraint = _llh_nuis_constraint(nuis) if nuis else 0.0
         if not self.use_chi2:
             self.matched_filter.set_template(signal)
             t_best, x_best = self.matched_filter.matched_filter_search(time_shift_array=self.delta_t_array_matched_filter)
             llh_mf = self.matched_filter.calculate_matched_filter_delta_log_likelihood()
-            return -2 * llh_mf + nuis_constraint
+            return -2 * llh_mf
 
         elif self.use_chi2:
             i_max, cross = self._cross_correlation(data, signal, shift_array=self.i_shift_cc)
-            return -cross + nuis_constraint
+            return -cross
 
-    def _function_to_minimize_llh(self, data, signal, nuis = None):
+    def _function_to_minimize_llh(self, data, signal):
         """
         Calculate the log-likelihood objective function of the 2nd minimization
         """
-        nuis_constraint = _llh_nuis_constraint(nuis) if nuis else 0.0
         if not self.use_chi2:
             minus_two_llh = self.likelihood_calculator.calculate_minus_two_delta_llh(data, signal)
             #print("Minus two delta LLH:", minus_two_llh)
-            return minus_two_llh + nuis_constraint
+            return minus_two_llh
 
         elif self.use_chi2:
-            return self._chi2(data, signal) + nuis_constraint
+            return self._chi2(data, signal)
 
     def _cross_correlation(self, data, signal, shift_array):
         """
@@ -511,6 +508,12 @@ class neutrinoLikelihoodReconstructor:
 
         minus_two_llh_initial = self._function_to_minimize_llh(data, signal_function(parameters_initial))
 
+        def _llh_nuis_constraint(params):
+            nuis = params[len(signal_parameters_initial):]
+            constraint = np.sum(np.square(nuis))
+            print(f"constraint = {constraint}")
+            return constraint
+
         # Matched filter optimization to get close to the global minimum and good initial parameters for the likelihood fit:
         if two_step_optimization:
 
@@ -527,6 +530,7 @@ class neutrinoLikelihoodReconstructor:
                 parameters_bounds = bounds,
                 normalization = normalization,
                 fixed = fixed_parameters,
+                aux_objective_function = _llh_nuis_constraint,
                 debug = self.debug
             )
             m_mf = minimizer_mf.run_minimization(data=data, method="minuit")
@@ -549,6 +553,7 @@ class neutrinoLikelihoodReconstructor:
                 parameters_bounds = bounds,
                 normalization = normalization,
                 fixed = [False, True, True, True, True, True, True] + [True] * len(nuis_parameters_initial),
+                aux_objective_function = _llh_nuis_constraint,
                 debug=self.debug
             )
             m_amplitude = minimizer_amplitude.run_minimization(data=data, method="minuit")
@@ -567,6 +572,15 @@ class neutrinoLikelihoodReconstructor:
                 fixed_parameters[i_param] = True
 
         parameters_initial_llh = np.concat([signal_parameters_initial_llh, nuis_parameters_initial])
+
+        print(parameters_initial_llh)
+        print(bounds)
+        print(fixed_parameters)
+
+        print(len(parameters_initial_llh))
+        print(len(bounds))
+        print(len(fixed_parameters))
+
         minimizer_llh = minimization.Minimizer(
             signal_function = signal_function,
             objective_function = self._function_to_minimize_llh,
@@ -574,6 +588,7 @@ class neutrinoLikelihoodReconstructor:
             parameters_bounds = bounds,
             normalization = normalization,
             fixed = fixed_parameters,
+            aux_objective_function = _llh_nuis_constraint,
             debug = self.debug
         )
         m = minimizer_llh.run_minimization(data=data, method="minuit")

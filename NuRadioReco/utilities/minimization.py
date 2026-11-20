@@ -56,10 +56,11 @@ class Minimizer:
             Whether to print debug information during the minimization process.
     """
 
-    def __init__(self, objective_function, parameters_initial, parameters_bounds, normalization=None, fixed=None, signal_function=None, save_history=False, debug=False):
+    def __init__(self, objective_function, parameters_initial, parameters_bounds, normalization=None, fixed=None, signal_function=None, save_history=False, aux_objective_function=False, debug=False):
         self.data = None
         self.signal_function = signal_function
         self.objective_function = objective_function
+        self.aux_objective_function = aux_objective_function
         self.parameters_initial = parameters_initial
         self.n_parameters = len(parameters_initial)
         self.parameters_bounds = parameters_bounds
@@ -110,6 +111,9 @@ class Minimizer:
 
         if self.save_history:
             self.history = np.append(self.history, [parameters_physical], axis = 0)
+
+        if self.aux_objective_function:
+            result += self.aux_objective_function(parameters_physical)
 
         if self.debug:
             print(f"Function call {self.n_function_calls}: parameters={parameters_physical}, result={result}")
