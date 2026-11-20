@@ -163,7 +163,7 @@ class PhasedEnvelopeTriggerSimulator(PhasedArrayBase):
         trigger = DigitalEnvelopePhasedTrigger(
             trigger_name,
             threshold,
-            triggered_channels=triggered_channels,
+            trigger_channels=triggered_channels,
             phasing_angles=phasing_angles,
             trigger_delays=trigger_delays,
             maximum_amps=maximum_amps
