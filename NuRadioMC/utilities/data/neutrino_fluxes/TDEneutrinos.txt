@@ -1,5 +1,5 @@
 # 
-# column 1: log10(energy) [log10(GeV)]
+# column 1: energy [GeV]
 # column 2: E^2 * best fit flux [GeV cm^-2 s^-1 sr^-1]
 # column 3: E^2 * max flux      [GeV cm^-2 s^-1 sr^-1]
 # column 4: E^2 * min flux      [GeV cm^-2 s^-1 sr^-1]

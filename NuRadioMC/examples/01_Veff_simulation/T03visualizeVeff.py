@@ -12,7 +12,7 @@ from NuRadioReco.utilities import units
 from NuRadioReco.detector import detector
 from NuRadioMC.utilities import fluxes
 from NuRadioMC.utilities.Veff import get_Veff_Aeff, get_Veff_Aeff_array, get_index, get_Veff_water_equivalent
-from NuRadioMC.examples.Sensitivities import E2_fluxes3 as limits
+from NuRadioMC.examples.Sensitivities import limit_plot as limits
 plt.switch_backend('agg')
 
 if __name__ == "__main__":
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     fig.savefig("Veff.pdf")
 
     # plot expected limit
-    fig, ax = limits.get_E2_limit_figure(diffuse=True, show_grand_10k=True, show_grand_200k=False)
+    fig, ax = limits.get_limit_figure(diffuse=True, show_grand_10k=True, show_grand_200k=False)
     labels = []
     labels = limits.add_limit(ax, labels, energies, Veff,
                               100, 'NuRadioMC example', livetime=3 * units.year, linestyle='-', color='blue', linewidth=3)
