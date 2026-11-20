@@ -486,8 +486,14 @@ class SimplePhasedTrigger(Trigger):
         self._trigger_delays = trigger_delays
         self._sec_trigger_delays = sec_trigger_delays
         self._window_size = window_size
-        self._step_side = step_size
+        self._step_size = step_size
         self._maximum_amps = maximum_amps
+
+    def deserialize(self, data_pkl):
+        Trigger.deserialize(self, data_pkl)
+        # files written before NuRadioReco 3.2 store the step size as `_step_side`
+        if hasattr(self, '_step_side'):
+            self._step_size = self.__dict__.pop('_step_side')
 
 
 class HighLowTrigger(Trigger):
