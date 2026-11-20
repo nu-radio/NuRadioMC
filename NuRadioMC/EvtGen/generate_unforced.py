@@ -1,5 +1,6 @@
 import numpy as np
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.coding_helper import get_rng
 from matplotlib import pyplot as plt
 from radiotools import helper as hp
 from NuRadioMC.utilities import cross_sections as cs
@@ -16,7 +17,6 @@ import time
 import logging
 import NuRadioMC
 from NuRadioReco.utilities import version
-# np.random.seed(10)  # just for testing
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -33,7 +33,7 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
                                 flavor=[12, -12, 14, -14, 16, -16],
                                 n_events_per_file=None,
                                 spectrum='log_uniform',
-                                start_file_id=0):
+                                start_file_id=0, seed=None):
     """
     Event generator
 
@@ -95,7 +95,10 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
         in case the data set is distributed over several files, this number specifies the id of the first file
         (useful if an existing data set is extended)
         if True, generate deposited energies instead of primary neutrino energies
+    seed: None or int (default None)
+        seed for the random generator (see `NuRadioReco.utilities.coding_helper.get_rng`)
     """
+    rnd = get_rng(seed)
 
     attributes = {}
     n_events = int(n_events)
@@ -304,16 +307,16 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
 
     failed = 0
     if(spectrum == 'log_uniform'):
-        Enu = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_events)
-    flavors = np.array([flavor[i] for i in np.random.randint(0, high=len(flavor), size=n_events)])
-    az = np.random.uniform(phimin, phimax, n_events)
-    zen = np.arccos(np.random.uniform(np.cos(thetamax), np.cos(thetamin), n_events))
+        Enu = 10 ** rnd.uniform(np.log10(Emin), np.log10(Emax), n_events)
+    flavors = np.array([flavor[i] for i in rnd.integers(0, high=len(flavor), size=n_events)])
+    az = rnd.uniform(phimin, phimax, n_events)
+    zen = np.arccos(rnd.uniform(np.cos(thetamax), np.cos(thetamin), n_events))
     # generate random positions on an area perpendicular do neutrino direction
-    ax, ay = np.random.uniform(-0.5 * d, 0.5 * d, (2, n_events))
+    ax, ay = rnd.uniform(-0.5 * d, 0.5 * d, (2, n_events))
     # az = np.ones(n_events) * (R_earth - .5 * h_cylinder)  # move plane to the center of the cylinder
 
     # calculate grammage (g/cm^2) after which neutrino interacted
-    Lint = np.random.exponential(cs.get_interaction_length(Enu, 1, flavors, "total"), n_events)
+    Lint = rnd.exponential(cs.get_interaction_length(Enu, 1, flavors, "total"), n_events)
 
     mask = (Lint < get_Lmax(zen)) & (Lint > get_Lmin(zen))
     print(f"{np.sum(mask)}/{n_events} = {np.sum(mask)/n_events:.2g} can potentially interact in simulation volume")
@@ -587,8 +590,8 @@ def generate_eventlist_cylinder(filename, n_events, Emin, Emax,
     data_sets["n_interaction"] = np.ones(np.sum(mask_int), dtype=int)
     data_sets["vertex_times"] = np.zeros(np.sum(mask_int), dtype=float)
 
-    data_sets["interaction_type"] = inelasticities.get_ccnc(np.sum(mask_int))
-    data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(np.sum(mask_int))
+    data_sets["interaction_type"] = inelasticities.get_ccnc(np.sum(mask_int), rnd=rnd)
+    data_sets["inelasticity"] = inelasticities.get_neutrino_inelasticity(np.sum(mask_int), rnd=rnd)
 
     attributes['n_events'] = n_events
 

@@ -54,7 +54,7 @@ primary_names = em_primary_names + had_primary_names
 
 
 def particle_name(id):
-    if not isinstance(id, (int, np.int_)):
+    if not isinstance(id, (int, np.integer)):
         logger.error("This function only takes integers.")
         raise TypeError("This function only takes integers.")
 

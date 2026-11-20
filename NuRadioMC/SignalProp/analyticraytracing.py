@@ -1143,11 +1143,54 @@ class ray_tracing(ray_tracing_base):
         else:
             self._config = config
 
-    def get_time_difference_plane_wave(self, src_zenith, src_azimuth, azimuth_convention = 'nuradio'):
+    def get_time_difference_plane_wave(self, src_zenith, src_azimuth):
+
+        """
+        Calculate the relative arrival time difference of a plane wave at two receiver
+        positions, accounting for refraction at the ice surface.
+
+        Parameters
+        ----------
+        src_zenith : float
+            Zenith angle of the incoming plane wave in air, in radians.
+            The angle is measured with respect to the surface normal and must
+            be between 0 and pi/2 (incoming signals from above).
+
+        src_azimuth : float
+            Azimuth angle of the incoming plane wave in radians.
+
+        Returns
+        -------
+        delta_t : float
+            Relative signal arrival-time difference between the two receiver
+            positions, in seconds.
+
+        Raises
+        ------
+        NotImplementedError
+            If the underlying 2D ray tracer does not implement the analytic
+            plane-wave time difference calculation.
+
+        Notes
+        -----
+        The calculation is only supported for incoming signals
+        propagating from air into ice, corresponding to zenith angles between
+        0 and pi/2. In air we assume n=1.0, which is needed in order for the geometric projection approach to work. 
+        It is only implemented with the multilayerraytracer currently, so a IceModelExpLayers type medium has to be provided.
+        """
+
+        if not hasattr(self._r2d, 'get_time_difference_plane_wave_analytic'):
+            raise NotImplementedError(
+                f"Plane-wave time difference calculation is not supported "
+                f"by the selected 2D ray tracer "
+                f"({type(self._r2d).__name__}). "
+                f"This functionality is currently only implemented for "
+                f"the multilayer analytic ray tracer (use IceModelExpLayers or IceModelContinuousExpLayers medium)."
+            )
 
         if src_zenith > np.pi/2:
-            self.__logger.warning(f"Source zenith angle: {src_zenith:3f} ({src_zenith/units.deg:2f} deg) is above pi/2 (90 deg)! The plane wave time difference calculation only works for signals traversing from air to ice, aka coming from above, aka having theta between 0 and 90 degrees. Make sure to catch this!")
+            self.__logger.warning(f"Source zenith angle: {src_zenith:3f} ({src_zenith/units.deg:2f} deg) is above pi/2 (90 deg)! Returning nan. The plane wave time difference calculation only works for signals traversing from air to ice, aka coming from above, aka having theta between 0 and 90 degrees. Make sure to catch this!")
             return np.nan
 
-        dt = self._r2d.get_time_difference_plane_wave_analytic(self._X1, self._X2, src_zenith, src_azimuth, azimuth_convention)
+        dt = self._r2d.get_time_difference_plane_wave_analytic(self._X1, self._X2, src_zenith, src_azimuth)
         return dt

@@ -3,6 +3,7 @@ import h5py
 from scipy.interpolate import interp1d
 from radiotools import helper as hp
 from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities.coding_helper import get_rng
 import NuRadioReco.framework.base_trace
 import logging
 logger = logging.getLogger("NuRadioMC.SignalGen.emitter")
@@ -182,8 +183,8 @@ def get_time_trace(amplitude, N, dt, model, full_output=False, **kwargs):
             if "rnd" in kwargs:
                 iN = kwargs["rnd"].integers(0, n_pulses)
             else:
-                iN = np.random.randint(0, n_pulses)
-                logger.warning(f"no random number generator provided, using np.random.randint to select pulse {iN} from {n_pulses} available pulses. This might not be reproducible.")
+                iN = get_rng().integers(0, n_pulses)
+                logger.warning(f"no random number generator provided, selected pulse {iN} from {n_pulses} available pulses with an unseeded generator. This is not reproducible.")
 
         additional_output['iN'] = iN
 
