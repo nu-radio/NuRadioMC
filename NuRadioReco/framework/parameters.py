@@ -256,3 +256,69 @@ class eventParameters(Enum):
     sim_config = 1 #: contents of the config file that the NuRadioMC simulation was run with
     hash_NuRadioReco = 2 #: deprecated, since NuRadioReco is no longer its own repository
     hash_NuRadioMC = 3 #: git hash of the NuRadioMC commit that the file was created with
+
+
+class triggerParameters(Enum):
+    """
+    Parameters of a `NuRadioReco.framework.trigger.Trigger` (all except its name and type).
+
+    Thresholds are given in the observable of the trigger type (e.g. V, V^2 ns, ADC counts). Members are
+    grouped by the trigger types that use them; each group leaves room for new members.
+    """
+    # common to all triggers
+    triggered = 1  #: flag if the trigger condition was fulfilled
+    trigger_time = 2  #: first time the trigger condition was fulfilled, relative to the station time (or None)
+    trigger_times = 3  #: all times the trigger condition was fulfilled (phased triggers: dict beam -> array of times)
+    triggered_channels = 4  #: ids of the channels that fulfilled the trigger condition
+    channels = 5  #: ids of the channels involved in the trigger (None: all channels)
+    primary = 6  #: flag if this is the primary trigger, which defines the readout window
+    #: time between the start of the readout window and the trigger time (float: same for all channels, or dict
+    #: channel id -> time). Used in simulations to cut out the readout window around the trigger time;
+    #: in data (set by the data reader) to set the `trace_start_time` for a given trigger time.
+    pre_trigger_times = 7
+
+    # readout-window jitter (currently only set in simulations)
+    sample_block_size = 100  #: range of the uniform readout-window jitter (in samples)
+    gaussian_jitter = 101  #: standard deviation of the Gaussian readout-window jitter (in samples)
+
+    # threshold triggers: simple threshold, power integration, envelope, RNO-G surface (threshold also: phased triggers)
+    threshold = 200  #: threshold (float: same for all channels, or dict channel id -> threshold)
+    number_of_coincidences = 201  #: number of channels that have to fulfill the trigger condition (also: high/low)
+    coinc_window = 202  #: coincidence window between the channels (also: high/low)
+
+    # high/low trigger
+    threshold_high = 300  #: high threshold (float: same for all channels, or dict channel id -> threshold)
+    threshold_low = 301  #: low threshold (float: same for all channels, or dict channel id -> threshold)
+    high_low_window = 302  #: coincidence window between a high and a low threshold crossing in one channel
+
+    # power integration trigger (power_mean, power_std also: analog envelope phased trigger)
+    integration_window = 400  #: integration window
+    power_mean = 401  #: mean of the noise power (after the diode)
+    power_std = 402  #: standard deviation of the noise power (after the diode)
+
+    # envelope trigger
+    passband = 500  #: passband (low, high) of the filter
+    filter_order = 501  #: order of the filter
+
+    # phased triggers (simple phased, digital envelope phased; phasing_angles, trigger_delays also: analog envelope phased)
+    phasing_angles = 600  #: phasing angle of each beam
+    #: delay per beam and channel id: dict beam -> dict channel id -> delay (beams that triggered);
+    #: analog envelope phased trigger (one beam): dict channel id -> delay
+    trigger_delays = 601
+    maximum_amps = 602  #: maximum of the beamformed signal per beam
+
+    # simple phased trigger
+    window_size = 700  #: integration window (in ADC samples)
+    step_size = 701  #: stride between integration windows (in ADC samples)
+    secondary_channels = 702  #: channels of the secondary phased beam (not set by any module)
+    secondary_angles = 703  #: phasing angles of the secondary beam (not set by any module)
+    sec_trigger_delays = 704  #: as `trigger_delays` for the secondary beam (not set by any module)
+
+    # analog envelope phased trigger
+    threshold_factor = 800  #: threshold in units of the noise power std
+    output_passband = 801  #: passband (low, high) applied after the diode; entries can be None
+
+    # experiment-specific triggers
+    # RNO-G surface trigger
+    temperature = 2000  #: temperature of the trigger board
+    bias_voltage = 2001  #: bias voltage of the trigger board
