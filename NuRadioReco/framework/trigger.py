@@ -159,14 +159,15 @@ class Trigger:
 
         Returns
         -------
-        trigger_times : np.ndarray
-            Array of all times where the trigger condition was satisfied
+        trigger_times : np.ndarray or None
+            Array of all times where the trigger condition was satisfied.
+            None if no trigger time is set.
 
         See Also
         --------
         get_trigger_time : method to return the (first) trigger time
         """
-        if self._trigger_times is None and not np.isnan(self._trigger_time):
+        if self._trigger_times is None and self._trigger_time is not None and not np.isnan(self._trigger_time):
             return np.array(self._trigger_time)
         return self._trigger_times
 
