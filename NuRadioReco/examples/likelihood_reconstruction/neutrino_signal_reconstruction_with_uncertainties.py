@@ -42,6 +42,8 @@ import NuRadioReco.detector.RNO_G.rnog_detector_unc as rnog_detector_unc
 det_unc = rnog_detector_unc.UncertaintyAwareDetector(detector_folder = det_unc_path)
 det_unc.update(detector_time)
 
+reconstruct_with_uncertainties = False
+
 evt = Event(1, 1)
 station_id = 11 
 n_channels_total = det_nominal.get_number_of_channels(station_id)
@@ -157,7 +159,7 @@ vertex_r_rel = np.linalg.norm(vertex_xyz_rel)
 pulse_time_guess = np.argmax(abs(traces[ref_ch])) / sampling_rate
 
 # Set initial parameters close to the MC true parameters:
-parameters_initial = [
+signal_parameters_initial = [
     E_shower * 1.00,
     zenith + 0.0 * units.deg,
     azimuth - 0.0 * units.deg,
@@ -167,12 +169,12 @@ parameters_initial = [
     pulse_time_guess]
 
 # Run reconstruction:
-det_nuis = np.zeros(det_unc.get_num_nuisances())
-det_unc.set_nuisance_values(det_nuis)
-det_var = det_unc.as_detector()
 
 parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit = reco.run(
-    evt, station, det_var, parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True)
+    evt, station, det if reconstruct_with_uncertainties else det_nominal, signal_parameters_initial, use_channels=use_channels, reference_channel=ref_ch, full_output=True, likelihood_scan = False, with_det_uncertainty = reconstruct_with_uncertainties)
+
+signal_parameters_fit = parameters_fit[:7]
+nuisance_parameters_fit = parameters_fit[7:]
 
 shower_reconstructed = list(evt.get_showers())[0]
 
@@ -187,8 +189,9 @@ print("p-value for fitted signal:", p_value_fit)
 
 print()
 print("True parameters:", [E_shower, zenith, azimuth, vertex_r_rel, vertex_zenith_rel, vertex_azimuth_rel, 100*units.ns])
-print("Initial parameters:", parameters_initial)
-print("Fitted parameters:", parameters_fit)
+print("Initial parameters:", signal_parameters_initial)
+print("Fitted parameters:", signal_parameters_fit)
+print("Fitted nuisance parameters:", nuisance_parameters_fit)
 print("Uncertainties on fitted parameters:", uncertainties_fit)
 
 print()
