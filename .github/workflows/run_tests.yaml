@@ -61,10 +61,13 @@ jobs:
 
   lint-changed-lines:
     name: Lint changed lines (warnings only)
+    if: github.ref_name != 'develop'  # nothing to compare to
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
       with:
+        # PRs: the head, not the merge commit, so that annotations match the line numbers in the PR diff
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
         fetch-depth: 0  # for the merge base with the target branch
         filter: blob:none  # file contents are fetched on demand
 
