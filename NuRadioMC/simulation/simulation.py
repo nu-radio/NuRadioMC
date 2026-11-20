@@ -750,7 +750,10 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
     # add event generator info event
     for enum_entry in genattrs:
         if enum_entry.name in fin_attrs:
-            event_group.set_parameter(enum_entry, fin_attrs[enum_entry.name])
+            value = fin_attrs[enum_entry.name]
+            if isinstance(value, np.ndarray):  # h5py returns list attributes (flavors) as arrays
+                value = value.tolist()
+            event_group.set_parameter(enum_entry, value)
 
     particle_mode = "simulation_mode" not in fin_attrs or fin_attrs['simulation_mode'] != "emitter"
     if particle_mode:  # first case: simulation of a particle interaction which produces showers
@@ -952,16 +955,17 @@ def calculate_particle_weight(event_group, idx, cfg, fin=None):
             logger.error(
                 "config file specifies to use weights from the input hdf5 file but the input file does not contain this information.")
     elif cfg['weights']['weight_mode'] is None:
-        primary[simp.weight][simp.weight] = 1.
+        primary[simp.weight] = 1.
     else:
-        primary[simp.weight] = get_weight(
+        # float(): get_weight returns a 0-d array for neutrinos from above
+        primary[simp.weight] = float(get_weight(
             primary[simp.zenith],
             primary[simp.energy],
             primary[simp.flavor],
             mode=cfg['weights']['weight_mode'],
             cross_section_type=cfg['weights']['cross_section_type'],
             vertex_position=primary[simp.vertex],
-            phi_nu=primary[simp.azimuth])
+            phi_nu=primary[simp.azimuth]))
     # all entries for the event for this primary get the calculated primary's weight
     return primary[simp.weight]
 
