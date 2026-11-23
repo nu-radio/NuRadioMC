@@ -338,7 +338,10 @@ def _merge_datasets(fout, infos):
                 logger.warning(f"{info.filename} has the key {key}, but {first.filename} has not. This key will not be "
                                "present in the merged file.")
 
-    for group in first.groups:
+    groups = []  # union of the station groups, in order of first appearance
+    for info in infos:
+        groups += [group for group in info.groups if group not in groups]
+    for group in groups:
         logger.info(f"writing group {group}")
         fout.create_group(group)
         keys = []  # union of the datasets of the group, in order of first appearance
@@ -401,7 +404,7 @@ def merge_hdf5_files(filenames, output_filename, overwrite=False):
     Attributes: the first file that has an attribute sets its value. ``config``, ``trigger_names`` and the NuRadioMC
     versions must be equal in all files, as must ``Emin``, ``Emax``, ``volume`` and ``area`` (else `AttributeError`);
     other differing attributes warn. A top-level dataset missing in one of the non-empty files is left out with a
-    warning.
+    warning. The merged file has the station groups of all files.
 
     The merge is written to ``output_filename + '.tmp'``, which is renamed to ``output_filename`` when done.
     The first pass reads all attributes and the ids, the second copies one dataset of one file at a time, so the

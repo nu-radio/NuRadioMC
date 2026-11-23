@@ -414,6 +414,21 @@ def test_merge_output_checks(tmp_path):
     assert not os.path.exists(output) and not os.path.exists(output + ".tmp")
 
 
+def test_merge_station_groups_union(tmp_path):
+    # a station group only in a later file is merged as well, with its attributes
+    filenames = _write_files(tmp_path, [([1], [1]), ([2], [2])])
+    with h5py.File(filenames[1], "a") as f:
+        f["station_102/shower_id"] = [2]
+        f["station_102"].attrs["Vrms"] = [1.]
+    output = str(tmp_path / "merged.hdf5")
+    merge_hdf5_files(filenames, output)
+    data, _ = _read(output)
+    np.testing.assert_array_equal(data["station_101/shower_id"], [1, 2])
+    np.testing.assert_array_equal(data["station_102/shower_id"], [2])
+    with h5py.File(output, "r") as f:
+        np.testing.assert_array_equal(f["station_102"].attrs["Vrms"], [1.])
+
+
 def test_merge_trailing_shape_mismatch(tmp_path):
     filenames = _write_files(tmp_path, [([1], [1]), ([2], [2])])
     for f, n in zip(filenames, [2, 3]):
