@@ -41,9 +41,11 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 bugfixes:
 - Fixed the examples RNO_G_trigger_simulation/noise.py (envelope trigger ported to the renamed `PhasedEnvelopeTriggerSimulator`)
   and simulate_snr_trigger_curve.py (removed the import of a never committed plotting module and the reverted
-  `store_attenuation` argument).
+  `store_attenuation` argument; events now need a ray-tracing solution in every trigger channel, not only the last one;
+  `--label` no longer gets a double underscore in the output file name).
 - `PhasedEnvelopeTriggerSimulator` (phasedarray/digitalBeamformedEnvelopeTrigger.py) failed when creating its trigger object
-  (wrong keyword argument).
+  (wrong keyword argument) and, in `PhasedArrayBase.phased_trigger`, whenever the envelope crossed the threshold
+  (trigger times used the power-sum window step, which is None in envelope mode).
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported
