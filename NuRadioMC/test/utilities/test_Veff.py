@@ -98,6 +98,23 @@ def check_energy_bins(folder):
     assert np.allclose(Veffs[:, 0, 1, 0], [VOLUME * 0.1, VOLUME * 0.3], rtol=1e-12), Veffs[:, 0, 1, 0]
 
 
+def check_min_sigma(folder):
+    # trigger combinations with an amplitude cut `min_sigma` (scalar and list form)
+    filename = os.path.join(folder, "a.hdf5")
+    write_file(filename, 100, 10)
+    amplitudes = np.ones((100, 4, 2))  # (event, channel, ray tracing solution), in units of Vrms = 1
+    amplitudes[:5] = 5  # 5 of the 10 triggered events pass the cut
+    with h5py.File(filename, "a") as f:
+        f["max_amp_ray_solution"] = amplitudes
+    trigger_combinations = {
+        "sigma": {"triggers": ["trig"], "min_sigma": 3, "channels": [0, 1, 2, 3], "n_channels": 2},
+        "sigma_list": {"triggers": ["trig"], "min_sigma": [3], "channels": [[0, 1]], "n_channels": [1]}}
+    data = get_Veff_Aeff(filename, trigger_combinations=trigger_combinations)
+    for name in trigger_combinations:
+        assert data[0]["veff"][name][2] == 5, (name, data[0]["veff"][name])
+        assert name in data[0]["SNRs"], data[0]["SNRs"].keys()
+
+
 def check_trigger_in_some_files(folder):
     # a trigger present only in the entries of some files gets the exposure of only those files
     a, b = os.path.join(folder, "a.hdf5"), os.path.join(folder, "b.hdf5")
@@ -142,6 +159,11 @@ def test_Veff_energy_bins():
         check_energy_bins(tmp)
 
 
+def test_Veff_min_sigma():
+    with tempfile.TemporaryDirectory() as tmp:
+        check_min_sigma(tmp)
+
+
 def test_Veff_trigger_in_some_files():
     with tempfile.TemporaryDirectory() as tmp:
         check_trigger_in_some_files(tmp)
@@ -156,6 +178,7 @@ if __name__ == "__main__":
     test_Veff_combine_files()
     test_Veff_zenith_bins()
     test_Veff_energy_bins()
+    test_Veff_min_sigma()
     test_Veff_trigger_in_some_files()
     test_Veff_same_file_twice()
     print("OK")

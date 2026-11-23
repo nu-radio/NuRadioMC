@@ -248,6 +248,9 @@ def get_Veff_Aeff_single(
         * ``volume_proj_area`` : float
             the simulation volume (``veff``) or the projected area (``aeff_surface_muons``) the effective volume or
             area is calculated with: ``veff = volume_proj_area * weighted triggered events / n_events``
+        * ``SNRs`` : dict
+            per trigger combination with ``min_sigma``, the amplitudes (in units of Vrms) of the events that pass the
+            amplitude cut (with a list ``min_sigma``, a dict per cut index)
 
         `get_Veff_Aeff_array` uses ``n_events`` and ``volume_proj_area`` to combine files of the same bin.
     """
@@ -390,8 +393,8 @@ def get_Veff_Aeff_single(
         
         if 'min_sigma' in values.keys():
             if isinstance(values['min_sigma'], list):
-                if trigger_name not in out['SNR']:
-                    out['SNR'][trigger_name] = {}
+                if trigger_name not in out['SNRs']:
+                    out['SNRs'][trigger_name] = {}
                 
                 masks = np.zeros_like(triggered)
                 for iS in range(len(values['min_sigma'])):
@@ -402,7 +405,7 @@ def get_Veff_Aeff_single(
                     mask = np.sum(
                         As[:, values['channels'][iS]] >= (values['min_sigma'][iS] * Vrms), axis=1) >= values['n_channels'][iS]
                     masks = masks | mask
-                    out['SNR'][trigger_name][iS] = max_amplitude[mask] / Vrms
+                    out['SNRs'][trigger_name][iS] = max_amplitude[mask] / Vrms
                 
                 triggered = triggered & masks
             else:
@@ -412,7 +415,7 @@ def get_Veff_Aeff_single(
                 max_amplitude = As_sorted[:, -values['n_channels']]  # the smallest of the three largest amplitudes
 
                 mask = np.sum(As[:, values['channels']] >= (values['min_sigma'] * Vrms), axis=1) >= values['n_channels']
-                out['SNR'][trigger_name] = As_sorted[mask] / Vrms
+                out['SNRs'][trigger_name] = As_sorted[mask] / Vrms
                 triggered = triggered & mask
         
         if 'ray_solution' in values.keys():
