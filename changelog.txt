@@ -55,6 +55,7 @@ bugfixes:
   generated files kept their overlapping shower ids. An overlap of only event group id 0 is now detected as well, and
   renamed event group ids are also applied to the station groups' `event_group_id_per_shower`, renamed shower ids
   to `shower_id` and `event_id_per_shower` (which holds shower ids).
+  Note: renamed ids in the merged file no longer match the SimShower ids in .nur files or the generator input.
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported

@@ -30,6 +30,13 @@ If you have many HDF5 files, for example because you ran a simulation paralleliz
 NuRadioMC contains a convenience function to correctly merge these files -
 see :ref:`here <NuRadioMC/pages/Manuals/running_on_a_cluster:4. Merge individual hdf5 output files>` for instructions.
 
+.. note::
+    Merging renames event group ids and shower ids that a file shares with a previously merged file, so that they
+    are unique in the merged file (``event_group_ids``, ``shower_ids`` and the station datasets ``event_group_ids``,
+    ``event_group_id_per_shower``, ``shower_id`` and ``event_id_per_shower``). The renamed ids in the merged HDF5
+    file then no longer match the ids of the ``SimShower`` objects in the corresponding ``.nur`` files or of the
+    event generator input file.
+
 What's behind the HDF5 files
 ----------------------------
 The hdf5 file is created in NuRadioMC/simulation/simulation.py A list of vertices with different arrival direction
