@@ -50,12 +50,12 @@ def _make_ids_unique(data, groups, filenames, key, group_keys):
 
 
 def _attrs_equal(a, b):
-    """ Compares two attribute values: numbers with `numpy.allclose`, anything else (e.g. strings) exactly. """
+    """ Compares two attribute values: numbers with `numpy.allclose` (NaNs equal), anything else (e.g. strings) exactly. """
     a, b = np.asarray(a), np.asarray(b)
     if a.shape != b.shape:
         return False
     if np.issubdtype(a.dtype, np.number) and np.issubdtype(b.dtype, np.number):
-        return np.allclose(a, b)
+        return np.allclose(a, b, equal_nan=True)
     return np.array_equal(a, b)
 
 
@@ -147,7 +147,7 @@ def merge2(filenames, output_filename):
                 attrs[key] = fin.attrs[key]
             else:
                 if(key not in str_type_attrs):
-                    if(not np.allclose(np.nan_to_num(attrs[key]), np.nan_to_num(fin.attrs[key]))):
+                    if not _attrs_equal(attrs[key], fin.attrs[key]):
                         if(key == "n_events"):
                             logger.warning(f"number of events in file {filenames[0]} and {f} are different ({attrs[key]} vs. "
                             f"{fin.attrs[key]}. We keep track of the total number of events, but in case the simulation was "

@@ -59,8 +59,8 @@ bugfixes:
 - `merge_hdf5.py <directory>` merges the `*.hdf5.partNNNN` files again (merged nothing since v3.0.0; file discovery is now
   `merge_hdf5.find_part_files`).
 - `merge_hdf5` raises if any trigger name (or other string attribute) differs between files, not only if all differ.
-- `merge_hdf5` no longer crashes on station group attributes that are missing in the first file or are strings that
-  differ between files (warns instead).
+- `merge_hdf5` no longer crashes on string attributes (e.g. the generator's `header`), on arrays of different length
+  (e.g. `flavors`) and on station group attributes missing in the first file (warns if they differ).
 - `merge_hdf5` no longer appends zero-filled rows for input files without triggered events.
 - `merge_hdf5.py --cores N` (N > 1) no longer fails on pickling its local worker function.
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH

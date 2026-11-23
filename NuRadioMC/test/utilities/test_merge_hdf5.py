@@ -134,6 +134,15 @@ def test_merge_station_attrs():
     assert station_attrs["name"] == "x", station_attrs
 
 
+def test_merge_file_attrs():
+    # string attributes (e.g. the generator's ``header``) and arrays of different length keep the value of the first file
+    attrs, _ = _merge_attrs([{"header": "x", "flavors": [12, -12]}, {"header": "x", "flavors": [12, -12]}])
+    assert attrs["header"] == "x", attrs
+    attrs, _ = _merge_attrs([{"header": "x", "flavors": [12, -12]}, {"header": "y", "flavors": [12, -12, 14]}])
+    assert attrs["header"] == "x", attrs
+    np.testing.assert_array_equal(attrs["flavors"], [12, -12])
+
+
 def _write_part_tree(root):
     """ Generator-style tree ``root/<energy>/<name>.hdf5.partNNNN``; returns the part files per expected output file. """
     parts = {}
@@ -185,6 +194,7 @@ if __name__ == "__main__":
     test_merge_untriggered_file_adds_no_rows()
     test_merge_trigger_names_differ()
     test_merge_station_attrs()
+    test_merge_file_attrs()
     test_find_part_files()
     test_cli_directory_mode()
     test_cli_directory_mode_multiprocessing()
