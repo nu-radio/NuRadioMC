@@ -3,7 +3,6 @@ from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.channelAddCableDelay import add_cable_delay
 
 import numpy as np
-import time
 import logging
 
 logger = logging.getLogger("NuRadioReco.ARA.hardwareResponseIncorporator")
@@ -19,7 +18,6 @@ class hardwareResponseIncorporator:
     def __init__(self):
         self.__debug = False
         self.__time_delays = {}
-        self.__t = 0
         self.begin()
 
     def begin(self, debug=False):
@@ -70,7 +68,6 @@ class hardwareResponseIncorporator:
         """
         Switch sim_to_data to go from simulation to data or otherwise.
         """
-        t = time.time()
         channels = station.iter_channels()
 
         for channel in channels:
@@ -93,10 +90,5 @@ class hardwareResponseIncorporator:
             # (if efieldToVoltageConverterPerEfield was used).
             add_cable_delay(station, det, sim_to_data=False, logger=self.logger)
 
-        self.__t += time.time() - t
-
     def end(self):
-        from datetime import timedelta
-        dt = timedelta(seconds=self.__t)
-        logger.info("total time used by this module is {}".format(dt))
-        return dt
+        pass

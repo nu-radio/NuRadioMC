@@ -1,0 +1,15 @@
+# Source: TAROGE-M, 10 stations, 5 year exposure, nutau only 
+# Data type: Upper limit
+# Energy bins per decade: 1
+# Column values:
+# Log10 Energy [GeV]
+# Flux [GeV cm^-2 s^-1 sr^-1]
+# Flux band minimum
+# Flux band maximum
+
+8.5   2.03E-05  0 0
+9.0   1.80E-06  0 0
+9.5   1.05E-06  0 0
+10.0  1.45E-06  0 0
+10.5  3.38E-06  0 0
+11.0  9.20E-06  0 0

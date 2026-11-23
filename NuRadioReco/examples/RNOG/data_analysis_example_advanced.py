@@ -199,9 +199,8 @@ if __name__ == "__main__":
         logger.debug("Time for event: %f", time.time() - t0)
         t_total += time.time() - t0
 
-    dataProviderRNOG.end()
-    eventWriter.end()
-    stationHitFilter.end()
+    eventWriter.close()
+
 
     logger.status(
         f"\nProcessed {idx + 1} events:"

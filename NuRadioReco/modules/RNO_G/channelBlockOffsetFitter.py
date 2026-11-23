@@ -10,6 +10,7 @@ in the `NuRadioReco.framework.parameters.channelParameters.block_offsets` parame
 """
 
 from NuRadioReco.utilities import units, fft
+from NuRadioReco.utilities.coding_helper import get_rng
 from NuRadioReco.framework.parameters import channelParameters
 from NuRadioReco.modules.base.module import register_run
 
@@ -17,13 +18,12 @@ from collections import defaultdict
 import numpy as np
 import scipy.optimize
 import logging
-import time
 
 logger = logging.getLogger('NuRadioReco.RNO_G.channelBlockOffsetFitter')
 
 class channelBlockOffsets:
 
-    def __init__(self, block_size=128, max_frequency=51*units.MHz):
+    def __init__(self, block_size=128, max_frequency=51*units.MHz, seed=None):
         """
         Add or remove block offsets to channel traces
 
@@ -37,6 +37,9 @@ class channelBlockOffsets:
         max_frequency: float (default: 51 MHz)
             The maximum frequency to include in the out-of-band
             block offset fit
+        seed: int | None (default: None)
+            Seed for the random generator used by `add_offsets`
+            (see `NuRadioReco.utilities.coding_helper.get_rng`)
 
         """
         self.sampling_rate = None
@@ -45,7 +48,7 @@ class channelBlockOffsets:
         self._offset_inject = dict()
         self._max_frequency = max_frequency
         self._counter = defaultdict(int)
-        self._time = 0
+        self._rng = get_rng(seed)
 
     def add_offsets(self, event, station, offsets=1*units.mV, channel_ids=None):
         """
@@ -93,7 +96,7 @@ class channelBlockOffsets:
             # if entry is a single float (or array with length 1),
             # generate a random offset for each block
             if len(np.atleast_1d(add_offsets)) == 1:
-                add_offsets = np.random.normal(
+                add_offsets = self._rng.normal(
                     0, add_offsets, (channel.get_number_of_samples() // self.block_size)
                 )
 
@@ -236,17 +239,13 @@ class channelBlockOffsets:
         --------
         remove_offsets : alias of this method without the (unused) `det` parameter
         """
-        start_time = time.perf_counter()
         self.remove_offsets(event, station, mode=mode, channel_ids=channel_ids, **kwargs)
-        end_time = time.perf_counter()
-        self._time += (end_time - start_time)
 
 
     def end(self):
         n_events = self._counter.pop("n_events", 0)
         if n_events > 0:
             msg = (f"Processed {n_events} events. "
-                f"This took {self._time:.2f} seconds ({(self._time / n_events) * 1e3:.2f} ms/event)."
                 f"Removed {np.sum(list(self._counter.values()))} large block offsets "
                 f"(>50% of Vrms) from {len(self._counter)} channels:")
             msg += "\n\t Channel ID: number of events in which large block offsets were removed"

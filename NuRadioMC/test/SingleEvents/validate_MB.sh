@@ -1,10 +1,10 @@
-# #!/bin/bash
+#!/bin/bash
 set -e
 
+DIR=NuRadioMC/test/SingleEvents
 
-NuRadioMC/test/SingleEvents/T02RunSimulation.py NuRadioMC/test/SingleEvents/MB_1e18_reference.hdf5 NuRadioMC/test/SingleEvents/surface_station_1GHz.json NuRadioMC/test/SingleEvents/config_MB.yaml NuRadioMC/test/SingleEvents/MB_1e18_output.hdf5
+"$DIR/T02RunSimulation.py" "$DIR/MB_1e18_reference.hdf5" "$DIR/surface_station_1GHz.json" "$DIR/config_MB.yaml" "$DIR/MB_1e18_output.hdf5"
+"$DIR/T04validate_allmost_equal.py" "$DIR/MB_1e18_output.hdf5" "$DIR/MB_1e18_reference.hdf5"
 
-NuRadioMC/test/SingleEvents/T04validate_allmost_equal.py NuRadioMC/test/SingleEvents/MB_1e18_output.hdf5 NuRadioMC/test/SingleEvents/MB_1e18_reference.hdf5
-
-# cleanup 
-rm -v NuRadioMC/test/SingleEvents/MB_1e18_output.hdf5
+# cleanup
+rm -v "$DIR/MB_1e18_output.hdf5"
