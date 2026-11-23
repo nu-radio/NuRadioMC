@@ -40,8 +40,11 @@ class _Detector:
         return np.zeros(3)
 
 
-def _event(event_id, shower_ids):
-    """ Triggered event ``event_id`` of the event group ``EVENT_GROUP_ID`` with one sim shower per shower id. """
+def _event(event_id, shower_ids, int_type):
+    """
+    Triggered event ``event_id`` of the event group ``EVENT_GROUP_ID`` with one sim shower per shower id, of type
+    ``int_type``.
+    """
     evt = Event(EVENT_GROUP_ID, event_id)
     particle = Particle(0)
     for key, value in [(pap.energy, 1e18), (pap.inelasticity, 0.5), (pap.weight, 1.), (pap.shower_id, min(shower_ids)),
@@ -51,8 +54,7 @@ def _event(event_id, shower_ids):
     evt.add_particle(particle)
 
     for shower_id in shower_ids:
-        # numpy integer as in the simulation (read from the input file): the writer compares lists with it
-        shower = RadioShower(np.int64(shower_id))
+        shower = RadioShower(int_type(shower_id))
         for key, value in [(shp.parent_id, 0), (shp.vertex, np.array([0., 0., -100.])), (shp.vertex_time, 0.),
                            (shp.azimuth, 0.), (shp.zenith, 1.), (shp.energy, 1e17), (shp.type, "had"),
                            (shp.flavor, 14), (shp.n_interaction, 1), (shp.interaction_type, "cc")]:
@@ -73,10 +75,10 @@ def _event(event_id, shower_ids):
     return evt
 
 
-def test_event_id_per_shower():
+def _check_event_id_per_shower(int_type):
     # event 1 holds the lower shower ids, so sorting the showers by id also tests that the event ids follow their showers;
     # shower 5 contributes to both events and is stored once, with the first event
-    event_buffer = {STATION_ID: {0: _event(0, [5]), 1: _event(1, [2, 4, 5])}}
+    event_buffer = {STATION_ID: {0: _event(0, [5], int_type), 1: _event(1, [2, 4, 5], int_type)}}
     with tempfile.TemporaryDirectory() as tmpdir:
         filename = os.path.join(tmpdir, "out.hdf5")
         writer = outputWriterHDF5(filename, {'speedup': {'amp_per_ray_solution': False}}, _Detector(), [STATION_ID], 2)
@@ -90,6 +92,16 @@ def test_event_id_per_shower():
             np.testing.assert_array_equal(sg["event_ids"], [0, 1])
 
 
+def test_event_id_per_shower():
+    # numpy integers, as in the simulation (shower ids read from the input file)
+    _check_event_id_per_shower(np.int64)
+
+
+def test_event_id_per_shower_python_int():
+    _check_event_id_per_shower(int)
+
+
 if __name__ == "__main__":
     test_event_id_per_shower()
+    test_event_id_per_shower_python_int()
     print("OK")

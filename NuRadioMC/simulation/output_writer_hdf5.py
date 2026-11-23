@@ -376,7 +376,7 @@ class outputWriterHDF5:
                 sg = self._mout_groups[stn_id]
                 if 'shower_id' not in sg:
                     continue
-                shower_ids_stn = sg['shower_id']
+                shower_ids_stn = np.asarray(sg['shower_id'])
                 iSh_stn = np.where(shower_ids_stn == shower_id)[0]
                 if len(iSh_stn) == 0:
                     continue
