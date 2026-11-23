@@ -17,7 +17,7 @@ from NuRadioMC.SignalProp import analyticraytracing
 from NuRadioReco.detector.RNO_G import rnog_detector
 from NuRadioMC.simulation.simulation import calculate_sim_efield
 
-from simulate import detector_simulation, rnog_flower_board_high_low_trigger_simulations
+from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import detector_simulation, rnog_flower_board_high_low_trigger_simulations
 
 
 import logging

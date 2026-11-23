@@ -5,15 +5,15 @@ from NuRadioReco.framework.station import Station
 from NuRadioReco.framework.channel import Channel
 
 from NuRadioReco.utilities import units, fft, signal_processing
-from NuRadioReco.detector.RNO_G import rnog_detector, rnog_detector_mod
-from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoardResponse
+from NuRadioReco.detector.RNO_G import rnog_detector_mod
+from NuRadioReco.modules.RNO_G import triggerBoardResponse
 
 from NuRadioReco.modules.trigger import highLowThreshold
 from NuRadioReco.modules.phasedarray.beamformedPowerIntegrationTrigger import BeamformedPowerIntegrationTrigger
 from NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger import PhasedEnvelopeTriggerSimulator
 import NuRadioReco.modules.channelGenericNoiseAdder
 
-from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import phasing_angles, power_trigger_kwargs, envelope_trigger_kwargs
+from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import power_trigger_kwargs, envelope_trigger_kwargs
 
 from matplotlib import pyplot as plt
 from collections import defaultdict
@@ -61,9 +61,6 @@ adc_output = "counts"
 highLowThresholdTrigger = highLowThreshold.triggerSimulator()
 triggerBoard = triggerBoardResponse.triggerBoardResponse(log_level=logging.INFO)
 triggerBoard.begin(clock_offset=0, adc_output=adc_output)
-
-hardwareResponse = hardwareResponseIncorporator.hardwareResponseIncorporator()
-hardwareResponse.begin(trigger_channels=deep_trigger_channels)
 
 beamformedPowerIntegrationTrigger = BeamformedPowerIntegrationTrigger()
 beamformedPowerIntegrationTrigger.begin()
@@ -203,8 +200,6 @@ def detector_simulation(evt, station, filters, det):
     for channel in station.iter_channels():
         channel.set_frequency_spectrum(
             channel.get_frequency_spectrum() * filters[channel.get_id()], "same")
-
-    # hardwareResponse.run(evt, station, det, sim_to_data=True)
 
 def trigger_simulation(evt, station, det, vrms=None):
     """ Simulate the trigger response.
