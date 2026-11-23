@@ -33,7 +33,7 @@ see :ref:`here <NuRadioMC/pages/Manuals/running_on_a_cluster:4. Merge individual
 .. note::
     Merging renames event group ids and shower ids that a file shares with a previously merged file, so that they
     are unique in the merged file (``event_group_ids``, ``shower_ids`` and the station datasets ``event_group_ids``,
-    ``event_group_id_per_shower``, ``shower_id`` and ``event_id_per_shower``). The renamed ids in the merged HDF5
+    ``event_group_id_per_shower`` and ``shower_id``). The renamed ids in the merged HDF5
     file then no longer match the ids of the ``SimShower`` objects in the corresponding ``.nur`` files or of the
     event generator input file.
 

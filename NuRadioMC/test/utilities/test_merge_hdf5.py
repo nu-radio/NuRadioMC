@@ -34,7 +34,7 @@ def _write_file(filename, event_group_ids, shower_ids, attrs=None, station_attrs
         sg["event_ids"] = np.zeros(len(np.unique(event_group_ids)), dtype=int)
         sg["shower_id"] = np.asarray(shower_ids)
         sg["event_group_id_per_shower"] = event_group_ids
-        sg["event_id_per_shower"] = np.asarray(shower_ids)  # holds shower ids, see output_writer_hdf5
+        sg["event_id_per_shower"] = np.zeros(len(shower_ids), dtype=int)
 
 
 def _merge(inputs):
@@ -59,10 +59,11 @@ def test_merge_shower_ids_unique():
     np.testing.assert_array_equal(out["station_101/shower_id"], out["shower_ids"])
 
 
-def test_merge_event_id_per_shower_renamed():
-    # the station dataset ``event_id_per_shower`` stores shower ids and must be renamed with them
+def test_merge_event_id_per_shower_not_renamed():
+    # event ids are unique only within an event group and are kept when shower ids are renamed
     out = _merge([([1, 2, 2], [0, 1, 2]), ([1, 2, 2], [0, 1, 2])])
-    np.testing.assert_array_equal(out["station_101/event_id_per_shower"], out["station_101/shower_id"])
+    assert len(np.unique(out["station_101/shower_id"])) == 6, out["station_101/shower_id"]
+    np.testing.assert_array_equal(out["station_101/event_id_per_shower"], np.zeros(6, dtype=int))
 
 
 def test_merge_event_group_id_zero_unique():
@@ -208,7 +209,7 @@ def test_cli_loglevel():
 
 if __name__ == "__main__":
     test_merge_shower_ids_unique()
-    test_merge_event_id_per_shower_renamed()
+    test_merge_event_id_per_shower_not_renamed()
     test_merge_event_group_id_zero_unique()
     test_merge_station_ids_consistent()
     test_merge_untriggered_file_adds_no_rows()

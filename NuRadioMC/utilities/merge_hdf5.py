@@ -191,7 +191,9 @@ def merge2(filenames, output_filename):
         _make_ids_unique(data, groups, non_empty_filenames, 'event_group_ids', ['event_group_ids', 'event_group_id_per_shower'])
         # shower ids are unique only within the files of one event generation run (issue #292)
         if all('shower_ids' in data[f] for f in non_empty_filenames):
-            _make_ids_unique(data, groups, non_empty_filenames, 'shower_ids', ['shower_id', 'event_id_per_shower'])
+            _make_ids_unique(data, groups, non_empty_filenames, 'shower_ids', ['shower_id'])
+        # event ids (``event_ids``, ``event_id_per_shower``) are unique only within an event group, so the unique
+        # event group ids keep them unique
 
         keys = data[non_empty_filenames[0]]
         for key in keys:
