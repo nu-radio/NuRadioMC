@@ -427,11 +427,11 @@ def test_merge_trailing_shape_mismatch(tmp_path):
 def _write_part_tree(root):
     """ Generator-style tree ``root/<energy>/<name>.hdf5.partNNNN``; returns the part files per expected output file. """
     parts = {}
-    for energy, name, n_parts in [("1e18", "a", 2), ("1e19", "b", 1)]:
-        os.makedirs(os.path.join(root, energy))
+    for energy, name, part_numbers in [("1e18", "a", [0, 1, 10000]), ("1e18", "c", [0]), ("1e19", "b", [0])]:
+        os.makedirs(os.path.join(root, energy), exist_ok=True)
         output = os.path.join(root, f"{name}.hdf5")
         parts[output] = []
-        for i in range(n_parts):
+        for i in part_numbers:
             parts[output].append(os.path.join(root, energy, f"{name}.hdf5.part{i:04d}"))
             _write_file(parts[output][-1], [10 * i, 10 * i + 1], [10 * i, 10 * i + 1])
     # files of at most 1000 bytes are skipped
@@ -439,10 +439,57 @@ def _write_part_tree(root):
     return parts
 
 
-def test_find_part_files(tmp_path):
+def test_find_part_files(tmp_path, caplog):
     parts = _write_part_tree(str(tmp_path))
-    found = merge_hdf5.find_part_files(str(tmp_path))
+    with caplog.at_level(logging.WARNING, logger="NuRadioMC.HDF5-merger"):
+        found = merge_hdf5.find_part_files(str(tmp_path))
     assert {x["output_filename"]: list(x["filenames"]) for x in found} == parts, found
+    assert "a.hdf5.part0099" in caplog.text
+    # existing outputs are skipped unless requested
+    existing = str(tmp_path / "a.hdf5")
+    open(existing, "w").close()
+    assert existing not in [x["output_filename"] for x in merge_hdf5.find_part_files(str(tmp_path))]
+    assert existing in [x["output_filename"] for x in merge_hdf5.find_part_files(str(tmp_path), skip_existing=False)]
+
+
+@pytest.fixture
+def restore_loglevel():
+    """ `merge_hdf5.main` sets the level of the merger's logger """
+    logger = logging.getLogger("NuRadioMC.HDF5-merger")
+    level = logger.level
+    yield
+    logger.setLevel(level)
+
+
+def test_main(tmp_path, caplog, restore_loglevel):
+    inputs = _write_files(tmp_path, [([0], [0]), ([1], [1])])
+    output = str(tmp_path / "merged.hdf5")
+    merge_hdf5.main([output, *inputs])
+    np.testing.assert_array_equal(_read(output)[0]["shower_ids"], [0, 1])
+    # an existing output is skipped with an error message, or overwritten with --overwrite
+    with caplog.at_level(logging.ERROR, logger="NuRadioMC.HDF5-merger"):
+        merge_hdf5.main([output, inputs[0]])
+    assert "already exists" in caplog.text
+    np.testing.assert_array_equal(_read(output)[0]["shower_ids"], [0, 1])
+    merge_hdf5.main([output, inputs[0], "--overwrite", "--loglevel", "warning"])
+    np.testing.assert_array_equal(_read(output)[0]["shower_ids"], [0])
+    with pytest.raises(SystemExit):
+        merge_hdf5.main([output, *inputs, "--loglevel", "print('x')"])
+
+
+def test_main_directory_overwrite(tmp_path, restore_loglevel):
+    parts = _write_part_tree(str(tmp_path))
+    for output in parts:
+        with h5py.File(output, "w") as f:
+            f.attrs["n_events"] = -1
+    merge_hdf5.main([str(tmp_path)])
+    for output in parts:
+        with h5py.File(output, "r") as f:
+            assert f.attrs["n_events"] == -1
+    merge_hdf5.main([str(tmp_path), "--overwrite"])
+    for output, inputs in parts.items():
+        with h5py.File(output, "r") as f:
+            assert f.attrs["n_events"] == 2 * len(inputs)
 
 
 def _run_cli(*args, success=True):

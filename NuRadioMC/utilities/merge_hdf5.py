@@ -1,3 +1,19 @@
+"""
+Merges NuRadioMC hdf5 output files into one file and keeps track of the total number of simulated events
+(attribute ``n_events``), which the effective volume calculation needs. See `merge_hdf5_files` for the rules.
+
+Command line::
+
+    python merge_hdf5.py <root directory>
+    python merge_hdf5.py <output file> <input file 1> [<input file 2> ...]
+
+With a single argument, the script expects the part files of the event generator in subfolders, e.g. one per energy,
+``<root directory>/<subfolder>/<name>.hdf5.partNNNN``, and writes ``<root directory>/<name>.hdf5`` per ``<name>``
+(see `find_part_files`). With several arguments, the first one is the output file, the others are the input files.
+
+Existing output files are skipped with an error message unless ``--overwrite`` is given. ``--cores N`` merges N output
+files in parallel (directory mode); ``--loglevel`` sets the log level (e.g. ``DEBUG``, ``INFO``, ``WARNING``).
+"""
 import argparse
 import glob
 import logging
@@ -162,16 +178,19 @@ def _merge_group_attributes(group_attrs_per_file):
     return group_attrs
 
 
-def find_part_files(root_directory):
+def find_part_files(root_directory, skip_existing=True):
     """
-    Groups the files ``root_directory/<subfolder>/<name>.hdf5.part*`` by ``<name>.hdf5``.
+    Groups the files ``root_directory/<subfolder>/<name>.hdf5.partNNNN`` by ``<name>.hdf5``.
 
-    Files of at most 1000 bytes are skipped, as are groups whose output file already exists.
+    Files of at most 1000 bytes (e.g. truncated by a failed job) are left out with a warning; their events are then
+    missing from ``n_events`` of the merged file.
 
     Parameters
     ----------
     root_directory : str
         directory containing one subfolder (e.g. per energy) with the part files
+    skip_existing : bool, default: True
+        leave out (with an error message) the groups whose output file already exists
 
     Returns
     -------
@@ -183,18 +202,19 @@ def find_part_files(root_directory):
     filenames = np.unique([os.path.splitext(f)[0] for f in glob.glob(f"{root_directory}/*/*.hdf5.part*")])
     input_args = []
     for filename in sorted(filenames):
-        if(os.path.splitext(filename)[1] == '.hdf5'):
-            d = os.path.split(filename)
-            a, b = os.path.split(d[0])
-            output_filename = os.path.join(a, d[1])  # remove subfolder from filename
-            if(os.path.exists(output_filename)):
-                logger.error('file {} already exists, skipping'.format(output_filename))
-            else:
-                input_files = np.array(sorted(glob.glob(filename + '.part*')))
-                mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=bool)
-                if(np.sum(~mask)):
-                    logger.warning("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
-                input_args.append({'filenames': input_files[mask], 'output_filename': output_filename})
+        if os.path.splitext(filename)[1] != '.hdf5':
+            continue
+        folder, name = os.path.split(filename)
+        output_filename = os.path.join(os.path.dirname(folder), name)  # remove subfolder from filename
+        if skip_existing and os.path.exists(output_filename):
+            logger.error(f'file {output_filename} already exists, skipping')
+            continue
+        input_files = sorted(glob.glob(filename + '.part*'))
+        small = [f for f in input_files if os.path.getsize(f) <= 1000]
+        if small:
+            logger.warning(f"{len(small)} files were deselected because their filesize was too small, the merged "
+                           f"{output_filename} misses their events in n_events: {small}")
+        input_args.append({'filenames': [f for f in input_files if f not in small], 'output_filename': output_filename})
     return input_args
 
 
@@ -471,25 +491,23 @@ def merge2(filenames, output_filename):
     merge_hdf5_files(filenames, output_filename, overwrite=True)
 
 
-if __name__ == "__main__":
-    """
-    Merges multiple hdf5 files into one single file. Keeps automatically track of the total number
-    of simulated events across all input files (which is necessary to correctly calculate the effective volume).
+def _merge_job(kwargs):
+    """ `merge_hdf5_files` with keyword arguments; module level, so that a multiprocessing pool can pickle it. """
+    merge_hdf5_files(**kwargs)
 
-    If a single path is passed as argument the script interprets it as root directory and expects the following folder structure:
-    ../output/energy/*.hdf5.part????
-    The output file path is automatically determined.
 
-    If multiple paths are passed, the first one is taken as output file path. The following paths are taken as input.
-
-    Optional log level setting to either set DEBUG, INFO, or WARNING to the readout. Example: add --loglevel DEBUG when calling script to set loglevel to DEBUG.
-    """
-    parser = argparse.ArgumentParser(description='Merge hdf5 files')
-    parser.add_argument('files', nargs='+', help='input file or files')
+def main(argv=None):
+    """ Command line interface, see the module docstring; ``argv``: arguments (default: `sys.argv`). """
+    parser = argparse.ArgumentParser(description='Merge NuRadioMC hdf5 output files.')
+    parser.add_argument('files', nargs='+',
+                        help='root directory of the part files, or the output file followed by the input files')
     parser.add_argument('--loglevel', metavar='level', type=_parse_loglevel,
                         help='loglevel set to either DEBUG, INFO, or WARNING (or another level name or number)')
-    parser.add_argument('--cores', default=1, type=int, help='number of cores to use')
-    args = parser.parse_args()
+    parser.add_argument('--cores', default=1, type=int,
+                        help='number of output files to merge in parallel (directory mode)')
+    parser.add_argument('--overwrite', action='store_true',
+                        help='overwrite existing output files (default: skip them with an error message)')
+    args = parser.parse_args(argv)
 
     if args.loglevel is not None:
         logger.setLevel(args.loglevel)
@@ -499,22 +517,27 @@ if __name__ == "__main__":
         if not os.path.isdir(root_directory):
             sys.exit(f"{root_directory} is not a directory.")
 
-        input_args = find_part_files(root_directory)
+        input_args = find_part_files(root_directory, skip_existing=not args.overwrite)
+        for kwargs in input_args:
+            kwargs['overwrite'] = args.overwrite
 
-        if(args.cores == 1):
-            for i in range(len(input_args)):
-                merge_hdf5_files(input_args[i]['filenames'], input_args[i]['output_filename'])
+        if args.cores == 1:
+            for kwargs in input_args:
+                _merge_job(kwargs)
         else:
             from multiprocessing import Pool
             logger.warning(f"running {len(input_args)} job on {args.cores} cores")
-            # merge_hdf5_files is picklable as a module-level function (a local one fails under the "spawn" start method)
-            with Pool(args.cores) as p:
-                p.starmap(merge_hdf5_files, [(x['filenames'], x['output_filename']) for x in input_args])
+            # a failed job raises here and stops the pool
+            with Pool(args.cores, initializer=logger.setLevel, initargs=(logger.level,)) as p:
+                p.map(_merge_job, input_args)
 
     else:
         output_filename = args.files[0]
-        if(os.path.exists(output_filename)):
-            logger.error('file {} already exists, skipping'.format(output_filename))
+        if os.path.exists(output_filename) and not args.overwrite:
+            logger.error(f'file {output_filename} already exists, skipping')
         else:
-            input_files = args.files[1:]
-            merge_hdf5_files(input_files, output_filename)
+            merge_hdf5_files(args.files[1:], output_filename, overwrite=args.overwrite)
+
+
+if __name__ == "__main__":
+    main()
