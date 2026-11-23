@@ -283,6 +283,9 @@ def get_Veff_Aeff_single(
     out['thetamin'] = thetamin
     out['thetamax'] = thetamax
     out['deposited'] = deposited
+    # needed to combine files of the same energy and zenith bin in `get_Veff_Aeff_array`
+    out['n_events'] = n_events
+    out['volume_proj_area'] = volume_proj_area
     out[veff_aeff] = {}
     out['n_triggered_weighted'] = {}
     out['SNRs'] = {}
@@ -626,6 +629,10 @@ def get_Veff_Aeff_array(data):
     the array dimensions are (energy, zenith bin, triggername, 5) where the
     last tuple is the effective volume, its uncertainty, the weighted sum of triggered events, lower 68% uncertainty, upper 68% uncertainty
 
+    Several entries (files) with the same energy and zenith bin are combined: their weighted numbers of triggered
+    events are summed and the effective volume is ``sum(counts) / sum(n_events / volume)``, i.e. as if all events
+    had been simulated in one file (for equal volumes, ``volume * sum(counts) / sum(n_events)``).
+
     Parameters
     ----------
     data: dict
@@ -736,16 +743,28 @@ def get_Veff_Aeff_array(data):
     logger.debug(f"unique zenith angle bins {uzenith_bins/units.deg}")
     logger.debug(f"unique energies {utrigger_names}")
 
+    # entries (files) per energy and zenith bin
+    bins = {}
     for d in data:
-        iE = np.squeeze(np.argwhere(d['energy'] == uenergies))
+        iE = int(np.squeeze(np.argwhere(d['energy'] == uenergies)))
         iT = np.squeeze(np.argwhere([d['thetamin'], d['thetamax']] == uzenith_bins))[0][0]
-        for triggername, Veff in d[veff_aeff].items():
-            iTrig = np.squeeze(np.argwhere(triggername == utrigger_names))
-            output[iE, iT, iTrig] = Veff
+        bins.setdefault((iE, iT), []).append(d)
 
-    for d in data:
-        iE = np.squeeze(np.argwhere(d['energy'] == uenergies))
-        iT = np.squeeze(np.argwhere([d['thetamin'], d['thetamax']] == uzenith_bins))[0][0]
+    for (iE, iT), entries in bins.items():
+        if len(entries) == 1:
+            for triggername, Veff in entries[0][veff_aeff].items():
+                output[iE, iT, get_index(triggername, utrigger_names)] = Veff
+            continue
+
+        if not all('n_events' in d and 'volume_proj_area' in d for d in entries):
+            raise KeyError(
+                f"{len(entries)} entries have the same energy and zenith bin, but at least one lacks the keys "
+                "`n_events` and `volume_proj_area` needed to combine them. Recalculate `data` with `get_Veff_Aeff`.")
+
+        exposure = sum(d['n_events'] / d['volume_proj_area'] for d in entries)
+        for triggername in set().union(*[d[veff_aeff].keys() for d in entries]):
+            counts = sum(d[veff_aeff][triggername][2] for d in entries if triggername in d[veff_aeff])
+            output[iE, iT, get_index(triggername, utrigger_names)] = get_veff_output(1, counts, exposure)
 
     return output, uenergies, uenergies_min, uenergies_max, uzenith_bins, utrigger_names
 

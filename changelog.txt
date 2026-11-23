@@ -51,6 +51,9 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
 
 bugfixes:
+- `NuRadioMC.utilities.Veff.get_Veff_Aeff_array` combines several files with the same energy and zenith bin (summed
+  triggered events and simulated events) instead of keeping only the last file (#490). `get_Veff_Aeff` now also
+  returns `n_events` and `volume_proj_area` per file.
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported
