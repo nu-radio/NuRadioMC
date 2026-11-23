@@ -266,9 +266,6 @@ if __name__ == "__main__":
 
     print(f"Simulated {len(events)} events in total.")
 
-    if args.label != "":
-        args.label = f"_{args.label}"
-
     if args.store:
         from NuRadioReco.modules.io.eventWriter import eventWriter as EventWriter
         writer = EventWriter()
