@@ -74,6 +74,16 @@ def check_separate_zenith_bins(folder):
     assert np.allclose(Veffs[0, :, 1, 0], [VOLUME * 0.1, VOLUME * 0.3], rtol=1e-12), Veffs[0, :, 1, 0]
 
 
+def check_shared_zenith_edge(folder):
+    # zenith bins that share only one edge are different bins
+    write_file(os.path.join(folder, "a.hdf5"), 100, 10, 0, np.pi / 2)
+    write_file(os.path.join(folder, "b.hdf5"), 100, 30, 0, np.pi)
+
+    Veffs, zenith_bins, _ = get_veffs(folder)
+    assert np.allclose(zenith_bins, [[0, np.pi / 2], [0, np.pi]])
+    assert np.allclose(Veffs[0, :, 1, 0], [VOLUME * 0.1, VOLUME * 0.3], rtol=1e-12), Veffs[0, :, 1, 0]
+
+
 def check_trigger_in_some_files(folder):
     # a trigger present only in the entries of some files gets the exposure of only those files
     a, b = os.path.join(folder, "a.hdf5"), os.path.join(folder, "b.hdf5")
@@ -109,6 +119,8 @@ def test_Veff_combine_files():
 def test_Veff_zenith_bins():
     with tempfile.TemporaryDirectory() as tmp:
         check_separate_zenith_bins(tmp)
+    with tempfile.TemporaryDirectory() as tmp:
+        check_shared_zenith_edge(tmp)
 
 
 def test_Veff_trigger_in_some_files():

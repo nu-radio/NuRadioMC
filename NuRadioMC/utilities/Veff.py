@@ -748,7 +748,7 @@ def get_Veff_Aeff_array(data):
     bins = {}
     for d in data:
         iE = int(np.squeeze(np.argwhere(d['energy'] == uenergies)))
-        iT = np.squeeze(np.argwhere([d['thetamin'], d['thetamax']] == uzenith_bins))[0][0]
+        iT = np.flatnonzero(np.all(uzenith_bins == [d['thetamin'], d['thetamax']], axis=1))[0]
         bins.setdefault((iE, iT), []).append(d)
 
     for (iE, iT), entries in bins.items():
