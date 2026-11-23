@@ -328,6 +328,10 @@ class UncertaintyAwareDetector():
         """ Return the time delay of a channel, forwarded to ``Detector.get_time_delay``. """
         return self.as_detector().get_time_delay(station_id, channel_id)
 
+    def get_cable_delay(self, station_id, channel_id):
+        """ Return the cable delay of a channel, forwarded to ``Detector.get_cable_delay``. """
+        return self.as_detector().get_cable_delay(station_id, channel_id)
+
     def get_relative_position(self, station_id, channel_id):
         """ Return the position of a channel, forwarded to ``Detector.get_relative_position``. """
         return self.as_detector().get_relative_position(station_id, channel_id)
