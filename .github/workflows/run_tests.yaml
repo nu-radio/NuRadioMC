@@ -272,6 +272,11 @@ jobs:
       run: |
         python NuRadioMC/test/utilities/test_merge_hdf5.py
 
+    - name: "Test HDF5 output writer"
+      if: always()
+      run: |
+        python NuRadioMC/test/simulation/test_output_writer_hdf5.py
+
     - name: "Test limit plot"
       if: always()
       run: |

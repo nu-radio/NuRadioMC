@@ -255,7 +255,7 @@ class outputWriterHDF5:
                         shower_ids_stn.append(shower.get_id())
                         self.__add_parameter(sg, 'shower_id', shower.get_id())
                         self.__add_parameter(sg, 'event_group_id_per_shower', evt.get_run_number())
-                        self.__add_parameter(sg, 'event_id_per_shower', shower.get_id())
+                        self.__add_parameter(sg, 'event_id_per_shower', evt.get_id())
 
                         # we need to save data per shower, channel and ray tracing solution. Due to the simple table structure
                         # of the hdf5 files we need to preserve the ordering of the showers and channels. As the order in the

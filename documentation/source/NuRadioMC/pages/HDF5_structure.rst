@@ -164,7 +164,7 @@ station triggered, with which amplitude, etc. The same approach works for ``show
         ``event_group_ids`` | (``m_events``) | The event group ids of the triggered events in the selected station
         ``event_group_id_per_shower`` | (``m_showers``) | The event group id of every shower that triggered the selected station
         ``event_ids`` | (``m_events``) | The event ids of each event that triggered in that station for every event group id. These are unique only within each separate event group, and start from 0.
-        ``event_id_per_shower`` | (``m_showers``) | The event ids of each event that triggered in that station. This one is for every shower
+        ``event_id_per_shower`` | (``m_showers``) | The event id (see ``event_ids``) of every shower that triggered the selected station. If a shower contributes to several triggered events, the id of the first of these events
         ``shower_id`` | (``m_showers``) | The Shower ids of showers that triggered the selected station
         ``max_amp_shower_and_ray`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | Maximum amplitude per shower, channel and ray tracing solution.
         ``maximum_amplitudes`` | (``m_events``, ``n_channels``) | Maximum amplitude per event and channel

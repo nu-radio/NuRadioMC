@@ -56,6 +56,8 @@ bugfixes:
   renamed event group ids are also applied to the station groups' `event_group_id_per_shower`, renamed shower ids
   to `shower_id` and `event_id_per_shower` (which holds shower ids).
   Note: renamed ids in the merged file no longer match the SimShower ids in .nur files or the generator input.
+- The station dataset `event_id_per_shower` of the NuRadioMC HDF5 output holds the event id of the event each shower
+  (or emitter) belongs to, as documented; before, it held the shower ids.
 - `merge_hdf5.py <directory>` merges the `*.hdf5.partNNNN` files again (merged nothing since v3.0.0; file discovery is now
   `merge_hdf5.find_part_files`).
 - `merge_hdf5` raises if any trigger name (or other string attribute) differs between files, not only if all differ.
