@@ -25,6 +25,7 @@ def _write_file(filename, event_group_ids, shower_ids):
         sg["event_ids"] = np.zeros(len(np.unique(event_group_ids)), dtype=int)
         sg["shower_id"] = np.asarray(shower_ids)
         sg["event_group_id_per_shower"] = event_group_ids
+        sg["event_id_per_shower"] = np.asarray(shower_ids)  # holds shower ids, see output_writer_hdf5
 
 
 def _merge(inputs):
@@ -38,7 +39,8 @@ def _merge(inputs):
         merge2(filenames, output)
         with h5py.File(output, "r") as f:
             return {key: f[key][...] for key in ["event_group_ids", "shower_ids", "station_101/event_group_ids",
-                                                 "station_101/shower_id", "station_101/event_group_id_per_shower"]}
+                                                 "station_101/shower_id", "station_101/event_group_id_per_shower",
+                                                 "station_101/event_id_per_shower"]}
 
 
 def test_merge_shower_ids_unique():
@@ -46,6 +48,12 @@ def test_merge_shower_ids_unique():
     assert len(np.unique(out["shower_ids"])) == 7, out["shower_ids"]
     # the station group references the same (renamed) showers as the top level
     np.testing.assert_array_equal(out["station_101/shower_id"], out["shower_ids"])
+
+
+def test_merge_event_id_per_shower_renamed():
+    # the station dataset ``event_id_per_shower`` stores shower ids and must be renamed with them
+    out = _merge([([1, 2, 2], [0, 1, 2]), ([1, 2, 2], [0, 1, 2])])
+    np.testing.assert_array_equal(out["station_101/event_id_per_shower"], out["station_101/shower_id"])
 
 
 def test_merge_event_group_id_zero_unique():
@@ -64,6 +72,7 @@ def test_merge_station_ids_consistent():
 
 if __name__ == "__main__":
     test_merge_shower_ids_unique()
+    test_merge_event_id_per_shower_renamed()
     test_merge_event_group_id_zero_unique()
     test_merge_station_ids_consistent()
     print("OK")
