@@ -95,6 +95,16 @@ def find_part_files(root_directory):
     return input_args
 
 
+def _parse_loglevel(value):
+    """ Command line log level: a level name (case-insensitive) or number. """
+    if value.isdigit():
+        return int(value)
+    level = logging.getLevelName(value.upper())
+    if not isinstance(level, int):
+        raise argparse.ArgumentTypeError(f"unknown log level {value}")
+    return level
+
+
 def merge2(filenames, output_filename):
     logger.warning(f"merging {len(filenames)} files into {os.path.basename(output_filename)}")
     data = OrderedDict()
@@ -282,13 +292,13 @@ if __name__ == "__main__":
     """
     parser = argparse.ArgumentParser(description='Merge hdf5 files')
     parser.add_argument('files', nargs='+', help='input file or files')
-    parser.add_argument('--loglevel', metavar='level', help='loglevel set to either DEBUG, INFO, or WARNING')
+    parser.add_argument('--loglevel', metavar='level', type=_parse_loglevel,
+                        help='loglevel set to either DEBUG, INFO, or WARNING (or another level name or number)')
     parser.add_argument('--cores', default=1, type=int, help='number of cores to use')
     args = parser.parse_args()
 
     if args.loglevel is not None:
-        log_val = eval(f'logging.{args.loglevel}')
-        logger.setLevel(log_val)
+        logger.setLevel(args.loglevel)
 
     if len(args.files) == 1:
         root_directory = args.files[0]

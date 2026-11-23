@@ -165,11 +165,11 @@ def test_find_part_files():
         assert {x["output_filename"]: list(x["filenames"]) for x in found} == parts, found
 
 
-def _run_cli(*args):
+def _run_cli(*args, success=True):
     script = os.path.join(os.path.dirname(merge_hdf5.__file__), "merge_hdf5.py")
     # timeout: a pool whose workers fail to start hangs
     result = subprocess.run([sys.executable, script, *args], capture_output=True, text=True, timeout=60)
-    assert result.returncode == 0, result.stderr
+    assert (result.returncode == 0) == success, result.stderr
 
 
 def test_cli_directory_mode(*args):
@@ -186,6 +186,17 @@ def test_cli_directory_mode_multiprocessing():
     test_cli_directory_mode("--cores", "2")
 
 
+def test_cli_loglevel():
+    # level names and numbers are accepted, anything else is an error
+    with tempfile.TemporaryDirectory() as tmpdir:
+        inputs = [os.path.join(tmpdir, f"in{i}.hdf5") for i in range(2)]
+        for i, f in enumerate(inputs):
+            _write_file(f, [i], [i])
+        for i, level in enumerate(["DEBUG", "info", "10"]):
+            _run_cli(os.path.join(tmpdir, f"out{i}.hdf5"), *inputs, "--loglevel", level)
+        _run_cli(os.path.join(tmpdir, "out_bad.hdf5"), *inputs, "--loglevel", "print('x')", success=False)
+
+
 if __name__ == "__main__":
     test_merge_shower_ids_unique()
     test_merge_event_id_per_shower_renamed()
@@ -198,4 +209,5 @@ if __name__ == "__main__":
     test_find_part_files()
     test_cli_directory_mode()
     test_cli_directory_mode_multiprocessing()
+    test_cli_loglevel()
     print("OK")
