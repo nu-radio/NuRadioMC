@@ -300,14 +300,47 @@ def _merge_attrs(tmp_path, attrs, station_attrs=None):
         return dict(f.attrs), dict(f["station_101"].attrs)
 
 
-def test_merge_trigger_names_differ(tmp_path):
-    # any differing trigger name raises, not only if all differ
-    with pytest.raises(AttributeError):
-        _merge_attrs(tmp_path, [{"trigger_names": np.array(["a", "b"], dtype="S")},
-                                {"trigger_names": np.array(["a", "X"], dtype="S")}])
+def test_merge_trigger_names_equal(tmp_path):
     names = np.array(["a", "b"], dtype="S")
     attrs, _ = _merge_attrs(tmp_path, [{"trigger_names": names}, {"trigger_names": names}])
     np.testing.assert_array_equal(attrs["trigger_names"], names)
+    assert attrs["trigger_names"].dtype == names.dtype
+
+
+def _write_triggers(filename, names, multiple_triggers, trigger_times):
+    """ Adds ``trigger_names`` and the per-trigger datasets (one row per shower and event) to a `_write_file` file. """
+    with h5py.File(filename, "a") as f:
+        f.attrs["trigger_names"] = names
+        for prefix, suffix in [("", ""), ("station_101/", ""), ("station_101/", "_per_event")]:
+            for key, value in [("multiple_triggers", np.array(multiple_triggers, dtype=bool)),
+                               ("trigger_times", np.array(trigger_times, dtype=float))]:
+                if f"{prefix}{key}{suffix}" in f:
+                    del f[f"{prefix}{key}{suffix}"]
+                f[f"{prefix}{key}{suffix}"] = value
+
+
+def test_merge_trigger_names_differ(tmp_path, caplog):
+    # a trigger that never fired in a file is missing from its trigger names: merged by name, the per-trigger
+    # datasets are re-indexed to the merged order, missing columns are False / NaN
+    filenames = _write_files(tmp_path, [([1], [1]), ([2], [2]), ([3], [3])])
+    _write_triggers(filenames[0], ["a", "b"], [[True, False]], [[1., np.nan]])
+    _write_triggers(filenames[1], ["c", "a"], [[True, True]], [[3., 2.]])
+    _write_triggers(filenames[2], ["a", "b"], [[False, True]], [[np.nan, 4.]])
+    output = str(tmp_path / "merged.hdf5")
+    with caplog.at_level(logging.WARNING, logger="NuRadioMC.HDF5-merger"):
+        merge_hdf5_files(filenames, output)
+    assert "trigger names of 3 files differ" in caplog.text
+    data, attrs = _read(output)
+    assert list(attrs["trigger_names"]) == ["a", "b", "c"], attrs["trigger_names"]
+    for prefix, suffix in [("", ""), ("station_101/", ""), ("station_101/", "_per_event")]:
+        np.testing.assert_array_equal(data[f"{prefix}multiple_triggers{suffix}"],
+                                      [[True, False, False], [True, False, True], [False, True, False]])
+        np.testing.assert_array_equal(data[f"{prefix}trigger_times{suffix}"],
+                                      [[1., np.nan, np.nan], [2., np.nan, 3.], [np.nan, 4., np.nan]])
+    # a per-trigger dataset that does not match the file's trigger names
+    _write_triggers(filenames[1], ["c"], [[True, True]], [[3., 2.]])
+    with pytest.raises(ValueError, match="trigger names"):
+        merge_hdf5_files(filenames, output, overwrite=True)
 
 
 def test_merge_string_attrs_differ(tmp_path):

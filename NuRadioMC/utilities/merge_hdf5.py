@@ -27,12 +27,14 @@ from NuRadioReco.utilities.logging import deprecated
 
 logger = logging.getLogger("NuRadioMC.HDF5-merger")
 
-str_type_attrs = ['trigger_names', 'NuRadioMC_EvtGen_version', 'NuRadioMC_EvtGen_version_hash', 'NuRadioMC_version',
+str_type_attrs = ['NuRadioMC_EvtGen_version', 'NuRadioMC_EvtGen_version_hash', 'NuRadioMC_version',
                   'NuRadioMC_version_hash', 'config']
 # attributes the effective volume/area calculation reads from the merged file: they must agree between files
 veff_attrs = ['Emin', 'Emax', 'volume', 'area']
 # datasets (top level and station groups) holding ids that the merge shifts: dataset name -> top-level id dataset
 # whose offsets apply
+# datasets (top level and station groups) with one column per trigger in ``trigger_names``
+_PER_TRIGGER_DATASETS = ['multiple_triggers', 'trigger_times', 'multiple_triggers_per_event', 'trigger_times_per_event']
 _ID_DATASETS = {'event_group_ids': 'event_group_ids', 'event_group_id_per_shower': 'event_group_ids',
                 'shower_ids': 'shower_ids', 'shower_id': 'shower_ids'}
 
@@ -101,7 +103,7 @@ def _merge_attributes(attrs_per_file):
 
     The first file that has a key sets its value. Later files must agree on the string attributes
     (``str_type_attrs``, e.g. ``config``) and on ``veff_attrs`` (else `AttributeError`); other differing values warn.
-    ``start_event_id`` is not compared, ``trigger_names`` missing or empty so far are taken from a later file.
+    ``start_event_id`` is not compared, ``trigger_names`` are merged by `_merge_trigger_names`.
 
     Parameters
     ----------
@@ -124,7 +126,7 @@ def _merge_attributes(attrs_per_file):
                     message = f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {value}. "
                     logger.error(message)
                     raise AttributeError(message)
-            elif key == "start_event_id":
+            elif key in ["start_event_id", "trigger_names"]:
                 continue
             elif not _attrs_equal(attrs[key], value):
                 if key == "n_events":
@@ -138,10 +140,52 @@ def _merge_attributes(attrs_per_file):
                 else:
                     logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. "
                                    f"{value}. Using attribute value of first file, but you have been warned!")
-
-            if (len(attrs.get('trigger_names', [])) == 0) and 'trigger_names' in file_attrs:
-                attrs['trigger_names'] = file_attrs['trigger_names']
     return attrs
+
+
+def _merge_trigger_names(attrs_per_file):
+    """
+    Merges the ``trigger_names`` of the files by name.
+
+    A trigger that never fired in a file is missing from its ``trigger_names`` (the writer adds a trigger when it first
+    fires), so the files can have different trigger names, or the same ones in a different order. The merged names are
+    the union in order of first appearance; the per-trigger datasets (``_PER_TRIGGER_DATASETS``) of a file whose names
+    differ from it are re-indexed to the merged columns (see `_merge_datasets`).
+
+    Parameters
+    ----------
+    attrs_per_file : dict
+        file attributes (dict) per file name, in merge order
+
+    Returns
+    -------
+    trigger_names : array, list of str or None
+        merged ``trigger_names``: the value of the first file if all files agree, else the union; None if no file has
+        ``trigger_names``
+    columns : dict
+        per file name with ``trigger_names``, the merged column of each of its triggers, or None if its names are the
+        merged names
+    """
+    names_per_file = {}
+    for f, attrs in attrs_per_file.items():
+        if 'trigger_names' in attrs:
+            names_per_file[f] = [n.decode() if isinstance(n, bytes) else str(n)
+                                 for n in np.atleast_1d(attrs['trigger_names'])]
+    if not names_per_file:
+        return None, {}
+    union = []
+    for names in names_per_file.values():
+        union += [n for n in names if n not in union]
+    columns = {f: None if names == union else np.array([union.index(n) for n in names], dtype=int)
+               for f, names in names_per_file.items()}
+    differing = [f for f, c in columns.items() if c is not None]
+    if not differing:
+        return attrs_per_file[next(iter(names_per_file))]['trigger_names'], columns
+    logger.warning(f"the trigger names of {len(differing)} files differ from the merged trigger names {union}; "
+                   "their per-trigger datasets are re-indexed, columns of triggers missing in a file are False / NaN")
+    for f in differing:
+        logger.info(f"trigger names of {f}: {names_per_file[f]}")
+    return union, columns
 
 
 def _merge_group_attributes(group_attrs_per_file):
@@ -296,12 +340,24 @@ def _dataset_layout(name, shapes_dtypes):
     return (sum(s[0] for _, s, _ in shapes_dtypes),) + tuple(shape[1:]), dtype
 
 
-def _merge_datasets(fout, infos, skip_incomplete_stations=False):
+def _per_trigger_shape(path, info, trigger_columns, shape, n_triggers):
+    """ Shape of the per-trigger dataset ``path`` of the file ``info`` after re-indexing to the merged triggers. """
+    columns = trigger_columns.get(info.filename)
+    if columns is None:
+        return shape
+    if len(shape) != 2 or shape[1] != len(columns):
+        raise ValueError(f"dataset {path} of {info.filename} has shape {shape}, but the file has {len(columns)} "
+                         "trigger names")
+    return (shape[0], n_triggers)
+
+
+def _merge_datasets(fout, infos, trigger_columns, n_triggers, skip_incomplete_stations=False):
     """
     Second pass of `merge_hdf5_files` for the non-empty input files ``infos``: creates the merged datasets and station
-    groups in ``fout`` and copies the rows file by file, shifting overlapping ids (see `_make_ids_unique`). Returns the
-    offsets per id dataset (``event_group_ids``, ``shower_ids`` if shifted) and file name. ``skip_incomplete_stations``:
-    see `merge_hdf5_files`.
+    groups in ``fout`` and copies the rows file by file, shifting overlapping ids (see `_make_ids_unique`) and
+    re-indexing the per-trigger datasets with ``trigger_columns`` (per file name, see `_merge_trigger_names`) to
+    ``n_triggers`` columns. Returns the offsets per id dataset (``event_group_ids``, ``shower_ids`` if shifted) and
+    file name. ``skip_incomplete_stations``: see `merge_hdf5_files`.
     """
     # unique event group ids: the effective volume/area calculation uses them to find multi-station coincidences
     id_offsets = {'event_group_ids': _make_ids_unique([info.ids['event_group_ids'] for info in infos])}
@@ -321,6 +377,9 @@ def _merge_datasets(fout, infos, skip_incomplete_stations=False):
     outputs = {}
 
     def create(path, files):
+        if path.split('/')[-1] in _PER_TRIGGER_DATASETS:
+            files = [(i, (_per_trigger_shape(path, infos[i], trigger_columns, shape, n_triggers), dtype))
+                     for i, (shape, dtype) in files]
         shape, dtype = _dataset_layout(path, [(infos[i].filename, *shapes_dtypes) for i, shapes_dtypes in files])
         dset = fout.create_dataset(path, shape, dtype=dtype, compression='gzip')
         offsets = np.cumsum([0] + [shapes_dtypes[0][0] for _, shapes_dtypes in files])
@@ -378,6 +437,10 @@ def _merge_datasets(fout, infos, skip_incomplete_stations=False):
                 kind = _ID_DATASETS.get(path.split('/')[-1])
                 if kind in id_offsets:
                     data = data + id_offsets[kind][i]
+                if path.split('/')[-1] in _PER_TRIGGER_DATASETS and trigger_columns.get(info.filename) is not None:
+                    reindexed = np.full((len(data), n_triggers), np.nan if data.dtype.kind == 'f' else 0, data.dtype)
+                    reindexed[:, trigger_columns[info.filename]] = data
+                    data = reindexed
                 if len(data):
                     dset[offsets[i]:offsets[i] + len(data)] = data
     return {key: {info.filename: offset for info, offset in zip(infos, offsets)} for key, offsets in id_offsets.items()}
@@ -414,9 +477,10 @@ def merge_hdf5_files(filenames, output_filename, overwrite=False, skip_incomplet
     original id + offset), ``event_group_id_starts`` the smallest merged event group id of each file (-1: no rows);
     for an input file that is itself a merged file, its entries are listed, with the offsets of both merges added.
 
-    Attributes: the first file that has an attribute sets its value. ``config``, ``trigger_names`` and the NuRadioMC
-    versions must be equal in all files, as must ``Emin``, ``Emax``, ``volume`` and ``area`` (else `AttributeError`);
-    other differing attributes warn. A top-level dataset missing in one of the non-empty files is left out with a
+    Attributes: the first file that has an attribute sets its value. ``config`` and the NuRadioMC versions must be
+    equal in all files, as must ``Emin``, ``Emax``, ``volume`` and ``area`` (else `AttributeError`); other differing
+    attributes warn. ``trigger_names`` are merged by name (a trigger that never fired in a file is missing there, see
+    `_merge_trigger_names`). A top-level dataset missing in one of the non-empty files is left out with a
     warning. The merged file has the station groups of all files.
 
     The merge is written to ``output_filename + '.tmp'``, which is renamed to ``output_filename`` when done.
@@ -464,6 +528,9 @@ def merge_hdf5_files(filenames, output_filename, overwrite=False, skip_incomplet
     attrs = _merge_attributes({info.filename: {key: value for key, value in info.attrs.items()
                                                if key not in merge_history_attrs} for info in infos})
     attrs['n_events'] = n_events_total
+    trigger_names, trigger_columns = _merge_trigger_names({info.filename: info.attrs for info in infos})
+    if trigger_names is not None:
+        attrs['trigger_names'] = trigger_names
     group_attrs = _merge_group_attributes({info.filename: info.group_attrs for info in infos})
     non_empty = [info for info in infos if not info.is_empty]
 
@@ -472,7 +539,8 @@ def merge_hdf5_files(filenames, output_filename, overwrite=False, skip_incomplet
         with h5py.File(tmp_filename, 'w') as fout:
             id_offsets = {}
             if non_empty:
-                id_offsets = _merge_datasets(fout, non_empty, skip_incomplete_stations)
+                n_triggers = 0 if trigger_names is None else len(trigger_names)
+                id_offsets = _merge_datasets(fout, non_empty, trigger_columns, n_triggers, skip_incomplete_stations)
                 for group in fout:
                     if isinstance(fout[group], h5py.Group):
                         for key, value in group_attrs[group].items():
