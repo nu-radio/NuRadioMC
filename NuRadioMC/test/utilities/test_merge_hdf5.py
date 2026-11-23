@@ -158,17 +158,23 @@ def test_find_part_files():
 
 def _run_cli(*args):
     script = os.path.join(os.path.dirname(merge_hdf5.__file__), "merge_hdf5.py")
-    result = subprocess.run([sys.executable, script, *args], capture_output=True, text=True)
+    # timeout: a pool whose workers fail to start hangs
+    result = subprocess.run([sys.executable, script, *args], capture_output=True, text=True, timeout=60)
     assert result.returncode == 0, result.stderr
 
 
-def test_cli_directory_mode():
+def test_cli_directory_mode(*args):
+    """ ``args``: further command line arguments """
     with tempfile.TemporaryDirectory() as root:
         parts = _write_part_tree(root)
-        _run_cli(root)
+        _run_cli(root, *args)
         for output, inputs in parts.items():
             with h5py.File(output, "r") as f:
                 assert f.attrs["n_events"] == 2 * len(inputs), (output, f.attrs["n_events"])
+
+
+def test_cli_directory_mode_multiprocessing():
+    test_cli_directory_mode("--cores", "2")
 
 
 if __name__ == "__main__":
@@ -181,4 +187,5 @@ if __name__ == "__main__":
     test_merge_station_attrs()
     test_find_part_files()
     test_cli_directory_mode()
+    test_cli_directory_mode_multiprocessing()
     print("OK")

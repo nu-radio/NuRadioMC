@@ -303,12 +303,9 @@ if __name__ == "__main__":
         else:
             from multiprocessing import Pool
             logger.warning(f"running {len(input_args)} job on {args.cores} cores")
-
-            def tmp(kwargs):
-                merge2(**kwargs)
-
+            # merge2 is picklable as a module-level function (a local one fails under the "spawn" start method)
             with Pool(args.cores) as p:
-                p.map(tmp, input_args)
+                p.starmap(merge2, [(x['filenames'], x['output_filename']) for x in input_args])
 
     else:
         output_filename = args.files[0]
