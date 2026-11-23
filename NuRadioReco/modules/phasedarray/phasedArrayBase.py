@@ -508,6 +508,7 @@ class PhasedArrayBase():
                 coeff_gain = upsampling_kwargs.get("coeff_gain")
                 sig_trace = self.hilbert_envelope(
                     coh_sum=phased_trace, adc_output=adc_output, **hilbert_transformer_kwargs)
+                step = 1  # the envelope has one value per sample (no sliding window)
             else:
                 raise ValueError("mode must be either 'power_sum' or 'hilbert_env'")
 
