@@ -469,21 +469,23 @@ def merge_hdf5_files(filenames, output_filename, overwrite=False, skip_incomplet
     volume calculation needs. Files without triggered events count for ``n_events`` but add no rows; if all files are
     empty, the first file is copied.
 
-    Event group ids and shower ids of a file that overlap those of the previous files are shifted (see
-    `_make_ids_unique`), in the top-level datasets and in the station groups. The attributes ``merged_files``,
-    ``event_group_id_offsets`` and ``shower_id_offsets`` list the original files and their offsets (merged id =
-    original id + offset), ``event_group_id_starts`` the smallest merged event group id of each file (-1: no rows);
-    for an input file that is itself a merged file, its entries are listed, with the offsets of both merges added.
+    Event group ids and shower ids of a file that overlap those of the previous files (smallest id not above the
+    largest id so far) are shifted by one offset, to above all ids seen so far, in the top-level datasets and in the
+    station groups. The attributes ``merged_files``, ``event_group_id_offsets`` and ``shower_id_offsets`` list the
+    original files and their offsets (merged id = original id + offset), ``event_group_id_starts`` the smallest merged
+    event group id of each file (-1: no rows); for an input file that is itself a merged file, its entries are listed,
+    with the offsets of both merges added.
 
     Attributes: the first file that has an attribute sets its value. ``config`` and the NuRadioMC versions must be
     equal in all files, as must ``Emin``, ``Emax``, ``volume`` and ``area`` (else `AttributeError`); other differing
-    attributes warn. ``trigger_names`` are merged by name (a trigger that never fired in a file is missing there, see
-    `_merge_trigger_names`). A top-level dataset missing in one of the non-empty files is left out with a
-    warning. The merged file has the station groups of all files.
+    attributes warn. ``trigger_names`` are merged by name: a trigger that never fired in a file is missing from its
+    names, so the merged names are the union, and the per-trigger datasets (e.g. ``multiple_triggers``) of such a file
+    get False / NaN in the columns of its missing triggers. A top-level dataset missing in one of the non-empty files
+    is left out with a warning. The merged file has the station groups of all files.
 
     The merge is written to ``output_filename + '.tmp'``, which is renamed to ``output_filename`` when done.
-    The first pass reads all attributes and the ids, the second copies one dataset of one file at a time, so the
-    memory use does not grow with the size of the files.
+    The first pass reads all attributes and the ids, the second copies one dataset of one file at a time (instead of
+    holding all files in memory).
 
     Parameters
     ----------
@@ -587,7 +589,7 @@ def _merge_job(kwargs):
 
 
 def main(argv=None):
-    """ Command line interface, see the module docstring; ``argv``: arguments (default: `sys.argv`). """
+    """ Command line interface, see the module docstring; ``argv``: arguments (default: ``sys.argv``). """
     parser = argparse.ArgumentParser(description='Merge NuRadioMC hdf5 output files.')
     parser.add_argument('files', nargs='+',
                         help='root directory of the part files, or the output file followed by the input files')
