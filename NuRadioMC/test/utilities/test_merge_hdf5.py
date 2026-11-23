@@ -143,6 +143,15 @@ def test_merge_file_attrs():
     np.testing.assert_array_equal(attrs["flavors"], [12, -12])
 
 
+def test_merge_veff_attrs_differ():
+    # attributes that enter the effective volume/area must agree, other differing attributes only warn
+    attrs = {"Emin": 1e18, "Emax": 1e19, "volume": 1e9, "area": 1e6, "fiducial_zmin": -2.7e3}
+    for key in ["Emin", "Emax", "volume", "area"]:
+        _assert_raises(AttributeError, _merge_attrs, [attrs, dict(attrs, **{key: 2 * attrs[key]})])
+    merged, _ = _merge_attrs([attrs, dict(attrs, fiducial_zmin=-1e3)])
+    assert merged["fiducial_zmin"] == attrs["fiducial_zmin"], merged
+
+
 def _write_part_tree(root):
     """ Generator-style tree ``root/<energy>/<name>.hdf5.partNNNN``; returns the part files per expected output file. """
     parts = {}
@@ -206,6 +215,7 @@ if __name__ == "__main__":
     test_merge_trigger_names_differ()
     test_merge_station_attrs()
     test_merge_file_attrs()
+    test_merge_veff_attrs_differ()
     test_find_part_files()
     test_cli_directory_mode()
     test_cli_directory_mode_multiprocessing()

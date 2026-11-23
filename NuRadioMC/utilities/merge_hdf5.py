@@ -11,6 +11,8 @@ import math
 logger = logging.getLogger("NuRadioMC.HDF5-merger")
 
 str_type_attrs = ['trigger_names', 'NuRadioMC_EvtGen_version', 'NuRadioMC_EvtGen_version_hash', 'NuRadioMC_version', 'NuRadioMC_version_hash', 'config']
+# attributes the effective volume/area calculation reads from the merged file: they must agree between files
+veff_attrs = ['Emin', 'Emax', 'volume', 'area']
 
 
 def _make_ids_unique(data, groups, filenames, key, group_keys):
@@ -164,6 +166,9 @@ def merge2(filenames, output_filename):
                             "performed with different settings per file (e.g. different zenith angle bins), the averaging might be effected.")
                         elif(key == "start_event_id"):
                             continue
+                        elif key in veff_attrs:
+                            raise AttributeError(f"attribute {key} of file {filenames[0]} and {f} are different "
+                                                 f"({attrs[key]} vs. {fin.attrs[key]}), the merged effective volume would be wrong")
                         else:
                             logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. "
                             f"{fin.attrs[key]}. Using attribute value of first file, but you have been warned!")
