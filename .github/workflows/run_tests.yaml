@@ -267,6 +267,11 @@ jobs:
       run: |
         python NuRadioMC/test/utilities/test_neutrino_fluxes.py
 
+    - name: "Test Veff utilities"
+      if: always()
+      run: |
+        python NuRadioMC/test/utilities/test_Veff.py
+
     - name: "Test limit plot"
       if: always()
       run: |
