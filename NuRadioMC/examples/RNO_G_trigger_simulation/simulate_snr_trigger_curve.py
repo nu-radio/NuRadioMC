@@ -3,7 +3,6 @@ import numpy as np
 import datetime as dt
 
 import NuRadioReco.framework.station
-import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.radio_shower
 import NuRadioReco.framework.event
 from NuRadioReco.framework.parameters import showerParameters as shp
@@ -118,8 +117,6 @@ def simulate_events(det, args):
         while True:
             event = NuRadioReco.framework.event.Event(0, edx)
             station = NuRadioReco.framework.station.Station(args.station_id)
-            sim_station = NuRadioReco.framework.sim_station.SimStation(args.station_id)
-            sim_station.set_is_neutrino()  # better save than sorry
 
             if not args.fix_vertex_position:
                 radius = np.random.uniform(10, 2000 ** 2) ** 0.5
@@ -161,11 +158,14 @@ def simulate_events(det, args):
                 sim_station_tmp = calculate_sim_efield(
                     [sim_shower], args.station_id, channel_id, det, propagator, medium=ice, config=config)
 
-                station.add_sim_station(sim_station_tmp)
+                if not len(sim_station_tmp.get_electric_fields()):
+                    break  # no ray-tracing solution for this channel -> draw a new vertex
 
-            event.set_station(station)
-            event.add_sim_shower(sim_shower)
-            if len(sim_station_tmp.get_electric_fields()):
+                station.add_sim_station(sim_station_tmp)
+            else:
+                # all trigger channels have a solution
+                event.set_station(station)
+                event.add_sim_shower(sim_shower)
                 break
 
         detector_simulation(event, station, det, noise_vrms=noise_vrms, max_freq=sampling_rate / 2,
