@@ -15,13 +15,14 @@ from NuRadioReco.utilities import units
 VOLUME = 10 * units.km ** 3
 
 
-def write_file(filename, n_events, n_triggered, thetamin=0., thetamax=np.pi):
+def write_file(filename, n_events, n_triggered, thetamin=0., thetamax=np.pi,
+               Emin=1e18 * units.eV, Emax=1e18 * units.eV):
     """ Write the attributes and datasets of a NuRadioMC output file that `get_Veff_Aeff` reads. """
     triggered = np.arange(n_events) < n_triggered
     with h5py.File(filename, "w") as f:
         f.attrs["n_events"] = n_events
-        f.attrs["Emin"] = 1e18 * units.eV
-        f.attrs["Emax"] = 1e18 * units.eV
+        f.attrs["Emin"] = Emin
+        f.attrs["Emax"] = Emax
         f.attrs["phimin"] = 0.
         f.attrs["phimax"] = 2 * np.pi
         f.attrs["thetamin"] = thetamin
@@ -84,6 +85,19 @@ def check_shared_zenith_edge(folder):
     assert np.allclose(Veffs[0, :, 1, 0], [VOLUME * 0.1, VOLUME * 0.3], rtol=1e-12), Veffs[0, :, 1, 0]
 
 
+def check_energy_bins(folder):
+    # an energy range and a mono-energetic file with the same (log-)mean energy are different energy bins
+    write_file(os.path.join(folder, "a.hdf5"), 100, 10, Emin=1e17 * units.eV, Emax=1e19 * units.eV)
+    write_file(os.path.join(folder, "b.hdf5"), 100, 30)
+
+    Veffs, energies, energies_min, energies_max, _, _ = get_Veff_Aeff_array(get_Veff_Aeff(folder))
+    assert Veffs.shape[0] == len(energies) == len(energies_min) == len(energies_max) == 2, Veffs.shape
+    assert np.allclose(energies, 1e18 * units.eV, rtol=1e-12), energies
+    assert np.allclose(energies_min, [1e17 * units.eV, 1e18 * units.eV]), energies_min
+    assert np.allclose(energies_max, [1e19 * units.eV, 1e18 * units.eV]), energies_max
+    assert np.allclose(Veffs[:, 0, 1, 0], [VOLUME * 0.1, VOLUME * 0.3], rtol=1e-12), Veffs[:, 0, 1, 0]
+
+
 def check_trigger_in_some_files(folder):
     # a trigger present only in the entries of some files gets the exposure of only those files
     a, b = os.path.join(folder, "a.hdf5"), os.path.join(folder, "b.hdf5")
@@ -123,6 +137,11 @@ def test_Veff_zenith_bins():
         check_shared_zenith_edge(tmp)
 
 
+def test_Veff_energy_bins():
+    with tempfile.TemporaryDirectory() as tmp:
+        check_energy_bins(tmp)
+
+
 def test_Veff_trigger_in_some_files():
     with tempfile.TemporaryDirectory() as tmp:
         check_trigger_in_some_files(tmp)
@@ -136,6 +155,7 @@ def test_Veff_same_file_twice():
 if __name__ == "__main__":
     test_Veff_combine_files()
     test_Veff_zenith_bins()
+    test_Veff_energy_bins()
     test_Veff_trigger_in_some_files()
     test_Veff_same_file_twice()
     print("OK")

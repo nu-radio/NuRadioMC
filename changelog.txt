@@ -56,6 +56,9 @@ bugfixes:
   returns `n_events`, `volume_proj_area` and `filename` per file; the same file twice in one bin raises an error.
 - `NuRadioMC.utilities.Veff.get_Veff_Aeff_array` puts files whose zenith ranges share only one edge (e.g. 0-90 deg
   and 0-180 deg) into separate zenith bins instead of the first bin with a matching edge.
+- `NuRadioMC.utilities.Veff.get_Veff_Aeff_array` defines an energy bin by its mean energy and its energy range, so
+  e.g. a 1e17-1e19 eV and a mono-energetic 1e18 eV file are separate bins; the returned mean, lower and upper
+  energies have one entry per energy bin.
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported

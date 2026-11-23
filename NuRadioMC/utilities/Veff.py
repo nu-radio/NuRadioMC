@@ -643,9 +643,9 @@ def get_Veff_Aeff_array(data):
     -------
     
     * (n_energy, n_zenith_bins, n_triggernames, 5) dimensional array of floats
-    * array of unique mean energies (the mean is calculated in the logarithm of the energy)
-    * array of unique lower bin edges of energies
-    * array of unique upper bin edges of energies
+    * array of the mean energies of the energy bins (the mean is calculated in the logarithm of the energy)
+    * array of the lower edges of the energy bins
+    * array of the upper edges of the energy bins
     * array of unique zenith bins
     * array of unique trigger names
 
@@ -734,9 +734,10 @@ def get_Veff_Aeff_array(data):
     energies_max = np.array(energies_max)
     zenith_bins = np.array(zenith_bins)
     trigger_names = np.array(trigger_names)
-    uenergies = np.unique(energies)
-    uenergies_min = np.unique(energies_min)
-    uenergies_max = np.unique(energies_max)
+    # an energy bin is a unique (mean energy, Emin, Emax), sorted by mean energy: a file with an energy range and a
+    # mono-energetic file at its mean energy are different bins
+    uenergy_bins = np.unique(np.array([energies, energies_min, energies_max]).T, axis=0)
+    uenergies, uenergies_min, uenergies_max = uenergy_bins.T
     uzenith_bins = np.unique(zenith_bins, axis=0)
     utrigger_names = np.unique(trigger_names)
     output = np.zeros((len(uenergies), len(uzenith_bins), len(utrigger_names), 5))
@@ -747,7 +748,7 @@ def get_Veff_Aeff_array(data):
     # entries (files) per energy and zenith bin
     bins = {}
     for d in data:
-        iE = int(np.squeeze(np.argwhere(d['energy'] == uenergies)))
+        iE = np.flatnonzero(np.all(uenergy_bins == [d['energy'], d['energy_min'], d['energy_max']], axis=1))[0]
         iT = np.flatnonzero(np.all(uzenith_bins == [d['thetamin'], d['thetamax']], axis=1))[0]
         bins.setdefault((iE, iT), []).append(d)
 
