@@ -267,6 +267,11 @@ jobs:
       run: |
         python NuRadioMC/test/utilities/test_neutrino_fluxes.py
 
+    - name: "Test merging of hdf5 output files"
+      if: always()
+      run: |
+        python NuRadioMC/test/utilities/test_merge_hdf5.py
+
     - name: "Test limit plot"
       if: always()
       run: |
