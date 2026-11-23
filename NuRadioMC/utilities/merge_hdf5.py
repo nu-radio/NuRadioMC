@@ -296,11 +296,12 @@ def _dataset_layout(name, shapes_dtypes):
     return (sum(s[0] for _, s, _ in shapes_dtypes),) + tuple(shape[1:]), dtype
 
 
-def _merge_datasets(fout, infos):
+def _merge_datasets(fout, infos, skip_incomplete_stations=False):
     """
     Second pass of `merge_hdf5_files` for the non-empty input files ``infos``: creates the merged datasets and station
     groups in ``fout`` and copies the rows file by file, shifting overlapping ids (see `_make_ids_unique`). Returns the
-    offsets per id dataset (``event_group_ids``, ``shower_ids`` if shifted) and file name.
+    offsets per id dataset (``event_group_ids``, ``shower_ids`` if shifted) and file name. ``skip_incomplete_stations``:
+    see `merge_hdf5_files`.
     """
     # unique event group ids: the effective volume/area calculation uses them to find multi-station coincidences
     id_offsets = {'event_group_ids': _make_ids_unique([info.ids['event_group_ids'] for info in infos])}
@@ -344,15 +345,27 @@ def _merge_datasets(fout, infos):
     for group in groups:
         logger.info(f"writing group {group}")
         fout.create_group(group)
+        # files with datasets in this group (the writer leaves the group of a station without events empty)
+        members = [i for i, info in enumerate(infos) if info.groups.get(group)]
         keys = []  # union of the datasets of the group, in order of first appearance
-        for info in infos:
-            keys += [key for key in info.groups.get(group, {}) if key not in keys]
+        for i in members:
+            keys += [key for key in infos[i].groups[group] if key not in keys]
+        # the datasets of a group are row-aligned, so a file must have all of them or add no rows
+        missing = {i: [key for key in keys if key not in infos[i].groups[group]] for i in members}
+        incomplete = [i for i in members if missing[i]]
+        if incomplete and not skip_incomplete_stations:
+            details = "; ".join(f"{infos[i].filename} misses {missing[i]}" for i in incomplete)
+            raise ValueError(f"not all files have the same datasets in {group} ({details}). Use "
+                             "skip_incomplete_stations=True (command line: --skip-incomplete-stations) to leave out "
+                             "the rows of these files for this station.")
+        for i in incomplete:
+            logger.warning(f"{infos[i].filename} misses the datasets {missing[i]} of {group}: leaving out its rows "
+                           "for this station")
+        members = [i for i in members if not missing[i]]
+        if not members:
+            keys = []
         for key in keys:
-            files = [(i, info.groups[group][key]) for i, info in enumerate(infos) if key in info.groups.get(group, {})]
-            for info in infos:
-                if group in info.groups and key not in info.groups[group]:
-                    logger.info(f"data set {key} not in file {info.filename} of station {group}")
-            create(f"{group}/{key}", files)
+            create(f"{group}/{key}", [(i, infos[i].groups[group][key]) for i in members])
 
     # copy the rows file by file; one dataset of one file is in memory at a time
     for i, info in enumerate(infos):
@@ -387,7 +400,7 @@ def _copy_first_file(fout, filename, n_events_total):
                 fout.create_dataset(key, obj.shape, dtype=obj.dtype, compression='gzip')[...] = obj[...]
 
 
-def merge_hdf5_files(filenames, output_filename, overwrite=False):
+def merge_hdf5_files(filenames, output_filename, overwrite=False, skip_incomplete_stations=False):
     """
     Merges NuRadioMC HDF5 output files into one file.
 
@@ -418,6 +431,10 @@ def merge_hdf5_files(filenames, output_filename, overwrite=False):
         merged file
     overwrite : bool, default: False
         overwrite an existing ``output_filename``; if False, an existing file raises `FileExistsError`
+    skip_incomplete_stations : bool, default: False
+        if a file lacks some of the datasets that other files have in a station group, leave out the rows of that file
+        for that station (with a warning); if False, raise `ValueError`. Simulations with the same config write the
+        same datasets.
     """
     output_filename = str(output_filename)
     unique_filenames = {}  # real path -> file name
@@ -455,7 +472,7 @@ def merge_hdf5_files(filenames, output_filename, overwrite=False):
         with h5py.File(tmp_filename, 'w') as fout:
             id_offsets = {}
             if non_empty:
-                id_offsets = _merge_datasets(fout, non_empty)
+                id_offsets = _merge_datasets(fout, non_empty, skip_incomplete_stations)
                 for group in fout:
                     if isinstance(fout[group], h5py.Group):
                         for key, value in group_attrs[group].items():
@@ -510,6 +527,9 @@ def main(argv=None):
                         help='number of output files to merge in parallel (directory mode)')
     parser.add_argument('--overwrite', action='store_true',
                         help='overwrite existing output files (default: skip them with an error message)')
+    parser.add_argument('--skip-incomplete-stations', action='store_true',
+                        help='leave out the rows of a file for a station whose group lacks datasets that other files '
+                             'have (default: error)')
     args = parser.parse_args(argv)
 
     if args.loglevel is not None:
@@ -522,7 +542,7 @@ def main(argv=None):
 
         input_args = find_part_files(root_directory, skip_existing=not args.overwrite)
         for kwargs in input_args:
-            kwargs['overwrite'] = args.overwrite
+            kwargs.update(overwrite=args.overwrite, skip_incomplete_stations=args.skip_incomplete_stations)
 
         if args.cores == 1:
             for kwargs in input_args:
@@ -539,7 +559,8 @@ def main(argv=None):
         if os.path.exists(output_filename) and not args.overwrite:
             logger.error(f'file {output_filename} already exists, skipping')
         else:
-            merge_hdf5_files(args.files[1:], output_filename, overwrite=args.overwrite)
+            merge_hdf5_files(args.files[1:], output_filename, overwrite=args.overwrite,
+                             skip_incomplete_stations=args.skip_incomplete_stations)
 
 
 if __name__ == "__main__":

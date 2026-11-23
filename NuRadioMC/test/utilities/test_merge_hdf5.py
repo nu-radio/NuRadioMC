@@ -433,6 +433,45 @@ def test_merge_station_groups_union(tmp_path):
         np.testing.assert_array_equal(f["station_102"].attrs["Vrms"], [1.])
 
 
+def test_merge_incomplete_station(tmp_path, caplog, restore_loglevel):
+    # a station dataset missing in one file raises by default, or that file's rows of the station are left out
+    filenames = _write_files(tmp_path, [([1, 2], [1, 2]), ([3], [3]), ([4], [4])])
+    for f in filenames[::2]:
+        with h5py.File(f, "a") as fin:
+            fin["station_101/maximum_amplitudes"] = np.ones((len(fin["station_101/event_ids"]), 4))
+    output = str(tmp_path / "merged.hdf5")
+    with pytest.raises(ValueError, match="maximum_amplitudes"):
+        merge_hdf5_files(filenames, output)
+    with caplog.at_level(logging.WARNING, logger="NuRadioMC.HDF5-merger"):
+        merge_hdf5_files(filenames, output, skip_incomplete_stations=True)
+    assert "in1.hdf5 misses the datasets ['maximum_amplitudes'] of station_101" in caplog.text
+    data, attrs = _read(output)
+    # the top level keeps all files
+    np.testing.assert_array_equal(data["shower_ids"], [1, 2, 3, 4])
+    assert attrs["n_events"] == 4
+    # all datasets of the station group stay aligned
+    np.testing.assert_array_equal(data["station_101/shower_id"], [1, 2, 4])
+    np.testing.assert_array_equal(data["station_101/event_group_id_per_shower"], [1, 2, 4])
+    np.testing.assert_array_equal(data["station_101/event_group_ids"], [1, 2, 4])
+    assert data["station_101/maximum_amplitudes"].shape == (3, 4)
+    # command line
+    merge_hdf5.main([output, *filenames, "--overwrite", "--skip-incomplete-stations"])
+    np.testing.assert_array_equal(_read(output)[0]["station_101/shower_id"], [1, 2, 4])
+
+
+def test_merge_empty_station_group(tmp_path):
+    # the writer leaves the group of a station without events empty; it adds no rows and is not incomplete
+    filenames = _write_files(tmp_path, [([1], [1]), ([2], [2])])
+    with h5py.File(filenames[0], "a") as f:
+        f.create_group("station_102")
+    with h5py.File(filenames[1], "a") as f:
+        f["station_102/shower_id"] = [2]
+        f["station_102/event_ids"] = [0]
+    output = str(tmp_path / "merged.hdf5")
+    merge_hdf5_files(filenames, output)
+    np.testing.assert_array_equal(_read(output)[0]["station_102/shower_id"], [2])
+
+
 def test_merge_trailing_shape_mismatch(tmp_path):
     filenames = _write_files(tmp_path, [([1], [1]), ([2], [2])])
     for f, n in zip(filenames, [2, 3]):
