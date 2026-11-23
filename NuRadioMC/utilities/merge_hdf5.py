@@ -155,7 +155,7 @@ def merge2(filenames, output_filename):
                             logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. "
                             f"{fin.attrs[key]}. Using attribute value of first file, but you have been warned!")
                 else:
-                    if(len(attrs[key]) != len(fin.attrs[key]) or np.all(attrs[key] != fin.attrs[key])):
+                    if not np.array_equal(attrs[key], fin.attrs[key]):
                         logger.error(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. ")
                         raise AttributeError(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. ")
 

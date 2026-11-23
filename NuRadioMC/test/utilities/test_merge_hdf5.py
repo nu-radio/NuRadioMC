@@ -15,15 +15,20 @@ from NuRadioMC.utilities import merge_hdf5
 from NuRadioMC.utilities.merge_hdf5 import merge2
 
 
-def _write_file(filename, event_group_ids, shower_ids):
-    """ Minimal NuRadioMC output file: one station that sees every shower, one event per event group. """
+def _write_file(filename, event_group_ids, shower_ids, attrs=None, station_attrs=None):
+    """
+    Minimal NuRadioMC output file: one station that sees every shower, one event per event group. ``attrs`` and
+    ``station_attrs`` are added to the file and station group attributes.
+    """
     event_group_ids = np.asarray(event_group_ids)
     with h5py.File(filename, "w") as f:
         f.attrs["n_events"] = len(np.unique(event_group_ids))
+        f.attrs.update(attrs or {})
         f["event_group_ids"] = event_group_ids
         f["shower_ids"] = np.asarray(shower_ids)
         f["triggered"] = np.ones(len(shower_ids), dtype=bool)
         sg = f.create_group("station_101")
+        sg.attrs.update(station_attrs or {})
         sg["event_group_ids"] = np.unique(event_group_ids)
         sg["event_ids"] = np.zeros(len(np.unique(event_group_ids)), dtype=int)
         sg["shower_id"] = np.asarray(shower_ids)
@@ -73,6 +78,37 @@ def test_merge_station_ids_consistent():
         assert egid_of_shower[sid] == egid, (sid, egid, egid_of_shower)
 
 
+def _merge_attrs(attrs, station_attrs=None):
+    """ Merges files with disjoint ids and the given file (station group) attributes; returns the merged attributes. """
+    station_attrs = station_attrs or [{}] * len(attrs)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        filenames = []
+        for i, (a, sa) in enumerate(zip(attrs, station_attrs)):
+            filenames.append(os.path.join(tmpdir, f"in{i}.hdf5"))
+            _write_file(filenames[-1], [10 * i], [10 * i], attrs=a, station_attrs=sa)
+        output = os.path.join(tmpdir, "merged.hdf5")
+        merge2(filenames, output)
+        with h5py.File(output, "r") as f:
+            return dict(f.attrs), dict(f["station_101"].attrs)
+
+
+def _assert_raises(exception, func, *args):
+    try:
+        func(*args)
+    except exception:
+        return
+    raise AssertionError(f"{exception.__name__} not raised")
+
+
+def test_merge_trigger_names_differ():
+    # any differing trigger name raises, not only if all differ
+    _assert_raises(AttributeError, _merge_attrs, [{"trigger_names": np.array(["a", "b"], dtype="S")},
+                                                  {"trigger_names": np.array(["a", "X"], dtype="S")}])
+    names = np.array(["a", "b"], dtype="S")
+    attrs, _ = _merge_attrs([{"trigger_names": names}, {"trigger_names": names}])
+    np.testing.assert_array_equal(attrs["trigger_names"], names)
+
+
 def _write_part_tree(root):
     """ Generator-style tree ``root/<energy>/<name>.hdf5.partNNNN``; returns the part files per expected output file. """
     parts = {}
@@ -115,6 +151,7 @@ if __name__ == "__main__":
     test_merge_event_id_per_shower_renamed()
     test_merge_event_group_id_zero_unique()
     test_merge_station_ids_consistent()
+    test_merge_trigger_names_differ()
     test_find_part_files()
     test_cli_directory_mode()
     print("OK")
