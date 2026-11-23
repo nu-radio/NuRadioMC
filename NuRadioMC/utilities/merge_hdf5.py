@@ -22,15 +22,15 @@ def _make_ids_unique(data, groups, filenames, key, group_keys):
 
     Parameters
     ----------
-    data: dict
+    data : dict
         top-level datasets per file name
-    groups: dict
+    groups : dict
         station groups (dict of datasets) per file name
-    filenames: list of str
+    filenames : list of str
         files to process, in merge order
-    key: str
+    key : str
         name of the top-level dataset holding the ids
-    group_keys: list of str
+    group_keys : list of str
         names of the station-group datasets holding the same ids
     """
     unique_ids = np.unique(data[filenames[0]][key])
@@ -43,7 +43,7 @@ def _make_ids_unique(data, groups, filenames, key, group_keys):
             for array in arrays:
                 mask = np.isin(array, intersect)
                 array[mask] = new_ids[np.searchsorted(intersect, array[mask])]
-            logger.warning(f"{key} are not unique per file, current file is {f}, new unique ids have been generated.")
+            logger.warning(f"{key} of {f} overlap with previous files; renamed {len(intersect)} ids")
             logger.debug(f"non-unique {key}: {intersect}")
             current_ids = np.unique(data[f][key])
         unique_ids = np.append(unique_ids, current_ids)
@@ -132,16 +132,8 @@ def merge2(filenames, output_filename):
     logger.info("creating data sets")
     fout = h5py.File(output_filename, 'w')
     if(len(non_empty_filenames)):
-        # check event group ids for uniqueness (this is important because effective volume/area calculation uses the event
-        # group id to determine if a multi station coincidence exists
-        # to start, get the 'event_group_ids' for the first file name only
-        # then, loop over all the other files (iF-th file) in the set, and check to see if there
-        # is any overlap (intersection) between the iF-th file and the first file
-        # if so, then identify what the overlap is, and increment the id number in the iF-th file by 1
-        # so that it again becomes unique; then use a np mask to replace the overlapping
-        # number with the new unique number in the iF-th file
-        # then, append the now totally unique list of id's from the iF-th file
-        # to the list from the first file, and so on
+        # unique event group ids: the effective volume/area calculation uses them to find multi-station coincidences
+        # (renaming: see `_make_ids_unique`)
         _make_ids_unique(data, groups, non_empty_filenames, 'event_group_ids', ['event_group_ids', 'event_group_id_per_shower'])
         # shower ids are unique only within the files of one event generation run (issue #292)
         if all('shower_ids' in data[f] for f in non_empty_filenames):
