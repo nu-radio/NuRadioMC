@@ -225,10 +225,31 @@ def get_Veff_Aeff_single(
     
     Returns
     -------
-    
-    list of dictionaries
-        Each file is one entry. The dictionary keys store all relevant properties
-    
+    out : dict
+        The properties of the file (in the zenith range restricted by ``bounds_theta``). The keys include:
+
+        * ``veff`` or ``aeff_surface_muons`` (the value of ``veff_aeff``) : dict
+            per trigger name and trigger combination, the list [effective volume or area, its uncertainty,
+            weighted number of triggered events, lower and upper limit of the 68% Feldman-Cousins interval]
+        * ``energy`` : float
+            mean energy, calculated in the logarithm of ``energy_min`` and ``energy_max``
+        * ``energy_min``, ``energy_max`` : float
+            the energy range of the file
+        * ``thetamin``, ``thetamax`` : float
+            the zenith range
+        * ``domega`` : float
+            the solid angle of the zenith and azimuth range
+        * ``filename`` : str
+            the file name, as passed
+        * ``n_events`` : float
+            the number of simulated events; if ``bounds_theta`` restricts the zenith range of the file (e.g. with
+            ``oversampling_theta`` in `get_Veff_Aeff`), scaled by the fraction of the cos(theta) range of the file
+            within it
+        * ``volume_proj_area`` : float
+            the simulation volume (``veff``) or the projected area (``aeff_surface_muons``) the effective volume or
+            area is calculated with: ``veff = volume_proj_area * weighted triggered events / n_events``
+
+        `get_Veff_Aeff_array` uses ``n_events`` and ``volume_proj_area`` to combine files of the same bin.
     """
     if(veff_aeff not in ["veff", "aeff_surface_muons"]):
         raise AttributeError(f"the paramter `veff_aeff` needs to be one of either `veff` or `aeff_surface_muons`")
@@ -542,8 +563,9 @@ def get_Veff_Aeff(folder,
     
     Returns
     -------
-    list of dictionaries.
-        Each file is one entry. The dictionary keys store all relevant properties
+    data : list of dict
+        One entry per file (per file and zenith sub-range with ``oversampling_theta`` > 1); see
+        `get_Veff_Aeff_single` for the keys. `get_Veff_Aeff_array` combines entries of the same energy and zenith bin.
     """
     trigger_combinations = copy.copy(trigger_combinations)
     trigger_names = None
@@ -630,14 +652,19 @@ def get_Veff_Aeff_array(data):
     the array dimensions are (energy, zenith bin, triggername, 5) where the
     last tuple is the effective volume, its uncertainty, the weighted sum of triggered events, lower 68% uncertainty, upper 68% uncertainty
 
-    Several entries (files) with the same energy and zenith bin are combined: their weighted numbers of triggered
-    events are summed and the effective volume is ``sum(counts) / sum(n_events / volume)``, i.e. as if all events
-    had been simulated in one file (for equal volumes, ``volume * sum(counts) / sum(n_events)``).
+    An energy bin is a unique (mean energy, ``energy_min``, ``energy_max``), a zenith bin a unique
+    (``thetamin``, ``thetamax``). Several entries (files) with the same energy and zenith bin are combined as if all
+    their events had been simulated in one file: per trigger, the weighted numbers of triggered events (counts) of the
+    entries that contain the trigger are summed, and the effective volume (area) is
+    ``sum(counts) / sum(n_events / volume_proj_area)`` over these entries (for equal volumes,
+    ``volume * sum(counts) / sum(n_events)``); the uncertainties are calculated from the summed counts. Combining
+    needs the keys ``n_events`` and ``volume_proj_area`` (see `get_Veff_Aeff_single`); the same file must not
+    appear twice in one bin (ValueError).
 
     Parameters
     ----------
-    data: dict
-        the result of the `get_Veff` function
+    data : list of dict
+        the result of the `get_Veff_Aeff` function
 
     Returns
     -------
