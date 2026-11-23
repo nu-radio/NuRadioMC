@@ -142,7 +142,7 @@ def merge2(filenames, output_filename):
         # number with the new unique number in the iF-th file
         # then, append the now totally unique list of id's from the iF-th file
         # to the list from the first file, and so on
-        _make_ids_unique(data, groups, non_empty_filenames, 'event_group_ids', ['event_group_ids'])
+        _make_ids_unique(data, groups, non_empty_filenames, 'event_group_ids', ['event_group_ids', 'event_group_id_per_shower'])
         # shower ids are unique only within the files of one event generation run (issue #292)
         if all('shower_ids' in data[f] for f in non_empty_filenames):
             _make_ids_unique(data, groups, non_empty_filenames, 'shower_ids', ['shower_id'])

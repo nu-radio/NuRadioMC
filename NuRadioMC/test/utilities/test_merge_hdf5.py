@@ -55,7 +55,15 @@ def test_merge_event_group_id_zero_unique():
     np.testing.assert_array_equal(np.sort(out["station_101/event_group_ids"]), np.unique(out["event_group_ids"]))
 
 
+def test_merge_station_ids_consistent():
+    out = _merge([([1, 2, 2], [0, 1, 2]), ([1, 2, 2], [0, 1, 2])])
+    egid_of_shower = dict(zip(out["shower_ids"], out["event_group_ids"]))
+    for sid, egid in zip(out["station_101/shower_id"], out["station_101/event_group_id_per_shower"]):
+        assert egid_of_shower[sid] == egid, (sid, egid, egid_of_shower)
+
+
 if __name__ == "__main__":
     test_merge_shower_ids_unique()
     test_merge_event_group_id_zero_unique()
+    test_merge_station_ids_consistent()
     print("OK")
