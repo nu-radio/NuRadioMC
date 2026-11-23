@@ -258,251 +258,251 @@ def get_Veff_Aeff_single(
         raise AttributeError(f"the paramter `veff_aeff` needs to be one of either `veff` or `aeff_surface_muons`")
     
     logger.warning(f"processing file  {filename}")
-    fin = h5py.File(filename, 'r')
-    n_events = fin.attrs['n_events']
+    with h5py.File(filename, 'r') as fin:
+        n_events = fin.attrs['n_events']
 
-    out = {}
-    Emin = fin.attrs['Emin']
-    Emax = fin.attrs['Emax']
-    out['energy'] = 10 ** (0.5 * (np.log10(Emin) + np.log10(Emax)))
-    out['energy_min'] = Emin
-    out['energy_max'] = Emax
+        out = {}
+        Emin = fin.attrs['Emin']
+        Emax = fin.attrs['Emax']
+        out['energy'] = 10 ** (0.5 * (np.log10(Emin) + np.log10(Emax)))
+        out['energy_min'] = Emin
+        out['energy_max'] = Emax
 
-    # calculate effective
-    phimin = fin.attrs['phimin']
-    phimax = fin.attrs['phimax']
-    thetamin = fin.attrs['thetamin']
-    thetamax = fin.attrs['thetamax']
+        # calculate effective
+        phimin = fin.attrs['phimin']
+        phimax = fin.attrs['phimax']
+        thetamin = fin.attrs['thetamin']
+        thetamax = fin.attrs['thetamax']
 
-    theta_width_file = abs(np.cos(thetamin) - np.cos(thetamax))
-    # restrict the theta range, if requested
-    if min(bounds_theta) > thetamin:
-        logger.info("restricting thetamin from {} to {}".format(thetamin, min(bounds_theta)))
-        thetamin = min(bounds_theta)
-    if max(bounds_theta) < thetamax:
-        logger.info("restricting thetamax from {} to {}".format(thetamax, max(bounds_theta)))
-        thetamax = max(bounds_theta)
+        theta_width_file = abs(np.cos(thetamin) - np.cos(thetamax))
+        # restrict the theta range, if requested
+        if min(bounds_theta) > thetamin:
+            logger.info("restricting thetamin from {} to {}".format(thetamin, min(bounds_theta)))
+            thetamin = min(bounds_theta)
+        if max(bounds_theta) < thetamax:
+            logger.info("restricting thetamax from {} to {}".format(thetamax, max(bounds_theta)))
+            thetamax = max(bounds_theta)
     
-    # The restriction assumes isotropic event generation in cos(theta) band
-    theta_fraction = abs(np.cos(thetamin) - np.cos(thetamax)) / theta_width_file
-    if theta_fraction < 1:
-        # adjust n_events to account for solid angle fraction in the requested theta range
-        n_events *= theta_fraction
+        # The restriction assumes isotropic event generation in cos(theta) band
+        theta_fraction = abs(np.cos(thetamin) - np.cos(thetamax)) / theta_width_file
+        if theta_fraction < 1:
+            # adjust n_events to account for solid angle fraction in the requested theta range
+            n_events *= theta_fraction
 
-    if veff_aeff == "veff":
-        volume_proj_area = fin.attrs['volume']
-    elif veff_aeff == "aeff_surface_muons":
-        area = fin.attrs['area']
-        # The used area must be the projected area, perpendicular to the incoming
-        # flux, which leaves us with the following correction. Remember that the
-        # zenith bins must be small for the effective area to be correct.
-        volume_proj_area = area * 0.5 * (np.abs(np.cos(thetamin)) + np.abs(np.cos(thetamax)))
-    else:
-        raise AttributeError(f"attributes do neither contain volume nor area")
-
-    Vrms = fin.attrs['Vrms']
-
-    # Solid angle needed for the effective volume calculations
-    out['domega'] = np.abs(phimax - phimin) * np.abs(np.cos(thetamin) - np.cos(thetamax))
-    out['thetamin'] = thetamin
-    out['thetamax'] = thetamax
-    out['deposited'] = deposited
-    out['filename'] = filename
-    # needed to combine files of the same energy and zenith bin in `get_Veff_Aeff_array`
-    out['n_events'] = n_events
-    out['volume_proj_area'] = volume_proj_area
-    out[veff_aeff] = {}
-    out['n_triggered_weighted'] = {}
-    out['SNRs'] = {}
-    
-    fc_low_0, fc_high_0 = FC_limits(0)
-    v_eff_low_0 = volume_proj_area * fc_low_0 / n_events
-    v_eff_high_0 = volume_proj_area * fc_high_0 / n_events
-
-    if 'weights' not in fin.keys():
-        logger.warning(f"file {filename} is empty")
-        for iT, trigger_name in enumerate(trigger_names):
-            out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
-        for trigger_name, values in iteritems(trigger_combinations):
-            out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
-        
-        return out
-
-    triggered = np.array(fin['triggered'])
-    if 'trigger_names' in fin.attrs:
-        if np.any(trigger_names != fin.attrs['trigger_names']):
-            if triggered.size == 0 and fin.attrs['trigger_names'].size == 0:
-                logger.warning("file {} has no triggering events. "
-                               "Using trigger names from another file".format(filename))
-            else:
-                error_msg = ("file {} has inconsistent trigger names: "
-                             "{}\ncurrent trigger names {}").format(
-                                 filename, fin.attrs['trigger_names'], trigger_names)
-                logger.error(error_msg)
-                raise AttributeError(error_msg)
-    else:
-        logger.warning(f"file {filename} has no triggering events. "
-                       "Using trigger names from a different file: {trigger_names}")
-
-    weights = np.array(fin['weights'])
-    # if theta range is restricted, select events in that range
-    if theta_fraction < 1:
-        # generate boolean mask for events in fin inside selected theta range
-        mask_theta = np.array((fin['zeniths'] > thetamin) & (fin['zeniths'] < thetamax))
-        # multiply events with mask, events outside are zero-weighted
-        weights *= mask_theta
-
-    if triggered.size == 0:
-        for iT, trigger_name in enumerate(trigger_names):
-            out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
-        for trigger_name, values in iteritems(trigger_combinations):
-            out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
-        
-        return out
-        
-    for iT, trigger_name in enumerate(trigger_names):
-        triggered = np.array(fin['multiple_triggers'][:, iT], dtype=bool)
-        triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
-        out[veff_aeff][trigger_name] = get_veff_output(volume_proj_area, np.sum(weights[triggered]), n_events)
-
-    for trigger_name, values in iteritems(trigger_combinations):
-        indiv_triggers = values['triggers']
-        triggered = np.zeros_like(fin['multiple_triggers'][:, 0], dtype=bool)
-        
-        if isinstance(indiv_triggers, str):
-            triggered = triggered | \
-                np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_triggers]], dtype=bool)
+        if veff_aeff == "veff":
+            volume_proj_area = fin.attrs['volume']
+        elif veff_aeff == "aeff_surface_muons":
+            area = fin.attrs['area']
+            # The used area must be the projected area, perpendicular to the incoming
+            # flux, which leaves us with the following correction. Remember that the
+            # zenith bins must be small for the effective area to be correct.
+            volume_proj_area = area * 0.5 * (np.abs(np.cos(thetamin)) + np.abs(np.cos(thetamax)))
         else:
-            for indiv_trigger in indiv_triggers:
+            raise AttributeError(f"attributes do neither contain volume nor area")
+
+        Vrms = fin.attrs['Vrms']
+
+        # Solid angle needed for the effective volume calculations
+        out['domega'] = np.abs(phimax - phimin) * np.abs(np.cos(thetamin) - np.cos(thetamax))
+        out['thetamin'] = thetamin
+        out['thetamax'] = thetamax
+        out['deposited'] = deposited
+        out['filename'] = filename
+        # needed to combine files of the same energy and zenith bin in `get_Veff_Aeff_array`
+        out['n_events'] = n_events
+        out['volume_proj_area'] = volume_proj_area
+        out[veff_aeff] = {}
+        out['n_triggered_weighted'] = {}
+        out['SNRs'] = {}
+    
+        fc_low_0, fc_high_0 = FC_limits(0)
+        v_eff_low_0 = volume_proj_area * fc_low_0 / n_events
+        v_eff_high_0 = volume_proj_area * fc_high_0 / n_events
+
+        if 'weights' not in fin.keys():
+            logger.warning(f"file {filename} is empty")
+            for iT, trigger_name in enumerate(trigger_names):
+                out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
+            for trigger_name, values in iteritems(trigger_combinations):
+                out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
+        
+            return out
+
+        triggered = np.array(fin['triggered'])
+        if 'trigger_names' in fin.attrs:
+            if np.any(trigger_names != fin.attrs['trigger_names']):
+                if triggered.size == 0 and fin.attrs['trigger_names'].size == 0:
+                    logger.warning("file {} has no triggering events. "
+                                   "Using trigger names from another file".format(filename))
+                else:
+                    error_msg = ("file {} has inconsistent trigger names: "
+                                 "{}\ncurrent trigger names {}").format(
+                                     filename, fin.attrs['trigger_names'], trigger_names)
+                    logger.error(error_msg)
+                    raise AttributeError(error_msg)
+        else:
+            logger.warning(f"file {filename} has no triggering events. "
+                           "Using trigger names from a different file: {trigger_names}")
+
+        weights = np.array(fin['weights'])
+        # if theta range is restricted, select events in that range
+        if theta_fraction < 1:
+            # generate boolean mask for events in fin inside selected theta range
+            mask_theta = np.array((fin['zeniths'] > thetamin) & (fin['zeniths'] < thetamax))
+            # multiply events with mask, events outside are zero-weighted
+            weights *= mask_theta
+
+        if triggered.size == 0:
+            for iT, trigger_name in enumerate(trigger_names):
+                out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
+            for trigger_name, values in iteritems(trigger_combinations):
+                out[veff_aeff][trigger_name] = [0, 0, 0, v_eff_low_0, v_eff_high_0]
+        
+            return out
+        
+        for iT, trigger_name in enumerate(trigger_names):
+            triggered = np.array(fin['multiple_triggers'][:, iT], dtype=bool)
+            triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
+            out[veff_aeff][trigger_name] = get_veff_output(volume_proj_area, np.sum(weights[triggered]), n_events)
+
+        for trigger_name, values in iteritems(trigger_combinations):
+            indiv_triggers = values['triggers']
+            triggered = np.zeros_like(fin['multiple_triggers'][:, 0], dtype=bool)
+        
+            if isinstance(indiv_triggers, str):
                 triggered = triggered | \
-                    np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_trigger]], dtype=bool)
-        
-        if 'triggerAND' in values:
-            triggered = triggered & \
-                np.array(fin['multiple_triggers'][:, trigger_names_dict[values['triggerAND']]], dtype=bool)
-        
-        if 'notriggers' in values:
-            indiv_triggers = values['notriggers']
-            if(isinstance(indiv_triggers, str)):
-                triggered = triggered & \
-                    ~np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_triggers]], dtype=bool)
+                    np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_triggers]], dtype=bool)
             else:
                 for indiv_trigger in indiv_triggers:
+                    triggered = triggered | \
+                        np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_trigger]], dtype=bool)
+        
+            if 'triggerAND' in values:
+                triggered = triggered & \
+                    np.array(fin['multiple_triggers'][:, trigger_names_dict[values['triggerAND']]], dtype=bool)
+        
+            if 'notriggers' in values:
+                indiv_triggers = values['notriggers']
+                if(isinstance(indiv_triggers, str)):
                     triggered = triggered & \
-                        ~np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_trigger]], dtype=bool)
+                        ~np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_triggers]], dtype=bool)
+                else:
+                    for indiv_trigger in indiv_triggers:
+                        triggered = triggered & \
+                            ~np.array(fin['multiple_triggers'][:, trigger_names_dict[indiv_trigger]], dtype=bool)
         
-        if 'min_sigma' in values.keys():
-            if isinstance(values['min_sigma'], list):
-                if trigger_name not in out['SNRs']:
-                    out['SNRs'][trigger_name] = {}
+            if 'min_sigma' in values.keys():
+                if isinstance(values['min_sigma'], list):
+                    if trigger_name not in out['SNRs']:
+                        out['SNRs'][trigger_name] = {}
                 
-                masks = np.zeros_like(triggered)
-                for iS in range(len(values['min_sigma'])):
+                    masks = np.zeros_like(triggered)
+                    for iS in range(len(values['min_sigma'])):
+                        As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)  # we use the this quantity because it is always computed before noise is added!
+                        As_sorted = np.sort(As[:, values['channels'][iS]], axis=1)
+                        # the smallest of the three largest amplitudes
+                        max_amplitude = As_sorted[:, -values['n_channels'][iS]]
+                        mask = np.sum(
+                            As[:, values['channels'][iS]] >= (values['min_sigma'][iS] * Vrms), axis=1) >= values['n_channels'][iS]
+                        masks = masks | mask
+                        out['SNRs'][trigger_name][iS] = max_amplitude[mask] / Vrms
+                
+                    triggered = triggered & masks
+                else:
                     As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)  # we use the this quantity because it is always computed before noise is added!
-                    As_sorted = np.sort(As[:, values['channels'][iS]], axis=1)
-                    # the smallest of the three largest amplitudes
-                    max_amplitude = As_sorted[:, -values['n_channels'][iS]]
-                    mask = np.sum(
-                        As[:, values['channels'][iS]] >= (values['min_sigma'][iS] * Vrms), axis=1) >= values['n_channels'][iS]
-                    masks = masks | mask
-                    out['SNRs'][trigger_name][iS] = max_amplitude[mask] / Vrms
-                
-                triggered = triggered & masks
-            else:
-                As = np.max(np.nan_to_num(fin['max_amp_ray_solution']), axis=-1)  # we use the this quantity because it is always computed before noise is added!
 
-                As_sorted = np.sort(As[:, values['channels']], axis=1)
-                max_amplitude = As_sorted[:, -values['n_channels']]  # the smallest of the three largest amplitudes
+                    As_sorted = np.sort(As[:, values['channels']], axis=1)
+                    max_amplitude = As_sorted[:, -values['n_channels']]  # the smallest of the three largest amplitudes
 
-                mask = np.sum(As[:, values['channels']] >= (values['min_sigma'] * Vrms), axis=1) >= values['n_channels']
-                out['SNRs'][trigger_name] = As_sorted[mask] / Vrms
-                triggered = triggered & mask
+                    mask = np.sum(As[:, values['channels']] >= (values['min_sigma'] * Vrms), axis=1) >= values['n_channels']
+                    out['SNRs'][trigger_name] = As_sorted[mask] / Vrms
+                    triggered = triggered & mask
         
-        if 'ray_solution' in values.keys():
-            As = np.array(fin['max_amp_ray_solution'])
-            max_amps = np.argmax(As[:, values['ray_channel']], axis=-1)
-            sol = np.array(fin['ray_tracing_solution_type'])
-            mask = np.array([sol[i, values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=bool)
-            triggered = triggered & mask
+            if 'ray_solution' in values.keys():
+                As = np.array(fin['max_amp_ray_solution'])
+                max_amps = np.argmax(As[:, values['ray_channel']], axis=-1)
+                sol = np.array(fin['ray_tracing_solution_type'])
+                mask = np.array([sol[i, values['ray_channel'], max_amps[i]] == values['ray_solution'] for i in range(len(max_amps))], dtype=bool)
+                triggered = triggered & mask
 
-        if 'n_reflections' in values.keys():
-            if(np.sum(triggered)):
-                As = np.array(fin[f'station_{station:d}/max_amp_ray_solution'])
-                # find the ray tracing solution that produces the largest amplitude
-                max_amps = np.argmax(np.argmax(As[:,:], axis=-1), axis=-1)
-                # advanced indexing: selects the ray tracing solution per event with the highest amplitude
-                triggered = triggered & (np.array(fin[f'station_{station:d}/ray_tracing_reflection'])[..., max_amps, 0][:, 0] == values['n_reflections'])
+            if 'n_reflections' in values.keys():
+                if(np.sum(triggered)):
+                    As = np.array(fin[f'station_{station:d}/max_amp_ray_solution'])
+                    # find the ray tracing solution that produces the largest amplitude
+                    max_amps = np.argmax(np.argmax(As[:,:], axis=-1), axis=-1)
+                    # advanced indexing: selects the ray tracing solution per event with the highest amplitude
+                    triggered = triggered & (np.array(fin[f'station_{station:d}/ray_tracing_reflection'])[..., max_amps, 0][:, 0] == values['n_reflections'])
 
-        triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
+            triggered = remove_duplicate_triggers(triggered, fin['event_group_ids'])
      
-        v_eff, v_eff_err, count, v_eff_low, v_eff_high = \
-            get_veff_output(volume_proj_area, np.sum(weights[triggered]), n_events)
-
-        if 'efficiency' in values.keys() and v_eff > 0:
-            get_efficiency = values['efficiency']['func']
-            channel_ids = values['efficiency']['channel_ids']
-            gids = np.array(fin['event_group_ids'])
-            ugids = np.unique(np.array(fin['event_group_ids']))
-
-            # calculate the group event ids that triggered
-            ugids_triggered_index = []
-            ugids_triggered = []
-            for i_ugid, ugid in enumerate(ugids):
-                mask = ugid == gids
-                if(np.any(triggered[mask])):
-                    ugids_triggered_index.append(i_ugid)
-                    ugids_triggered.append(ugid)
-            ugids_triggered = np.array(ugids_triggered)
-            ugids_triggered_index = np.array(ugids_triggered_index)
-
-            n_unique_gids = len(ugids_triggered)
-            sorter = np.argsort(ugids_triggered)
-            max_amplitudes = np.zeros(n_unique_gids)
-            for key in fin.keys():
-                if key.startswith("station_"):
-                    if 'event_group_ids' not in fin[key]:
-                        continue  # the station might have no triggers
-                    
-                    sgids = np.array(fin[key]['event_group_ids'])
-                    usgids = np.unique(sgids)
-                    usgids, comm1, comm2 = np.intersect1d(usgids, ugids_triggered, assume_unique=True, return_indices=True)  # select only the gids that triggered
-                    common_mask = np.isin(sgids, usgids)
-                    sgids = sgids[common_mask]  # also reduce gids array to the event groups that triggered
-                    
-                    if(len(usgids) == 0):  # skip stations that don't have any trigger for this trigger combination
-                        continue
-                    
-                    usgids_index = sorter[np.searchsorted(ugids_triggered, usgids, sorter=sorter)]
-                    # each station might have multiple triggeres per event group id. We need to select the one
-                    # event with the largest amplitude. Let's first check if one event group created more than one event
-                    max_amps_per_event_channel = np.nan_to_num(np.array(fin[key]['maximum_amplitudes_envelope'])[common_mask])
-                    max_amps_per_event = np.amax(max_amps_per_event_channel[:, channel_ids], axis=1)  # select the maximum amplitude of all considered channels
-                    
-                    if len(sgids) != len(usgids):
-                        # at least one event group created more than one event. Let's calculate it the slow but correct way
-                        for sgid in np.unique(sgids):  # loop over all event groups which triggered this station
-                            
-                            if(sgid not in usgids):
-                                continue
-                            
-                            mask_gid = sgid == sgids  # select all event that are part of this event group
-                            index = np.squeeze(np.argwhere(ugids_triggered == sgid))
-                            max_amplitudes[index] = max(max_amplitudes[index], max_amps_per_event[mask_gid].max())
-                    else:
-                        max_amplitudes[usgids_index] = np.maximum(max_amplitudes[usgids_index], max_amps_per_event)
-            
-            if 'scale' in values['efficiency']:
-                max_amplitudes *= values['efficiency']['scale']
-            if "Vrms" in values['efficiency']:
-                Vrms = values['efficiency']['Vrms']
-            
-            e = get_efficiency(max_amplitudes / Vrms)  # we calculated the maximum amplitudes for all gids, now we select only those that triggered
             v_eff, v_eff_err, count, v_eff_low, v_eff_high = \
-                get_veff_output(volume_proj_area, np.sum(weights[triggered] * e), n_events)
+                get_veff_output(volume_proj_area, np.sum(weights[triggered]), n_events)
 
-        out[veff_aeff][trigger_name] = [v_eff, v_eff_err, count, v_eff_low, v_eff_high]
+            if 'efficiency' in values.keys() and v_eff > 0:
+                get_efficiency = values['efficiency']['func']
+                channel_ids = values['efficiency']['channel_ids']
+                gids = np.array(fin['event_group_ids'])
+                ugids = np.unique(np.array(fin['event_group_ids']))
 
-    return out
+                # calculate the group event ids that triggered
+                ugids_triggered_index = []
+                ugids_triggered = []
+                for i_ugid, ugid in enumerate(ugids):
+                    mask = ugid == gids
+                    if(np.any(triggered[mask])):
+                        ugids_triggered_index.append(i_ugid)
+                        ugids_triggered.append(ugid)
+                ugids_triggered = np.array(ugids_triggered)
+                ugids_triggered_index = np.array(ugids_triggered_index)
+
+                n_unique_gids = len(ugids_triggered)
+                sorter = np.argsort(ugids_triggered)
+                max_amplitudes = np.zeros(n_unique_gids)
+                for key in fin.keys():
+                    if key.startswith("station_"):
+                        if 'event_group_ids' not in fin[key]:
+                            continue  # the station might have no triggers
+                    
+                        sgids = np.array(fin[key]['event_group_ids'])
+                        usgids = np.unique(sgids)
+                        usgids, comm1, comm2 = np.intersect1d(usgids, ugids_triggered, assume_unique=True, return_indices=True)  # select only the gids that triggered
+                        common_mask = np.isin(sgids, usgids)
+                        sgids = sgids[common_mask]  # also reduce gids array to the event groups that triggered
+                    
+                        if(len(usgids) == 0):  # skip stations that don't have any trigger for this trigger combination
+                            continue
+                    
+                        usgids_index = sorter[np.searchsorted(ugids_triggered, usgids, sorter=sorter)]
+                        # each station might have multiple triggeres per event group id. We need to select the one
+                        # event with the largest amplitude. Let's first check if one event group created more than one event
+                        max_amps_per_event_channel = np.nan_to_num(np.array(fin[key]['maximum_amplitudes_envelope'])[common_mask])
+                        max_amps_per_event = np.amax(max_amps_per_event_channel[:, channel_ids], axis=1)  # select the maximum amplitude of all considered channels
+                    
+                        if len(sgids) != len(usgids):
+                            # at least one event group created more than one event. Let's calculate it the slow but correct way
+                            for sgid in np.unique(sgids):  # loop over all event groups which triggered this station
+                            
+                                if(sgid not in usgids):
+                                    continue
+                            
+                                mask_gid = sgid == sgids  # select all event that are part of this event group
+                                index = np.squeeze(np.argwhere(ugids_triggered == sgid))
+                                max_amplitudes[index] = max(max_amplitudes[index], max_amps_per_event[mask_gid].max())
+                        else:
+                            max_amplitudes[usgids_index] = np.maximum(max_amplitudes[usgids_index], max_amps_per_event)
+            
+                if 'scale' in values['efficiency']:
+                    max_amplitudes *= values['efficiency']['scale']
+                if "Vrms" in values['efficiency']:
+                    Vrms = values['efficiency']['Vrms']
+            
+                e = get_efficiency(max_amplitudes / Vrms)  # we calculated the maximum amplitudes for all gids, now we select only those that triggered
+                v_eff, v_eff_err, count, v_eff_low, v_eff_high = \
+                    get_veff_output(volume_proj_area, np.sum(weights[triggered] * e), n_events)
+
+            out[veff_aeff][trigger_name] = [v_eff, v_eff_err, count, v_eff_low, v_eff_high]
+
+        return out
 
 
 def get_Veff_Aeff_single_wrapper(args):
@@ -586,24 +586,24 @@ def get_Veff_Aeff(folder,
         filenames = sorted(filenames)
 
     for iF, filename in enumerate(filenames):
-        fin = h5py.File(filename, 'r')
-        if 'deposited' in fin.attrs:
-            deposited = fin.attrs['deposited']
-            if prev_deposited is None:
-                prev_deposited = deposited
-            elif prev_deposited != deposited:
-                raise AttributeError("The deposited parameter is not consistent among the input files!")
+        with h5py.File(filename, 'r') as fin:
+            if 'deposited' in fin.attrs:
+                deposited = fin.attrs['deposited']
+                if prev_deposited is None:
+                    prev_deposited = deposited
+                elif prev_deposited != deposited:
+                    raise AttributeError("The deposited parameter is not consistent among the input files!")
 
     for iF, filename in enumerate(filenames):
-        fin = h5py.File(filename, 'r')
-        if 'trigger_names' in fin.attrs:
-            trigger_names = fin.attrs['trigger_names']
-            if len(trigger_names) > 0:
-                for iT, trigger_name in enumerate(trigger_names):
-                    trigger_names_dict[trigger_name] = iT
+        with h5py.File(filename, 'r') as fin:
+            if 'trigger_names' in fin.attrs:
+                trigger_names = fin.attrs['trigger_names']
+                if len(trigger_names) > 0:
+                    for iT, trigger_name in enumerate(trigger_names):
+                        trigger_names_dict[trigger_name] = iT
                 
-                logger.info(f"first file with triggernames {filename}: {trigger_names}")
-                break
+                    logger.info(f"first file with triggernames {filename}: {trigger_names}")
+                    break
 
     trigger_combinations['all_triggers'] = {'triggers': trigger_names}
     logger.info(f"Trigger names:  {trigger_names}")
@@ -626,9 +626,9 @@ def get_Veff_Aeff(folder,
         # get the thetamin, thetamax from the files and do oversampling
         logger.info("Calculating effective volumes with finer binning, {} bins per input file".format(oversampling_theta))
         for f in filenames:
-            fin = h5py.File(f, 'r')
-            costhetamin = np.cos(fin.attrs['thetamin'])
-            costhetamax = np.cos(fin.attrs['thetamax'])
+            with h5py.File(f, 'r') as fin:
+                costhetamin = np.cos(fin.attrs['thetamin'])
+                costhetamax = np.cos(fin.attrs['thetamax'])
             thetas = np.arccos(np.linspace(costhetamin, costhetamax, oversampling_theta + 1))
             thetas_min = thetas[:-1]
             thetas_max = thetas[1:]
