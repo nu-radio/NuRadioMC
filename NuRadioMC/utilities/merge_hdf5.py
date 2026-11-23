@@ -13,6 +13,42 @@ logger = logging.getLogger("NuRadioMC.HDF5-merger")
 str_type_attrs = ['trigger_names', 'NuRadioMC_EvtGen_version', 'NuRadioMC_EvtGen_version_hash', 'NuRadioMC_version', 'NuRadioMC_version_hash', 'config']
 
 
+def _make_ids_unique(data, groups, filenames, key, group_keys):
+    """
+    Renames ids that a file shares with any previous file, in place, so that the ids are unique across files.
+
+    The top-level dataset ``key`` and the datasets ``group_keys`` of all station groups of the file are renamed
+    consistently; the first file keeps its ids.
+
+    Parameters
+    ----------
+    data: dict
+        top-level datasets per file name
+    groups: dict
+        station groups (dict of datasets) per file name
+    filenames: list of str
+        files to process, in merge order
+    key: str
+        name of the top-level dataset holding the ids
+    group_keys: list of str
+        names of the station-group datasets holding the same ids
+    """
+    unique_ids = np.unique(data[filenames[0]][key])
+    for f in filenames[1:]:
+        current_ids = np.unique(data[f][key])
+        intersect = np.intersect1d(unique_ids, current_ids, assume_unique=True)
+        if len(intersect):
+            new_ids = max(unique_ids.max(), current_ids.max()) + 1 + np.arange(len(intersect))
+            arrays = [data[f][key]] + [groups[f][g][k] for g in groups[f] for k in group_keys if k in groups[f][g]]
+            for array in arrays:
+                mask = np.isin(array, intersect)
+                array[mask] = new_ids[np.searchsorted(intersect, array[mask])]
+            logger.warning(f"{key} are not unique per file, current file is {f}, new unique ids have been generated.")
+            logger.debug(f"non-unique {key}: {intersect}")
+            current_ids = np.unique(data[f][key])
+        unique_ids = np.append(unique_ids, current_ids)
+
+
 def merge2(filenames, output_filename):
     logger.warning(f"merging {len(filenames)} files into {os.path.basename(output_filename)}")
     data = OrderedDict()
@@ -106,36 +142,10 @@ def merge2(filenames, output_filename):
         # number with the new unique number in the iF-th file
         # then, append the now totally unique list of id's from the iF-th file
         # to the list from the first file, and so on
-        unique_uegids = np.unique(data[non_empty_filenames[0]]['event_group_ids'])
-        for iF, f in enumerate(non_empty_filenames):
-            if(iF == 0):
-                continue
-            current_uegids = np.unique(data[f]['event_group_ids'])
-            intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
-            if(np.sum(intersect)):
-                current_egids = data[f]['event_group_ids']
-                new_egid = max(unique_uegids.max(), current_uegids.max()) + 1
-                for gid in intersect:
-                    mask = gid == current_egids  # there can be multiple entries per unique event group id, we need to change all of them to the new id
-                    current_egids[mask] = new_egid
-                    # also change the event_group_id arrays of the station groups
-                    if f in non_empty_filenames:
-                        for key in groups[f]:  # loop through all groups
-                            if 'event_group_ids' in groups[f][key]:
-                                g_egids = groups[f][key]['event_group_ids']
-                                mask_g = gid == g_egids
-                                if(np.sum(mask_g)):  # station might not have this event group id, so skip stations where this egid is not present
-                                    g_egids[mask_g] = new_egid
-                    new_egid += 1
-
-                logger.warning(f"event group ids are not unique per file, current file is {f}, new unique ids have been generated.")
-                logger.debug(f"non-unique event ids: {intersect}")
-            current_uegids = np.unique(data[f]['event_group_ids'])  # get the updated list of unique event group ids. Now there should be no intersection with the ids of the previous files
-            # test again for uniqueness
-            intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
-            if(np.sum(intersect)):
-                raise IndexError(f"event group ids are not unique per file, current file is {f}")
-            unique_uegids = np.append(unique_uegids, current_uegids)
+        _make_ids_unique(data, groups, non_empty_filenames, 'event_group_ids', ['event_group_ids'])
+        # shower ids are unique only within the files of one event generation run (issue #292)
+        if all('shower_ids' in data[f] for f in non_empty_filenames):
+            _make_ids_unique(data, groups, non_empty_filenames, 'shower_ids', ['shower_id'])
 
         keys = data[non_empty_filenames[0]]
         for key in keys:

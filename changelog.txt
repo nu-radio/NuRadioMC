@@ -51,6 +51,8 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
 
 bugfixes:
+- `NuRadioMC.utilities.merge_hdf5` makes shower ids unique across the merged files (issue #292); before, independently
+  generated files kept their overlapping shower ids. An overlap of only event group id 0 is now detected as well.
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported
