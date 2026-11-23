@@ -44,7 +44,7 @@ def _get_ray_traced_travel_time(propagator, source_position, receiver_position, 
     return propagator.get_travel_time(solution_index)
 
 
-def get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_pattern_provider,
+def _get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_pattern_provider,
                           time_domain=False, efield_position=None, time_delay_mode="plane_wave",
                           propagator=None, travel_time_delays=None, ice_model=None, source_position=None):
     """ Get the time-aligned voltage traces and antenna factors for electric field reconstruction using unfolding.
@@ -407,7 +407,7 @@ class voltageToEfieldConverter:
                 raise ValueError("For time_delay_mode='ray_tracing', provide `source_position` or set stnp.nu_vertex.")
             source_position = station.get_parameter(stnp.nu_vertex)
 
-        times, efield_antenna_factor, traces_freq_domain = get_array_of_channels(
+        times, efield_antenna_factor, traces_freq_domain = _get_array_of_channels(
             station, use_channels, det, zenith, azimuth, self.antenna_provider,
             efield_position=efield_position,
             ice_model=self.ice_model,
