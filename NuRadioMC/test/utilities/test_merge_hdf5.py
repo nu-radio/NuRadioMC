@@ -4,11 +4,14 @@ Test of ``NuRadioMC.utilities.merge_hdf5.merge2``: merging files whose event gro
 the station groups (issue #292).
 """
 import os
+import subprocess
+import sys
 import tempfile
 
 import h5py
 import numpy as np
 
+from NuRadioMC.utilities import merge_hdf5
 from NuRadioMC.utilities.merge_hdf5 import merge2
 
 
@@ -70,9 +73,48 @@ def test_merge_station_ids_consistent():
         assert egid_of_shower[sid] == egid, (sid, egid, egid_of_shower)
 
 
+def _write_part_tree(root):
+    """ Generator-style tree ``root/<energy>/<name>.hdf5.partNNNN``; returns the part files per expected output file. """
+    parts = {}
+    for energy, name, n_parts in [("1e18", "a", 2), ("1e19", "b", 1)]:
+        os.makedirs(os.path.join(root, energy))
+        output = os.path.join(root, f"{name}.hdf5")
+        parts[output] = []
+        for i in range(n_parts):
+            parts[output].append(os.path.join(root, energy, f"{name}.hdf5.part{i:04d}"))
+            _write_file(parts[output][-1], [10 * i, 10 * i + 1], [10 * i, 10 * i + 1])
+    # files of at most 1000 bytes are skipped
+    open(os.path.join(root, "1e18", "a.hdf5.part0099"), "w").close()
+    return parts
+
+
+def test_find_part_files():
+    with tempfile.TemporaryDirectory() as root:
+        parts = _write_part_tree(root)
+        found = merge_hdf5.find_part_files(root)
+        assert {x["output_filename"]: list(x["filenames"]) for x in found} == parts, found
+
+
+def _run_cli(*args):
+    script = os.path.join(os.path.dirname(merge_hdf5.__file__), "merge_hdf5.py")
+    result = subprocess.run([sys.executable, script, *args], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+
+
+def test_cli_directory_mode():
+    with tempfile.TemporaryDirectory() as root:
+        parts = _write_part_tree(root)
+        _run_cli(root)
+        for output, inputs in parts.items():
+            with h5py.File(output, "r") as f:
+                assert f.attrs["n_events"] == 2 * len(inputs), (output, f.attrs["n_events"])
+
+
 if __name__ == "__main__":
     test_merge_shower_ids_unique()
     test_merge_event_id_per_shower_renamed()
     test_merge_event_group_id_zero_unique()
     test_merge_station_ids_consistent()
+    test_find_part_files()
+    test_cli_directory_mode()
     print("OK")

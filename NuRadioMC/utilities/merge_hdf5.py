@@ -49,6 +49,42 @@ def _make_ids_unique(data, groups, filenames, key, group_keys):
         unique_ids = np.append(unique_ids, current_ids)
 
 
+def find_part_files(root_directory):
+    """
+    Groups the files ``root_directory/<subfolder>/<name>.hdf5.part*`` by ``<name>.hdf5``.
+
+    Files of at most 1000 bytes are skipped, as are groups whose output file already exists.
+
+    Parameters
+    ----------
+    root_directory : str
+        directory containing one subfolder (e.g. per energy) with the part files
+
+    Returns
+    -------
+    list of dict
+        per output file ``root_directory/<name>.hdf5``, the keyword arguments of `merge2`
+        (``filenames``: sorted part files, ``output_filename``)
+    """
+    # strip the .partNNNN suffix
+    filenames = np.unique([os.path.splitext(f)[0] for f in glob.glob(f"{root_directory}/*/*.hdf5.part*")])
+    input_args = []
+    for filename in sorted(filenames):
+        if(os.path.splitext(filename)[1] == '.hdf5'):
+            d = os.path.split(filename)
+            a, b = os.path.split(d[0])
+            output_filename = os.path.join(a, d[1])  # remove subfolder from filename
+            if(os.path.exists(output_filename)):
+                logger.error('file {} already exists, skipping'.format(output_filename))
+            else:
+                input_files = np.array(sorted(glob.glob(filename + '.part*')))
+                mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=bool)
+                if(np.sum(~mask)):
+                    logger.warning("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
+                input_args.append({'filenames': input_files[mask], 'output_filename': output_filename})
+    return input_args
+
+
 def merge2(filenames, output_filename):
     logger.warning(f"merging {len(filenames)} files into {os.path.basename(output_filename)}")
     data = OrderedDict()
@@ -256,21 +292,7 @@ if __name__ == "__main__":
         if not os.path.isdir(root_directory):
             sys.exit(f"{root_directory} is not a directory.")
 
-        filenames = np.unique(glob.glob(f"{root_directory}/*/*.hdf5.part*"))
-        input_args = []
-        for filename in sorted(filenames):
-            if(os.path.splitext(filename)[1] == '.hdf5'):
-                d = os.path.split(filename)
-                a, b = os.path.split(d[0])
-                output_filename = os.path.join(a, d[1])  # remove subfolder from filename
-                if(os.path.exists(output_filename)):
-                    logger.error('file {} already exists, skipping'.format(output_filename))
-                else:
-                    input_files = np.array(sorted(glob.glob(filename + '.part*')))
-                    mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=bool)
-                    if(np.sum(~mask)):
-                        logger.warning("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
-                    input_args.append({'filenames': input_files[mask], 'output_filename': output_filename})
+        input_args = find_part_files(root_directory)
 
         if(args.cores == 1):
             for i in range(len(input_args)):
