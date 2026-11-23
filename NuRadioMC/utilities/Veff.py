@@ -761,6 +761,11 @@ def get_Veff_Aeff_array(data):
                 f"{len(entries)} entries have the same energy and zenith bin, but at least one lacks the keys "
                 "`n_events` and `volume_proj_area` needed to combine them. Recalculate `data` with `get_Veff_Aeff`.")
 
+        logger.info(
+            f"Combining {len(entries)} files with the same bin (energy {uenergies[iE] / units.eV:.3g} eV, "
+            f"zenith {uzenith_bins[iT][0] / units.deg:.1f} - {uzenith_bins[iT][1] / units.deg:.1f} deg) "
+            "into one effective volume / area.")
+
         exposure = sum(d['n_events'] / d['volume_proj_area'] for d in entries)
         for triggername in set().union(*[d[veff_aeff].keys() for d in entries]):
             counts = sum(d[veff_aeff][triggername][2] for d in entries if triggername in d[veff_aeff])
