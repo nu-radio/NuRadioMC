@@ -371,9 +371,7 @@ def _merge_datasets(fout, infos, trigger_columns, n_triggers, skip_incomplete_st
             if offset:
                 logger.warning(f"{key} of {info.filename} overlap with previous files; shifted by {offset}")
 
-    # output datasets: path -> (open dataset, offset per index of a file that adds rows). The datasets stay open
-    # while the files are copied, so that a chunk filled by several files is compressed and written once (from the
-    # chunk cache); reopening them per file grows the output by rewritten chunks.
+    # output datasets: path -> (open dataset, offset per index of a file that adds rows)
     outputs = {}
 
     def create(path, files):
@@ -536,7 +534,11 @@ def merge_hdf5_files(filenames, output_filename, overwrite=False, skip_incomplet
 
     tmp_filename = output_filename + '.tmp'
     try:
-        with h5py.File(tmp_filename, 'w') as fout:
+        # no chunk cache: a chunk that several files fill is then compressed and written per file, which grows
+        # the output slightly (+0.1 % for 80 files of 1.4 MB, more for small files), but the cache made the memory
+        # use grow with the number of files (measured: 80 files, peak RSS 835 MB with the default 1 MiB per
+        # dataset, 430 MB without)
+        with h5py.File(tmp_filename, 'w', rdcc_nbytes=0) as fout:
             id_offsets = {}
             if non_empty:
                 n_triggers = 0 if trigger_names is None else len(trigger_names)
