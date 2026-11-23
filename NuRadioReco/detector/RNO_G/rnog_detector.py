@@ -65,7 +65,10 @@ def _format_t(t, f="%Y-%m-%d %H:%M:%S"):
     return t.strftime(f)
 
 
-def _component_entry_to_response(component_entry, station_id, channel_id, log_level = logging.NOTSET):
+def _component_entry_to_response(component_entry, station_id, channel_id, logger = None, log_level = logging.NOTSET):
+
+    if logger is None:
+        logger = logging.getLogger("NuRadioReco.RNOGDetector")
 
     # Skip drab_board if its equal with iglu (see warning above)
     # if is_equal and component_entry["collection"] == "drab_board":
@@ -100,7 +103,7 @@ def _component_entry_to_response(component_entry, station_id, channel_id, log_le
         if "time_delay" in component_entry:
             time_delay = component_entry["time_delay"]
         else:
-            self.logger.warning(
+            logger.warning(
                 f"The signal chain component \"{component_entry['collection']}\" with the name \"{component_entry['name']}\" of station.channel "
                 f"{station_id}.{channel_id} has no time delay stored... "
                 "Set component time delay to 0")
@@ -992,6 +995,9 @@ class Detector():
 
         model_spec = self.__buffered_stations[station_id]["ice_model"]
 
+        print("ice model")
+        print(model_spec)
+
         import importlib
         module = importlib.import_module("NuRadioMC.utilities.medium_base")
         class_ = getattr(module, model_spec["type"])
@@ -1174,7 +1180,7 @@ class Detector():
             #             "responses are the same (because we measure them together in the lab). "
             #             "Skip the drab board response.")
 
-            responses = [_component_entry_to_response(entry, station_id, channel_id, self.__log_level) 
+            responses = [_component_entry_to_response(entry, station_id, channel_id, self.logger, self.__log_level) 
                          for entry in measurement_components_list]
 
             # Buffer object
