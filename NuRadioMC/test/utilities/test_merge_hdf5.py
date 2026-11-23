@@ -15,10 +15,11 @@ from NuRadioMC.utilities import merge_hdf5
 from NuRadioMC.utilities.merge_hdf5 import merge2
 
 
-def _write_file(filename, event_group_ids, shower_ids, attrs=None, station_attrs=None):
+def _write_file(filename, event_group_ids, shower_ids, attrs=None, station_attrs=None, triggered=True):
     """
     Minimal NuRadioMC output file: one station that sees every shower, one event per event group. ``attrs`` and
-    ``station_attrs`` are added to the file and station group attributes.
+    ``station_attrs`` are added to the file and station group attributes; ``triggered`` is the value of all
+    ``triggered`` entries.
     """
     event_group_ids = np.asarray(event_group_ids)
     with h5py.File(filename, "w") as f:
@@ -26,7 +27,7 @@ def _write_file(filename, event_group_ids, shower_ids, attrs=None, station_attrs
         f.attrs.update(attrs or {})
         f["event_group_ids"] = event_group_ids
         f["shower_ids"] = np.asarray(shower_ids)
-        f["triggered"] = np.ones(len(shower_ids), dtype=bool)
+        f["triggered"] = np.full(len(shower_ids), triggered)
         sg = f.create_group("station_101")
         sg.attrs.update(station_attrs or {})
         sg["event_group_ids"] = np.unique(event_group_ids)
@@ -76,6 +77,21 @@ def test_merge_station_ids_consistent():
     egid_of_shower = dict(zip(out["shower_ids"], out["event_group_ids"]))
     for sid, egid in zip(out["station_101/shower_id"], out["station_101/event_group_id_per_shower"]):
         assert egid_of_shower[sid] == egid, (sid, egid, egid_of_shower)
+
+
+def test_merge_untriggered_file_adds_no_rows():
+    # a file without triggered events is skipped and must not add (zero-filled) rows
+    with tempfile.TemporaryDirectory() as tmpdir:
+        filenames = [os.path.join(tmpdir, "triggered.hdf5"), os.path.join(tmpdir, "untriggered.hdf5")]
+        _write_file(filenames[0], [1, 2, 2], [1, 2, 3])
+        _write_file(filenames[1], [5, 6], [5, 6], triggered=False)
+        output = os.path.join(tmpdir, "merged.hdf5")
+        merge2(filenames, output)
+        with h5py.File(output, "r") as f:
+            np.testing.assert_array_equal(f["shower_ids"][...], [1, 2, 3])
+            np.testing.assert_array_equal(f["station_101/shower_id"], [1, 2, 3])
+            np.testing.assert_array_equal(f["station_101/event_group_ids"], [1, 2])
+            assert f.attrs["n_events"] == 2 + 2, f.attrs["n_events"]
 
 
 def _merge_attrs(attrs, station_attrs=None):
@@ -160,6 +176,7 @@ if __name__ == "__main__":
     test_merge_event_id_per_shower_renamed()
     test_merge_event_group_id_zero_unique()
     test_merge_station_ids_consistent()
+    test_merge_untriggered_file_adds_no_rows()
     test_merge_trigger_names_differ()
     test_merge_station_attrs()
     test_find_part_files()

@@ -61,6 +61,7 @@ bugfixes:
 - `merge_hdf5` raises if any trigger name (or other string attribute) differs between files, not only if all differ.
 - `merge_hdf5` no longer crashes on station group attributes that are missing in the first file or are strings that
   differ between files (warns instead).
+- `merge_hdf5` no longer appends zero-filled rows for input files without triggered events.
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported

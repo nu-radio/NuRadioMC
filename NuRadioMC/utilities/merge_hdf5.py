@@ -101,8 +101,6 @@ def merge2(filenames, output_filename):
     attrs = OrderedDict()
     groups = OrderedDict()
     group_attrs = OrderedDict()
-    n_data = {}
-    n_groups = {}
     non_empty_filenames = []
     n_events_total = 0
 
@@ -125,13 +123,8 @@ def merge2(filenames, output_filename):
         for key in fin:
             if isinstance(fin[key], h5py._hl.group.Group):  # loop through station groups
                 groups[f][key] = {}
-                if(key not in n_groups):
-                    n_groups[key] = {}
                 for key2 in fin[key]:
                     groups[f][key][key2] = fin[key][key2][...]
-                    if(key2 not in n_groups[key]):
-                        n_groups[key][key2] = 0
-                    n_groups[key][key2] += len(groups[f][key][key2])
                 if(key not in group_attrs):
                     group_attrs[key] = {}
                     for key2 in fin[key].attrs:
@@ -148,9 +141,6 @@ def merge2(filenames, output_filename):
                                 "first file, but you have been warned!")
             else:
                 data[f][key] = fin[key][...]
-                if(key not in n_data):
-                    n_data[key] = 0
-                n_data[key] += len(data[f][key])
 
         for key in fin.attrs:
             if(key not in attrs):
@@ -200,7 +190,7 @@ def merge2(filenames, output_filename):
                 logger.warning(f"not all files have the key {key}. This key will not be present in the merged file.")
                 continue
             shape = list(data[non_empty_filenames[0]][key].shape)
-            shape[0] = n_data[key]
+            shape[0] = sum(len(data[f][key]) for f in non_empty_filenames)  # skipped files add no rows
 
             tmp = np.zeros(shape, dtype=data[non_empty_filenames[0]][key].dtype)
 
@@ -232,7 +222,7 @@ def merge2(filenames, output_filename):
             g = fout.create_group(key)
             for key2 in list_of_keys:  # loop through all datasets of this group
                 shape = list_of_shapes[key2]
-                shape[0] = n_groups[key][key2]
+                shape[0] = sum(len(groups[f][key][key2]) for f in non_empty_filenames if key2 in groups[f][key])
 
                 tmp = np.zeros(shape, dtype=list_of_dtypes[key2])
                 i = 0
