@@ -1,6 +1,10 @@
 """
-Tests that the trigger time of the phased array trigger does not depend on the channel ids:
-the same station with channels 0-3 and with the channels relabeled to 10-13 must trigger at the same time.
+Tests the trigger time of the phased array trigger:
+
+- it does not depend on the channel ids: the same station with channels 0-3 and with the channels
+  relabeled to 10-13 must trigger at the same time.
+- the phasing delays (rolls) from `PhasedArrayBase.calculate_time_delays` are non-negative with minimum 0
+  per beam, which the trigger time calculation relies on.
 """
 import datetime
 import json
@@ -14,6 +18,7 @@ from NuRadioReco.framework.channel import Channel
 from NuRadioReco.framework.event import Event
 from NuRadioReco.framework.station import Station
 from NuRadioReco.modules.phasedarray.beamformedPowerIntegrationTrigger import BeamformedPowerIntegrationTrigger
+from NuRadioReco.modules.phasedarray.phasedArrayBase import PhasedArrayBase, default_angles
 from NuRadioReco.utilities import units
 
 DETECTOR_FILE = os.path.join(os.path.dirname(__file__), 'trigger_test_detector.json')
@@ -77,6 +82,27 @@ def test_phased_trigger_time_independent_of_channel_ids():
         np.testing.assert_allclose(trigger_times_relabeled[beam], trigger_times[beam])
 
 
+def test_beam_rolls_start_at_zero():
+    det = _make_detector(DETECTOR_FILE)
+    _, station = _make_event(CHANNEL_IDS)
+    for sampling_frequency in [1 * units.GHz, 3.2 * units.GHz]:
+        for ref_index in [1.4, 1.75]:
+            phased_array = PhasedArrayBase()  # fresh instance: delays are buffered per station id
+            beam_rolls = phased_array.calculate_time_delays(
+                station, det, CHANNEL_IDS, phasing_angles=default_angles, ref_index=ref_index,
+                sampling_frequency=sampling_frequency)
+
+            assert len(beam_rolls) == len(default_angles)
+            for rolls in beam_rolls:
+                assert sorted(rolls.keys()) == CHANNEL_IDS
+                values = np.array(list(rolls.values()))
+                assert np.issubdtype(values.dtype, np.integer)
+                assert values.min() == 0
+            # the antennas are at different depths, so the tilted beams have non-zero rolls
+            assert any(max(rolls.values()) > 0 for rolls in beam_rolls)
+
+
 if __name__ == "__main__":
     test_phased_trigger_time_independent_of_channel_ids()
-    print("Phased trigger channel-id test passed.")
+    test_beam_rolls_start_at_zero()
+    print("Phased trigger tests passed.")
