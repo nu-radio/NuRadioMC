@@ -74,6 +74,33 @@ def check_separate_zenith_bins(folder):
     assert np.allclose(Veffs[0, :, 1, 0], [VOLUME * 0.1, VOLUME * 0.3], rtol=1e-12), Veffs[0, :, 1, 0]
 
 
+def check_trigger_in_some_files(folder):
+    # a trigger present only in the entries of some files gets the exposure of only those files
+    a, b = os.path.join(folder, "a.hdf5"), os.path.join(folder, "b.hdf5")
+    write_file(a, 100, 10)
+    write_file(b, 300, 90)
+    data = get_Veff_Aeff(a, trigger_combinations={"combA": {"triggers": ["trig"]}}) + get_Veff_Aeff(b)
+    Veffs, _, _, _, _, trigger_names = get_Veff_Aeff_array(data)
+    assert list(trigger_names) == ["all_triggers", "combA", "trig"]
+    fc_low, fc_high = FC_limits(10)
+    expected_a = [VOLUME * 0.1, VOLUME * 0.1 / 10 ** 0.5, 10, VOLUME * fc_low / 100, VOLUME * fc_high / 100]
+    assert np.allclose(Veffs[0, 0, 1], expected_a, rtol=1e-12), (Veffs[0, 0, 1], expected_a)
+    assert np.allclose(Veffs[0, 0, 2, :3], [VOLUME * 0.25, VOLUME * 0.025, 100], rtol=1e-12), Veffs[0, 0, 2]
+
+
+def check_same_file_twice(folder):
+    # the same file twice in one bin (e.g. concatenated results for different trigger combinations) is an error
+    write_file(os.path.join(folder, "a.hdf5"), 100, 10)
+    data = get_Veff_Aeff(folder, trigger_combinations={"combA": {"triggers": ["trig"]}}) + \
+        get_Veff_Aeff(folder, trigger_combinations={"combB": {"triggers": ["trig"]}})
+    try:
+        get_Veff_Aeff_array(data)
+    except ValueError as e:
+        assert "a.hdf5" in str(e), e
+    else:
+        raise AssertionError("no ValueError for the same file twice in one bin")
+
+
 def test_Veff_combine_files():
     with tempfile.TemporaryDirectory() as tmp:
         check_combination(tmp)
@@ -84,7 +111,19 @@ def test_Veff_zenith_bins():
         check_separate_zenith_bins(tmp)
 
 
+def test_Veff_trigger_in_some_files():
+    with tempfile.TemporaryDirectory() as tmp:
+        check_trigger_in_some_files(tmp)
+
+
+def test_Veff_same_file_twice():
+    with tempfile.TemporaryDirectory() as tmp:
+        check_same_file_twice(tmp)
+
+
 if __name__ == "__main__":
     test_Veff_combine_files()
     test_Veff_zenith_bins()
+    test_Veff_trigger_in_some_files()
+    test_Veff_same_file_twice()
     print("OK")

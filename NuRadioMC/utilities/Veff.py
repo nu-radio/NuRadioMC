@@ -283,6 +283,7 @@ def get_Veff_Aeff_single(
     out['thetamin'] = thetamin
     out['thetamax'] = thetamax
     out['deposited'] = deposited
+    out['filename'] = filename
     # needed to combine files of the same energy and zenith bin in `get_Veff_Aeff_array`
     out['n_events'] = n_events
     out['volume_proj_area'] = volume_proj_area
@@ -766,9 +767,18 @@ def get_Veff_Aeff_array(data):
             f"zenith {uzenith_bins[iT][0] / units.deg:.1f} - {uzenith_bins[iT][1] / units.deg:.1f} deg) "
             "into one effective volume / area.")
 
-        exposure = sum(d['n_events'] / d['volume_proj_area'] for d in entries)
+        filenames = [os.path.realpath(d['filename']) for d in entries if 'filename' in d]
+        duplicates = sorted({f for f in filenames if filenames.count(f) > 1})
+        if duplicates:
+            raise ValueError(
+                f"The files {duplicates} appear more than once in the same energy and zenith bin (e.g. `data` "
+                "concatenated from several `get_Veff_Aeff` calls on the same files); each file can enter only once.")
+
         for triggername in set().union(*[d[veff_aeff].keys() for d in entries]):
-            counts = sum(d[veff_aeff][triggername][2] for d in entries if triggername in d[veff_aeff])
+            # only the files that contain this trigger contribute to its counts and exposure
+            with_trigger = [d for d in entries if triggername in d[veff_aeff]]
+            counts = sum(d[veff_aeff][triggername][2] for d in with_trigger)
+            exposure = sum(d['n_events'] / d['volume_proj_area'] for d in with_trigger)
             output[iE, iT, get_index(triggername, utrigger_names)] = get_veff_output(1, counts, exposure)
 
     return output, uenergies, uenergies_min, uenergies_max, uzenith_bins, utrigger_names
