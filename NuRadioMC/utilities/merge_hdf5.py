@@ -49,6 +49,16 @@ def _make_ids_unique(data, groups, filenames, key, group_keys):
         unique_ids = np.append(unique_ids, current_ids)
 
 
+def _attrs_equal(a, b):
+    """ Compares two attribute values: numbers with `numpy.allclose`, anything else (e.g. strings) exactly. """
+    a, b = np.asarray(a), np.asarray(b)
+    if a.shape != b.shape:
+        return False
+    if np.issubdtype(a.dtype, np.number) and np.issubdtype(b.dtype, np.number):
+        return np.allclose(a, b)
+    return np.array_equal(a, b)
+
+
 def find_part_files(root_directory):
     """
     Groups the files ``root_directory/<subfolder>/<name>.hdf5.part*`` by ``<name>.hdf5``.
@@ -128,7 +138,10 @@ def merge2(filenames, output_filename):
                         group_attrs[key][key2] = fin[key].attrs[key2]
                 else:
                     for key2 in fin[key].attrs:
-                        if(not np.allclose(group_attrs[key][key2], fin[key].attrs[key2])):
+                        if key2 not in group_attrs[key]:
+                            logger.warning(f"attribute {key2} of group {key} is missing in previous files, using the value of {f}")
+                            group_attrs[key][key2] = fin[key].attrs[key2]
+                        elif not _attrs_equal(group_attrs[key][key2], fin[key].attrs[key2]):
                             logger.warning(
                                 f"attribute {key2} of group {key} of file {filenames[0]} and {f} are different "
                                 f"({group_attrs[key][key2]} vs. {fin[key].attrs[key2]}. Using attribute value of "

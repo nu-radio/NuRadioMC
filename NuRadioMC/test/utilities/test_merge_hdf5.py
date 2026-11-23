@@ -109,6 +109,15 @@ def test_merge_trigger_names_differ():
     np.testing.assert_array_equal(attrs["trigger_names"], names)
 
 
+def test_merge_station_attrs():
+    # an attribute only in a later file is taken from that file
+    _, station_attrs = _merge_attrs([{}, {}], [{}, {"Vrms": [1., 2.]}])
+    np.testing.assert_array_equal(station_attrs["Vrms"], [1., 2.])
+    # differing string attributes keep the value of the first file
+    _, station_attrs = _merge_attrs([{}, {}], [{"name": "x"}, {"name": "y"}])
+    assert station_attrs["name"] == "x", station_attrs
+
+
 def _write_part_tree(root):
     """ Generator-style tree ``root/<energy>/<name>.hdf5.partNNNN``; returns the part files per expected output file. """
     parts = {}
@@ -152,6 +161,7 @@ if __name__ == "__main__":
     test_merge_event_group_id_zero_unique()
     test_merge_station_ids_consistent()
     test_merge_trigger_names_differ()
+    test_merge_station_attrs()
     test_find_part_files()
     test_cli_directory_mode()
     print("OK")
