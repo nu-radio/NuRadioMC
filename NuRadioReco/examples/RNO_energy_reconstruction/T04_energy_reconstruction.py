@@ -38,7 +38,8 @@ parser = argparse.ArgumentParser('Use the reconstructed vertex position and elec
 parser.add_argument(
     '--input_file',
     type=str,
-    default='reconstructed_efield_normal_trace_same_size.nur',
+    nargs='+',
+    default=['reconstructed_efield_normal_trace_same_size.nur'],
     help='Name of the input file. Should be output file of T03_electric_field_reco.py'
 )
 # parser.add_argument(
@@ -52,7 +53,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 event_reader = NuRadioReco.modules.io.eventReader.eventReader()
-event_reader.begin([args.input_file])
+event_reader.begin(args.input_file)
 
 ice = NuRadioMC.utilities.medium.get_ice_model('greenland_simple')
 energy_reconstructor = NuRadioReco.modules.neutrinoEnergyReconstructor.neutrinoEnergyReconstructor()

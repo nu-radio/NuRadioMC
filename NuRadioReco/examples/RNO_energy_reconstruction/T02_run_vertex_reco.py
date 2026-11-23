@@ -106,7 +106,8 @@ vertex_reconstructor.begin(
     template=efield_template,
     distances_2d=[50, 4800],
     passband=vertex_reco_passband,
-    debug_folder='plots/Vertex_reco_with_normal_trace_20'
+    debug_folder='plots/Vertex_reco_with_normal_trace_20',
+    use_absolute_depth=True
 )
 for i_event, event in enumerate(event_reader.run()):
     print('Event {}, ID={}, Run={}'.format(i_event, event.get_id(), event.get_run_number()))

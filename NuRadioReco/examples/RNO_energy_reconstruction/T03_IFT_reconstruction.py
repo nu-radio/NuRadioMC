@@ -110,7 +110,7 @@ ift_efield_reconstructor.begin(
         [[.13, .25], [.25, .5]],
         [[.13, .3], [.3, .5]],
     ],
-    debug=False,
+    debug=True,
     plot_folder=f"plots/Cluster_test_1/{args.output_file}"
 )
 time_offset_calculator = NuRadioReco.modules.channelTimeOffsetCalculator.channelTimeOffsetCalculator()       #this calculates the time offset between channels using the simulated electric field as a template, and applies it to the data channels. This is not something you would do in a real analysis, but it allows us to check that the reconstruction works when the timing between channels is perfect.

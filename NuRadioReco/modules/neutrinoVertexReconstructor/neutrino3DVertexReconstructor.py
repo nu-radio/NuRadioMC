@@ -1126,6 +1126,7 @@ class neutrino3DVertexReconstructor:
 
         self.__lookup_table_location = lookup_table_location
         self.__detector = None
+        self.__surface_offset = 0.
         self.__lookup_table = {}
         self.__header = {}
         self.__channel_ids = None
@@ -1229,7 +1230,8 @@ class neutrino3DVertexReconstructor:
             use_maximum_filter=False,
             debug_folder='.',
             sampling_rate=None,
-            debug_formats='.png'
+            debug_formats='.png',
+            use_absolute_depth=False
     ):
         """
         General settings for vertex reconstruction
@@ -1288,6 +1290,11 @@ class neutrino3DVertexReconstructor:
         debug_formats: string | list (default: '.png')
             The format(s) to use to save the debug plots. Include '.pickle' to save
             plots in pickle (reopenable / editable in future Python sessions) format
+        use_absolute_depth: bool, default False
+            The lookup tables assume the ice surface at z=0. If True, the station z coordinate
+            (``detector.get_absolute_position(station_id)[2]``) is added to the antenna and source
+            depths, so tables are selected and evaluated at the true depth below the surface.
+            Requires lookup tables generated at these absolute antenna depths.
 
 
         """
@@ -1295,6 +1302,8 @@ class neutrino3DVertexReconstructor:
         self.__detector = detector
         self.__channel_ids = channel_ids
         self.__station_id = station_id
+        # z offset between the station-relative frame and the ice surface (z=0) used by the lookup tables
+        self.__surface_offset = detector.get_absolute_position(station_id)[2] if use_absolute_depth else 0.
         self.__ray_types = [[i, j] for i in ray_types for j in ray_types]
         self.__debug_folder = debug_folder
         self._dTheta_goal = resolution_target
@@ -1331,7 +1340,7 @@ class neutrino3DVertexReconstructor:
             self.__azimuths_2d = azimuths_2d
 
         for channel_id in channel_ids:
-            channel_z = abs(detector.get_relative_position(station_id, channel_id)[2])
+            channel_z = abs(detector.get_relative_position(station_id, channel_id)[2] + self.__surface_offset)
             channel_type = round(channel_z, 3)
             if channel_type not in self.__lookup_table.keys():
                 header, lookup_table = self._load_lookup_table(self.__lookup_table_location, channel_z)
@@ -2004,7 +2013,9 @@ class neutrino3DVertexReconstructor:
         """
         # logger.debug("get_signal_travel_time: array shape {}, ray type {}".format(d_hor.shape, ray_type))
         channel_pos = self.__detector.get_relative_position(self.__station_id, channel_id)
-        channel_type = round(abs(channel_pos[2]), 3)
+        channel_type = round(abs(channel_pos[2] + self.__surface_offset), 3)
+        # source depth relative to the ice surface, as used by the lookup tables
+        z = z + self.__surface_offset
         # travel_times = self.__get_time_scipy[channel_type][ray_type](d_hor, z)
         # return travel_times
         travel_times = np.zeros_like(d_hor)
@@ -2170,7 +2181,8 @@ class neutrino3DVertexReconstructor:
         theta = np.linspace(thetamin, thetamax, n_theta)
         # theta = np.arange(np.max(phi), np.min(phi)-self._dTheta_current, -self._dTheta_current)[::-1]
         corr_grid = np.zeros((len(distances), len(theta)))
-        theta_index = np.searchsorted(theta, phi)
+        # if all points share one azimuth, theta has a single entry and searchsorted can return 1
+        theta_index = np.clip(np.searchsorted(theta, phi), 0, len(theta) - 1)
         for i, i_theta in enumerate(theta_index):
             corr_grid[:, i_theta] = np.maximum(corr_grid[:, i_theta], correlation[:, i])
         cax = ax.pcolormesh(distances, theta/units.deg, corr_grid.T, vmin=vmin, cmap=cmap, rasterized=True)
@@ -2805,4 +2817,8 @@ def save_fig(fig, fname, format='.png'):
         else:
             if not fmt[0] == '.':
                 fmt = '.' + fmt
-            fig.savefig(fname+fmt)
+            # a debug plot that cannot be drawn (e.g. degenerate grid) should not stop the reconstruction
+            try:
+                fig.savefig(fname+fmt)
+            except Exception as e:
+                logger.warning('Could not save debug plot {}: {}'.format(fname + fmt, e))
