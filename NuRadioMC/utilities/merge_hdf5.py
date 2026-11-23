@@ -88,6 +88,88 @@ def _attrs_equal(a, b):
     return np.array_equal(a, b)
 
 
+def _merge_attributes(attrs_per_file):
+    """
+    Merges the file attributes.
+
+    The first file that has a key sets its value. Later files must agree on the string attributes
+    (``str_type_attrs``, e.g. ``config``) and on ``veff_attrs`` (else `AttributeError`); other differing values warn.
+    ``start_event_id`` is not compared, ``trigger_names`` missing or empty so far are taken from a later file.
+
+    Parameters
+    ----------
+    attrs_per_file : dict
+        file attributes (dict) per file name, in merge order
+
+    Returns
+    -------
+    dict
+        merged attributes (``n_events`` not yet summed)
+    """
+    filenames = list(attrs_per_file)
+    attrs = {}
+    for f, file_attrs in attrs_per_file.items():
+        for key, value in file_attrs.items():
+            if key not in attrs:
+                attrs[key] = value
+            elif key in str_type_attrs:
+                if not np.array_equal(attrs[key], value):
+                    logger.error(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {value}. ")
+                    raise AttributeError(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {value}. ")
+            elif key == "start_event_id":
+                continue
+            elif not _attrs_equal(attrs[key], value):
+                if key == "n_events":
+                    logger.warning(
+                        f"number of events in file {filenames[0]} and {f} are different ({attrs[key]} vs. {value}. We "
+                        "keep track of the total number of events, but in case the simulation was performed with "
+                        "different settings per file (e.g. different zenith angle bins), the averaging might be effected.")
+                elif key in veff_attrs:
+                    raise AttributeError(f"attribute {key} of file {filenames[0]} and {f} are different "
+                                         f"({attrs[key]} vs. {value}), the merged effective volume would be wrong")
+                else:
+                    logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. "
+                                   f"{value}. Using attribute value of first file, but you have been warned!")
+
+            if (len(attrs.get('trigger_names', [])) == 0) and 'trigger_names' in file_attrs:
+                attrs['trigger_names'] = file_attrs['trigger_names']
+    return attrs
+
+
+def _merge_group_attributes(group_attrs_per_file):
+    """
+    Merges the attributes of each station group: union of the keys, the first file that has a key sets its value,
+    differing values of later files warn.
+
+    Parameters
+    ----------
+    group_attrs_per_file : dict
+        per file name (in merge order), the attributes (dict) per station group
+
+    Returns
+    -------
+    dict
+        merged attributes per station group
+    """
+    filenames = list(group_attrs_per_file)
+    group_attrs = {}
+    for f, file_group_attrs in group_attrs_per_file.items():
+        for group, attrs in file_group_attrs.items():
+            if group not in group_attrs:
+                group_attrs[group] = dict(attrs)
+                continue
+            for key, value in attrs.items():
+                if key not in group_attrs[group]:
+                    logger.warning(f"attribute {key} of group {group} is missing in previous files, using the value of {f}")
+                    group_attrs[group][key] = value
+                elif not _attrs_equal(group_attrs[group][key], value):
+                    logger.warning(
+                        f"attribute {key} of group {group} of file {filenames[0]} and {f} are different "
+                        f"({group_attrs[group][key]} vs. {value}. Using attribute value of first file, but you have "
+                        "been warned!")
+    return group_attrs
+
+
 def find_part_files(root_directory):
     """
     Groups the files ``root_directory/<subfolder>/<name>.hdf5.part*`` by ``<name>.hdf5``.
@@ -144,9 +226,9 @@ def merge2(filenames, output_filename):
     filenames = list(unique_filenames.values())
     logger.warning(f"merging {len(filenames)} files into {os.path.basename(output_filename)}")
     data = OrderedDict()
-    attrs = OrderedDict()
+    attrs_per_file = OrderedDict()
     groups = OrderedDict()
-    group_attrs = OrderedDict()
+    group_attrs_per_file = OrderedDict()
     history = OrderedDict()
     non_empty_filenames = []
     n_events_total = 0
@@ -169,58 +251,22 @@ def merge2(filenames, output_filename):
         history[f] = _merge_history(fin, f, is_empty=f not in non_empty_filenames)
         data[f] = {}
         groups[f] = {}
+        group_attrs_per_file[f] = {}
 
         for key in fin:
             if isinstance(fin[key], h5py._hl.group.Group):  # loop through station groups
                 groups[f][key] = {}
                 for key2 in fin[key]:
                     groups[f][key][key2] = fin[key][key2][...]
-                if(key not in group_attrs):
-                    group_attrs[key] = {}
-                    for key2 in fin[key].attrs:
-                        group_attrs[key][key2] = fin[key].attrs[key2]
-                else:
-                    for key2 in fin[key].attrs:
-                        if key2 not in group_attrs[key]:
-                            logger.warning(f"attribute {key2} of group {key} is missing in previous files, using the value of {f}")
-                            group_attrs[key][key2] = fin[key].attrs[key2]
-                        elif not _attrs_equal(group_attrs[key][key2], fin[key].attrs[key2]):
-                            logger.warning(
-                                f"attribute {key2} of group {key} of file {filenames[0]} and {f} are different "
-                                f"({group_attrs[key][key2]} vs. {fin[key].attrs[key2]}. Using attribute value of "
-                                "first file, but you have been warned!")
+                group_attrs_per_file[f][key] = dict(fin[key].attrs)
             else:
                 data[f][key] = fin[key][...]
 
-        for key in fin.attrs:
-            if key in merge_history_attrs:  # combined per file below
-                continue
-            if(key not in attrs):
-                attrs[key] = fin.attrs[key]
-            else:
-                if(key not in str_type_attrs):
-                    if not _attrs_equal(attrs[key], fin.attrs[key]):
-                        if(key == "n_events"):
-                            logger.warning(f"number of events in file {filenames[0]} and {f} are different ({attrs[key]} vs. "
-                            f"{fin.attrs[key]}. We keep track of the total number of events, but in case the simulation was "
-                            "performed with different settings per file (e.g. different zenith angle bins), the averaging might be effected.")
-                        elif(key == "start_event_id"):
-                            continue
-                        elif key in veff_attrs:
-                            raise AttributeError(f"attribute {key} of file {filenames[0]} and {f} are different "
-                                                 f"({attrs[key]} vs. {fin.attrs[key]}), the merged effective volume would be wrong")
-                        else:
-                            logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. "
-                            f"{fin.attrs[key]}. Using attribute value of first file, but you have been warned!")
-                else:
-                    if not np.array_equal(attrs[key], fin.attrs[key]):
-                        logger.error(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. ")
-                        raise AttributeError(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. ")
-
-            if((('trigger_names' not in attrs) or (len(attrs['trigger_names']) == 0)) and 'trigger_names' in fin.attrs):
-                attrs['trigger_names'] = fin.attrs['trigger_names']
-
+        attrs_per_file[f] = {key: value for key, value in fin.attrs.items() if key not in merge_history_attrs}
         fin.close()
+
+    attrs = _merge_attributes(attrs_per_file)
+    group_attrs = _merge_group_attributes(group_attrs_per_file)
 
     # create data sets
     logger.info("creating data sets")
