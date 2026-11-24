@@ -603,9 +603,11 @@ def get_station_ice_model(det, station_id, ice_model=None):
 
     if hasattr(det, "get_ice_model"):
         try:
-            return det.get_ice_model(station_id)
+            det_ice_model = det.get_ice_model(station_id)
         except KeyError:
-            pass  # no model attached to this station
+            det_ice_model = None  # no model attached to this station
+        if det_ice_model is not None:
+            return det_ice_model
 
     site = det.get_site(station_id).lower()
     if site in AIR_SITES:
@@ -619,8 +621,9 @@ def get_station_ice_model(det, station_id, ice_model=None):
 
 
 def _has_air_layer(ice_model):
-    layers = getattr(ice_model, "layers", None) or []
-    return any(str(layer.get("region", layer.get("region_name", ""))).lower() == "air" for layer in layers)
+    # Only the air layer of IceModelContinuousExpLayers is physical (Summit values for the Greenland models); e.g.
+    # IceModelExpLayers.from_IceModel adds a placeholder (n = 1.000001) that the multilayer ray tracer needs.
+    return isinstance(ice_model, medium_base.IceModelContinuousExpLayers)
 
 
 def get_refractive_index(z, ice_model, site):
@@ -628,8 +631,8 @@ def get_refractive_index(z, ice_model, site):
     Returns the refractive index at height ``z`` of a station.
 
     Below the surface (``z <= ice_model.z_air_boundary``), this is the ice model's n(z). Above it, the model's
-    air layer if it has one, else the site's air value (`get_n_air`); the ice models themselves return n = 1
-    in air.
+    air layer if it has a physical one (`IceModelContinuousExpLayers`), else the site's air value (`get_n_air`);
+    most ice models themselves return n = 1 in air.
 
     Parameters
     ----------
@@ -651,3 +654,37 @@ def get_refractive_index(z, ice_model, site):
         return get_n_air(site)
 
     return float(ice_model.get_index_of_refraction(np.array([0, 0, z])))
+
+
+def get_station_refractive_index(det, station_id, z, ice_model=None):
+    """
+    Returns the refractive index at height ``z`` of a station.
+
+    Combines `get_station_ice_model` and `get_refractive_index`. If the station's site has no default ice model
+    (e.g. "simulation") and none is given, the site's air value (`get_n_air`) is returned above the surface
+    (``z > 0``); below it, the `ValueError` of `get_station_ice_model` is raised.
+
+    Parameters
+    ----------
+    det: Detector
+        Detector description (see `get_station_ice_model`)
+    station_id: int
+        Station id
+    z: float
+        Height relative to the surface (negative: in the ice)
+    ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+        Overrides the detector and site defaults
+
+    Returns
+    -------
+    n: float
+    """
+    site = det.get_site(station_id)
+    try:
+        station_ice_model = get_station_ice_model(det, station_id, ice_model)
+    except ValueError:
+        if z > 0:
+            return get_n_air(site)
+        raise
+
+    return get_refractive_index(z, station_ice_model, site)

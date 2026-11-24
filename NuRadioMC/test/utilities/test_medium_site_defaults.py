@@ -4,7 +4,7 @@ Tests of the site defaults and refractive-index helpers in NuRadioMC.utilities.m
 """
 import numpy as np
 
-from NuRadioMC.utilities import medium
+from NuRadioMC.utilities import medium, medium_base
 from NuRadioReco.utilities import units
 
 
@@ -62,8 +62,11 @@ def test_resolution_order():
     assert type(medium.get_station_ice_model(SiteDetector("simulation"), 1, "southpole_2015")).__name__ == "southpole_2015"
     # detector model beats the site default
     assert medium.get_station_ice_model(IceModelDetector("summit", own_model), 1) is own_model
-    # no model attached to the detector: site default
+    # no model attached to the detector (KeyError or None): site default
     assert type(medium.get_station_ice_model(IceModelDetector("summit"), 1)).__name__ == "greenland_3exp_timing_2025"
+    none_detector = IceModelDetector("summit")
+    none_detector.get_ice_model = lambda station_id: None
+    assert type(medium.get_station_ice_model(none_detector, 1)).__name__ == "greenland_3exp_timing_2025"
 
 
 def test_n_air():
@@ -93,9 +96,33 @@ def test_refractive_index():
     np.testing.assert_allclose(medium.get_refractive_index(0.01 * units.m, greenland, "summit"), medium.N_AIR_SUMMIT, rtol=1e-8)
     assert medium.get_refractive_index(9 * units.km, greenland, "summit") < medium.N_AIR_SUMMIT
 
+    # placeholder air layer of IceModelExpLayers.from_IceModel (n = 1.000001) is not used: site air value
+    converted = medium_base.IceModelExpLayers.from_IceModel(medium.southpole_2015())
+    assert medium.get_refractive_index(1 * units.m, converted, "southpole") == medium.N_AIR_DEFAULT
+
     # no ice (air-only site): air value everywhere
     for z in np.array([10, -0.01, -2]) * units.m:
         assert medium.get_refractive_index(z, None, "lofar") == medium.N_AIR_DEFAULT, z
+
+
+def test_station_refractive_index():
+    greenland = medium.greenland_3exp_timing_2025()
+    for z in np.array([10, -0.01, -100]) * units.m:
+        assert medium.get_station_refractive_index(SiteDetector("summit"), 1, z) == \
+            medium.get_refractive_index(z, greenland, "summit"), z
+
+    # site without default: air value above the surface, error below
+    assert medium.get_station_refractive_index(SiteDetector("simulation"), 1, 1 * units.m) == medium.N_AIR_DEFAULT
+    try:
+        medium.get_station_refractive_index(SiteDetector("simulation"), 1, -1 * units.m)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("in-ice value for site 'simulation' did not raise")
+    # ... unless a model is given
+    southpole = medium.southpole_2015()
+    assert medium.get_station_refractive_index(SiteDetector("simulation"), 1, -1 * units.m, southpole) == \
+        n_model(southpole, -1 * units.m)
 
 
 if __name__ == "__main__":
@@ -103,4 +130,5 @@ if __name__ == "__main__":
     test_resolution_order()
     test_n_air()
     test_refractive_index()
+    test_station_refractive_index()
     print("OK")
