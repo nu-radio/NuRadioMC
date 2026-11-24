@@ -1152,7 +1152,7 @@ class ray_tracing(ray_tracing_base):
         Parameters
         ----------
         src_zenith : float
-            Zenith angle of the incoming plane wave in air, in radians.
+            Zenith angle of the incoming plane wave in air at the surface, in radians.
             The angle is measured with respect to the surface normal and must
             be between 0 and pi/2 (incoming signals from above).
 
@@ -1175,7 +1175,8 @@ class ray_tracing(ray_tracing_base):
         -----
         The calculation is only supported for incoming signals
         propagating from air into ice, corresponding to zenith angles between
-        0 and pi/2. In air we assume n=1.0, which is needed in order for the geometric projection approach to work. 
+        0 and pi/2. The ray parameter is p = n_air * sin(src_zenith), with n_air the index of the
+        model's air layer at the surface.
         It is only implemented with the multilayerraytracer currently, so a IceModelExpLayers type medium has to be provided.
         """
 

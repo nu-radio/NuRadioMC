@@ -11,6 +11,39 @@ from NuRadioMC.SignalProp.AnalyticRayTracingImpl._maybenumba import njit
 
 
 @njit(cache=True)
+def get_vertical_travel_time(z, layers):
+    """
+    Travel time of a vertical ray from depth ``z`` up to the surface (z = 0).
+
+    Integrates n(z) = n_ice - delta_n * exp(z / z_0) in closed form over each layer
+    between ``z`` and the surface.
+
+    Parameters
+    ----------
+    z : float
+        Depth of the receiver in meters (z <= 0).
+
+    layers : tuple of np.ndarray
+        Layered refractive-index model as returned by
+        layers_to_arrays().
+
+    Returns
+    -------
+    travel_time : float
+        Travel time from the receiver to the surface.
+    """
+    z_min, z_max, n_ice, delta_n, z0 = layers
+    optical_path = 0.0
+    for i in range(len(z_min)):
+        lo = max(z_min[i], z)
+        hi = min(z_max[i], 0.0)
+        if hi > lo:
+            optical_path += n_ice[i] * (hi - lo) - delta_n[i] * z0[i] * (np.exp(hi / z0[i]) - np.exp(lo / z0[i]))
+
+    return optical_path / constants.c
+
+
+@njit(cache=True)
 def get_inice_quantities(pos, theta_air, layers):
     """
     Compute the in-ice propagation quantities for a ray entering the surface
@@ -28,8 +61,9 @@ def get_inice_quantities(pos, theta_air, layers):
         ray tracing is performed in a 2D plane.
 
     theta_air : float
-        Zenith angle of the incoming ray in air in radians.
-        Defined with respect to the surface normal.
+        Zenith angle of the incoming ray in air in radians, at the surface.
+        Defined with respect to the surface normal
+        (see `get_time_difference_plane_wave_analytic`).
 
     layers : tuple of np.ndarray
         Layered refractive-index model as returned by
@@ -56,6 +90,10 @@ def get_inice_quantities(pos, theta_air, layers):
     n_air = get_n_1D(0.0001, layers)
 
     p = n_air * np.sin(theta_air)
+    if p == 0.0:
+        # vertical ray: no horizontal offset, and c0 = 1 / p is undefined
+        return 0.0, get_vertical_travel_time(pos[2], layers)
+
     c0 = 1.0 / p
 
     x1 = (pos[1],pos[2])
@@ -83,6 +121,11 @@ def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, laye
 
     The in-ice propagation is evaluated analytically using the multilayer
     ray tracer. The nuradio angle convention is used: 0deg east, 90deg north, 180 deg west, 270deg south
+
+    The zenith angle is the direction of the wave at the surface, where the air has the index
+    n_air of the model's air layer: the ray parameter is p = n_air * sin(theta_air). A wave
+    from far above (n = 1) has p <= 1, i.e. sin(theta_air) <= 1 / n_air; larger zenith angles
+    belong to waves that are refracted within the air (p > 1 is still computed).
 
     Parameters
     ----------
@@ -165,7 +208,7 @@ def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, laye
     delta_L_air = surface_shift * np.sin(theta_air)
 
     # convert to travel time
-    delta_t_air = n_air * delta_L_air*units.m / constants.c
+    delta_t_air = n_air * delta_L_air * units.m / constants.c
 
     # total relative arrival time
     delta_t = (t1 - t2) + delta_t_air
