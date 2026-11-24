@@ -626,8 +626,9 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False, lag_range = Non
         Trace of the reference channel
     use_envelope: bool
         See if users would like to find the correlation between envelopes or just normal traces (default: False)
-    lag_range: tuple of (int, int) or None
-        ``(min, max)`` of the allowed lags in **samples** (not time, inclusive).
+    lag_range: tuple of (int, int), list of (tuple of (int, int) or None), or None
+        ``(min, max)`` of the allowed lags in **samples** (not time, inclusive), for all traces,
+        or a list with one ``(min, max)`` per trace of ``trace_set`` (None: all lags for this trace).
         If None (default), all lags are allowed.
     ref_window: tuple of (int, int) or None
         ``(start, stop)`` sample indices (half-open) of the reference trace used for the
@@ -697,16 +698,25 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False, lag_range = Non
 
     lag_array = scipy.signal.correlation_lags(n_samples, n_samples, mode='full')
 
-    lag_min, lag_max = lag_range or (-np.inf, np.inf)
-    lag_mask = (lag_array >= lag_min) & (lag_array <= lag_max)
-    if not np.any(lag_mask):
-        raise ValueError(f"lag_range {lag_range} (in samples) contains no valid lag.")
+    # One (min, max) per trace: a single (min, max) or None applies to all traces
+    if lag_range is None or np.isscalar(lag_range[0]):
+        lag_range = [lag_range] * len(trace_set)
+    if len(lag_range) != len(trace_set):
+        raise ValueError(f"lag_range has {len(lag_range)} entries for {len(trace_set)} traces.")
+
+    lag_masks = []
+    for trace_lag_range in lag_range:
+        lag_min, lag_max = trace_lag_range or (-np.inf, np.inf)
+        lag_mask = (lag_array >= lag_min) & (lag_array <= lag_max)
+        if not np.any(lag_mask):
+            raise ValueError(f"lag_range {trace_lag_range} (in samples) contains no valid lag.")
+        lag_masks.append(lag_mask)
 
     lags = np.zeros(len(trace_set), dtype=int)
     correlations = np.zeros(len(trace_set))
     for i, trace in enumerate(trace_set):
         corr = scipy.signal.correlate(ref_processed, traces_processed[i], mode='full') / n_samples
-        best_lag = lag_array[lag_mask][np.argmax(corr[lag_mask])]
+        best_lag = lag_array[lag_masks[i]][np.argmax(corr[lag_masks[i]])]
         if crop_to_overlap:
             sum_trace += shift(trace, best_lag)
         else:

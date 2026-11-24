@@ -45,9 +45,12 @@ class stationCoherentlySummedWaveforms:
         channel_ids: array of int (default: [0, 1, 2, 3])
             Channels for which to calculate the variables
 
-        time_lag_range: tuple of (float, float) or None (default: None)
+        time_lag_range: tuple of (float, float), dict or None (default: None)
             ``(min, max)`` of the allowed time lags for the cross correlation, in units of time
-            (e.g. ``(-50 * units.ns, 50 * units.ns)``). If None, the full trace is used.
+            (e.g. ``(-50 * units.ns, 50 * units.ns)``), for all channels, or a dict
+            ``{channel_id: (min, max)}`` per channel (channels not listed: all lags). If None,
+            the full trace is used. A time lag is the shift of a channel onto the reference
+            channel (``coherent_time_lags``).
 
         ref_time_window: tuple of (float, float) or None (default: None)
             ``(start, stop)`` time window of the reference channel used for the cross correlation,
@@ -94,10 +97,20 @@ class stationCoherentlySummedWaveforms:
         if coincidence_window_size_bins_ref < 2:
             logger.warning(f"Coincidence window size of {coincidence_window_size_bins_ref} samples is too small for channel {ref_ch.get_id()}.")
 
-        lag_range_samples = None
-        if self.__time_lag_range is not None:
-            t_min, t_max = self.__time_lag_range
-            lag_range_samples = (int(round(t_min * sampling_rate)), int(round(t_max * sampling_rate)))
+        # One (min, max) or None per channel of `channels`
+        if isinstance(self.__time_lag_range, dict):
+            unknown = set(self.__time_lag_range) - {ch.get_id() for ch in channels}
+            if unknown:
+                raise ValueError(f"time_lag_range has channels {sorted(unknown)} which are not summed "
+                                 f"onto the reference channel {ref_ch.get_id()}.")
+            time_lag_ranges = [self.__time_lag_range.get(ch.get_id()) for ch in channels]
+        else:
+            time_lag_ranges = [self.__time_lag_range] * len(channels)
+
+        lag_range_samples = [
+            None if time_range is None
+            else (int(round(time_range[0] * sampling_rate)), int(round(time_range[1] * sampling_rate)))
+            for time_range in time_lag_ranges]
 
         ref_window_samples = None
         if self.__ref_time_window is not None:
