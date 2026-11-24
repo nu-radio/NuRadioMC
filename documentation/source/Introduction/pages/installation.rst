@@ -204,15 +204,15 @@ Not pip-installable packages
 ----------------------------
 
 - To speed up the :mod:`analytic ray tracing module <NuRadioMC.SignalProp.analyticraytracing>`, `GSL <https://www.gnu.org/software/gsl/>`_ needs
-  to be installed, and ``$GSL_DIR`` should point at the correct installation folder. On Linux, GSL can be installed using
+  to be installed. On Linux, GSL can be installed using
 
   .. code-block:: bash
 
     sudo apt-get install libgsl-dev
 
   (On MacOS, use ``brew install gsl`` instead - you may have to install `homebrew <https://brew.sh/>`_ first).
-  With GSL installed, compile the CPP ray tracer by running ``NuRadioMC/NuRadioMC/SignalProp/AnalyticRayTracingImpl/install.sh``
-  (it builds for ``python`` on your PATH; NuRadioMC also attempts this automatically on first use).
+  NuRadioMC then compiles the C++ ray tracer automatically on first use; to build it by hand, see
+  :ref:`NuRadioMC/pages/Manuals/signal_propagation:GSL speed-boost`.
 - To use the :mod:`RadioPropa numerical ray tracing <NuRadioMC.SignalProp.radioproparaytracing>` module, ``radiopropa`` needs to be installed.
   The radiopropa github, with installation instructions, can be found `here <https://github.com/nu-radio/RadioPropa>`__.
 - To read ARIANNA files, `Snowshovel <https://arianna.ps.uci.edu/mediawiki/index.php/Local_DAQ_Instructions>`_ needs to be installed.

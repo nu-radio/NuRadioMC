@@ -1,26 +1,17 @@
 # AnalyticRayTracing
-C++ code for analytic ray tracing
+C++ code for analytic ray tracing.
 
-## Prerequisites
-You will need to have a functioning installation of [GSL](https://www.gnu.org/software/gsl/) ([1.16](https://ftp.gnu.org/gnu/gsl/gsl-1.16.tar.gz) is verified to work).
-- You will need to set the enviromnent variable `GSLDIR` to your local installation of GSL.
-- You will also need to have `GSLDIR` in your `LD_LIBRARY_PATH`.
-- For Mac users: you can locate your GSL installation via `gsl-config --prefix`, i.e. `export GSLDIR=$(gsl-config --prefix)`
+## Use in NuRadioMC
+NuRadioMC compiles the Python wrapper of this code itself. Prerequisites (GSL) and how to build it by hand:
+[GSL speed-boost](https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/Manuals/signal_propagation.html#gsl-speed-boost)
+(source: `documentation/source/NuRadioMC/pages/Manuals/signal_propagation.rst`).
 
-## Install instructions
+## As standalone package
+You will need a functioning installation of [GSL](https://www.gnu.org/software/gsl/)
+([1.16](https://ftp.gnu.org/gnu/gsl/gsl-1.16.tar.gz) is verified to work):
+- Set the environment variable `GSLDIR` to your local installation of GSL, e.g. `export GSLDIR=$(gsl-config --prefix)`.
+- On Linux, if GSL is not installed in a system library directory, add `$GSLDIR/lib` to your `LD_LIBRARY_PATH`.
 
-### As part of NuRadioMC
-NuRadioMC compiles the python wrapper around the relevant C function on the fly the first time it imports the ray tracer
-with an interpreter that has no build yet (it runs `../install.sh` with that interpreter).
-To build it by hand, run `../install.sh` with `python` from the environment you want to build for, or execute
-`python setup.py build_ext --inplace` in this directory.
-
-Every Python version gets its own file, `wrapper<EXT_SUFFIX>` (e.g. `wrapper.cpython-312-x86_64-linux-gnu.so`), and
-a build replaces only the one of the Python version it builds for, so several Python versions can share one checkout
-(environments with the same Python version share one build).
-`install.sh --clean-all` first removes the builds of all Python versions (and the `build` directory).
-
-### As standalone package
 Getting going is easy. Just:
 - Make it: `make analytic_raytracing`
 - Run it: `./analytic_raytracing`

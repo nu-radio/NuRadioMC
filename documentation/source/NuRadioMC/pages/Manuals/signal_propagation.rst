@@ -67,24 +67,25 @@ The ray path can be expressed in closed form, as well as the travel time and the
 
 GSL speed-boost
 ^^^^^^^^^^^^^^^
-A C++ version of the ray tracer exists, which can be called from Python, and is significantly faster. The C++ version needs to be compiled on the user's system, which is attempted automatically if this is not already the case. However, this requires that the :ref:`GSL library is installed <Introduction/pages/installation:Not pip-installable packages>`, and the ``$GSLDIR`` variable is defined and points to the GNU Scientific Library directory.
+A C++ version of the ray tracer exists, which can be called from Python, and is significantly faster. It needs the
+:ref:`GSL library <Introduction/pages/installation:Not pip-installable packages>` and has to be compiled on the user's
+system. NuRadioMC does this automatically the first time the ray tracer is imported with a Python version that has no
+build yet, by running ``SignalProp/AnalyticRayTracingImpl/install.sh`` with that Python.
+
+To build it by hand, run ``install.sh`` with ``python`` from the environment to build for. It sets ``$GSLDIR`` (the GSL
+installation directory) from ``gsl-config --prefix`` if it is not defined. Alternatively, run the following in
+the ``SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing`` folder (``setup.py`` needs ``$GSLDIR``):
 
   .. code-block:: bash
 
-    export GSLDIR=/path/to/my/GNU_Scientific_Library
-
-Once GSLDIR is configured, the user can also compile it by hand executing the following instruction in the SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing folder:
-
-  .. code-block:: bash
-
+    export GSLDIR=$(gsl-config --prefix)
     python setup.py build_ext --inplace
 
-or by running ``SignalProp/AnalyticRayTracingImpl/install.sh`` with ``python`` from the environment to build for.
 The build is specific to one Python version: each version gets its own ``wrapper.cpython-<version>-<platform>.so``, and a build
 (manual or automatic) replaces only that of the version it builds for, so several Python versions can share one checkout.
 ``install.sh --clean-all`` first removes the builds of all Python versions.
 
-The C++ analytic ray tracer can also be used standalone, using the ``MakeFile`` included. For instructions, please refer to the ``README`` included in the ``NuRadioMC/SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing`` directory.
+The C++ analytic ray tracer can also be used standalone, using the ``Makefile`` included. For instructions, please refer to the ``README`` included in the ``NuRadioMC/SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing`` directory.
 
 RadioPropa numerical ray tracer (in development)
 _________________________________________________

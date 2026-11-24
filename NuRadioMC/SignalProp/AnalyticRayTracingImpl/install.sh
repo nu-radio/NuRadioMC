@@ -1,7 +1,6 @@
 #!/bin/bash
-# Build the Python wrapper of the C++ ray tracer for one Python interpreter: $PYTHON, else `python` from PATH.
-# Each Python version gets its own file (wrapper<EXT_SUFFIX>, e.g. wrapper.cpython-312-x86_64-linux-gnu.so), so builds
-# for several Python versions can coexist.
+# Build the Python wrapper of the C++ ray tracer for one Python version: $PYTHON, else `python` from PATH.
+# Documented in documentation/source/NuRadioMC/pages/Manuals/signal_propagation.rst (GSL speed-boost).
 usage="Usage: $0 [--clean-all]  (--clean-all: first remove the builds of all Python versions and the build directory)"
 clean_all=false
 for arg in "$@"; do
