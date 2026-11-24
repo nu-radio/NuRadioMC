@@ -198,11 +198,6 @@ class ray_tracing(ray_tracing_base):
         self.use_cpp = self._r2d.use_cpp
         self.compile_numba = self._r2d.compile_numba
 
-        # remove the internal raytracer used for calculation of the focusing factor to avoid that the old
-        # medium gets used
-        if hasattr(self, "_r1"):
-            del self._r1
-
         # if all checks above pass, set medium
         self._medium = medium
         self.n_at_surface = n_at_surface
@@ -245,6 +240,10 @@ class ray_tracing(ray_tracing_base):
         self._R = None
         self._cache_attenuation = {}
         self._cache_focusing = {}
+
+        # remove the internal raytracer used for calculation of the focusing factor
+        if hasattr(self, "_r1"):
+            del self._r1
 
     def set_start_and_end_point(self, x1, x2, autoswap=True):
         """
