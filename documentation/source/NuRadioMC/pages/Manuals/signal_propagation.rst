@@ -69,8 +69,9 @@ GSL speed-boost
 ^^^^^^^^^^^^^^^
 A C++ version of the ray tracer exists, which can be called from Python, and is significantly faster. It needs the
 :ref:`GSL library <Introduction/pages/installation:Not pip-installable packages>` and has to be compiled on the user's
-system. NuRadioMC does this automatically the first time the ray tracer is imported with a Python version that has no
-build yet, by running ``SignalProp/AnalyticRayTracingImpl/install.sh`` with that Python.
+system. NuRadioMC does this automatically, by running ``SignalProp/AnalyticRayTracingImpl/install.sh`` with the running
+Python, whenever importing the ray tracer finds no build of that Python version that loads; if compiling fails, it falls
+back to the Python implementation.
 
 To build it by hand, run ``install.sh`` with ``python`` from the environment to build for. It sets ``$GSLDIR`` (the GSL
 installation directory) from ``gsl-config --prefix`` if it is not defined. Alternatively, run the following in
@@ -80,6 +81,10 @@ the ``SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing`` folder (``setup.
 
     export GSLDIR=$(gsl-config --prefix)
     python setup.py build_ext --inplace
+
+On Linux, if GSL is not installed in a system library directory, add ``$GSLDIR/lib`` to ``LD_LIBRARY_PATH``: the build
+does not record where GSL is, so otherwise it fails to load, and NuRadioMC recompiles it at every start and falls back to
+the Python implementation.
 
 The build is specific to one Python version: each version gets its own ``wrapper.cpython-<version>-<platform>.so``, and a build
 (manual or automatic) replaces only that of the version it builds for, so several Python versions can share one checkout.
