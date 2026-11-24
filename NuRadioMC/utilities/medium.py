@@ -519,3 +519,135 @@ class greenland_3exp_timing_2025(medium_base.IceModelContinuousExpLayers):
             n_air_surface = N_AIR_SUMMIT,
             air_scale_height = AIR_SCALE_HEIGHT_SUMMIT
         )
+
+
+#: Default ice model per detector site (lower-case site name as returned by ``Detector.get_site``),
+#: used by `get_station_ice_model` when neither the caller nor the detector provides one.
+SITE_ICE_MODELS = {
+    'summit': 'greenland_3exp_timing_2025',
+    'greenland': 'greenland_3exp_timing_2025',
+    'southpole': 'southpole_2015',
+    'sp': 'southpole_2015',
+    'mooresbay': 'mooresbay_simple',
+}
+
+#: Sites without ice: the antennas are in air (`get_station_ice_model` returns None).
+AIR_SITES = ('lofar', 'auger', 'ska')
+
+#: Refractive index of air at the surface per site, used above the surface by ice models without an air layer.
+#: Sites not listed use `N_AIR_DEFAULT`.
+SITE_N_AIR = {
+    'summit': N_AIR_SUMMIT,
+    'greenland': N_AIR_SUMMIT,
+}
+
+#: Refractive index of air at sea level (standard atmosphere, 15 C, 1013 hPa).
+N_AIR_DEFAULT = 1.000293
+
+
+def get_n_air(site):
+    """
+    Returns the refractive index of air at the surface of a site (`SITE_N_AIR`, else `N_AIR_DEFAULT`).
+
+    Parameters
+    ----------
+    site: str
+        Site name (case insensitive), e.g. from ``Detector.get_site``
+
+    Returns
+    -------
+    n_air: float
+    """
+    return SITE_N_AIR.get(site.lower(), N_AIR_DEFAULT)
+
+
+@functools.lru_cache(maxsize=None)
+def _get_cached_ice_model(name):
+    return get_ice_model(name)
+
+
+def get_station_ice_model(det, station_id, ice_model=None):
+    """
+    Returns the ice model for a station.
+
+    The model is taken, in this order, from:
+
+    1. the argument ``ice_model`` (name of a model in this module, or an `IceModel` object),
+    2. the detector, if it provides ``get_ice_model(station_id)`` and a model is attached to the station,
+    3. the default model of the station's site (`SITE_ICE_MODELS`).
+
+    Parameters
+    ----------
+    det: Detector
+        Detector description; uses ``det.get_site(station_id)`` and, if present, ``det.get_ice_model(station_id)``
+    station_id: int
+        Station id
+    ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+        Overrides the detector and site defaults
+
+    Returns
+    -------
+    ice_model: `NuRadioMC.utilities.medium_base.IceModel` or None
+        None for sites without ice (`AIR_SITES`). Models resolved by name are shared between calls;
+        do not modify them.
+
+    Raises
+    ------
+    ValueError
+        If no model is given and the site has no default (e.g. "simulation" or an unknown site)
+    """
+    if isinstance(ice_model, str):
+        return _get_cached_ice_model(ice_model)
+    if ice_model is not None:
+        return ice_model
+
+    if hasattr(det, "get_ice_model"):
+        try:
+            return det.get_ice_model(station_id)
+        except KeyError:
+            pass  # no model attached to this station
+
+    site = det.get_site(station_id).lower()
+    if site in AIR_SITES:
+        return None
+    if site not in SITE_ICE_MODELS:
+        raise ValueError(
+            f"No default ice model for site '{site}' (station {station_id}). "
+            f"Pass an ice model explicitly (`ice_model`, e.g. one of {sorted(set(SITE_ICE_MODELS.values()))}).")
+
+    return _get_cached_ice_model(SITE_ICE_MODELS[site])
+
+
+def _has_air_layer(ice_model):
+    layers = getattr(ice_model, "layers", None) or []
+    return any(str(layer.get("region", layer.get("region_name", ""))).lower() == "air" for layer in layers)
+
+
+def get_refractive_index(z, ice_model, site):
+    """
+    Returns the refractive index at height ``z`` of a station.
+
+    Below the surface (``z <= ice_model.z_air_boundary``), this is the ice model's n(z). Above it, the model's
+    air layer if it has one, else the site's air value (`get_n_air`); the ice models themselves return n = 1
+    in air.
+
+    Parameters
+    ----------
+    z: float
+        Height relative to the surface (negative: in the ice)
+    ice_model: `NuRadioMC.utilities.medium_base.IceModel` or None
+        Ice model, e.g. from `get_station_ice_model`. None means no ice (air everywhere).
+    site: str
+        Site name, used for the air value
+
+    Returns
+    -------
+    n: float
+    """
+    if ice_model is None:
+        return get_n_air(site)
+
+    if z > ice_model.z_air_boundary and not _has_air_layer(ice_model):
+        return get_n_air(site)
+
+    return float(ice_model.get_index_of_refraction(np.array([0, 0, z])))
