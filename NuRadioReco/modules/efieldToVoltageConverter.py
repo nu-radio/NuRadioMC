@@ -418,13 +418,12 @@ def calculate_time_shift_for_cosmic_ray(det, sim_station, efield, channel_id, ic
         time shift in ns
     """
     station_id = sim_station.get_id()
-    site = det.get_site(station_id)
 
-    ice_model = medium.get_station_ice_model(det, station_id, ice_model)
     if sim_station.get_parameter(stnp.zenith) > 90 * units.deg:  # signal is coming from below, so we take IOR at the antenna
-        index_of_refraction = medium.get_refractive_index(det.get_relative_position(station_id, channel_id)[2], ice_model, site)
+        z = det.get_relative_position(station_id, channel_id)[2]
     else:  # signal is coming from above, so we take IOR of air
-        index_of_refraction = medium.get_refractive_index(1 * units.m, ice_model, site)
+        z = 1 * units.m
+    index_of_refraction = medium.get_station_refractive_index(det, station_id, z, ice_model)
 
     antenna_position_rel = det.get_relative_position(station_id, channel_id) - efield.get_position()
 

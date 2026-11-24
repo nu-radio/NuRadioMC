@@ -86,10 +86,11 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
         local_coordinates = get_local_coordinates((site_latitude, site_longitude), station_time, self._channelGalacticNoiseAdder__n_side)
 
         # surface values as in channelGalacticNoiseAdder.run
-        site = detector.get_site(station.get_id())
-        surface_ice_model = medium.get_station_ice_model(detector, station.get_id(), self._ice)
-        n_ice = medium.get_refractive_index(-0.01 * units.m, surface_ice_model, site)
-        n_air = medium.get_refractive_index(0.01 * units.m, surface_ice_model, site)
+        n_air = medium.get_station_refractive_index(detector, station.get_id(), 0.01 * units.m, self._ice)
+        if any(field.get_position()[2] < 0 for field in station.get_electric_fields()):
+            n_ice = medium.get_station_refractive_index(detector, station.get_id(), -0.01 * units.m, self._ice)
+        else:
+            n_ice = n_air
 
         field_spectra = {}
         for field in station.get_electric_fields():

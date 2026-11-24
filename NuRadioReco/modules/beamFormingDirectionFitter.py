@@ -49,9 +49,6 @@ def get_array_of_channels(station, det, zenith, azimuth, polarization, n_index=N
 
     sampling_rate = next(station.iter_channels()).get_sampling_rate()
     station_id = station.get_id()
-    site = det.get_site(station_id)
-    if n_index is None:
-        ice_model = medium.get_station_ice_model(det, station_id, ice_model)
     for iCh, channel in enumerate(station.get_electric_fields()):
         channel_id = channel.get_channel_ids()[0]
         antenna_position = det.get_relative_position(station_id, channel_id)
@@ -59,9 +56,9 @@ def get_array_of_channels(station, det, zenith, azimuth, polarization, n_index=N
         if n_index is not None:
             refractive_index = n_index
         elif zenith > 0.5 * np.pi:  # signal comes from below: refractive index at the antenna position
-            refractive_index = medium.get_refractive_index(antenna_position[2], ice_model, site)
+            refractive_index = medium.get_station_refractive_index(det, station_id, antenna_position[2], ice_model)
         else:  # signal comes from above: in-air propagation speed
-            refractive_index = medium.get_refractive_index(1 * units.m, ice_model, site)
+            refractive_index = medium.get_station_refractive_index(det, station_id, 1 * units.m, ice_model)
         time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
         t_geos[iCh] = time_shift
         time_shift += channel.get_trace_start_time()
@@ -117,8 +114,10 @@ class beamFormingDirectionFitter:
         log_level: int
             Logging level
         ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
-            Ice model for the signal propagation speed between the antennas, used if ``n_index`` is not
-            given to `run`. Default: from the detector or the site (see `NuRadioMC.utilities.medium.get_station_ice_model`)
+            Ice model for the signal propagation speed between the antennas (beam timing), used if ``n_index`` is
+            not given to `run`. Default: from the detector or the site (see `NuRadioMC.utilities.medium.get_station_ice_model`).
+            The electric-field reconstruction in `run` (voltageToEfieldConverterPerChannel) always uses the
+            detector or site default for the Fresnel factors at the surface.
         """
         self.logger.setLevel(log_level)
         self.__debug = debug

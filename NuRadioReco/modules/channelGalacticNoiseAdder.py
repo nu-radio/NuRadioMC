@@ -362,12 +362,7 @@ class channelGalacticNoiseAdder:
                 f"Sun pixel: {sun_pixel}, Sun zenith: {sun_zen}, Sun azimuth: {sun_azi})"
             )
 
-        # Without ice_model (begin), the surface value comes from the detector or the site default. For sites that are
-        # not on the ice (auger, lofar, ska), n_ice_surf = n_air.
-        site = detector.get_site(station.get_id())
-        surface_ice_model = medium.get_station_ice_model(detector, station.get_id(), self._ice)
-        n_ice_surf = medium.get_refractive_index(-0.01 * units.m, surface_ice_model, site)
-        n_air = medium.get_refractive_index(0.01 * units.m, surface_ice_model, site)
+        n_air = medium.get_station_refractive_index(detector, station.get_id(), 0.01 * units.m, self._ice)
 
         channel_spectra = {}
         channel_depths = []
@@ -397,6 +392,12 @@ class channelGalacticNoiseAdder:
                 self.__you_have_been_warned = True
 
         any_in_ice_channel = np.any(np.array(channel_depths) < 0)
+        # Without ice_model (begin), the surface value comes from the detector or the site default. For sites that are
+        # not on the ice (auger, lofar, ska), n_ice_surf = n_air.
+        if any_in_ice_channel:
+            n_ice_surf = medium.get_station_refractive_index(detector, station.get_id(), -0.01 * units.m, self._ice)
+        else:
+            n_ice_surf = n_air
         for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
             azimuth = local_coordinates[i_pixel].az.rad
             zenith = np.pi / 2. - local_coordinates[i_pixel].alt.rad # this is the in-air zenith

@@ -71,9 +71,7 @@ class templateDirectionFitter:
 
         times = np.array(times)
         positions = np.array(positions)
-        site = det.get_site(station_id)
-        n_ice = medium.get_refractive_index(
-            -0.01 * units.m, medium.get_station_ice_model(det, station_id, self.__ice_model), site)
+        n_ice = medium.get_station_refractive_index(det, station_id, -0.01 * units.m, self.__ice_model)
 
         from scipy import optimize as opt
 

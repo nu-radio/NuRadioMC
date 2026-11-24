@@ -69,20 +69,20 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     t_shifts = []
 
     station_id = station.get_id()
-    site = det.get_site(station_id)
-    ice_model = medium.get_station_ice_model(det, station_id, ice_model)
     for iCh, channel in enumerate(station.iter_channels(use_channels)):
         channel_id = channel.get_id()
 
         antenna_position = det.get_relative_position(station_id, channel_id)
         # determine refractive index of signal propagation speed between antennas
-        refractive_index = medium.get_refractive_index(1 * units.m, ice_model, site)  # if signal comes from above, in-air propagation speed
+        z = 1 * units.m  # if signal comes from above, in-air propagation speed
         if station.is_cosmic_ray():
             if zenith > 0.5 * np.pi:
-                refractive_index = medium.get_refractive_index(antenna_position[2], ice_model, site)  # if signal comes from below, use refractivity at antenna position
+                z = antenna_position[2]  # if signal comes from below, use refractivity at antenna position
 
         if station.is_neutrino():
-            refractive_index = medium.get_refractive_index(antenna_position[2], ice_model, site)
+            z = antenna_position[2]
+
+        refractive_index = medium.get_station_refractive_index(det, station_id, z, ice_model)
 
         time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position - efield_position, n=refractive_index)
 

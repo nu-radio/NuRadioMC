@@ -300,7 +300,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith, ice
         Zenith angle of the incoming signal
     ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
         Ice model for the refractive index at the surface. Default: from the detector or the site
-        (see `NuRadioMC.utilities.medium.get_station_ice_model`)
+        (see `NuRadioMC.utilities.medium.get_station_refractive_index`)
 
     Returns
     -------
@@ -318,9 +318,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith, ice
 
     def get_n_ice_surface():
         from NuRadioMC.utilities import medium  # not at module level: keeps this module light (see NuRadioReco.utilities)
-        station_id = station.get_id()
-        return medium.get_refractive_index(
-            -0.01 * units.m, medium.get_station_ice_model(detector, station_id, ice_model), detector.get_site(station_id))
+        return medium.get_station_refractive_index(detector, station.get_id(), -0.01 * units.m, ice_model)
 
     position = detector.get_relative_position(station.get_id(), channel_id)
     # first check case if signal comes from above
