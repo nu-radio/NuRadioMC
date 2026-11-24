@@ -1,4 +1,5 @@
 import copy
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.optimize as opt
@@ -193,7 +194,7 @@ class beamFormingDirectionFitter:
                 Efields[j + 1] = Efields[j + 1] / maximum
 
             N = len(Efields)
-            N_pairs = 0.5 * np.math.factorial(N) / np.math.factorial(N - 2)
+            N_pairs = math.comb(N, 2)
             cc = np.zeros(len(Efields[0]))
             for j in range(N - 1):    # finds the cc-beam taken from referenced paper above
                 for k in range(N - 1 - j):
