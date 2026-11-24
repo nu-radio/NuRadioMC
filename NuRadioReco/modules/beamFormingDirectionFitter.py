@@ -173,7 +173,7 @@ class beamFormingDirectionFitter:
             station.set_parameter(stnp.zenith, zenith)
             station.set_parameter(stnp.azimuth, azimuth)
             station.set_electric_fields([])     # resets EFields, necessary
-            voltageToEfieldConverterPerChannel.run(evt, station, det, pol=polarization, debug=False)  # Antenna response
+            voltageToEfieldConverterPerChannel.run(evt, station, det, pol=polarization)  # Antenna response
             electricFieldBandPassFilter.run(evt, station, det, passband=[120 * units.MHz, 300 * units.MHz], filter_type='butterabs')
 
             Efields_object = get_array_of_channels(
