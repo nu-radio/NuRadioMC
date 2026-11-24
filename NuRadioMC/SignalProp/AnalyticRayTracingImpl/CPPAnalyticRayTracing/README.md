@@ -10,9 +10,14 @@ You will need to have a functioning installation of [GSL](https://www.gnu.org/so
 ## Install instructions
 
 ### As part of NuRadioMC
-To create python wrapper around the relevant C function, so that the C code can be used directly from the ray tracer
-class of NuRadioMC just execute
-`python setup.py build_ext --inplace`
+NuRadioMC compiles the python wrapper around the relevant C function on the fly the first time it imports the ray tracer
+with an interpreter that has no build yet (it runs `../install.sh` with that interpreter).
+To build it by hand, run `../install.sh` with `python` from the environment you want to build for, or execute
+`python setup.py build_ext --inplace` in this directory.
+
+Every Python interpreter gets its own file, `wrapper<EXT_SUFFIX>` (e.g. `wrapper.cpython-312-x86_64-linux-gnu.so`), and
+`install.sh` replaces only the one of the interpreter it builds for, so several Python versions can share one checkout.
+`install.sh --clean-all` first removes the builds of all interpreters (and the `build` directory).
 
 ### As standalone package
 Getting going is easy. Just:

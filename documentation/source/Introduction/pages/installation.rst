@@ -211,8 +211,8 @@ Not pip-installable packages
     sudo apt-get install libgsl-dev
 
   (On MacOS, use ``brew install gsl`` instead - you may have to install `homebrew <https://brew.sh/>`_ first).
-  With GSL installed, compile the CPP ray tracer by navigating to ``NuRadioMC/NuRadioMC/SignalProp``
-  and running the included ``install.sh`` script.
+  With GSL installed, compile the CPP ray tracer by running ``NuRadioMC/NuRadioMC/SignalProp/AnalyticRayTracingImpl/install.sh``
+  (it builds for ``python`` on your PATH; NuRadioMC also attempts this automatically on first use).
 - To use the :mod:`RadioPropa numerical ray tracing <NuRadioMC.SignalProp.radioproparaytracing>` module, ``radiopropa`` needs to be installed.
   The radiopropa github, with installation instructions, can be found `here <https://github.com/nu-radio/RadioPropa>`__.
 - To read ARIANNA files, `Snowshovel <https://arianna.ps.uci.edu/mediawiki/index.php/Local_DAQ_Instructions>`_ needs to be installed.
