@@ -592,7 +592,8 @@ def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, 
     return (temperature * impedance * bandwidth * constants.k_B) ** 0.5
 
 
-def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, efield_is_at_antenna=False):
+def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, efield_is_at_antenna=False,
+                              ice_model=None):
     """
     Returns the antenna response to a radio signal coming from a specific direction
 
@@ -611,6 +612,9 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
         If True, the electric field is assumed to be at the antenna.
         If False, the effects of an air-ice boundary are taken into account if necessary.
         The default is set to False to keep backwards compatibility.
+    ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+        Ice model for the air-ice boundary, passed to
+        `NuRadioReco.utilities.geometryUtilities.fresnel_factors_and_signal_zenith`
 
     Returns
     -------
@@ -626,7 +630,7 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
     for iCh, channel_id in enumerate(channels):
         if not efield_is_at_antenna:
             zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(
-                detector, station, channel_id, zenith)
+                detector, station, channel_id, zenith, ice_model=ice_model)
         else:
             zenith_antenna = zenith
             t_theta = 1

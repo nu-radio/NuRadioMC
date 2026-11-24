@@ -1,4 +1,4 @@
-from NuRadioReco.utilities import units, ice, geometryUtilities, signal_processing, fft
+from NuRadioReco.utilities import units, geometryUtilities, signal_processing, fft
 from NuRadioReco.modules.base.module import register_run
 
 import NuRadioReco.framework.channel
@@ -136,7 +136,10 @@ class channelGalacticNoiseAdder:
             Instead, one can use every nth antenna and scale the noise by a factor of 1/sqrt(n) (since the SNR
             is expected to scale with the square root of the number of antennas when using interferomtery/beamforming).
         ice_model: str, default: None
-            The ice model to use for the simulation of in-ice antennas.
+            The ice model to use for the simulation of in-ice antennas: refractive index at the antenna
+            depth (focusing, refraction) and, with ``attenuation_model``, attenuation. If None, only the refractive
+            index at the surface (Fresnel coefficients) is taken from the detector or the site default
+            (see `NuRadioMC.utilities.medium.get_station_ice_model`).
         attenuation_model: str, default: None
             The attenuation model to use for the simulation of in-ice antennas.
         simulate_sun: bool, default: False
@@ -359,15 +362,12 @@ class channelGalacticNoiseAdder:
                 f"Sun pixel: {sun_pixel}, Sun zenith: {sun_zen}, Sun azimuth: {sun_azi})"
             )
 
-        if self._ice is not None:
-            n_ice_surf = self._ice.get_index_of_refraction(np.array([0, 0, -0.01]))
-        else:
-            # This can return n_ice_surf = n_air for sites that are not on the ice (auger, lofar, ska)
-            n_ice_surf = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
-
-        # This is actually better than using the ice model for the refractive index since it returns 1 for
-        # in air refractive index. However, this function does currently not return a site/altitude dependent refractive index ...
-        n_air = ice.get_refractive_index(depth=1, site=detector.get_site(station.get_id()))
+        # Without ice_model (begin), the surface value comes from the detector or the site default. For sites that are
+        # not on the ice (auger, lofar, ska), n_ice_surf = n_air.
+        site = detector.get_site(station.get_id())
+        surface_ice_model = medium.get_station_ice_model(detector, station.get_id(), self._ice)
+        n_ice_surf = medium.get_refractive_index(-0.01 * units.m, surface_ice_model, site)
+        n_air = medium.get_refractive_index(0.01 * units.m, surface_ice_model, site)
 
         channel_spectra = {}
         channel_depths = []

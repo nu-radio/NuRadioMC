@@ -5,7 +5,7 @@ In particular to calculate time delays between positions for a given arrival
 direction and to simulate reflection and refraction at boundaries between different media.
 """
 
-from NuRadioReco.utilities import units, ice
+from NuRadioReco.utilities import units
 from numpy.lib import scimath as SM
 from scipy import constants
 from scipy.spatial.transform import Rotation
@@ -262,7 +262,7 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
                         (np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2)))
 
 
-def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
+def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith, ice_model=None):
     """
     Handles potential refraction into the firn if necessary.
     Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel)
@@ -298,6 +298,9 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
         Channel ID of the desired channel
     zenith: float
         Zenith angle of the incoming signal
+    ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+        Ice model for the refractive index at the surface. Default: from the detector or the site
+        (see `NuRadioMC.utilities.medium.get_station_ice_model`)
 
     Returns
     -------
@@ -308,12 +311,16 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
     t_phi: float
         Fresnel transmission coefficient for phi polarization
     """
-    n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
-
     # no reflection/refraction at the ice-air boundary
     zenith_antenna = zenith
     t_theta = 1.
     t_phi = 1.
+
+    def get_n_ice_surface():
+        from NuRadioMC.utilities import medium  # not at module level: keeps this module light (see NuRadioReco.utilities)
+        station_id = station.get_id()
+        return medium.get_refractive_index(
+            -0.01 * units.m, medium.get_station_ice_model(detector, station_id, ice_model), detector.get_site(station_id))
 
     position = detector.get_relative_position(station.get_id(), channel_id)
     # first check case if signal comes from above
@@ -324,6 +331,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
                 "Consider using raytracing instead.")
 
         # is antenna below surface?
+        n_ice = get_n_ice_surface()
         zenith_antenna = get_fresnel_angle(zenith, n_ice, 1)
         t_theta = get_fresnel_t_p(zenith, n_ice, 1)
         t_phi = get_fresnel_t_s(zenith, n_ice, 1)
@@ -335,7 +343,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
 
     elif position[2] > 0 and zenith > 0.5 * np.pi:
         # now the signal is coming from below, do we have an antenna above the surface?
-        zenith_antenna = get_fresnel_angle(zenith, n2=1., n1=n_ice)
+        zenith_antenna = get_fresnel_angle(zenith, n_2=1., n_1=get_n_ice_surface())
 
     if zenith_antenna is None:
         logger.warning(

@@ -2,9 +2,11 @@ from NuRadioReco.modules.base.module import register_run
 import numpy as np
 from scipy import constants
 from radiotools import helper as hp
-from NuRadioReco.utilities import units, ice
+from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import channelParameters as chp
+
+from NuRadioMC.utilities import medium
 
 import logging
 logger = logging.getLogger('NuRadioReco.templateDirectionFitter')
@@ -16,10 +18,17 @@ class templateDirectionFitter:
     """
 
     def __init__(self):
-        pass
+        self.__ice_model = None
 
-    def begin(self):
-        pass
+    def begin(self, ice_model=None):
+        """
+        Parameters
+        ----------
+        ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+            Ice model for the refractive index at the surface. Default: from the detector or the site
+            (see `NuRadioMC.utilities.medium.get_station_ice_model`)
+        """
+        self.__ice_model = ice_model
 
     @register_run()
     def run(self, evt, station, det, channels_to_use=None, cosmic_ray=False):
@@ -63,7 +72,8 @@ class templateDirectionFitter:
         times = np.array(times)
         positions = np.array(positions)
         site = det.get_site(station_id)
-        n_ice = ice.get_refractive_index(-0.01, site)
+        n_ice = medium.get_refractive_index(
+            -0.01 * units.m, medium.get_station_ice_model(det, station_id, self.__ice_model), site)
 
         from scipy import optimize as opt
 

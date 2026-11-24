@@ -8,7 +8,7 @@ import NuRadioReco.detector.antennapattern
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
 from NuRadioReco.modules.base.module import register_run
-from NuRadioReco.utilities import units, ice, geometryUtilities, signal_processing
+from NuRadioReco.utilities import units, geometryUtilities, signal_processing
 from NuRadioReco.utilities.coding_helper import get_rng
 
 import logging

@@ -36,7 +36,7 @@ import scipy.signal
 import scipy.ndimage
 import scipy.stats
 from math import ceil
-from NuRadioReco.utilities import units, ice, geometryUtilities
+from NuRadioReco.utilities import units, geometryUtilities
 from NuRadioReco.framework.parameters import stationParameters
 from NuRadioReco.modules.base.module import register_run
 import radiotools.helper as hp

@@ -50,6 +50,16 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   options for the models of the RNO-G multimessenger figure and no side effects on import (no data loading, no change of
   matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
 
+- Replaced the legacy `NuRadioReco.utilities.ice.get_refractive_index` (n = 1.3 at any depth in ice, n = 1.000293 in air;
+  now deprecated) by the ice models of `NuRadioMC.utilities.medium`. New helpers `medium.get_station_ice_model` (ice
+  model from an explicit argument, the detector, or the site default `medium.SITE_ICE_MODELS`: greenland_3exp_timing_2025
+  for Summit/Greenland, southpole_2015, mooresbay_simple; error for other in-ice sites) and `medium.get_refractive_index`
+  (n(z) of the model; above the surface the model's air layer or the site's air value `medium.get_n_air`).
+  voltageToEfieldConverter, efieldToVoltageConverter, beamFormingDirectionFitter, templateDirectionFitter,
+  efieldTimeDirectionFitter (new `ice_model` argument in `begin`), channel/efieldGalacticNoiseAdder and
+  `geometryUtilities.fresnel_factors_and_signal_zenith` / `signal_processing.get_efield_antenna_factor` (new `ice_model`
+  argument) use them. This changes outputs: e.g. surface n at Summit 1.3 -> 1.272, n at -100 m 1.3 -> 1.743.
+  beamFormingDirectionFitter uses its `n_index` argument (was ignored, n = 1.353 was hard-coded).
 bugfixes:
 - `ray_tracing.get_time_difference_plane_wave` no longer raises a ZeroDivisionError for a vertical plane wave (zenith 0).
   The zenith angle is the one in air at the surface (ray parameter p = n_air * sin(zenith), n_air of the model's air layer).
