@@ -412,8 +412,15 @@ class readRNOGData:
         return np.array(self._runs)
 
     @lru_cache(maxsize=128)
-    def get_run_info(self, station_id, run_number):
-        """ Get run info of a specific station and run number """
+    def get_run_info(self, run_number, station_id=None):
+        """ Get run info of a specific run number and station. If more than one station
+        is loaded, the station_id must be specified."""
+
+        if station_id is None:
+            if len(np.unique(self._stations)) > 1:
+                raise ValueError("Multiple stations found. Please specify a station_id.")
+            station_id = self._stations[0]
+
         stations_runs = list(zip(self._stations, self._runs))
         if (station_id, run_number) not in stations_runs:
             raise ValueError(f"Station {station_id}, Run {run_number} not found in the datasets which are read in.")
