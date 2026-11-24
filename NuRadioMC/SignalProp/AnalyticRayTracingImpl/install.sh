@@ -15,7 +15,6 @@ done
 # stop if this fails: the rm calls below must run only in CPPAnalyticRayTracing
 cd "$(dirname "$0")/CPPAnalyticRayTracing" || exit 1
 
-rm -f wrapper.so  # legacy untagged build: any Python version would import it if its own build is missing
 if $clean_all; then
 	rm -f wrapper.*.so
 	rm -rf build
