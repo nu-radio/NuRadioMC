@@ -41,6 +41,46 @@ def get_c0_from_log(logc0, n_ice):
 
     return float(get_c0_from_log_scalar(logc0, n_ice))
 
+
+def _get_logc0_start_with_air(z1, z2, layers, n_deep):
+    """
+    Lower end of the brentq search in log(c0) for rays that cross the air layer.
+
+    A ray reaches a depth z only where n(z) >= p = 1 / c0. In air, n falls with height, so the
+    highest end point of the path limits the ray parameter: c0 >= 1 / n(max(z1, z2)). The search
+    starts just above that value. Rays with p > 1 exist there, as n > 1 near the surface.
+
+    Parameters
+    ----------
+    z1, z2 : float
+        Depths of the end points.
+
+    layers : tuple of ndarray
+        Layer parameter arrays.
+
+    n_deep : float
+        Refractive index of deep ice.
+
+    Returns
+    -------
+    float
+        Start value of the optimization parameter logc0.
+    """
+    c0_min = (1.0 + 1e-9) / get_n_1D(max(z1, z2), layers)
+    return np.log(max(c0_min - 1. / n_deep, 1e-12))
+
+
+def _remove_unphysical_solutions(results, z1, z2, layers):
+    """
+    Drop solutions with a ray parameter p = 1 / C0 above n at one of the end points.
+
+    No real ray passes a depth where n(z) < p. The root finding can still converge to such c0
+    (e.g. rays from emitters in air that "turn" in the air layer below the emitter).
+    """
+    n_min = min(get_n_1D(z1, layers), get_n_1D(z2, layers))
+    return [result for result in results if 1.0 / result['C0'] <= n_min * (1.0 + 1e-9)]
+
+
 def obj_delta_y_sqr(logc0, y1, z1, y2, z2, layers, n_deep,
                     downgoing, with_air):
     """
@@ -299,8 +339,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
     logc0_start = result_x + logc0_offset
 
     if with_air:
-        c0cross_min = 1.0
-        logc0_start = np.log(max(c0cross_min - 1./n_deep, 1e-12))
+        logc0_start = _get_logc0_start_with_air(z1, z2, layers, n_deep)
 
     logc0_stop = 100.0
 
@@ -394,8 +433,10 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
     
 
-    if with_air:
-        # Keep only the solution with the smallest C0
+    results = _remove_unphysical_solutions(results, z1, z2, layers)
+
+    if with_air and results:
+        # Keep only the solution with the largest C0 (smallest ray parameter p = 1 / C0)
         results = max(results, key=lambda x: x['C0'])
         return [results]
 
@@ -585,8 +626,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
     logc0_start = result_x + logc0_offset
 
     if with_air:
-        c0cross_min = 1.0
-        logc0_start = np.log(max(c0cross_min - 1./n_deep, 1e-12))
+        logc0_start = _get_logc0_start_with_air(z1, z2, layers, n_deep)
 
     logc0_stop = 100.0
 
@@ -669,5 +709,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
                             'D' : result3,
                             'x1': x1,
                             'flag' : 4})
+
+    results = _remove_unphysical_solutions(results, z1, z2, layers)
 
     return sorted(results, key=itemgetter('type', 'C0'))

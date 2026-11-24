@@ -56,6 +56,10 @@ bugfixes:
   surface to 1.00027. It now falls from n_air_surface to 1 above the surface; new arguments `n_air_surface` (default
   1.00027) and `air_scale_height` (default 8 km). The Greenland models use the air at Summit: n - 1 = 2.14e-4, 9 km
   (from NOAA GML Summit meteorology, April-October; see `medium.N_AIR_SUMMIT`).
+- Multilayer analytic ray tracer: rays from air with ray parameter p > 1 (allowed where n > p, i.e. near the surface) are
+  now solved (closed forms for layers with n_ice^2 <= p^2), and solutions with p above n at either end point are discarded.
+  This removes isolated wrong air-to-ice solutions near the horizon. Air-to-ice travel times for greenland_3exp_timing_2025
+  change by up to a few ns (e.g. +2.0 ns at 3 km distance, 1 km height; +3.5 ns at 5 km, 100 m height).
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported

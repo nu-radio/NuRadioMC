@@ -127,6 +127,90 @@ def get_layer_index(z, z_min, z_max):
     return -1
 
 
+# alpha = n_ice^2 - beta^2 of a layer: the closed forms for alpha > ALPHA_EPS are the logarithmic ones of the
+# original implementation; alpha <= ALPHA_EPS (only in an air layer, whose n_ice is 1, for rays with beta >= 1)
+# uses `inverse_root_integral_nonpositive_alpha`.
+ALPHA_EPS = 1e-12
+
+
+@njit(cache = True)
+def inverse_root_integral_nonpositive_alpha(z, beta, n_ice, delta_n, z0):
+    """
+    Antiderivative J0(z) of 1 / sqrt(n(z)^2 - beta^2) for n(z) = n_ice - delta_n * exp(z / z0), alpha <= 0.
+
+    alpha = n_ice^2 - beta^2. The logarithmic closed forms used elsewhere need alpha > 0. In an air
+    layer, whose index tends to n_ice = 1 far above the surface, alpha <= 0 holds for rays with
+    beta >= 1. These rays exist where n(z) > beta, i.e. near the surface, where n(z) > 1.
+    With u = exp(z / z0) and gamma = n^2 - beta^2 = delta_n^2 u^2 - 2 n_ice delta_n u + alpha:
+
+    - alpha < 0: J0 = z0 / sqrt(-alpha) * arcsin((n_ice n - beta^2) / (u |delta_n| beta))
+    - alpha = 0: J0 = z0 sqrt(gamma) / (n_ice delta_n u)
+
+    The path length and the travel time follow from J0:
+    int n / sqrt(gamma) dz = n_ice J0 + z0 log(n + sqrt(gamma)) and
+    int n^2 / sqrt(gamma) dz = n_ice^2 J0 + z0 (sqrt(gamma) + n_ice log(n + sqrt(gamma))).
+
+    Parameters
+    ----------
+    z : float
+        Depth coordinate.
+    beta : float
+        Ray parameter p = 1 / c0.
+    n_ice, delta_n, z0 : float
+        Layer parameters.
+
+    Returns
+    -------
+    float
+        J0(z), defined up to a constant.
+    """
+    alpha = n_ice * n_ice - beta * beta
+    u = np.exp(z / z0)
+    if u == 0.0:
+        # z = inf in an air layer: beyond the turning point, which exists for alpha < 0
+        return np.nan
+    # n - beta without the cancellation of n ~ beta near a turning point
+    n_minus_beta = (n_ice - beta) - delta_n * u
+    gamma = max(n_minus_beta * (n_minus_beta + 2 * beta), 0.0)
+    if alpha < -ALPHA_EPS:
+        if delta_n < 0:
+            # arcsin(x) = 2 arcsin(sqrt((1 + x) / 2)) - pi / 2, with 1 + x = (n - beta) (n_ice + beta) / (u |delta_n| beta)
+            # (x -> -1 at the turning point, where arcsin(x) is ill-conditioned)
+            half_1px = 0.5 * n_minus_beta * (n_ice + beta) / (u * abs(delta_n) * beta)
+            return z0 / np.sqrt(-alpha) * (2 * np.arcsin(np.sqrt(min(max(half_1px, 0.0), 1.0))) - 0.5 * np.pi)
+        n = n_ice - delta_n * u
+        arg = (n_ice * n - beta * beta) / (u * abs(delta_n) * beta)
+        return z0 / np.sqrt(-alpha) * np.arcsin(min(max(arg, -1.0), 1.0))
+
+    return z0 * np.sqrt(gamma) / (n_ice * delta_n * u)
+
+
+@njit(cache = True)
+def path_integrals_nonpositive_alpha(z, beta, n_ice, delta_n, z0):
+    """
+    Antiderivatives of ds/dz = n / sqrt(n^2 - beta^2) and of the optical path n^2 / sqrt(n^2 - beta^2)
+    for alpha <= 0, see `inverse_root_integral_nonpositive_alpha`.
+
+    Returns
+    -------
+    s : float
+        Path length antiderivative.
+    optical_path : float
+        Antiderivative of n ds; the travel time is its difference divided by the speed of light.
+    """
+    j0 = inverse_root_integral_nonpositive_alpha(z, beta, n_ice, delta_n, z0)
+    u = np.exp(z / z0)
+    if u == 0.0:
+        return np.nan, np.nan
+    n = n_ice - delta_n * u
+    n_minus_beta = (n_ice - beta) - delta_n * u
+    root_gamma = np.sqrt(max(n_minus_beta * (n_minus_beta + 2 * beta), 0.0))
+    log_term = np.log(n + root_gamma)
+    s = n_ice * j0 + z0 * log_term
+    optical_path = n_ice * n_ice * j0 + z0 * (root_gamma + n_ice * log_term)
+    return s, optical_path
+
+
 @njit(cache = True)
 def analytic_F(z, c0, n_ice, delta_n, z0):
     """
@@ -174,6 +258,11 @@ def analytic_F(z, c0, n_ice, delta_n, z0):
     n_ice = float(n_ice)
     delta_n = float(delta_n)
     z0 = float(z0)
+
+    if n_ice * n_ice - 1.0 / (c0 * c0) <= ALPHA_EPS:
+        # dy/dz = beta / sqrt(n^2 - beta^2), beta = 1 / c0
+        return float(inverse_root_integral_nonpositive_alpha(z, 1.0 / c0, n_ice, delta_n, z0) / c0)
+
     b = 2.0 * n_ice
     n = n_ice - delta_n*np.exp(z / z0)
     c = max(abs(n_ice*n_ice - 1.0/(c0*c0)),1e-14)
