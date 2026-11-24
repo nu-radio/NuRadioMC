@@ -52,6 +52,10 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 bugfixes:
 - `ray_tracing.get_time_difference_plane_wave` no longer raises a ZeroDivisionError for a vertical plane wave (zenith 0).
   The zenith angle is the one in air at the surface (ray parameter p = n_air * sin(zenith), n_air of the model's air layer).
+- The air layer of `IceModelContinuousExpLayers` (e.g. greenland_3exp_density) was upside down: n rose from 1.0 at the
+  surface to 1.00027. It now falls from n_air_surface to 1 above the surface; new arguments `n_air_surface` (default
+  1.00027) and `air_scale_height` (default 8 km). The Greenland models use the air at Summit: n - 1 = 2.14e-4, 9 km
+  (from NOAA GML Summit meteorology, April-October; see `medium.N_AIR_SUMMIT`).
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported

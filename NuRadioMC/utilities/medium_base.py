@@ -1220,7 +1220,7 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
     """
     Implements a continuous and continuously-differentiable piecewise-exponential ice model.
     """
-    def _parametrized_layers(self, nN, delta_nN, ls, zs,
+    def _parametrized_layers(self, nN, delta_nN, ls, zs, n_air_surface, air_scale_height,
                              z_bot = -3000.0, z_surface = 0.0):
         """
         Parametrizes a three-layer ice model with continuous n(z) and n'(z) in terms of
@@ -1228,6 +1228,8 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
             delta_nN  ... Refractive index step in the bottommost layer
             ls        ... Length scale of the layers, starting at the bottommost layer
             zs        ... Depth of transition between layers, starting at the bottom
+        plus an air layer n(z) = 1 + (n_air_surface - 1) * exp(-(z - z_surface) / air_scale_height)
+        (see `__init__`).
         """
 
         # Need to have one more layer than layer transition
@@ -1266,15 +1268,15 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
                 )
             cur_n, cur_delta_n = _get_ni_delta_ni(cur_zmax, next_l, cur_n, cur_delta_n, cur_l)
 
-        # Add the air layer, which is constant and not parametrized
+        # Add the air layer: n falls from n_air_surface at the surface to 1 (exponential atmosphere).
+        # In the layer form n_ice - delta_n * exp(z / z_0) this is n_ice = 1, delta_n < 0, z_0 < 0.
         layers_gen.append(
-                # The air is constant and not parametrized
                 {
                     "z_min": z_surface,
                     "z_max": np.inf,
-                    "n_ice": 1.00027,
-                    "delta_n": 2.7e-4,
-                    "z_0": -8000.0,
+                    "n_ice": 1.0,
+                    "delta_n": -(n_air_surface - 1.0) * np.exp(z_surface / air_scale_height),
+                    "z_0": -air_scale_height,
                     "region": "air",
                     "region_name": "Air"
                 }
@@ -1282,7 +1284,7 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
 
         return layers_gen
 
-    def __init__(self, nN, delta_nN, ls, zs):
+    def __init__(self, nN, delta_nN, ls, zs, n_air_surface=1.00027, air_scale_height=8 * units.km):
         """
         Parametrizes a three-layer ice model with continuous n(z) and n'(z)
 
@@ -1296,11 +1298,17 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
             Length scales of the layers, starting at the bottommost layer
         zs : list of float
             Depth of transition between layers, starting at the bottom
+        n_air_surface : float
+            Refractive index of the air at the surface. The air above the surface is modelled as
+            n(z) = 1 + (n_air_surface - 1) * exp(-z / air_scale_height).
+            Default: 1.00027 (US standard atmosphere at sea level)
+        air_scale_height : float
+            Scale height of the air refractivity. Default: 8 km
         """
 
-        layers = self._parametrized_layers(nN, delta_nN, ls, zs)
+        layers = self._parametrized_layers(nN, delta_nN, ls, zs, n_air_surface, air_scale_height)
         super().__init__(layers)
-        self._set_params(nN, delta_nN, ls, zs)
+        self._set_params(nN, delta_nN, ls, zs, n_air_surface, air_scale_height)
 
     def get_average_index_of_refraction(self, position1, position2):
         z1, z2 = position1[2], position2[2]
@@ -1309,14 +1317,17 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
         int_ior = integrate.quad(get_ior, z1, z2)[0]
         return np.abs(int_ior / (z2 - z1))
 
-    def _set_params(self, nN, delta_nN, ls, zs):
+    def _set_params(self, nN, delta_nN, ls, zs, n_air_surface=1.00027, air_scale_height=8 * units.km):
         # keep values of continuous-ice parameterization around
         self.nN = nN
         self.delta_nN = delta_nN
         self.ls = ls
         self.zs = zs
+        self.n_air_surface = n_air_surface
+        self.air_scale_height = air_scale_height
 
-        layers = self._parametrized_layers(self.nN, self.delta_nN, self.ls, self.zs)
+        layers = self._parametrized_layers(self.nN, self.delta_nN, self.ls, self.zs,
+                                           self.n_air_surface, self.air_scale_height)
         self._set_layers(layers)
 
     def get_description(self):
@@ -1326,7 +1337,9 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
                         "nN": self.nN,
                         "delta_nN": self.delta_nN,
                         "ls": self.ls,
-                        "zs": self.zs
+                        "zs": self.zs,
+                        "n_air_surface": self.n_air_surface,
+                        "air_scale_height": self.air_scale_height
                         }
                     }
         return desc
