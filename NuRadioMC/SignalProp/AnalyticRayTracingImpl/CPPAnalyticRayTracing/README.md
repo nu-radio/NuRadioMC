@@ -15,9 +15,10 @@ with an interpreter that has no build yet (it runs `../install.sh` with that int
 To build it by hand, run `../install.sh` with `python` from the environment you want to build for, or execute
 `python setup.py build_ext --inplace` in this directory.
 
-Every Python interpreter gets its own file, `wrapper<EXT_SUFFIX>` (e.g. `wrapper.cpython-312-x86_64-linux-gnu.so`), and
-`install.sh` replaces only the one of the interpreter it builds for, so several Python versions can share one checkout.
-`install.sh --clean-all` first removes the builds of all interpreters (and the `build` directory).
+Every Python version gets its own file, `wrapper<EXT_SUFFIX>` (e.g. `wrapper.cpython-312-x86_64-linux-gnu.so`), and
+a build replaces only the one of the Python version it builds for, so several Python versions can share one checkout
+(environments with the same Python version share one build).
+`install.sh --clean-all` first removes the builds of all Python versions (and the `build` directory).
 
 ### As standalone package
 Getting going is easy. Just:

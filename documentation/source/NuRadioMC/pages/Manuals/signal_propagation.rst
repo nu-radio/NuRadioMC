@@ -80,8 +80,8 @@ Once GSLDIR is configured, the user can also compile it by hand executing the fo
     python setup.py build_ext --inplace
 
 or by running ``SignalProp/AnalyticRayTracingImpl/install.sh`` with ``python`` from the environment to build for.
-The build is specific to one Python version: each interpreter gets its own ``wrapper.cpython-<version>-<platform>.so``, and a build
-(manual or automatic) replaces only that of the interpreter it builds for, so several Python versions can share one checkout.
+The build is specific to one Python version: each version gets its own ``wrapper.cpython-<version>-<platform>.so``, and a build
+(manual or automatic) replaces only that of the version it builds for, so several Python versions can share one checkout.
 ``install.sh --clean-all`` first removes the builds of all Python versions.
 
 The C++ analytic ray tracer can also be used standalone, using the ``MakeFile`` included. For instructions, please refer to the ``README`` included in the ``NuRadioMC/SignalProp/AnalyticRayTracingImpl/CPPAnalyticRayTracing`` directory.
