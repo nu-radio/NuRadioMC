@@ -4,7 +4,6 @@ import numpy as np
 import scipy.optimize as opt
 import logging
 import NuRadioReco.framework.base_trace
-from NuRadioReco.utilities import ice
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -12,13 +11,15 @@ import NuRadioReco.modules.voltageToEfieldConverterPerChannel
 import NuRadioReco.modules.electricFieldBandPassFilter
 from NuRadioReco.modules.base.module import register_run
 
+from NuRadioMC.utilities import medium
+
 
 electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.electricFieldBandPassFilter()
 voltageToEfieldConverterPerChannel = NuRadioReco.modules.voltageToEfieldConverterPerChannel.voltageToEfieldConverterPerChannel()
 voltageToEfieldConverterPerChannel.begin()
 
 
-def get_array_of_channels(station, det, zenith, azimuth, polarization):
+def get_array_of_channels(station, det, zenith, azimuth, polarization, n_index=None, ice_model=None):
     """
     Returns an array of the channel traces that is cut to the physical overlapping time
 
@@ -35,6 +36,12 @@ def get_array_of_channels(station, det, zenith, azimuth, polarization):
     polarization: int
         0: eTheta
         1: ePhi
+    n_index: float, optional
+        Refractive index for the signal propagation speed between the antennas. Default: from the ice model,
+        in air if the signal comes from above, else at the antenna depth
+    ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+        Ice model used if ``n_index`` is None. Default: from the detector or the site
+        (see `NuRadioMC.utilities.medium.get_station_ice_model`)
     """
     time_shifts = np.zeros(8)
     t_geos = np.zeros(8)
@@ -42,14 +49,18 @@ def get_array_of_channels(station, det, zenith, azimuth, polarization):
     sampling_rate = next(station.iter_channels()).get_sampling_rate()
     station_id = station.get_id()
     site = det.get_site(station_id)
+    if n_index is None:
+        ice_model = medium.get_station_ice_model(det, station_id, ice_model)
     for iCh, channel in enumerate(station.get_electric_fields()):
         channel_id = channel.get_channel_ids()[0]
         antenna_position = det.get_relative_position(station_id, channel_id)
         # determine refractive index of signal propagation speed between antennas
-        refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
-        if(zenith > 0.5 * np.pi):
-            refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
-        refractive_index = 1.353
+        if n_index is not None:
+            refractive_index = n_index
+        elif zenith > 0.5 * np.pi:  # signal comes from below: refractive index at the antenna position
+            refractive_index = medium.get_refractive_index(antenna_position[2], ice_model, site)
+        else:  # signal comes from above: in-air propagation speed
+            refractive_index = medium.get_refractive_index(1 * units.m, ice_model, site)
         time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index)
         t_geos[iCh] = time_shift
         time_shift += channel.get_trace_start_time()
@@ -92,12 +103,25 @@ class beamFormingDirectionFitter:
         self.__delta_zenith = []
         self.__delta_azimuth = []
         self.__debug = None
-        self.begin()
+        self.__ice_model = None
         self.logger = logging.getLogger("NuRadioReco.beamFormingDirectionFitter")
+        self.begin()
 
-    def begin(self, debug=False, log_level=logging.NOTSET):
+    def begin(self, debug=False, log_level=logging.NOTSET, ice_model=None):
+        """
+        Parameters
+        ----------
+        debug: bool
+            Show the fit space
+        log_level: int
+            Logging level
+        ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+            Ice model for the signal propagation speed between the antennas, used if ``n_index`` is not
+            given to `run`. Default: from the detector or the site (see `NuRadioMC.utilities.medium.get_station_ice_model`)
+        """
         self.logger.setLevel(log_level)
         self.__debug = debug
+        self.__ice_model = ice_model
 
     @register_run()
     def run(self, evt, station, det, polarization, n_index=None, channels=None, ZenLim=None,
@@ -117,8 +141,9 @@ class beamFormingDirectionFitter:
         polarization: int
             0: eTheta
             1: ePhi
-        n_index: float
-            the index of refraction
+        n_index: float, optional
+            The refractive index for the signal propagation speed between the antennas.
+            Default: from the ice model (see `begin`)
         channels: list
             the channel ids
         ZenLim: 2-dim array/list of floats
@@ -150,7 +175,8 @@ class beamFormingDirectionFitter:
             voltageToEfieldConverterPerChannel.run(evt, station, det, pol=polarization, debug=False)  # Antenna response
             electricFieldBandPassFilter.run(evt, station, det, passband=[120 * units.MHz, 300 * units.MHz], filter_type='butterabs')
 
-            Efields_object = get_array_of_channels(station, det, zenith, azimuth, polarization + 1)
+            Efields_object = get_array_of_channels(
+                station, det, zenith, azimuth, polarization + 1, n_index=n_index, ice_model=self.__ice_model)
             Efields = []
             Efield_Times = []
             maximum = 0     # location at maximum among all traces
