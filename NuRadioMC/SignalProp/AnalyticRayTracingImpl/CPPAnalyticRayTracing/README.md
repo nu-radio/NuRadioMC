@@ -7,8 +7,7 @@ NuRadioMC compiles the Python wrapper of this code itself. Prerequisites (GSL) a
 (source: `documentation/source/NuRadioMC/pages/Manuals/signal_propagation.rst`).
 
 ## As standalone package
-You will need a functioning installation of [GSL](https://www.gnu.org/software/gsl/)
-([1.16](https://ftp.gnu.org/gnu/gsl/gsl-1.16.tar.gz) is verified to work):
+You will need a functioning installation of [GSL](https://www.gnu.org/software/gsl/):
 - Set the environment variable `GSLDIR` to your local installation of GSL, e.g. `export GSLDIR=$(gsl-config --prefix)`.
 - On Linux, if GSL is not installed in a system library directory, add `$GSLDIR/lib` to your `LD_LIBRARY_PATH`.
 
