@@ -4,18 +4,19 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import numpy
 import os
-
-try:
-    print('Your $GSLDIR = ' + str(os.environ['GSLDIR']))
-except:
-    print('You have either not installed GSL or have not set the system variable $GSLDIR.\
-           See NuRadioMC wiki for further GSL details. ')
+import sys
 
 if __name__ == "__main__":
+    gsl_dir = os.environ.get('GSLDIR')
+    if not gsl_dir:
+        sys.exit('$GSLDIR is not set: set it to your GSL installation, e.g. export GSLDIR=$(gsl-config --prefix). See '
+                 '"GSL speed-boost" in https://nu-radio.github.io/NuRadioMC/NuRadioMC/pages/Manuals/signal_propagation.html')
+    print('Your $GSLDIR = ' + gsl_dir)
+
     extensions = [
         Extension('wrapper', ['wrapper.pyx'],
-                include_dirs=[numpy.get_include(), '../../../utilities/', str(os.environ['GSLDIR']) + '/include/'],
-                library_dirs=[str(os.environ['GSLDIR']) + '/lib/'],
+                include_dirs=[numpy.get_include(), '../../../utilities/', gsl_dir + '/include/'],
+                library_dirs=[gsl_dir + '/lib/'],
                 extra_compile_args=['-O3'],
                 define_macros = [('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')],
                 libraries=['gsl', 'gslcblas'],
