@@ -4,16 +4,23 @@
 Only returns one of two values depending on whether the depth is below
 or above 0 (assumed to be the ice-air) interface.
 
-.. Warning::
-    This function is used internally in some modules, but should not
-    be used in new user code. Please use the `NuRadioMC.utilities.medium`
-    module instead
+.. deprecated:: 3.2.0
+    Use the ice models of `NuRadioMC.utilities.medium` instead, e.g.
+    `NuRadioMC.utilities.medium.get_station_ice_model` and
+    `NuRadioMC.utilities.medium.get_refractive_index`.
 
 """
 import logging
 
+from NuRadioReco.utilities.logging import deprecated
+
 logger = logging.getLogger('NuRadioReco.utilities.ice')
 
+
+@deprecated(
+    "NuRadioReco.utilities.ice.get_refractive_index is deprecated and will be removed in a future version. "
+    "Use NuRadioMC.utilities.medium.get_station_ice_model and NuRadioMC.utilities.medium.get_refractive_index instead.",
+    category=FutureWarning)
 def get_refractive_index(depth, site='southpole'):
     """
     Get refractive index for depth
@@ -21,9 +28,8 @@ def get_refractive_index(depth, site='southpole'):
     For sites that are not at the poles, always returns the refractive index
     of air (1.000293). Otherwise, returns 1.3
 
-    .. Warning::
-        This function is only used internally. New user code should
-        use the ice models in `NuRadioMC.utilities.medium` instead
+    .. deprecated:: 3.2.0
+        Use `NuRadioMC.utilities.medium.get_refractive_index` instead.
 
     Parameters
     ----------
