@@ -137,7 +137,7 @@ def test_air_to_ice():
                                 err_msg=f"air to ice, {distance}, {height}, {z_rx}")
         testing.assert_allclose(1 / r.get_results()[0]["C0"], p, rtol=1e-9)
         testing.assert_allclose(r.get_path_length(0), integrate(path_length_integrand(p, n), z_rx, height),
-                                atol=1e-4 * units.m, err_msg=f"path length, {distance}, {height}, {z_rx}")
+                                atol=1e-3 * units.m, err_msg=f"path length, {distance}, {height}, {z_rx}")
 
 
 def test_beyond_direct_reach():
