@@ -10,6 +10,7 @@ from numpy import testing
 from scipy.integrate import quad
 from scipy.optimize import brentq
 from NuRadioMC.SignalProp import analyticraytracing as ray
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl import single_layer_analytic_raytracer
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units, constants
 
@@ -68,5 +69,44 @@ for distance, height, z_rx in [(100, 10, -97), (1000, 100, -97), (30, 1, -20), (
     testing.assert_allclose(1 / r.get_results()[0]["C0"], p, rtol=1e-9)
     print(f"air to ice: p = {p:.7f}, d = {distance:6.0f} m, h = {height:6.0f} m, z = {z_rx:4.0f} m: t = {t:.4f} ns, "
           f"quadrature {t_ref:.4f} ns")
+
+# single-layer ray tracer (fixed n = 1 in air): numba and python backends; the C++ backend has no air propagation
+ice_simple = medium.greenland_simple()
+
+
+def n_simple(z):
+    return ice_simple.n_ice - ice_simple.delta_n * np.exp(z / ice_simple.z_0)
+
+
+def integrate_simple(f, z):
+    return quad(f, z, 0, limit=500, epsabs=1e-12, epsrel=1e-12)[0]
+
+
+def reach_simple(p, height, z_rx):
+    return integrate_simple(lambda z: p / np.sqrt(n_simple(z)**2 - p**2), z_rx) + height * p / np.sqrt(1 - p**2)
+
+
+geometries = [(100, 10, -97), (1000, 100, -97), (30, 1, -20), (3000, 1000, -20), (1271.4, 10, -97),
+              (2392, 10, -40), (5000, 1, -97), (5000, 100, -20), (13880, 1, -97)]
+for compile_numba in [True, False]:
+    r = ray.ray_tracing(ice_simple, use_cpp=False, compile_numba=compile_numba)
+    for distance, height, z_rx in geometries:
+        distance, height, z_rx = distance * units.m, height * units.m, z_rx * units.m
+        p = brentq(lambda p: reach_simple(p, height, z_rx) - distance, 1e-9, 1 - 1e-15, xtol=1e-16, rtol=1e-15)
+        t_ref = (integrate_simple(lambda z: n_simple(z)**2 / np.sqrt(n_simple(z)**2 - p**2), z_rx)
+                 + height / np.sqrt(1 - p**2)) / constants.c
+        for start, end in [([distance, 0, height], [0, 0, z_rx]), ([0, 0, z_rx], [distance, 0, height])]:
+            r.set_start_and_end_point(np.array(start), np.array(end))
+            r.find_solutions()
+            assert r.get_number_of_solutions() == 1, (start, end, r.get_number_of_solutions())
+            testing.assert_allclose(r.get_travel_time(0), t_ref, atol=1e-3 * units.ns,
+                                    err_msg=f"single layer, numba {compile_numba}: {start} -> {end}")
+    print(f"single layer (numba {compile_numba}): {len(geometries)} air/ice geometries agree with quadrature")
+
+if single_layer_analytic_raytracer.cpp_available:
+    r = ray.ray_tracing(ice_simple, use_cpp=True)
+    r.set_start_and_end_point(np.array([1000., 0, 100]), np.array([0., 0, -97]))
+    testing.assert_raises(NotImplementedError, r.find_solutions)
+    print("single layer (C++): raises NotImplementedError for a path through air")
 
 print("T12test_air_to_ice passed without issues")
