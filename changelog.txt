@@ -53,6 +53,9 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 bugfixes:
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
+- The on-the-fly compilation of the C++ ray tracer (install.sh) replaces only the build of the running Python version
+  instead of deleting those of all versions, so environments with different Python versions sharing one checkout no
+  longer trigger a recompilation for each other. `install.sh --clean-all` removes all builds first.
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported
   with only numpy, scipy and matplotlib: radiotools, astropy, the `NuRadioReco.detector`/`framework` packages etc. are imported lazily
   and the version lookup in `__init__` is guarded.

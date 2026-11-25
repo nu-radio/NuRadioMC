@@ -1,14 +1,22 @@
 #!/bin/bash
-cd "$(dirname "$0")"
-cd CPPAnalyticRayTracing
+# Build the Python wrapper of the C++ ray tracer for one Python version: $PYTHON, else `python` from PATH.
+# Documented in documentation/source/NuRadioMC/pages/Manuals/signal_propagation.rst (GSL speed-boost).
+usage="Usage: $0 [--clean-all]  (--clean-all: first remove the builds of all Python versions and the build directory)"
+clean_all=false
+for arg in "$@"; do
+	case "$arg" in
+		--clean-all) clean_all=true ;;
+		-h|--help) echo "$usage"; exit 0 ;;
+		*) echo "$usage" >&2; exit 2 ;;
+	esac
+done
 
-# check if old versions exist, and delete them
-if [ -f wrapper.so ]; then
-	rm wrapper.so  # first delete already existing module
-fi
-oldfiles=$(find . -maxdepth 1 -name "wrapper.*.so")
-if [ -n "$oldfiles" ]; then
-	rm wrapper.*.so #also the versions on mac
+# stop if this fails: the rm calls below must run only in CPPAnalyticRayTracing
+cd "$(dirname "$0")/CPPAnalyticRayTracing" || exit 1
+
+if $clean_all; then
+	rm -f wrapper.*.so
+	rm -rf build
 fi
 
 # try to set $GSLDIR if it isn't already defined
@@ -17,5 +25,6 @@ if [[ -z "${GSLDIR}" ]]; then
 	echo "setting GSLDIR to " $(gsl-config --prefix)
 	export GSLDIR=$(gsl-config --prefix)
 fi
-# $PYTHON is set when called from python (sys.executable); fall back to `python` from PATH
-"${PYTHON:-python}" setup.py build_ext --inplace
+# $PYTHON is set when called from python (sys.executable). --force: rebuild even if the existing file looks up to date
+# (it is called when importing that file failed)
+"${PYTHON:-python}" setup.py build_ext --inplace --force
