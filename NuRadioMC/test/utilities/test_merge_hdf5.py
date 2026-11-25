@@ -398,6 +398,14 @@ def test_merge_file_attrs(tmp_path, caplog):
     np.testing.assert_array_equal(attrs["trigger_names"], np.array(["a"], dtype="S"))
 
 
+def test_merge_attrs_message_names_files(tmp_path):
+    # the message names the file that set the value, not the first file
+    with pytest.raises(AttributeError) as error:
+        _merge_attrs(tmp_path, [{}, {"config": "a"}, {"config": "b"}])
+    message = str(error.value)
+    assert "in1.hdf5" in message and "in2.hdf5" in message and "in0.hdf5" not in message, message
+
+
 def test_merge_veff_attrs_differ(tmp_path):
     # attributes that enter the effective volume/area must agree, other differing attributes only warn
     attrs = {"Emin": 1e18, "Emax": 1e19, "volume": 1e9, "area": 1e6, "fiducial_zmin": -2.7e3}
