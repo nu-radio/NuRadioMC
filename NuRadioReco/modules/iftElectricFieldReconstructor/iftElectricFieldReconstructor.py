@@ -1,5 +1,6 @@
 import numpy as np
 from NuRadioReco.utilities import units, fft, trace_utilities, bandpass_filter
+from NuRadioReco.modules.base.module import register_run
 import NuRadioReco.utilities.trace_utilities
 import NuRadioReco.detector.antennapattern
 import NuRadioReco.detector.RNO_G.analog_components
@@ -213,6 +214,7 @@ class IftElectricFieldReconstructor:
         )
         self.__draw_priors(event, station, frequency_domain)
 
+    @register_run()
     def run(self, event, station, detector, channel_ids, efield_scaling, ray_type, use_sim=False, plot_title='', polarization=None):
         """
         Run the electric field reconstruction
