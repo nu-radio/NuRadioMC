@@ -190,32 +190,37 @@ def set_general_log_level(level):
     nrmc_logger = logging.getLogger("NuRadioMC")
     nrmc_logger.setLevel(level)
 
+
+def _deprecated_fallback(msg, *, category=DeprecationWarning, stacklevel=1):
+    """Decorator for deprecated functions/classes (`deprecated` on Python < 3.13)
+
+    Parameters
+    ----------
+    msg : str
+        Message that is displayed when the deprecated class / function is called
+
+    Other Parameters
+    ----------------
+    category : Warning, optional
+        Type of warning to emit (default: DeprecationWarning)
+    stacklevel : int, optional
+        As for ``warnings.deprecated`` (Python >= 3.13): the default 1 attributes the warning to the caller of the
+        deprecated function, so that the default warning filters show it in ``__main__``.
+    """
+
+    def func_decorator(func):
+
+        @wraps(func)
+        def deprecated_fn(*args, **kwargs):
+            warnings.warn(message=msg, category=category, stacklevel=stacklevel + 1)
+            return func(*args, **kwargs)
+
+        return deprecated_fn
+
+    return func_decorator
+
+
 try:
-    from warnings import deprecated # only available in Python >= 3.13
+    from warnings import deprecated  # only available in Python >= 3.13
 except ImportError:
-    def deprecated(msg, *, category=DeprecationWarning, stacklevel=1):
-        """Decorator for deprecated functions/classes
-
-        Parameters
-        ----------
-        msg : str
-            Message that is displayed when the deprecated class / function is called
-
-        Other Parameters
-        ----------------
-        category : Warning, optional
-            Type of warning to emit (default: DeprecationWarning)
-        stacklevel : int, optional
-            stacklevel passed on to `warnings.warn`. Default is 1.
-        """
-
-        def func_decorator(func):
-
-            @wraps(func)
-            def deprecated_fn(*args, **kwargs):
-                warnings.warn(message=msg, category=category, stacklevel=stacklevel)
-                return func(*args, **kwargs)
-
-            return deprecated_fn
-
-        return func_decorator
+    deprecated = _deprecated_fallback

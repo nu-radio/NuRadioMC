@@ -13,6 +13,7 @@ import numpy as np
 import pytest
 
 import NuRadioMC
+from NuRadioReco.utilities import logging as nrr_logging
 from NuRadioMC.utilities import merge_hdf5
 from NuRadioMC.utilities.merge_hdf5 import merge_hdf5_files
 
@@ -443,6 +444,25 @@ def test_merge2_deprecated(tmp_path):
     with pytest.warns(DeprecationWarning):
         merge_hdf5.merge2(filenames, output)
     np.testing.assert_array_equal(_read(output)[0]["shower_ids"], [1, 2])
+
+
+def test_merge2_deprecation_warning_attributed_to_caller(tmp_path):
+    # attributed to the calling file, the default warning filters show it in __main__ scripts
+    filenames = _write_files(tmp_path, [([1], [1]), ([2], [2])])
+    with pytest.warns(DeprecationWarning) as record:
+        merge_hdf5.merge2(filenames, str(tmp_path / "merged.hdf5"))
+    assert [w.filename for w in record] == [__file__], [w.filename for w in record]
+
+
+def test_deprecated_fallback_attributed_to_caller():
+    # the decorator of NuRadioReco.utilities.logging for Python < 3.13 (else warnings.deprecated)
+    @nrr_logging._deprecated_fallback("f is deprecated")
+    def f():
+        return 1
+
+    with pytest.warns(DeprecationWarning) as record:
+        assert f() == 1
+    assert [w.filename for w in record] == [__file__], [w.filename for w in record]
 
 
 def test_merge_output_checks(tmp_path):

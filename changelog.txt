@@ -55,6 +55,9 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   by name. New command line options `--overwrite` and `--skip-incomplete-stations`.
 
 bugfixes:
+- `NuRadioReco.utilities.logging.deprecated` on Python < 3.13 attributes the warning to the caller of the deprecated
+  function, as `warnings.deprecated` does on Python >= 3.13; before, it was attributed to `logging.py`, and the default
+  warning filters hid it.
 - `merge_hdf5` makes shower ids unique across the merged files (issue #292): a file whose ids overlap those of earlier
   files is shifted by one offset (top level and station datasets); the merged files, offsets and first event group ids
   are stored as attributes (see the HDF5 output documentation). Also fixed: `merge_hdf5.py <directory>` (merged nothing
