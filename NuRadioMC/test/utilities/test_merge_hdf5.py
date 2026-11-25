@@ -225,12 +225,16 @@ def test_merge_incomplete_merge_history(tmp_path):
     np.testing.assert_array_equal(attrs["event_group_id_starts"], [1, 5])
 
 
-def test_merge_duplicate_path(tmp_path):
-    # a file given twice (also via another path) is merged once
+def test_merge_duplicate_path(tmp_path, caplog):
+    # a file given more than once (also via another path or a symbolic link) is merged once, with a warning
     a = str(tmp_path / "a.hdf5")
     _write_file(a, [1, 2, 2], [1, 2, 3])
+    link = str(tmp_path / "link.hdf5")
+    os.symlink(a, link)
     merge_hdf5_files([a], str(tmp_path / "once.hdf5"))
-    merge_hdf5_files([a, os.path.join(str(tmp_path), ".", "a.hdf5")], str(tmp_path / "twice.hdf5"))
+    with caplog.at_level(logging.WARNING, logger="NuRadioMC.HDF5-merger"):
+        merge_hdf5_files([a, os.path.join(str(tmp_path), ".", "a.hdf5"), link], str(tmp_path / "twice.hdf5"))
+    assert caplog.text.count("merging it once") == 2, caplog.text
     once, once_attrs = _read(str(tmp_path / "once.hdf5"))
     twice, twice_attrs = _read(str(tmp_path / "twice.hdf5"))
     assert twice_attrs["n_events"] == once_attrs["n_events"] == 2, twice_attrs["n_events"]
