@@ -31,11 +31,13 @@ NuRadioMC contains a convenience function to correctly merge these files -
 see :ref:`here <NuRadioMC/pages/Manuals/running_on_a_cluster:4. Merge individual hdf5 output files>` for instructions.
 
 .. note::
-    Merging renames event group ids and shower ids that a file shares with a previously merged file, so that they
-    are unique in the merged file (``event_group_ids``, ``shower_ids`` and the station datasets ``event_group_ids``,
-    ``event_group_id_per_shower`` and ``shower_id``). The renamed ids in the merged HDF5
-    file then no longer match the ids of the ``SimShower`` objects in the corresponding ``.nur`` files or of the
-    event generator input file.
+    Merging keeps event group ids and shower ids unique: going through the files in merge order, all ids of a file whose
+    smallest id is not above the largest id of the previous files are shifted by one offset, so that its smallest id
+    becomes that largest id + 1 (gaps and order are kept); the ids of each file then lie above those of all previous
+    files. Files whose ids lie above those of all previous files already, such as the part files of one simulation,
+    keep their ids. The shift applies to ``event_group_ids``, ``shower_ids`` and the station datasets
+    ``event_group_ids``, ``event_group_id_per_shower`` and ``shower_id``; event ids are unique only within an event
+    group and are kept.
 
 What's behind the HDF5 files
 ----------------------------

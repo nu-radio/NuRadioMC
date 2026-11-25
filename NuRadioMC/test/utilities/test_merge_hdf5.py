@@ -37,8 +37,14 @@ def _write_file(filename, event_group_ids, shower_ids, attrs=None, station_attrs
         sg["event_id_per_shower"] = np.zeros(len(shower_ids), dtype=int)
 
 
+DATASETS = ["event_group_ids", "shower_ids", "station_101/event_group_ids", "station_101/shower_id",
+            "station_101/event_group_id_per_shower", "station_101/event_id_per_shower"]
+
+
 def _merge(inputs):
-    """ Writes one file per (event_group_ids, shower_ids) pair, merges them and returns the merged datasets. """
+    """
+    Writes one file ``in<i>.hdf5`` per (event_group_ids, shower_ids) pair, merges them and returns the merged datasets.
+    """
     with tempfile.TemporaryDirectory() as tmpdir:
         filenames = []
         for i, (egids, sids) in enumerate(inputs):
@@ -47,20 +53,20 @@ def _merge(inputs):
         output = os.path.join(tmpdir, "merged.hdf5")
         merge2(filenames, output)
         with h5py.File(output, "r") as f:
-            return {key: f[key][...] for key in ["event_group_ids", "shower_ids", "station_101/event_group_ids",
-                                                 "station_101/shower_id", "station_101/event_group_id_per_shower",
-                                                 "station_101/event_id_per_shower"]}
+            return {key: f[key][...] for key in DATASETS}
 
 
 def test_merge_shower_ids_unique():
     out = _merge([([1, 2, 2], [0, 1, 2]), ([1, 2, 2], [0, 1, 2]), ([5], [7])])
-    assert len(np.unique(out["shower_ids"])) == 7, out["shower_ids"]
-    # the station group references the same (renamed) showers as the top level
+    # the second file is shifted above the first, the third lies above both and keeps its ids
+    np.testing.assert_array_equal(out["shower_ids"], [0, 1, 2, 3, 4, 5, 7])
+    np.testing.assert_array_equal(out["event_group_ids"], [1, 2, 2, 3, 4, 4, 5])
+    # the station group references the same (shifted) showers as the top level
     np.testing.assert_array_equal(out["station_101/shower_id"], out["shower_ids"])
 
 
 def test_merge_event_id_per_shower_not_renamed():
-    # event ids are unique only within an event group and are kept when shower ids are renamed
+    # event ids are unique only within an event group and are kept when shower ids are shifted
     out = _merge([([1, 2, 2], [0, 1, 2]), ([1, 2, 2], [0, 1, 2])])
     assert len(np.unique(out["station_101/shower_id"])) == 6, out["station_101/shower_id"]
     np.testing.assert_array_equal(out["station_101/event_id_per_shower"], np.zeros(6, dtype=int))
@@ -69,8 +75,24 @@ def test_merge_event_id_per_shower_not_renamed():
 def test_merge_event_group_id_zero_unique():
     # only event group id 0 overlaps
     out = _merge([([0, 1], [0, 1]), ([0, 2], [2, 3])])
-    assert len(np.unique(out["event_group_ids"])) == 4, out["event_group_ids"]
-    np.testing.assert_array_equal(np.sort(out["station_101/event_group_ids"]), np.unique(out["event_group_ids"]))
+    np.testing.assert_array_equal(out["event_group_ids"], [0, 1, 2, 4])
+    np.testing.assert_array_equal(out["station_101/event_group_ids"], [0, 1, 2, 4])
+    # the shower ids do not overlap and are kept
+    np.testing.assert_array_equal(out["shower_ids"], [0, 1, 2, 3])
+
+
+def test_merge_overlapping_ids_shifted():
+    # all ids of an overlapping file are shifted by one offset: gaps and order are kept
+    out = _merge([([10, 30, 30], [5, 9, 20]), ([10, 30, 30], [5, 9, 20])])
+    np.testing.assert_array_equal(out["event_group_ids"], [10, 30, 30, 31, 51, 51])
+    np.testing.assert_array_equal(out["shower_ids"], [5, 9, 20, 21, 25, 36])
+
+
+def test_merge_non_overlapping_ids_kept():
+    # e.g. part files of one run: ids above all previous ids are kept, even with gaps
+    out = _merge([([1, 2], [1, 2]), ([5, 6], [3, 4]), ([7], [9])])
+    np.testing.assert_array_equal(out["event_group_ids"], [1, 2, 5, 6, 7])
+    np.testing.assert_array_equal(out["shower_ids"], [1, 2, 3, 4, 9])
 
 
 def test_merge_station_ids_consistent():
@@ -78,6 +100,8 @@ def test_merge_station_ids_consistent():
     egid_of_shower = dict(zip(out["shower_ids"], out["event_group_ids"]))
     for sid, egid in zip(out["station_101/shower_id"], out["station_101/event_group_id_per_shower"]):
         assert egid_of_shower[sid] == egid, (sid, egid, egid_of_shower)
+    np.testing.assert_array_equal(out["station_101/event_group_ids"], np.unique(out["event_group_ids"]))
+    np.testing.assert_array_equal(out["station_101/event_group_id_per_shower"], out["event_group_ids"])
 
 
 def test_merge_untriggered_file_adds_no_rows():
@@ -211,6 +235,8 @@ if __name__ == "__main__":
     test_merge_shower_ids_unique()
     test_merge_event_id_per_shower_not_renamed()
     test_merge_event_group_id_zero_unique()
+    test_merge_overlapping_ids_shifted()
+    test_merge_non_overlapping_ids_kept()
     test_merge_station_ids_consistent()
     test_merge_untriggered_file_adds_no_rows()
     test_merge_trigger_names_differ()

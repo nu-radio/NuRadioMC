@@ -52,10 +52,11 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 
 bugfixes:
 - `NuRadioMC.utilities.merge_hdf5` makes shower ids unique across the merged files (issue #292); before, independently
-  generated files kept their overlapping shower ids. An overlap of only event group id 0 is now detected as well, and
-  renamed event group ids are also applied to the station groups' `event_group_id_per_shower`, renamed shower ids
-  to `shower_id`.
-  Note: renamed ids in the merged file no longer match the SimShower ids in .nur files or the generator input.
+  generated files kept their overlapping shower ids. Instead of renaming single overlapping ids, all event group ids
+  (shower ids) of a file that overlap those of the previous files are shifted by one offset, also in the station
+  datasets `event_group_ids`, `event_group_id_per_shower` (before: not renamed) and `shower_id`; an overlap of only
+  event group id 0 is now detected as well.
+  Note: shifted ids in the merged file no longer match the SimShower ids in .nur files or the generator input.
 - The station dataset `event_id_per_shower` of the NuRadioMC HDF5 output holds the event id of the event each shower
   (or emitter) belongs to, as documented; before, it held the shower ids.
 - `merge_hdf5.py <directory>` merges the `*.hdf5.partNNNN` files again (merged nothing since v3.0.0; file discovery is now

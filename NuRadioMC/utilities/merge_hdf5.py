@@ -17,10 +17,12 @@ veff_attrs = ['Emin', 'Emax', 'volume', 'area']
 
 def _make_ids_unique(data, groups, filenames, key, group_keys):
     """
-    Renames ids that a file shares with any previous file, in place, so that the ids are unique across files.
+    Shifts the ids of files that overlap the ids of previous files, in place, so that the ids are unique across files.
 
-    The top-level dataset ``key`` and the datasets ``group_keys`` of all station groups of the file are renamed
-    consistently; the first file keeps its ids.
+    In merge order, all ids of a file whose smallest id is not above the largest id of the previous files are shifted
+    by one offset, so that its smallest id becomes that largest id + 1. Gaps and order of the ids are kept; a file whose
+    ids lie above those of all previous files (e.g. the part files of one run) keeps them. The top-level dataset
+    ``key`` and the datasets ``group_keys`` of all station groups of the file are shifted alike.
 
     Parameters
     ----------
@@ -34,21 +36,24 @@ def _make_ids_unique(data, groups, filenames, key, group_keys):
         name of the top-level dataset holding the ids
     group_keys : list of str
         names of the station-group datasets holding the same ids
+
+    Returns
+    -------
+    dict
+        offset per file name (merged id = original id + offset)
     """
-    unique_ids = np.unique(data[filenames[0]][key])
-    for f in filenames[1:]:
-        current_ids = np.unique(data[f][key])
-        intersect = np.intersect1d(unique_ids, current_ids, assume_unique=True)
-        if len(intersect):
-            new_ids = max(unique_ids.max(), current_ids.max()) + 1 + np.arange(len(intersect))
-            arrays = [data[f][key]] + [groups[f][g][k] for g in groups[f] for k in group_keys if k in groups[f][g]]
-            for array in arrays:
-                mask = np.isin(array, intersect)
-                array[mask] = new_ids[np.searchsorted(intersect, array[mask])]
-            logger.warning(f"{key} of {f} overlap with previous files; renamed {len(intersect)} ids")
-            logger.debug(f"non-unique {key}: {intersect}")
-            current_ids = np.unique(data[f][key])
-        unique_ids = np.append(unique_ids, current_ids)
+    offsets = {}
+    max_id = None
+    for f in filenames:
+        ids = data[f][key]
+        offsets[f] = 0
+        if max_id is not None and ids.min() <= max_id:
+            offsets[f] = int(max_id + 1 - ids.min())
+            for array in [ids] + [groups[f][g][k] for g in groups[f] for k in group_keys if k in groups[f][g]]:
+                array += offsets[f]
+            logger.warning(f"{key} of {f} overlap with previous files; shifted by {offsets[f]}")
+        max_id = ids.max()
+    return offsets
 
 
 def _attrs_equal(a, b):
@@ -187,7 +192,7 @@ def merge2(filenames, output_filename):
     fout = h5py.File(output_filename, 'w')
     if(len(non_empty_filenames)):
         # unique event group ids: the effective volume/area calculation uses them to find multi-station coincidences
-        # (renaming: see `_make_ids_unique`)
+        # (shifting: see `_make_ids_unique`)
         _make_ids_unique(data, groups, non_empty_filenames, 'event_group_ids', ['event_group_ids', 'event_group_id_per_shower'])
         # shower ids are unique only within the files of one event generation run (issue #292)
         if all('shower_ids' in data[f] for f in non_empty_filenames):
