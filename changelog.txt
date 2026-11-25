@@ -49,16 +49,25 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - The Sensitivities example `E2_fluxes3.py` is now `limit_plot.py` (`get_limit_figure`, `add_limit`) with a command line,
   options for the models of the RNO-G multimessenger figure and no side effects on import (no data loading, no change of
   matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
+- `NuRadioMC.utilities.merge_hdf5.merge_hdf5_files(filenames, output_filename, overwrite=False)` replaces `merge2`
+  (deprecated; it overwrites the output as before): it reads one dataset of one file at a time, writes to
+  `<output>.tmp` and renames it when done, and merges differing `trigger_names` by name. New command line option
+  `--overwrite`.
 
 bugfixes:
+- `NuRadioReco.utilities.logging.deprecated` on Python < 3.13 attributes the warning to the caller of the deprecated
+  function, as `warnings.deprecated` does on Python >= 3.13; before, it was attributed to `logging.py`, and the default
+  warning filters hid it.
 - `merge_hdf5` makes shower ids unique across the merged files (issue #292): a file whose ids overlap those of earlier
   files is shifted by one offset (top level and station datasets); the merged files, offsets and first event group ids
   are stored as attributes (see the HDF5 output documentation). Also fixed: `merge_hdf5.py <directory>` (merged nothing
   since v3.0.0), duplicate input paths, zero-filled rows from files without triggered events, crashes on string or
   differently sized attributes, `--cores N` (N > 1), and `eval` in `--loglevel`.
-- `merge_hdf5` raises if `trigger_names`, `Emin`, `Emax`, `volume` or `area` differ between files (before: a warning,
-  and for trigger names only if all differed).
+- `merge_hdf5` raises if `Emin`, `Emax`, `volume` or `area` differ between files (before: a warning).
 - The station dataset `event_id_per_shower` of the HDF5 output holds event ids, as documented (before: shower ids).
+- `merge_hdf5` merges the station groups of all files (before: only those of the first file with triggered events) and
+  raises if a file with rows for a station lacks some of that station group's datasets (before: its rows no longer
+  matched).
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported

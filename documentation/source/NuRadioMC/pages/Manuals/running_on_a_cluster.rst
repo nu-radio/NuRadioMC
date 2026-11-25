@@ -110,4 +110,33 @@ To merge all files execute
 
     python ../NuRadioMC/utilities/merge_hdf5.py /path/to/my/output/files/
 
+The script expects the output files in one subfolder per energy (or other parameter), named after the input files,
+``/path/to/my/output/files/<subfolder>/<name>.hdf5.partNNNN``, and writes one merged file
+``/path/to/my/output/files/<name>.hdf5`` per ``<name>``. Files of at most 1000 bytes (e.g. truncated by a failed job)
+are left out with a warning; their simulated events are then missing from ``n_events``. To merge a list of files
+into one output file, pass the output file first:
+
+.. code-block:: bash
+
+    python ../NuRadioMC/utilities/merge_hdf5.py merged.hdf5 file1.hdf5 file2.hdf5 ...
+
+Options:
+
+* ``--overwrite``: overwrite existing output files (by default they are skipped with an error message)
+* ``--cores N``: merge N output files in parallel (directory mode)
+* ``--loglevel LEVEL``: e.g. ``DEBUG``, ``INFO`` or ``WARNING``
+
+In Python, use :func:`NuRadioMC.utilities.merge_hdf5.merge_hdf5_files`. The merge
+
+* appends the datasets of the files (those without triggered events add no rows) and sums ``n_events``;
+* shifts the event group ids and shower ids of a file that overlap those of the previous files by one offset per
+  file and stores the offsets in the merged file (see :doc:`/NuRadioMC/pages/HDF5_structure`);
+* requires the files to agree on ``config``, the NuRadioMC versions, ``Emin``, ``Emax``, ``volume`` and ``area``,
+  and merges ``trigger_names`` by name (a trigger that never fired in a file is missing from its trigger names; its
+  columns are ``False`` / ``NaN`` there);
+* merges the station groups of all files: a file without events for a station adds no rows to it, but a file with
+  rows for a station must have all datasets the other files have in that group (else an error, as files simulated
+  with the same config write the same datasets);
+* reads one dataset of one file at a time and writes to ``<output>.tmp``, which is renamed when the merge is done.
+
 
