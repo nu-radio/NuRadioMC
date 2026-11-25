@@ -337,7 +337,7 @@ def get_path_length_analytic(c0, x1, x2, layers):
         beta = 1.0 / c0
 
         alpha = n_ice**2 - beta**2
-        if use_no_log_forms(alpha, delta_n):
+        if use_no_log_forms(alpha):
             s_start = path_integrals_no_log(z1, beta, n_ice, delta_n, z0)[0]
             s_end = path_integrals_no_log(z2, beta, n_ice, delta_n, z0)[0]
             total_s += (s_end - s_start) if upgoing == 1 else (s_start - s_end)
@@ -665,7 +665,7 @@ def get_travel_time_analytic(c0, x1, x2, layers):
         beta = 1.0 / c0
 
         alpha = n_ice**2 - beta**2
-        if use_no_log_forms(alpha, delta_n):
+        if use_no_log_forms(alpha):
             l_start = path_integrals_no_log(z1, beta, n_ice, delta_n, z0)[1]
             l_end = path_integrals_no_log(z2, beta, n_ice, delta_n, z0)[1]
             total_t += ((l_end - l_start) if upgoing == 1 else (l_start - l_end)) / constants.c
