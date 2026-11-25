@@ -28,6 +28,7 @@ from NuRadioReco.utilities.logging import deprecated
 
 logger = logging.getLogger("NuRadioMC.HDF5-merger")
 
+# attributes that must be equal in all files: the NuRadioMC versions and the config
 str_type_attrs = ['NuRadioMC_EvtGen_version', 'NuRadioMC_EvtGen_version_hash', 'NuRadioMC_version',
                   'NuRadioMC_version_hash', 'config']
 # attributes the effective volume/area calculation reads from the merged file: they must agree between files
@@ -105,49 +106,38 @@ def _attrs_equal(a, b):
     return np.array_equal(a, b)
 
 
-def _merge_attributes(attrs_per_file):
+def _merge_attrs(attrs_per_file, label, must_match=(), skip=()):
     """
-    Merges the file attributes.
-
-    The first file that has a key sets its value. Later files must agree on the string attributes
-    (``str_type_attrs``, e.g. ``config``) and on ``veff_attrs`` (else `AttributeError`); other differing values warn.
-    ``start_event_id`` is not compared, ``trigger_names`` are merged by `_merge_trigger_names`.
+    Merges attributes with the rules of `merge_hdf5_files`.
 
     Parameters
     ----------
     attrs_per_file : dict
-        file attributes (dict) per file name, in merge order
+        attributes (dict) per file name, in merge order
+    label : str
+        what the attributes belong to, for messages (e.g. ``"of group station_101"``)
+    must_match : sequence of str
+        keys whose values must agree (else `AttributeError`); other differing values warn
+    skip : sequence of str
+        keys that are not compared (the first value is kept)
 
     Returns
     -------
     dict
-        merged attributes (``n_events`` not yet summed)
+        merged attributes
     """
-    filenames = list(attrs_per_file)
-    attrs = {}
+    attrs, source = {}, {}  # value and file name per key
     for f, file_attrs in attrs_per_file.items():
         for key, value in file_attrs.items():
             if key not in attrs:
-                attrs[key] = value
-            elif key in str_type_attrs:
-                if not np.array_equal(attrs[key], value):
-                    message = f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {value}. "
-                    logger.error(message)
+                if source:
+                    logger.info(f"attribute {key} {label} is missing in previous files, using the value of {f}")
+                attrs[key], source[key] = value, f
+            elif key not in skip and not _attrs_equal(attrs[key], value):
+                message = f"attribute {key} {label} differs between {source[key]} and {f} ({attrs[key]} vs. {value})"
+                if key in must_match:
                     raise AttributeError(message)
-            elif key in ["start_event_id", "trigger_names"]:
-                continue
-            elif not _attrs_equal(attrs[key], value):
-                if key == "n_events":
-                    logger.warning(
-                        f"number of events in file {filenames[0]} and {f} are different ({attrs[key]} vs. {value}. We "
-                        "keep track of the total number of events, but in case the simulation was performed with "
-                        "different settings per file (e.g. different zenith angle bins), the averaging might be effected.")
-                elif key in veff_attrs:
-                    raise AttributeError(f"attribute {key} of file {filenames[0]} and {f} are different "
-                                         f"({attrs[key]} vs. {value}), the merged effective volume would be wrong")
-                else:
-                    logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. "
-                                   f"{value}. Using attribute value of first file, but you have been warned!")
+                logger.warning(f"{message}, using the value of {source[key]}")
     return attrs
 
 
@@ -192,40 +182,6 @@ def _merge_trigger_names(attrs_per_file):
     for f in differing:
         logger.info(f"trigger names of {f}: {names_per_file[f]}")
     return union, columns
-
-
-def _merge_group_attributes(group_attrs_per_file):
-    """
-    Merges the attributes of each station group: union of the keys, the first file that has a key sets its value,
-    differing values of later files warn.
-
-    Parameters
-    ----------
-    group_attrs_per_file : dict
-        per file name (in merge order), the attributes (dict) per station group
-
-    Returns
-    -------
-    dict
-        merged attributes per station group
-    """
-    filenames = list(group_attrs_per_file)
-    group_attrs = {}
-    for f, file_group_attrs in group_attrs_per_file.items():
-        for group, attrs in file_group_attrs.items():
-            if group not in group_attrs:
-                group_attrs[group] = dict(attrs)
-                continue
-            for key, value in attrs.items():
-                if key not in group_attrs[group]:
-                    logger.warning(f"attribute {key} of group {group} is missing in previous files, using the value of {f}")
-                    group_attrs[group][key] = value
-                elif not _attrs_equal(group_attrs[group][key], value):
-                    logger.warning(
-                        f"attribute {key} of group {group} of file {filenames[0]} and {f} are different "
-                        f"({group_attrs[group][key]} vs. {value}. Using attribute value of first file, but you have "
-                        "been warned!")
-    return group_attrs
 
 
 def find_part_files(root_directory, skip_existing=True):
@@ -525,13 +481,17 @@ def merge_hdf5_files(filenames, output_filename, overwrite=False, skip_incomplet
         logger.debug(f"increasing total number of events by {infos[-1].attrs['n_events']} to {n_events_total}")
         if infos[-1].is_empty:
             logger.info(f"file {f} contains no events")
-    attrs = _merge_attributes({info.filename: {key: value for key, value in info.attrs.items()
-                                               if key not in merge_history_attrs} for info in infos})
+    attrs_per_file = {info.filename: info.attrs for info in infos}
+    attrs = _merge_attrs({f: {key: value for key, value in file_attrs.items() if key not in merge_history_attrs}
+                          for f, file_attrs in attrs_per_file.items()}, "of the files",
+                         must_match=str_type_attrs + veff_attrs, skip=['n_events', 'start_event_id', 'trigger_names'])
     attrs['n_events'] = n_events_total
-    trigger_names, trigger_columns = _merge_trigger_names({info.filename: info.attrs for info in infos})
+    trigger_names, trigger_columns = _merge_trigger_names(attrs_per_file)
     if trigger_names is not None:
         attrs['trigger_names'] = trigger_names
-    group_attrs = _merge_group_attributes({info.filename: info.group_attrs for info in infos})
+    group_attrs = {group: _merge_attrs({info.filename: info.group_attrs[group] for info in infos
+                                        if group in info.group_attrs}, f"of group {group}")
+                   for group in _ordered_union(info.group_attrs for info in infos)}
     non_empty = [info for info in infos if not info.is_empty]
 
     tmp_filename = output_filename + '.tmp'
