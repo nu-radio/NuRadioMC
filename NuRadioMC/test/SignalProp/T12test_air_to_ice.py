@@ -206,31 +206,31 @@ def test_single_layer_focusing_fresnel_regression():
 
     ray_tracing_C0_reference = np.array([
         [np.nan, np.nan],
-        [1.3087854182874152, np.nan],
-        [1.0064308743162975, np.nan],
-        [1.000051230401809, np.nan],
-        [1.000051230401809, np.nan],
+        [1.3086030774668076, np.nan],
+        [1.0062386581637481, np.nan],
+        [0.9998596793219048, np.nan],
+        [0.9998596793219048, np.nan],
     ])
     focusing_factors_reference = np.array([
         [np.nan, np.nan],
-        [0.6745227377161311, np.nan],
-        [0.11277309434909118, np.nan],
-        [0.00904289875471403, np.nan],
-        [0.8156210793664358, np.nan],
+        [0.674683461926115, np.nan],
+        [0.11281827029096171, np.nan],
+        [0.009046148399433658, np.nan],
+        [0.8155764525778529, np.nan],
     ])
     transmission_t_p_reference = np.array([
         [np.nan, np.nan],
-        [1.3157903900606893, np.nan],
-        [2.210688211073233, np.nan],
-        [2.654051751148146, np.nan],
-        [0.02942659577064398, np.nan],
+        [1.3155743397666821, np.nan],
+        [2.2102345968883976, np.nan],
+        [2.653541152215144, np.nan],
+        [0.029433454159990928, np.nan],
     ])
     transmission_t_s_reference = np.array([
         [np.nan, np.nan],
-        [1.2681188663353486, np.nan],
-        [1.7814111089911056, np.nan],
-        [1.9780683188262487, np.nan],
-        [0.02193168117375125, np.nan],
+        [1.2679657564627835, np.nan],
+        [1.7813220265626983, np.nan],
+        [1.9780590885280216, np.nan],
+        [0.02194091147195517, np.nan],
     ])
     testing.assert_allclose(c0, ray_tracing_C0_reference, rtol=1e-5, equal_nan=True)
     testing.assert_allclose(focusing, focusing_factors_reference, rtol=1e-5, equal_nan=True)
