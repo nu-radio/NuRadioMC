@@ -17,7 +17,7 @@ from NuRadioReco.framework.parameters import electricFieldParameters as efp
 from NuRadioReco.framework import base_trace
 from NuRadioMC.SignalProp.propagation_base_class import ray_tracing_base
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer import (
-    ray_tracing_2D, SPEED_OF_LIGHT, N_AIR, _get_zenith, _n
+    ray_tracing_2D, SPEED_OF_LIGHT, _get_zenith, _n
 )
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.multilayeranalyticraytracing import multi_layer_ray_tracing_2D
 from NuRadioMC.utilities.birefringence import get_effective_index_birefringence, get_polarization_birefringence
@@ -670,6 +670,7 @@ class ray_tracing(ray_tracing_base):
         """
 
         fresnel_coefficients = []
+        n_air = self._medium.n_air
         # lets handle the general case of multiple reflections off the ice-air surface
         # Multiple relfections are possible if a reflective bottom layer exists.
         for zenith_reflection in np.atleast_1d(self.get_reflection_angle(iS)):
@@ -683,22 +684,22 @@ class ray_tracing(ray_tracing_base):
                 # air/ice propagation
                 if not self._swap:
                     # ice to air case
-                    t_theta = geometryUtilities.get_fresnel_t_p(zenith_reflection, n_2=N_AIR, n_1=self.n_at_surface)
-                    t_phi = geometryUtilities.get_fresnel_t_s(zenith_reflection, n_2=N_AIR, n_1=self.n_at_surface)
+                    t_theta = geometryUtilities.get_fresnel_t_p(zenith_reflection, n_2=n_air, n_1=self.n_at_surface)
+                    t_phi = geometryUtilities.get_fresnel_t_s(zenith_reflection, n_2=n_air, n_1=self.n_at_surface)
                     self.__logger.info(f"propagating from ice to air: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
                 else:
                     # air to ice
-                    incoming_angle = np.arcsin(np.sin(zenith_reflection) * self.n_at_surface / N_AIR)
-                    t_theta = geometryUtilities.get_fresnel_t_p(incoming_angle, n_1=N_AIR, n_2=self.n_at_surface)
-                    t_phi = geometryUtilities.get_fresnel_t_s(incoming_angle, n_1=N_AIR, n_2=self.n_at_surface)
+                    incoming_angle = np.arcsin(np.sin(zenith_reflection) * self.n_at_surface / n_air)
+                    t_theta = geometryUtilities.get_fresnel_t_p(incoming_angle, n_1=n_air, n_2=self.n_at_surface)
+                    t_phi = geometryUtilities.get_fresnel_t_s(incoming_angle, n_1=n_air, n_2=self.n_at_surface)
                     self.__logger.info(f"propagating from air to ice: transmission coefficient is {t_theta:.2f}, {t_phi:.2f}")
 
                 fresnel_coefficients.append(
                     {'zenith': zenith_reflection, 'case': 'transmission', 'theta': t_theta, 'phi': t_phi})
             else:
                 # in-ice propagation, reflection off the surface
-                r_theta = geometryUtilities.get_fresnel_r_p(zenith_reflection, n_2=N_AIR, n_1=self.n_at_surface)
-                r_phi = geometryUtilities.get_fresnel_r_s(zenith_reflection, n_2=N_AIR, n_1=self.n_at_surface)
+                r_theta = geometryUtilities.get_fresnel_r_p(zenith_reflection, n_2=n_air, n_1=self.n_at_surface)
+                r_phi = geometryUtilities.get_fresnel_r_s(zenith_reflection, n_2=n_air, n_1=self.n_at_surface)
                 self.__logger.info(
                     "ray hits the surface at an angle {:.2f}deg -> reflection coefficient is r_theta = {:.2f}, r_phi = {:.2f}".format(
                         zenith_reflection / units.deg, r_theta, r_phi))
