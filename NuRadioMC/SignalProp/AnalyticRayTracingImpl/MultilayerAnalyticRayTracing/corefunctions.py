@@ -136,7 +136,7 @@ ALPHA_EPS = 1e-12
 
 @njit(cache = True)
 def use_no_log_forms(alpha):
-    """Whether a layer with this alpha uses `inverse_root_integral_no_log` (see `ALPHA_EPS`)."""
+    """Whether a layer with this alpha uses `inverse_root_integral_no_log` (see ``ALPHA_EPS``)."""
     return alpha <= ALPHA_EPS
 
 
@@ -186,7 +186,7 @@ def inverse_root_integral_no_log(z, beta, n_ice, delta_n, z0):
     alpha <= 0 holds for rays with beta >= 1. These rays exist where n(z) > beta, i.e. near the surface,
     where n(z) > 1. With u = exp(z / z0) and gamma = n^2 - beta^2 = delta_n^2 u^2 - 2 n_ice delta_n u + alpha:
 
-    - alpha < 0: J0 = z0 / sqrt(-alpha) * arcsin((n_ice n - beta^2) / (u |delta_n| beta))
+    - alpha < 0: J0 = z0 / sqrt(-alpha) * arcsin((n_ice n - beta^2) / (u abs(delta_n) beta))
     - alpha = 0: J0 = z0 sqrt(gamma) / (n_ice delta_n u)
 
     The path length and the travel time follow from J0:

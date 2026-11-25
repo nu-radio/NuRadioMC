@@ -242,7 +242,7 @@ def find_solutions(x1, x2, layers, tol=1e-12, dropped=None):
         Root-finding tolerance.
 
     dropped : list, optional
-        If given, solutions of rays that turn in the air are appended to it (see `_remove_rays_turning_in_air`).
+        If given, solutions of rays that turn in the air are appended to it (see ``_remove_rays_turning_in_air``).
 
     Returns
     -------
@@ -514,7 +514,7 @@ def find_solutions_bulk(x1, x2, layers, tol=1e-12, dropped=None):
         Root-finding tolerance.
 
     dropped : list, optional
-        If given, solutions of rays that turn in the air are appended to it (see `_remove_rays_turning_in_air`).
+        If given, solutions of rays that turn in the air are appended to it (see ``_remove_rays_turning_in_air``).
 
     Returns
     -------
