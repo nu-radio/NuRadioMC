@@ -343,6 +343,24 @@ def test_merge_trigger_names_differ(tmp_path, caplog):
         merge_hdf5_files(filenames, output, overwrite=True)
 
 
+def test_merge_trigger_names_of_empty_files(tmp_path, caplog):
+    # files without triggered events add no rows: their trigger names do not enter the merged ones
+    for empty_names in [["t2", "t1"], []]:
+        filenames = _write_files(tmp_path, [([1], [1]), ([2], [2])])
+        _write_file(filenames[0], [1], [1], triggered=False)
+        _write_triggers(filenames[0], empty_names, [[False] * len(empty_names)], [[np.nan] * len(empty_names)])
+        _write_triggers(filenames[1], ["t1", "t2"], [[True, False]], [[1., np.nan]])
+        output = str(tmp_path / "merged.hdf5")
+        caplog.clear()
+        with caplog.at_level(logging.WARNING, logger="NuRadioMC.HDF5-merger"):
+            merge_hdf5_files(filenames, output, overwrite=True)
+        assert "differ" not in caplog.text, caplog.text
+        data, attrs = _read(output)
+        assert list(attrs["trigger_names"]) == ["t1", "t2"], attrs["trigger_names"]
+        np.testing.assert_array_equal(data["multiple_triggers"], [[True, False]])
+        np.testing.assert_array_equal(data["trigger_times"], [[1., np.nan]])
+
+
 def test_merge_string_attrs_differ(tmp_path):
     with pytest.raises(AttributeError):
         _merge_attrs(tmp_path, [{"config": "a: 1"}, {"config": "a: 2"}])

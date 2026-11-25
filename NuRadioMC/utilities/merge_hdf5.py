@@ -427,9 +427,9 @@ def merge_hdf5_files(filenames, output_filename, overwrite=False, skip_incomplet
       ``volume`` and ``area`` (else `AttributeError`). ``n_events`` is the sum over all files, which the effective
       volume calculation needs; ``start_event_id`` is not compared.
     * ``trigger_names`` are merged by name: the writer adds a trigger only once it fires, so a trigger that never
-      fired in a file is missing from its names. The merged names are the union in order of first appearance; the
-      per-trigger datasets (e.g. ``multiple_triggers``) of a file with other names are re-indexed to the merged
-      columns, with False / NaN for its missing triggers.
+      fired in a file is missing from its names. The merged names are the union, in order of first appearance, over
+      the non-empty files (over all files if all are empty); the per-trigger datasets (e.g. ``multiple_triggers``) of
+      a file with other names are re-indexed to the merged columns, with False / NaN for its missing triggers.
 
     The merge is written to ``output_filename + '.tmp'``, which is renamed to ``output_filename`` when done.
     The first pass reads all attributes and the ids, the second copies one dataset of one file at a time (instead of
@@ -478,13 +478,15 @@ def merge_hdf5_files(filenames, output_filename, overwrite=False, skip_incomplet
                           for f, file_attrs in attrs_per_file.items()}, "of the files",
                          must_match=str_type_attrs + veff_attrs, skip=['n_events', 'start_event_id', 'trigger_names'])
     attrs['n_events'] = n_events_total
-    trigger_names, trigger_columns = _merge_trigger_names(attrs_per_file)
+    non_empty = [info for info in infos if not info.is_empty]
+    trigger_names, trigger_columns = _merge_trigger_names(
+        {info.filename: info.attrs for info in non_empty or infos})
+    attrs.pop('trigger_names', None)
     if trigger_names is not None:
         attrs['trigger_names'] = trigger_names
     group_attrs = {group: _merge_attrs({info.filename: info.group_attrs[group] for info in infos
                                         if group in info.group_attrs}, f"of group {group}")
                    for group in _ordered_union(info.group_attrs for info in infos)}
-    non_empty = [info for info in infos if not info.is_empty]
 
     tmp_filename = output_filename + '.tmp'
     try:
