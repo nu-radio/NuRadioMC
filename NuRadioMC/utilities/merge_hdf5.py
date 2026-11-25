@@ -204,11 +204,12 @@ def find_part_files(root_directory, skip_existing=True):
         per output file ``root_directory/<name>.hdf5``, the keyword arguments of `merge_hdf5_files`
         (``filenames``: sorted part files, ``output_filename``)
     """
-    # strip the .partNNNN suffix
-    filenames = np.unique([os.path.splitext(f)[0] for f in glob.glob(f"{root_directory}/*/*.hdf5.part*")])
-    filenames = [f for f in filenames if os.path.splitext(f)[1] == '.hdf5']
+    parts = {}  # part files per name with the .partNNNN suffix stripped
+    for f in sorted(glob.glob(f"{root_directory}/*/*.hdf5.part*")):
+        if os.path.splitext(os.path.splitext(f)[0])[1] == '.hdf5':
+            parts.setdefault(os.path.splitext(f)[0], []).append(f)
     folders_per_name = {}
-    for filename in filenames:
+    for filename in parts:
         folder, name = os.path.split(filename)
         folders_per_name.setdefault(name, []).append(folder)
     for name, folders in folders_per_name.items():
@@ -216,17 +217,16 @@ def find_part_files(root_directory, skip_existing=True):
             logger.warning(f"the part files of {name} are in several subfolders ({', '.join(sorted(folders))}), "
                            f"which all map to the same output file {os.path.join(root_directory, name)}")
     input_args = []
-    for filename in sorted(filenames):
+    for filename, input_files in sorted(parts.items()):
         folder, name = os.path.split(filename)
         output_filename = os.path.join(os.path.dirname(folder), name)  # remove subfolder from filename
         if skip_existing and os.path.exists(output_filename):
             logger.error(f'file {output_filename} already exists, skipping')
             continue
-        input_files = sorted(glob.glob(filename + '.part*'))
-        small = [f for f in input_files if os.path.getsize(f) <= 1000]
+        small = {f for f in input_files if os.path.getsize(f) <= 1000}
         if small:
             logger.warning(f"{len(small)} files were deselected because their filesize was too small, the merged "
-                           f"{output_filename} misses their events in n_events: {small}")
+                           f"{output_filename} misses their events in n_events: {sorted(small)}")
         input_args.append({'filenames': [f for f in input_files if f not in small], 'output_filename': output_filename})
     return input_args
 
