@@ -317,9 +317,15 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith, ice
     t_theta = 1.
     t_phi = 1.
 
-    def get_n_ice_surface():
+    def get_n(z):
         from NuRadioMC.utilities import medium  # not at module level: keeps this module light (see NuRadioReco.utilities)
-        return medium.get_station_refractive_index(detector, station.get_id(), -0.01 * units.m, ice_model)
+        return medium.get_station_refractive_index(detector, station.get_id(), z, ice_model)
+
+    def get_n_ice_surface():
+        return get_n(-0.01 * units.m)
+
+    def get_n_air():
+        return get_n(0.01 * units.m)
 
     position = detector.get_relative_position(station.get_id(), channel_id)
     # first check case if signal comes from above
@@ -331,9 +337,10 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith, ice
 
         # is antenna below surface?
         n_ice = get_n_ice_surface()
-        zenith_antenna = get_fresnel_angle(zenith, n_ice, 1)
-        t_theta = get_fresnel_t_p(zenith, n_ice, 1)
-        t_phi = get_fresnel_t_s(zenith, n_ice, 1)
+        n_air = get_n_air()
+        zenith_antenna = get_fresnel_angle(zenith, n_ice, n_air)
+        t_theta = get_fresnel_t_p(zenith, n_ice, n_air)
+        t_phi = get_fresnel_t_s(zenith, n_ice, n_air)
         logger.debug((
             "Channel {}: electric field is refracted into the firn. "
             "theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) "
@@ -342,7 +349,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith, ice
 
     elif position[2] > 0 and zenith > 0.5 * np.pi:
         # now the signal is coming from below, do we have an antenna above the surface?
-        zenith_antenna = get_fresnel_angle(zenith, n_2=1., n_1=get_n_ice_surface())
+        zenith_antenna = get_fresnel_angle(zenith, n_2=get_n_air(), n_1=get_n_ice_surface())
 
     if zenith_antenna is None:
         logger.warning(
