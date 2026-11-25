@@ -4,6 +4,9 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.2.0-dev
 new features:
+- Added a `--create_reference` option to the SingleEvents reference tests (`test_build.sh`, `validate_MB.sh`, `validate_ARZ.sh`
+  in NuRadioMC/test/SingleEvents) that overwrites their reference files with the new simulation output, for use after an
+  intended physics change.
 - Added `NuRadioReco.utilities.coding_helper.get_rng` and replaced the remaining uses of numpy's global random state
   in library code by dedicated generators. efieldToVoltageConverter, channelIceThermalNoiseAdder,
   efieldRadioInterferometricReconstruction, beamformingDirectionFitter_LOFAR (`begin`), channelBlockOffsets and
