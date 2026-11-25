@@ -721,61 +721,64 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_station_time" title="NuRadioReco.framework.sim_station.SimStation.get_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_time</span></code></a>([format])</p></td>
 <td><p>Returns the station time as an astropy.time.Time object</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_trigger" title="NuRadioReco.framework.sim_station.SimStation.get_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger</span></code></a>(name)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_station_time_subsecond" title="NuRadioReco.framework.sim_station.SimStation.get_station_time_subsecond"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_station_time_subsecond</span></code></a>()</p></td>
+<td><p>Returns the fractional part of the station time's UTC Unix second in the base NuRadioMC time unit (nanoseconds).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_trigger" title="NuRadioReco.framework.sim_station.SimStation.get_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_trigger</span></code></a>(name)</p></td>
 <td><p>returns the trigger with the name 'name'</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_triggers" title="NuRadioReco.framework.sim_station.SimStation.get_triggers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggers</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.get_triggers" title="NuRadioReco.framework.sim_station.SimStation.get_triggers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_triggers</span></code></a>()</p></td>
 <td><p>Returns a dictionary of the triggers.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_parameter" title="NuRadioReco.framework.sim_station.SimStation.has_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter</span></code></a>(key)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_parameter" title="NuRadioReco.framework.sim_station.SimStation.has_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter</span></code></a>(key)</p></td>
 <td><p>Returns <em class="xref py py-obj">True</em> if the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_parameter_covariance" title="NuRadioReco.framework.sim_station.SimStation.has_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_covariance</span></code></a>(key1, key2)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_parameter_covariance" title="NuRadioReco.framework.sim_station.SimStation.has_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_covariance</span></code></a>(key1, key2)</p></td>
 <td><p>Returns <em class="xref py py-obj">True</em> if the covariance for <em class="xref py py-obj">key1</em> and <em class="xref py py-obj">key2</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_parameter_error" title="NuRadioReco.framework.sim_station.SimStation.has_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_error</span></code></a>(key)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_parameter_error" title="NuRadioReco.framework.sim_station.SimStation.has_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_parameter_error</span></code></a>(key)</p></td>
 <td><p>Returns <em class="xref py py-obj">True</em> if an uncertainty for the parameter <em class="xref py py-obj">key</em> is present, <em class="xref py py-obj">False</em> otherwise</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_trigger" title="NuRadioReco.framework.sim_station.SimStation.has_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_trigger</span></code></a>(trigger_name)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_trigger" title="NuRadioReco.framework.sim_station.SimStation.has_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_trigger</span></code></a>(trigger_name)</p></td>
 <td><p>Checks if station has a trigger with a certain name.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_triggered" title="NuRadioReco.framework.sim_station.SimStation.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.has_triggered" title="NuRadioReco.framework.sim_station.SimStation.has_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_triggered</span></code></a>([trigger_name])</p></td>
 <td><p>Checks if the station has triggered.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.is_candidate" title="NuRadioReco.framework.sim_station.SimStation.is_candidate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_candidate</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.is_candidate" title="NuRadioReco.framework.sim_station.SimStation.is_candidate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_candidate</span></code></a>()</p></td>
 <td><p>Returns whether the station is a candidate for producing a trigger.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.remove_parameter" title="NuRadioReco.framework.sim_station.SimStation.remove_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_parameter</span></code></a>(key)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.remove_parameter" title="NuRadioReco.framework.sim_station.SimStation.remove_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_parameter</span></code></a>(key)</p></td>
 <td><p>Remove a parameter</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.remove_triggers" title="NuRadioReco.framework.sim_station.SimStation.remove_triggers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_triggers</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.remove_triggers" title="NuRadioReco.framework.sim_station.SimStation.remove_triggers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_triggers</span></code></a>()</p></td>
 <td><p>removes all triggers from the station</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_candidate" title="NuRadioReco.framework.sim_station.SimStation.set_candidate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_candidate</span></code></a>(candidate_status)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_candidate" title="NuRadioReco.framework.sim_station.SimStation.set_candidate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_candidate</span></code></a>(candidate_status)</p></td>
 <td><p>Set the candidate for the simulation station.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_is_cosmic_ray" title="NuRadioReco.framework.sim_station.SimStation.set_is_cosmic_ray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_cosmic_ray</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_is_cosmic_ray" title="NuRadioReco.framework.sim_station.SimStation.set_is_cosmic_ray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_cosmic_ray</span></code></a>()</p></td>
 <td><p>set station type to cosmic rays (relevant e.g. for refraction into the snow).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_is_neutrino" title="NuRadioReco.framework.sim_station.SimStation.set_is_neutrino"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_neutrino</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_is_neutrino" title="NuRadioReco.framework.sim_station.SimStation.set_is_neutrino"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_is_neutrino</span></code></a>()</p></td>
 <td><p>set station type to neutrino</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_parameter" title="NuRadioReco.framework.sim_station.SimStation.set_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter</span></code></a>(key, value)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_parameter" title="NuRadioReco.framework.sim_station.SimStation.set_parameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter</span></code></a>(key, value)</p></td>
 <td><p>Set a parameter</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_parameter_covariance" title="NuRadioReco.framework.sim_station.SimStation.set_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_covariance</span></code></a>(key1, key2, value)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_parameter_covariance" title="NuRadioReco.framework.sim_station.SimStation.set_parameter_covariance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_covariance</span></code></a>(key1, key2, value)</p></td>
 <td><p>Set the covariance of two parameters</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_parameter_error" title="NuRadioReco.framework.sim_station.SimStation.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_parameter_error" title="NuRadioReco.framework.sim_station.SimStation.set_parameter_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_parameter_error</span></code></a>(key, value)</p></td>
 <td><p>Set the error of a parameter</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_station_time" title="NuRadioReco.framework.sim_station.SimStation.set_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_station_time</span></code></a>(time[, format])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_station_time" title="NuRadioReco.framework.sim_station.SimStation.set_station_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_station_time</span></code></a>(time[, format])</p></td>
 <td><p>Set the (absolute) time for the station (stored as astropy.time.Time).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_trigger" title="NuRadioReco.framework.sim_station.SimStation.set_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger</span></code></a>(trigger)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_trigger" title="NuRadioReco.framework.sim_station.SimStation.set_trigger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_trigger</span></code></a>(trigger)</p></td>
 <td><p>sets a trigger for the station.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_triggered" title="NuRadioReco.framework.sim_station.SimStation.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#NuRadioReco.framework.sim_station.SimStation.set_triggered" title="NuRadioReco.framework.sim_station.SimStation.set_triggered"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_triggered</span></code></a>([triggered])</p></td>
 <td><p>Convenience function to set a simple trigger.</p></td>
 </tr>
 </tbody>
@@ -1093,6 +1096,23 @@ are measured relative to this time.</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
 <dt>station_time: astropy.time.Time</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="NuRadioReco.framework.sim_station.SimStation.get_station_time_subsecond">
+<span class="sig-name descname"><span class="pre">get_station_time_subsecond</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#NuRadioReco.framework.sim_station.SimStation.get_station_time_subsecond" title="Link to this definition"></a></dt>
+<dd><p>Returns the fractional part of the station time’s UTC Unix second
+in the base NuRadioMC time unit (nanoseconds). This is, e.g., useful
+to investigate when in a second an event triggered.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>float or None</dt><dd><p>The fractional UTC second in nanoseconds, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if no
+station time is set.</p>
+</dd>
 </dl>
 </dd>
 </dl>

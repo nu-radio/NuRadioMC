@@ -649,8 +649,10 @@
              
   <h1>Source code for NuRadioReco.utilities.framework_utilities</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.framework.event</span><span class="w"> </span><span class="kn">import</span> <span class="n">Event</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">astropy.time</span><span class="w"> </span><span class="kn">import</span> <span class="n">Time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">units</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.signal_processing</span><span class="w"> </span><span class="kn">import</span> <span class="n">_isinstance_if_loaded</span>
 
 <div class="viewcode-block" id="get_averaged_channel_parameter">
 <a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.framework_utilities.html#NuRadioReco.utilities.framework_utilities.get_averaged_channel_parameter">[docs]</a>
@@ -658,7 +660,7 @@
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Return average across all channels to include for a channel parameter "param"</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event_or_station</span><span class="p">,</span> <span class="n">Event</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">_isinstance_if_loaded</span><span class="p">(</span><span class="n">event_or_station</span><span class="p">,</span> <span class="s1">'NuRadioReco.framework.event'</span><span class="p">,</span> <span class="s1">'Event'</span><span class="p">):</span>
         <span class="c1"># This will throw an error if the event has more than one station</span>
         <span class="n">station</span> <span class="o">=</span> <span class="n">event_or_station</span><span class="o">.</span><span class="n">get_station</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
@@ -692,6 +694,25 @@
 
     <span class="k">return</span> <span class="n">params</span></div>
 
+
+<div class="viewcode-block" id="sub_second_from_time">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.utilities.framework_utilities.html#NuRadioReco.utilities.framework_utilities.sub_second_from_time">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sub_second_from_time</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">Time</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Returns the fractional part of an astropy time object's UTC Unix second</span>
+<span class="sd">    in the base NuRadioMC time unit (nanoseconds).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    t: astropy.time.Time</span>
+<span class="sd">        The time object to be converted to a float in seconds</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        The fractional part of the time object's UTC Unix second in the base NuRadioMC time unit</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">Time</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">unix</span><span class="p">),</span> <span class="nb">format</span><span class="o">=</span><span class="s1">'unix'</span><span class="p">))</span><span class="o">.</span><span class="n">sec</span> <span class="o">*</span> <span class="n">units</span><span class="o">.</span><span class="n">s</span></div>
 
 </pre></div>
 

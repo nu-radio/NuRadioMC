@@ -654,14 +654,13 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.electric_field</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameters</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">parameters</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">NuRadioReco.framework.parameter_storage</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">io_utilities</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">io_utilities</span><span class="p">,</span> <span class="n">framework_utilities</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">astropy.time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">NuRadioReco.utilities.io_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_dumps</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">'NuRadioReco.BaseStation'</span><span class="p">)</span>
 
@@ -734,6 +733,26 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span><span class="o">.</span><span class="n">format</span> <span class="o">=</span> <span class="nb">format</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span></div>
+
+
+<div class="viewcode-block" id="BaseStation.get_station_time_subsecond">
+<a class="viewcode-back" href="../../../NuRadioReco/apidoc/NuRadioReco.framework.base_station.html#NuRadioReco.framework.base_station.BaseStation.get_station_time_subsecond">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_station_time_subsecond</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Returns the fractional part of the station time's UTC Unix second</span>
+<span class="sd">        in the base NuRadioMC time unit (nanoseconds). This is, e.g., useful</span>
+<span class="sd">        to investigate when in a second an event triggered.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float or None</span>
+<span class="sd">            The fractional UTC second in nanoseconds, or ``None`` if no</span>
+<span class="sd">            station time is set.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">framework_utilities</span><span class="o">.</span><span class="n">sub_second_from_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_station_time</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.get_id">
@@ -1006,7 +1025,7 @@
             <span class="s1">'electric_fields'</span><span class="p">:</span> <span class="n">efield_pkls</span>
         <span class="p">})</span>
 
-        <span class="k">return</span> <span class="n">_dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">io_utilities</span><span class="o">.</span><span class="n">_dumps</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BaseStation.deserialize">
