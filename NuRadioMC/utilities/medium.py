@@ -10,8 +10,10 @@ from NuRadioMC.utilities import medium_base
 import numpy as np
 import os
 from NuRadioReco.utilities import units
+import NuRadioReco
 
 import functools
+import json
 
 logger = medium_base.logger
 
@@ -55,8 +57,67 @@ in the a RadioPropaIceWrapper object, you can do this by redefining the
             return ice
 """
 
+# Air above Summit Station, Greenland (3216 m a.s.l.), for the Greenland models with an air layer:
+# n(z) = 1 + 2.14e-4 * exp(-z / 9 km), z above the snow surface.
+# Refractivity N = (n - 1) * 1e6 = 77.6 P / T + 3.732e5 e / T^2 (ITU-R P.453; P, e in hPa, T in K), evaluated on the
+# NOAA GML Summit hourly meteorology 2008-2026 (https://gml.noaa.gov/aftp/data/meteorology/in-situ/sum/), April to
+# October (the RNO-G data-taking season): mean P = 672.6 hPa, T(2 m) = -21.0 C, water-vapour term 6.8 (from the
+# relative humidity) -> N = 213.9 (5-95%: 205.6-223.5; monthly means 212-217).
+# Scale height of the air density for the mean T and a lapse rate of 6.5 K/km: T / (g / R_d - 6.5 K/km) = 9.1 km
+# (isothermal: 7.4 km). The US standard atmosphere at sea level would give n - 1 = 2.7e-4.
+N_AIR_SUMMIT = 1 + 2.14e-4
+AIR_SCALE_HEIGHT_SUMMIT = 9 * units.km
+
+#: Measured refractive index of air at the surface per site; overrides the elevation scaling in `get_n_air`.
+SITE_N_AIR = {
+    'summit': N_AIR_SUMMIT,
+    'greenland': N_AIR_SUMMIT,
+}
+
+#: Site names that ``NuRadioReco/detector/coordinates.json`` lists under another name.
+_SITE_ALIASES = {'greenland': 'summit', 'sp': 'southpole'}
+
+
+@functools.lru_cache(maxsize=None)
+def _get_site_elevations():
+    path = os.path.join(os.path.dirname(NuRadioReco.__file__), 'detector', 'coordinates.json')
+    with open(path) as f:
+        return {site: coords['elevation'] * units.m for site, coords in json.load(f).items()}
+
+
+def get_n_air(site):
+    """
+    Returns the refractive index of air at the surface of a site.
+
+    Measured values (`SITE_N_AIR`) take precedence. Otherwise the sea-level value `medium_base.N_AIR_SEA_LEVEL`
+    is scaled to the site elevation (``NuRadioReco/detector/coordinates.json``, as ``Detector.get_site_elevation``)
+    with the exponential atmosphere of `medium_base.exponential_air_layer`:
+    n = 1 + (N_AIR_SEA_LEVEL - 1) * exp(-elevation / AIR_SCALE_HEIGHT_DEFAULT). This ignores the site temperature,
+    so it underestimates n - 1 at cold sites (Summit: 1.81e-4 instead of the measured 2.14e-4).
+    Sites without a known elevation (also an empty or missing site name, None) get the sea-level value.
+
+    Parameters
+    ----------
+    site: str or None
+        Site name (case insensitive), e.g. from ``Detector.get_site``
+
+    Returns
+    -------
+    n_air: float
+    """
+    site = (site or "").lower()
+    if site in SITE_N_AIR:
+        return SITE_N_AIR[site]
+
+    elevation = _get_site_elevations().get(_SITE_ALIASES.get(site, site), 0)
+    return 1 + (medium_base.N_AIR_SEA_LEVEL - 1) * np.exp(-elevation / medium_base.AIR_SCALE_HEIGHT_DEFAULT)
+
+
 
 class southpole_simple(medium_base.IceModelSimple):
+    """RICE2014/SP model from https://doi.org/10.1088/1475-7516/2018/07/055"""
+    n_air = get_n_air('southpole')  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 RICE2014/SP model
         # define model parameters (RICE 2014/southpole)
@@ -69,6 +130,9 @@ class southpole_simple(medium_base.IceModelSimple):
 
 
 class southpole_2015(medium_base.IceModelSimple):
+    """SPICE2015/SP model from https://doi.org/10.1088/1475-7516/2018/07/055"""
+    n_air = get_n_air('southpole')  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 SPICE2015/SP model
         super().__init__(
@@ -80,6 +144,9 @@ class southpole_2015(medium_base.IceModelSimple):
 
 
 class ARAsim_southpole(medium_base.IceModelSimple):
+    """ARA SPICE 2015/southpole model"""
+    n_air = get_n_air('southpole')  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         # define model parameters (SPICE 2015/southpole)
         super().__init__(
@@ -92,6 +159,9 @@ class ARAsim_southpole(medium_base.IceModelSimple):
 
 
 class ARA_2022(medium_base.IceModelSimple):
+    """ARA/southpole model from https://journals.aps.org/prd/pdf/10.1103/PhysRevD.105.122006"""
+    n_air = get_n_air('southpole')  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         # define model parameters (ARA/southpole) -> https://journals.aps.org/prd/pdf/10.1103/PhysRevD.105.122006
         super().__init__(
@@ -140,6 +210,7 @@ class birefringence_medium(medium_base.IceModelBirefringence):
         """
         f = self._load_binary_data(bir_model)
         super().__init__(bir_model=f)
+        self.n_air = N_AIR_SUMMIT if bir_model.startswith('greenland') else get_n_air('southpole')
 
     @staticmethod
     @functools.lru_cache(maxsize=8)
@@ -149,6 +220,12 @@ class birefringence_medium(medium_base.IceModelBirefringence):
         return np.load(filepath, allow_pickle=True)
 
 class mooresbay_simple(medium_base.IceModelSimple):
+    """MB1 model from https://doi.org/10.1088/1475-7516/2018/07/055
+
+    Includes reflective layer at -576 m from https://doi.org/10.3189/2015JoG14J214
+    """
+    n_air = get_n_air('mooresbay')  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 MB1 model
         super().__init__(
@@ -166,7 +243,13 @@ class mooresbay_simple(medium_base.IceModelSimple):
 
 
 class mooresbay_simple_2(medium_base.IceModelSimple):
-    def __init__(self):\
+    """MB2 model from https://doi.org/10.1088/1475-7516/2018/07/055
+
+    Includes reflective layer at -576 m from https://doi.org/10.3189/2015JoG14J214
+    """
+    n_air = get_n_air('mooresbay')  #: air above the surface (`medium_base.IceModel.n_air`)
+
+    def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 MB2 model
         super().__init__(
             n_ice = 1.78,
@@ -183,6 +266,9 @@ class mooresbay_simple_2(medium_base.IceModelSimple):
 
 
 class greenland_simple(medium_base.IceModelSimple):
+    """Greenland ice model from C. Deaconu, fit to data from Hawley '08, Alley '88"""
+    n_air = N_AIR_SUMMIT  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         # from C. Deaconu, fit to data from Hawley '08, Alley '88
         # rho(z) = 917 - 602 * exp (-z/37.25), using n = 1 + 0.78 rho(z)/rho_0
@@ -194,9 +280,10 @@ class greenland_simple(medium_base.IceModelSimple):
             )
 
 class greenland_simple_nils(medium_base.IceModelSimple):
+    n_air = N_AIR_SUMMIT  #: air above the surface (`medium_base.IceModel.n_air`)
+
+
     def __init__(self):
-        # from C. Deaconu, fit to data from Hawley '08, Alley '88
-        # rho(z) = 917 - 602 * exp (-z/37.25), using n = 1 + 0.78 rho(z)/rho_0
         super().__init__(
             z_bottom = -3000*units.meter,
             n_ice = 1.781,
@@ -207,9 +294,13 @@ class greenland_simple_nils(medium_base.IceModelSimple):
 
 class greenland_firn(medium_base.IceModel):
     """
+    double exponential ice model at summit, Greenland
+
     This model can only be used with the radiopropa raytracer.
     Therefor, the model is implemented through radiopropa.
     """
+    n_air = N_AIR_SUMMIT  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         """
         initiation of a double exponential ice model at summit, Greenland
@@ -271,7 +362,6 @@ class greenland_firn(medium_base.IceModel):
     def get_index_of_refraction(self, position):
         """
         returns the index of refraction at position.
-        Overwrites function of the mother class
 
         Parameters
         ----------
@@ -289,7 +379,6 @@ class greenland_firn(medium_base.IceModel):
     def get_average_index_of_refraction(self, position1, position2):
         """
         returns the average index of refraction between two points
-        Overwrites function of the mother class
 
         Parameters
         ----------
@@ -311,7 +400,6 @@ class greenland_firn(medium_base.IceModel):
     def get_gradient_of_index_of_refraction(self, position):
         """
         returns the gradient of index of refraction at position
-        Overwrites function of the mother class
 
         Parameters
         ----------
@@ -370,8 +458,11 @@ class greenland_perturbation(greenland_firn):
 class greenland_poly5(medium_base.IceModelExponentialPolynomial):
     """
     Fifth-degree exponential polynomial model for Summit Station, Greenland by Oeyen B.
-    https://doi.org/10.5281/zenodo.15067984
+
+    See https://doi.org/10.5281/zenodo.15067984 for more details
     """
+    n_air = N_AIR_SUMMIT  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self, density_factor=0.851 * (units.cm**3 / units.gram)):
         """
         initiation of the model based on the fitted coefficient
@@ -422,126 +513,16 @@ def get_ice_model(name):
     else:
         return globals()[name]()
 
-class greenland_simple_layered_test(medium_base.IceModelExpLayers):
-    """
-    Single layer refractive index model.
-    
-    greenland_simple model adapted to match the expected medium definition needed for the multi layer analytic raytracer. Used as a comparison to the single layer analytic raytracer.
-    """
-    def __init__(self):
-
-        z_bottom = -3000*units.meter
-        n_ice = 1.78
-        z_0 = 37.25*units.meter
-        delta_n = 0.51
-
-        layers = [
-            {
-            "z_min": 0.0,
-            "z_max": np.inf,
-            "n_ice": 1.00001,
-            "delta_n": 1e-6,
-            "z_0": -8000,
-            "region": "air",
-            "region_name": "Air"
-        },
-            {
-            "z_min": -3000.0,
-            "z_max": 0.0,
-            "n_ice": 1.781,
-            "delta_n": 0.51,
-            "z_0": 37.25,
-            "region": "single",
-            "region_name": "SingleModel"
-        }]
-
-        super().__init__(
-            layers=layers
-        )
-
-class greenland_simple_layered(medium_base.IceModelExpLayers):
-    """
-    Single layer refractive index model.
-    
-    greenland_simple model adapted to match the expected medium definition needed for the multi layer analytic raytracer. Used as a comparison to the single layer analytic raytracer.
-    """
-    def __init__(self):
-
-        z_bottom = -3000*units.meter
-        n_ice = 1.78
-        z_0 = 37.25*units.meter
-        delta_n = 0.51
-
-        layers = [
-            {
-            "z_min": 0.0,
-            "z_max": np.inf,
-            "n_ice": 1.00001,
-            "delta_n": 1e-6,
-            "z_0": -8000,
-            "region": "air",
-            "region_name": "Air"
-        },
-            {
-            "z_min": -3000.0,
-            "z_max": 0.0,
-            "n_ice": 1.78,
-            "delta_n": 0.51,
-            "z_0": 37.25,
-            "region": "single",
-            "region_name": "SingleModel"
-        }]
-
-        super().__init__(
-            layers=layers
-        )
-
-        
-
-
-class greenland_simple_nils_layered(medium_base.IceModelExpLayers):
-    """
-    New fit parameters for the single layer refractive index model. 
-    
-    greenland_simple model adapted to match the expected medium definition needed for the multi layer analytic raytracer. Used as a comparison to the single layer analytic raytracer.
-    """
-    def __init__(self):
-
-        z_bottom = -3000*units.meter
-        n_ice = 1.78
-        z_0 = 37.25*units.meter
-        delta_n = 0.51
-
-        layers = [
-            {
-            "z_min": 0.0,
-            "z_max": np.inf,
-            "n_ice": 1.00001,
-            "delta_n": 1e-6,
-            "z_0": -8000,
-            "region": "air",
-            "region_name": "Air"
-        },
-            {
-            "z_min": -3000.0,
-            "z_max": 0.0,
-            "n_ice": 1.781,
-            "delta_n": 0.485,
-            "z_0": 45.20,
-            "region": "single",
-            "region_name": "SingleModel"
-        }]
-
-        super().__init__(
-            layers=layers
-        )
 
 class greenland_firn_layered(medium_base.IceModelExpLayers):
     """
-    Two layer refractive index model.
+    Two-layer refractive index model.
      
-    values taken from greenland_firn and adapted to match the expected medium definition needed for the multi layer analytic raytracer. Combination of firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
+    values taken from greenland_firn and adapted to match the expected medium definition needed for the multi layer analytic raytracer.
+    Combination of firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
     """
+    n_air = N_AIR_SUMMIT  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         
         layers = [
@@ -569,287 +550,194 @@ class greenland_firn_layered(medium_base.IceModelExpLayers):
             layers=layers
         )
 
-class greenland_3exp_layered(medium_base.IceModelContinuousExpLayers):
+
+
+class greenland_3exp_density(medium_base.IceModelContinuousExpLayers):
     """
     (3+1) layer refractive index model. Three layer model in ice plus one air layer.
      
-    Values for below the ice obtained from a fit to ice core density data. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
+    Values for below the ice obtained from a fit to ice core density data.
+    Combination of air layer above z=0.0, snow layer,
+    firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
     """
 
     def __init__(self):
         super().__init__(
-            nN = 1.77468,
-            delta_nN = 1.41573,
-            ls = [1 / 0.0387882, 1 / 0.0129175, 1 / 0.114553],
-            zs = [-80.5, -14.9]
+            nN = 1.778,
+            delta_nN = 1.120,
+            ls = [28.606, 73.728, 8.848],
+            zs = [-80.5, -14.9],
+            n_air_surface = N_AIR_SUMMIT,
+            air_scale_height = AIR_SCALE_HEIGHT_SUMMIT
         )
 
-
-class greenland_3exp_nils_layered(medium_base.IceModelExpLayers):
+class greenland_3exp_timing_2025(medium_base.IceModelContinuousExpLayers):
     """
-    New fit parameters for the (3+1) layer refractive index model. Three layer model in ice plus one air layer.
-     
-    Values for below the ice taken from https://github.com/philippwindischhofer/Reconal/blob/7204049c755a0678178821073fa73a476c49c491/defs.py#L72-L82. Combination of air layer above z=0.0, snow layer, firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
+    (3+1) layer refractive index model. Three layer model in ice plus one air layer.
+
+    Values for below the ice obtained from a fit to absolute-timing data
+    taken during the 2025 Summit field season.
+    Combination of air layer above z=0.0, snow layer,
+    firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
     """
+
     def __init__(self):
-
-        layers = [
-            {
-                "z_min": 0.0,
-                "z_max": np.inf,
-                "n_ice": 1.00027,
-                "delta_n": 2.7e-4,
-                "z_0": -8000.0,
-                "region": "air",
-                "region_name": "Air"
-            },
-            {
-                "z_min": -14.9,
-                "z_max": 0.0,
-                "n_ice": 1.544,
-                "delta_n": 0.272,
-                "z_0": 15.88,
-                "region": "snow",
-                "region_name": "Snow"
-            },
-            {
-                "z_min": -80.5,
-                "z_max": -14.9,
-                "n_ice": 1.855,
-                "delta_n": 0.530255538,
-                "z_0": 62.281809455,
-                "region": "firn",
-                "region_name": "Firn"
-            },
-            {
-                "z_min": -3000.0,
-                "z_max": -80.5,
-                "n_ice": 1.778,
-                "delta_n": 1.06592622966,
-                "z_0": 29.343776516,
-                "region": "bubbly_ice",
-                "region_name": "Ice"
-            }
-        ]
-
         super().__init__(
-            layers=layers
-        )
-
-        
-class southpole_simple_layered(medium_base.IceModelExpLayers):
-
-    def __init__(self):
-        # from https://doi.org/10.1088/1475-7516/2018/07/055
-        # RICE2014/SP model
-
-        z_bottom = -2820 * units.meter
-        n_ice = 1.78
-        z_0 = 71. * units.meter
-        delta_n = 0.426
-
-        layers = [
-            {
-                "z_min": 0.0,
-                "z_max": np.inf,
-                "n_ice": 1.000001,
-                "delta_n": 2.7e-6,
-                "z_0": -8000.0,
-                "region": "air",
-                "region_name": "Air"
-            },
-            {
-                "z_min": z_bottom,
-                "z_max": 0.0,
-                "n_ice": n_ice,
-                "delta_n": delta_n,
-                "z_0": z_0,
-                "region": "ice",
-                "region_name": "Ice"
-            }
-        ]
-
-        super().__init__(layers=layers)
-
-
-class southpole_2015_layered(medium_base.IceModelExpLayers):
-
-    def __init__(self):
-
-        # SPICE2015/SP model
-        z_bottom = -2820 * units.meter
-        n_ice = 1.78
-        z_0 = 77. * units.meter
-        delta_n = 0.423
-
-        layers = [
-            {
-                "z_min": 0.0,
-                "z_max": np.inf,
-                "n_ice": 1.000001,
-                "delta_n": 2.7e-6,
-                "z_0": -8000.0,
-                "region": "air",
-                "region_name": "Air"
-            },
-            {
-                "z_min": z_bottom,
-                "z_max": 0.0,
-                "n_ice": n_ice,
-                "delta_n": delta_n,
-                "z_0": z_0,
-                "region": "ice",
-                "region_name": "Ice"
-            }
-        ]
-
-        super().__init__(layers=layers)
-
-class ARAsim_southpole_layered(medium_base.IceModelExpLayers):
-
-    def __init__(self):
-
-        # SPICE 2015 / South Pole
-        z_bottom = -2820 * units.meter
-        n_ice = 1.78
-        z_0 = 75.75757575757576 * units.meter
-        delta_n = 0.43
-
-        layers = [
-            {
-                "z_min": 0.0,
-                "z_max": np.inf,
-                "n_ice": 1.00027,
-                "delta_n": 2.7e-4,
-                "z_0": -8000.0,
-                "region": "air",
-                "region_name": "Air"
-            },
-            {
-                "z_min": z_bottom,
-                "z_max": 0.0,
-                "n_ice": n_ice,
-                "delta_n": delta_n,
-                "z_0": z_0,
-                "region": "ice",
-                "region_name": "Ice"
-            }
-        ]
-
-        super().__init__(
-            layers=layers
-        )
-
-class ARA_2022_layered(medium_base.IceModelExpLayers):
-
-    def __init__(self):
-
-        # ARA South Pole model
-        # https://journals.aps.org/prd/pdf/10.1103/PhysRevD.105.122006
-
-        z_bottom = -2820 * units.meter
-        n_ice = 1.78
-        z_0 = 49.5049505 * units.meter
-        delta_n = 0.454
-
-        layers = [
-            {
-                "z_min": 0.0,
-                "z_max": np.inf,
-                "n_ice": 1.00027,
-                "delta_n": 2.7e-4,
-                "z_0": -8000.0,
-                "region": "air",
-                "region_name": "Air"
-            },
-            {
-                "z_min": z_bottom,
-                "z_max": 0.0,
-                "n_ice": n_ice,
-                "delta_n": delta_n,
-                "z_0": z_0,
-                "region": "ice",
-                "region_name": "Ice"
-            }
-        ]
-
-        super().__init__(
-            layers=layers
-        )
-
-class mooresbay_simple_layered(medium_base.IceModelExpLayers):
-
-    def __init__(self):
-
-        # MB1 model
-        # https://doi.org/10.1088/1475-7516/2018/07/055
-
-        z_bottom = -576 * units.meter
-        n_ice = 1.78
-        z_0 = 34.5 * units.meter
-        delta_n = 0.46
-
-
-        layers = [
-            {
-                "z_min": 0.0,
-                "z_max": np.inf,
-                "n_ice": 1.00027,
-                "delta_n": 2.7e-4,
-                "z_0": -8000.0,
-                "region": "air",
-                "region_name": "Air"
-            },
-            {
-                "z_min": z_bottom,
-                "z_max": 0.0,
-                "n_ice": n_ice,
-                "delta_n": delta_n,
-                "z_0": z_0,
-                "region": "ice",
-                "region_name": "Ice"
-            }
-        ]
-
-        super().__init__(
-            layers=layers
-        )
-
-class mooresbay_simple_2_layered(medium_base.IceModelExpLayers):
-
-    def __init__(self):
-
-        # MB2 model
-        # https://doi.org/10.1088/1475-7516/2018/07/055
-
-        z_bottom = -576 * units.meter
-        n_ice = 1.78
-        z_0 = 37.0 * units.meter
-        delta_n = 0.481
-
-        layers = [
-            {
-                "z_min": 0.0,
-                "z_max": np.inf,
-                "n_ice": 1.00027,
-                "delta_n": 2.7e-4,
-                "z_0": -8000.0,
-                "region": "air",
-                "region_name": "Air"
-            },
-            {
-                "z_min": z_bottom,
-                "z_max": 0.0,
-                "n_ice": n_ice,
-                "delta_n": delta_n,
-                "z_0": z_0,
-                "region": "ice",
-                "region_name": "Ice"
-            }
-        ]
-
-        super().__init__(
-            layers=layers
+            nN = 1.778,
+            delta_nN = 1.0659,
+            ls = [29.3437, 62.2818, 15.88],
+            zs = [-80.5, -14.9],
+            n_air_surface = N_AIR_SUMMIT,
+            air_scale_height = AIR_SCALE_HEIGHT_SUMMIT
         )
 
 
+#: Default ice model per detector site (lower-case site name as returned by ``Detector.get_site``),
+#: used by `get_station_ice_model` when neither the caller nor the detector provides one.
+SITE_ICE_MODELS = {
+    'summit': 'greenland_3exp_timing_2025',
+    'greenland': 'greenland_3exp_timing_2025',
+    'southpole': 'southpole_2015',
+    'sp': 'southpole_2015',
+    'mooresbay': 'mooresbay_simple',
+}
+
+#: Sites without ice: the antennas are in air (`get_station_ice_model` returns None).
+AIR_SITES = ('lofar', 'auger', 'ska')
+
+
+@functools.lru_cache(maxsize=None)
+def _get_cached_ice_model(name):
+    return get_ice_model(name)
+
+
+def get_station_ice_model(det, station_id, ice_model=None):
+    """
+    Returns the ice model for a station.
+
+    The model is taken, in this order, from:
+
+    1. the argument ``ice_model`` (name of a model in this module, or an `IceModel` object),
+    2. the detector, if it provides ``get_ice_model(station_id)`` and a model is attached to the station,
+    3. the default model of the station's site (`SITE_ICE_MODELS`).
+
+    Parameters
+    ----------
+    det: Detector
+        Detector description; uses ``det.get_site(station_id)`` and, if present, ``det.get_ice_model(station_id)``
+    station_id: int
+        Station id
+    ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+        Overrides the detector and site defaults
+
+    Returns
+    -------
+    ice_model: `NuRadioMC.utilities.medium_base.IceModel` or None
+        None for sites without ice (`AIR_SITES`). Shared between calls when resolved by name (see Warnings).
+
+    Raises
+    ------
+    ValueError
+        If no model is given and the site has no default (e.g. "simulation", an empty or unknown site)
+
+    Warnings
+    --------
+    **Do not modify the returned model.** Models resolved by name (a string ``ice_model`` or the site default)
+    are cached: every call returns the same object, shared by all modules and stations in the process. Changing
+    it (e.g. ``_set_params``, ``add_reflective_bottom``, setting attributes) silently changes the refractive
+    index used everywhere afterwards. For a modified model, create your own (`get_ice_model`) and pass it
+    as ``ice_model``.
+    """
+    if isinstance(ice_model, str):
+        return _get_cached_ice_model(ice_model)
+    if ice_model is not None:
+        return ice_model
+
+    if hasattr(det, "get_ice_model"):
+        try:
+            det_ice_model = det.get_ice_model(station_id)
+        except KeyError:
+            det_ice_model = None  # no model attached to this station
+        if det_ice_model is not None:
+            return det_ice_model
+
+    site = (det.get_site(station_id) or "").lower()
+    if site in AIR_SITES:
+        return None
+    if site not in SITE_ICE_MODELS:
+        raise ValueError(
+            f"No default ice model for site '{site}' (station {station_id}). "
+            f"Pass an ice model explicitly (`ice_model`, e.g. one of {sorted(set(SITE_ICE_MODELS.values()))}).")
+
+    return _get_cached_ice_model(SITE_ICE_MODELS[site])
+
+
+def _has_air_layer(ice_model):
+    # Air layers built by `medium_base.exponential_air_layer` (IceModelContinuousExpLayers,
+    # IceModelExpLayers.from_IceModel) are physical; other layer definitions may carry an n ~ 1 placeholder.
+    return isinstance(ice_model, medium_base.IceModelExpLayers) and any(
+        layer.get("region") == "air" for layer in ice_model.layers)
+
+
+def get_refractive_index(z, ice_model, site):
+    """
+    Returns the refractive index at height ``z`` of a station.
+
+    Below the surface (``z <= ice_model.z_air_boundary``), this is the ice model's n(z). Above it, the model's
+    air layer if it has a physical one (built by `medium_base.exponential_air_layer`), else the model's constant
+    air value ``ice_model.n_air``. Without an ice model, the site's air value (`get_n_air`).
+
+    Parameters
+    ----------
+    z: float
+        Height relative to the surface (negative: in the ice)
+    ice_model: `NuRadioMC.utilities.medium_base.IceModel` or None
+        Ice model, e.g. from `get_station_ice_model`. None means no ice (air everywhere).
+    site: str
+        Site name, used for the air value without an ice model
+
+    Returns
+    -------
+    n: float
+    """
+    if ice_model is None:
+        return get_n_air(site)
+
+    if z > ice_model.z_air_boundary and not _has_air_layer(ice_model):
+        return ice_model.n_air
+
+    return float(ice_model.get_index_of_refraction(np.array([0, 0, z])))
+
+
+def get_station_refractive_index(det, station_id, z, ice_model=None):
+    """
+    Returns the refractive index at height ``z`` of a station.
+
+    Combines `get_station_ice_model` and `get_refractive_index`. If the station's site has no default ice model
+    (e.g. "simulation") and none is given, the site's air value (`get_n_air`) is returned above the surface
+    (``z > 0``); below it, the `ValueError` of `get_station_ice_model` is raised.
+
+    Parameters
+    ----------
+    det: Detector
+        Detector description (see `get_station_ice_model`)
+    station_id: int
+        Station id
+    z: float
+        Height relative to the surface (negative: in the ice)
+    ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+        Overrides the detector and site defaults
+
+    Returns
+    -------
+    n: float
+    """
+    site = det.get_site(station_id)
+    try:
+        station_ice_model = get_station_ice_model(det, station_id, ice_model)
+    except ValueError:
+        if z > 0:
+            return get_n_air(site)
+        raise
+
+    return get_refractive_index(z, station_ice_model, site)

@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-from numpy import testing
 from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioReco.utilities import units, logging as nu_logging
 from NuRadioMC.utilities import medium
@@ -13,10 +12,9 @@ from radiotools import plthelpers as php
 
 """
 this example calculates ice-to-air and air-to-ice raytracing solutions for a
-few fixed geometries. Because the geometries (and hence the solutions) are
-fixed, the resulting C0, focusing factor and fresnel transmission
-coefficients (t_s, t_p) are validated against hardcoded reference values so
-that regressions in the ice/air raytracing code are caught in CI.
+few fixed geometries and plots the ray paths. Its C0, focusing factors and
+fresnel transmission coefficients are checked against reference values in
+NuRadioMC/test/SignalProp/T12test_air_to_ice.py.
 """
 
 x1 = np.array([0, 0., -149.]) * units.m
@@ -110,45 +108,6 @@ for i, (x_start, x_stop) in enumerate(zip(x_starts, x_stops)):
             # yy, zz = r_2d.get_path(x1_2d, x2_2d, ray_tracing_C0[i, iS])
             ax.plot(xx, zz, '{}'.format(php.get_color_linestyle(i)), label='{} C0 = {:.4f}, f = {:.2f}'.format(ray_tracing_solution_type[i, iS], ray_tracing_C0[i, iS], focusing))
             ax.plot(x_stop[0], x_stop[2], '{}{}-'.format('d', php.get_color(i)))
-
-# validate C0, focusing factor and fresnel transmission coefficients (t_s, t_p) against
-# hardcoded reference values for these fixed geometries, to catch regressions in the
-# ice/air raytracing code. Entries that have no solution (NaN) are checked to remain NaN.
-ray_tracing_C0_reference = np.array([
-    [np.nan, np.nan],
-    [1.3087854182874152, np.nan],
-    [1.0064308743162975, np.nan],
-    [1.000051230401809, np.nan],
-    [1.000051230401809, np.nan],
-])
-focusing_factors_reference = np.array([
-    [np.nan, np.nan],
-    [0.6745227377161311, np.nan],
-    [0.11277309434909118, np.nan],
-    [0.00904289875471403, np.nan],
-    [0.8156210793664358, np.nan],
-])
-transmission_t_p_reference = np.array([
-    [np.nan, np.nan],
-    [1.3157903900606893, np.nan],
-    [2.210688211073233, np.nan],
-    [2.654051751148146, np.nan],
-    [0.02942659577064398, np.nan],
-])
-transmission_t_s_reference = np.array([
-    [np.nan, np.nan],
-    [1.2681188663353486, np.nan],
-    [1.7814111089911056, np.nan],
-    [1.9780683188262487, np.nan],
-    [0.02193168117375125, np.nan],
-])
-
-print("validating C0, focusing factor and transmission coefficients against reference values")
-testing.assert_allclose(ray_tracing_C0, ray_tracing_C0_reference, rtol=1e-5, equal_nan=True)
-testing.assert_allclose(focusing_factors, focusing_factors_reference, rtol=1e-5, equal_nan=True)
-testing.assert_allclose(transmission_t_p, transmission_t_p_reference, rtol=1e-5, equal_nan=True)
-testing.assert_allclose(transmission_t_s, transmission_t_s_reference, rtol=1e-5, equal_nan=True)
-print('E02ToAir passed without issues')
 
 ax.legend()
 ax.set_xlabel("y [m]")

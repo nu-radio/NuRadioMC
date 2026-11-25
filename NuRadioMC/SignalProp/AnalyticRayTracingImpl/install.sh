@@ -17,4 +17,5 @@ if [[ -z "${GSLDIR}" ]]; then
 	echo "setting GSLDIR to " $(gsl-config --prefix)
 	export GSLDIR=$(gsl-config --prefix)
 fi
-python setup.py build_ext --inplace
+# $PYTHON is set when called from python (sys.executable); fall back to `python` from PATH
+"${PYTHON:-python}" setup.py build_ext --inplace

@@ -502,7 +502,7 @@ def delay_trace(trace, sampling_frequency, time_delay, crop_trace=True):
         return delayed_trace
 
 
-def get_electric_field_from_temperature(frequencies, noise_temperature, solid_angle):
+def get_electric_field_from_temperature(frequencies, noise_temperature, solid_angle, n=1):
     """
     Calculate the electric field amplitude from the radiance of a radio signal.
 
@@ -518,20 +518,22 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
         The noise temperature to use in the Rayleigh-Jeans law
     solid_angle: float
         The solid angle over which the radiance is integrated
+    n: float (default: 1)
+        The refractive index of the medium
 
     Returns
     -------
     efield_amplitude: array of floats
         The electric field amplitude at each frequency
     """
-    c_vac = constants.c  # already in NuRadioReco units
+    c_med = constants.c / n  # already in NuRadioReco units
 
     # Calculate frequency spacing
     d_f = frequencies[2] - frequencies[1]
 
     # Calculate spectral radiance of radio signal using Rayleigh-Jeans law
     spectral_radiance = (
-        2.0 * constants.k_B * frequencies**2 * noise_temperature / c_vac**2
+        2.0 * constants.k_B * frequencies**2 * noise_temperature / c_med**2
     )
     spectral_radiance[np.isnan(spectral_radiance)] = 0
 
@@ -539,8 +541,8 @@ def get_electric_field_from_temperature(frequencies, noise_temperature, solid_an
     radiance_per_bin = spectral_radiance * d_f * solid_angle
 
     # calculate electric field per energy bin from the radiance per bin
-    # 1 / (c_vac * epsilon_0) = Z_0 the vaccum impedance, d_f term due to our fft definition
-    efield_amplitude = np.sqrt(radiance_per_bin / (c_vac * constants.epsilon_0)) / d_f
+    # wave impedance in the medium: Z = Z_0 / n = 1 / (n * c_vac * epsilon_0), d_f term due to our fft definition
+    efield_amplitude = np.sqrt(radiance_per_bin / (n * constants.c * constants.epsilon_0)) / d_f
 
     return efield_amplitude
 
@@ -590,7 +592,8 @@ def calculate_vrms_from_temperature(temperature, bandwidth=None, response=None, 
     return (temperature * impedance * bandwidth * constants.k_B) ** 0.5
 
 
-def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, efield_is_at_antenna=False):
+def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, efield_is_at_antenna=False,
+                              ice_model=None):
     """
     Returns the antenna response to a radio signal coming from a specific direction
 
@@ -609,6 +612,9 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
         If True, the electric field is assumed to be at the antenna.
         If False, the effects of an air-ice boundary are taken into account if necessary.
         The default is set to False to keep backwards compatibility.
+    ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+        Ice model for the air-ice boundary, passed to
+        `NuRadioReco.utilities.geometryUtilities.fresnel_factors_and_signal_zenith`
 
     Returns
     -------
@@ -624,7 +630,7 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
     for iCh, channel_id in enumerate(channels):
         if not efield_is_at_antenna:
             zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(
-                detector, station, channel_id, zenith)
+                detector, station, channel_id, zenith, ice_model=ice_model)
         else:
             zenith_antenna = zenith
             t_theta = 1
@@ -650,7 +656,7 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
 
 def get_channel_voltage_from_efield(
         station, electric_field, channels, detector,
-        zenith, azimuth, antenna_pattern_provider, return_spectrum=True):
+        zenith, azimuth, antenna_pattern_provider, return_spectrum=True, ice_model=None):
     """
     Returns the voltage traces that would result in the channels from the station's E-field.
 
@@ -667,12 +673,15 @@ def get_channel_voltage_from_efield(
     antenna_pattern_provider: AntennaPatternProvider
     return_spectrum: boolean
         if True, returns the spectrum, if False return the time trace
+    ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+        Ice model for the refraction and Fresnel factors at the surface. Default: from the detector or the site
+        (see `NuRadioMC.utilities.medium.get_station_ice_model`)
     """
 
     frequencies = electric_field.get_frequencies()
     spectrum = electric_field.get_frequency_spectrum()
     efield_antenna_factor = get_efield_antenna_factor(
-        station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider)
+        station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, ice_model=ice_model)
 
     voltage_spectrum = np.array([
         np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0)

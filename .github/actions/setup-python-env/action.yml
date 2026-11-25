@@ -56,6 +56,9 @@ runs:
         SITE_PACKAGES=$(python -c "import sysconfig; print(sysconfig.get_paths()['purelib'])")
         echo "import coverage; coverage.process_startup()" > "$SITE_PACKAGES/coverage_subprocess.pth"
         echo "COVERAGE_PROCESS_START=$GITHUB_WORKSPACE/pyproject.toml" >> "$GITHUB_ENV"
+        # Write data files to the repo root, where upload-coverage-data collects them,
+        # also for test scripts that cd into a subdirectory first
+        echo "COVERAGE_FILE=$GITHUB_WORKSPACE/.coverage" >> "$GITHUB_ENV"
 
     - name: Display installed Python modules
       shell: bash

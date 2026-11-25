@@ -5,13 +5,16 @@ from scipy import integrate
 from NuRadioMC.SignalProp.propagation import solution_types_revert
 from NuRadioMC.utilities import attenuation
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba import njit
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl._maybenumba import njit
 
 from NuRadioReco.utilities import units,  constants
 
 from math import sqrt, log
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_turning_point, get_layer_index, build_y_field, get_n_1D, determine_solution_type
+from .corefunctions import \
+    layers_to_arrays, compute_offsets, get_turning_point, \
+    get_layer_index, build_y_field, get_n_1D, determine_solution_type, \
+    path_integrals_no_log, use_no_log_forms
 
 NumbaList = list # fallback for get_path_segments function
 
@@ -332,7 +335,13 @@ def get_path_length_analytic(c0, x1, x2, layers):
 
 
         beta = 1.0 / c0
-        alpha = max(n_ice**2 - beta**2, 1e-15)
+
+        alpha = n_ice**2 - beta**2
+        if use_no_log_forms(alpha):
+            s_start = path_integrals_no_log(z1, beta, n_ice, delta_n, z0)[0]
+            s_end = path_integrals_no_log(z2, beta, n_ice, delta_n, z0)[0]
+            total_s += (s_end - s_start) if upgoing == 1 else (s_start - s_end)
+            continue
 
 
         def gamma(z):
@@ -572,7 +581,7 @@ def get_reflection_angle(c0, x1, x2, layers):
 
     Notes
     -----
-    The solution type is determined using :func:`determine_solution_type`.
+    The solution type is determined using :func:`.corefunctions.determine_solution_type`.
     The incidence angle is evaluated at z = -1e-12 to avoid numerical
     issues at the surface boundary.
     """
@@ -654,7 +663,13 @@ def get_travel_time_analytic(c0, x1, x2, layers):
 
 
         beta = 1.0 / c0
-        alpha = max(n_ice**2 - beta**2, 1e-15)
+
+        alpha = n_ice**2 - beta**2
+        if use_no_log_forms(alpha):
+            l_start = path_integrals_no_log(z1, beta, n_ice, delta_n, z0)[1]
+            l_end = path_integrals_no_log(z2, beta, n_ice, delta_n, z0)[1]
+            total_t += ((l_end - l_start) if upgoing == 1 else (l_start - l_end)) / constants.c
+            continue
 
 
         def gamma(z):

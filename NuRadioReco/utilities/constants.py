@@ -24,6 +24,12 @@ a1_mass = 1230 * units.MeV
 
 tau_rest_lifetime = 290.3 * units.fs
 
+#: Refractive index of air at sea level (US standard atmosphere). For the air at a detector site,
+#: see `NuRadioMC.utilities.medium.get_n_air`.
+n_air_sea_level = 1.00027
+#: Scale height of the air refractivity n - 1 in an exponential atmosphere
+air_refractivity_scale_height = 8 * units.km
+
 density_ice = 0.9167 * units.g / units.cm ** 3
 density_water = 997 * units.kg / units.m ** 3
 

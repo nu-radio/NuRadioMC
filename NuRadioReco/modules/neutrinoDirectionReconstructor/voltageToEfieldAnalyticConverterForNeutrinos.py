@@ -359,9 +359,11 @@ class voltageToAnalyticEfieldConverterNeutrinos:
                     if(zenith_reflection is None):  # skip all ray segments where not reflection at surface happens
                         continue
                     r_theta = geo_utl.get_fresnel_r_p(
-                        zenith_reflection, n_2=1., n_1=icemodel.get_index_of_refraction([position[0], position[1], -1 * units.cm]))
+                        zenith_reflection, n_2=icemodel.n_air,
+                        n_1=icemodel.get_index_of_refraction([position[0], position[1], -1 * units.cm]))
                     r_phi = geo_utl.get_fresnel_r_s(
-                        zenith_reflection, n_2=1., n_1=icemodel.get_index_of_refraction([position[0], position[1], -1 * units.cm]))
+                        zenith_reflection, n_2=icemodel.n_air,
+                        n_1=icemodel.get_index_of_refraction([position[0], position[1], -1 * units.cm]))
 
                     reflection_coefficients_theta[iA, iS] *= r_theta
                     reflection_coefficients_phi[iA, iS] *= r_phi

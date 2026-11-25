@@ -1,10 +1,12 @@
-from NuRadioReco.utilities import units, ice, geometryUtilities, signal_processing
+from NuRadioReco.utilities import units, geometryUtilities, signal_processing
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.channelGalacticNoiseAdder import channelGalacticNoiseAdder, get_local_coordinates
 import numpy as np
 import scipy.interpolate
 import logging
 import healpy
+
+from NuRadioMC.utilities import medium
 
 logger = logging.getLogger('NuRadioReco.efieldGalacticNoiseAdder')
 
@@ -83,8 +85,12 @@ class efieldGalacticNoiseAdder(channelGalacticNoiseAdder):
 
         local_coordinates = get_local_coordinates((site_latitude, site_longitude), station_time, self._channelGalacticNoiseAdder__n_side)
 
-        n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
-        n_air = ice.get_refractive_index(depth=1, site=detector.get_site(station.get_id()))
+        # surface values as in channelGalacticNoiseAdder.run
+        n_air = medium.get_station_refractive_index(detector, station.get_id(), 0.01 * units.m, self._ice)
+        if any(field.get_position()[2] < 0 for field in station.get_electric_fields()):
+            n_ice = medium.get_station_refractive_index(detector, station.get_id(), -0.01 * units.m, self._ice)
+        else:
+            n_ice = n_air
 
         field_spectra = {}
         for field in station.get_electric_fields():

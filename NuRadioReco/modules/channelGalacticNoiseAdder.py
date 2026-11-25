@@ -1,4 +1,4 @@
-from NuRadioReco.utilities import units, ice, geometryUtilities, signal_processing, fft
+from NuRadioReco.utilities import units, geometryUtilities, signal_processing, fft
 from NuRadioReco.modules.base.module import register_run
 
 import NuRadioReco.framework.channel
@@ -136,7 +136,10 @@ class channelGalacticNoiseAdder:
             Instead, one can use every nth antenna and scale the noise by a factor of 1/sqrt(n) (since the SNR
             is expected to scale with the square root of the number of antennas when using interferomtery/beamforming).
         ice_model: str, default: None
-            The ice model to use for the simulation of in-ice antennas.
+            The ice model to use for the simulation of in-ice antennas: refractive index at the antenna
+            depth (focusing, refraction) and, with ``attenuation_model``, attenuation. If None, only the refractive
+            index at the surface (Fresnel coefficients) is taken from the detector or the site default
+            (see `NuRadioMC.utilities.medium.get_station_ice_model`).
         attenuation_model: str, default: None
             The attenuation model to use for the simulation of in-ice antennas.
         simulate_sun: bool, default: False
@@ -157,6 +160,10 @@ class channelGalacticNoiseAdder:
         self.__caching = caching
         self.scaling = scaling
         self.__freqs = None
+        # Clear the caches in case `begin` is called again on the same instance: run() only clears them
+        # when the frequencies change, but a new sky model / n_side also invalidates them.
+        self._get_cached_antenna_response.cache_clear()
+        self._get_cached_noise_temperature_for_pixel.cache_clear()
         if self.__caching and 12 * n_side ** 2 * 2 > maxsize:
             logger.warning(
                 f"Caching for the vector effective length is enabled (with `maxsize={maxsize}`) and `n_side={n_side}` is to large, and thus "
@@ -355,15 +362,7 @@ class channelGalacticNoiseAdder:
                 f"Sun pixel: {sun_pixel}, Sun zenith: {sun_zen}, Sun azimuth: {sun_azi})"
             )
 
-        if self._ice is not None:
-            n_ice_surf = self._ice.get_index_of_refraction(np.array([0, 0, -0.01]))
-        else:
-            # This can return n_ice_surf = n_air for sites that are not on the ice (auger, lofar, ska)
-            n_ice_surf = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
-
-        # This is actually better than using the ice model for the refractive index since it returns 1 for
-        # in air refractive index. However, this function does currently not return a site/altitude dependent refractive index ...
-        n_air = ice.get_refractive_index(depth=1, site=detector.get_site(station.get_id()))
+        n_air = medium.get_station_refractive_index(detector, station.get_id(), 0.01 * units.m, self._ice)
 
         channel_spectra = {}
         channel_depths = []
@@ -393,6 +392,12 @@ class channelGalacticNoiseAdder:
                 self.__you_have_been_warned = True
 
         any_in_ice_channel = np.any(np.array(channel_depths) < 0)
+        # Without ice_model (begin), the surface value comes from the detector or the site default. For sites that are
+        # not on the ice (auger, lofar, ska), n_ice_surf = n_air.
+        if any_in_ice_channel:
+            n_ice_surf = medium.get_station_refractive_index(detector, station.get_id(), -0.01 * units.m, self._ice)
+        else:
+            n_ice_surf = n_air
         for i_pixel in range(healpy.pixelfunc.nside2npix(self.__n_side)):
             azimuth = local_coordinates[i_pixel].az.rad
             zenith = np.pi / 2. - local_coordinates[i_pixel].alt.rad # this is the in-air zenith

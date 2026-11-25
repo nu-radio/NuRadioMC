@@ -22,9 +22,10 @@ class voltageToEfieldConverterPerChannelGroup:
         self.logger = logging.getLogger('NuRadioReco.voltageToEfieldConverterPerChannelGroup')
         self.antenna_provider = None
         self.__counter = 0
+        self.__ice_model = None
         self.begin()
 
-    def begin(self, use_MC_direction=False):
+    def begin(self, use_MC_direction=False, ice_model=None):
         """
         Initializes the module
 
@@ -32,9 +33,13 @@ class voltageToEfieldConverterPerChannelGroup:
         ----------
         use_MC_direction: bool
             If True, the MC direction is used for the reconstruction. If False, the reconstructed angles are used.
+        ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+            Ice model for the refraction and Fresnel factors at the surface. Default: from the detector or the site
+            (see `NuRadioMC.utilities.medium.get_station_ice_model`)
         """
         self.antenna_provider = antennapattern.AntennaPatternProvider()
         self.__use_MC_direction = use_MC_direction
+        self.__ice_model = ice_model
 
     @register_run()
     def run(self, evt, station, det):
@@ -76,8 +81,9 @@ class voltageToEfieldConverterPerChannelGroup:
                 pos.append(det.get_relative_position(station.get_id(), channel_id))
             pos = np.array(pos)
             pos = np.average(pos, axis=0)
-            efield_antenna_factor = signal_processing.get_efield_antenna_factor(station, frequencies, use_channels, det,
-                                                                            zenith, azimuth, self.antenna_provider)
+            efield_antenna_factor = signal_processing.get_efield_antenna_factor(
+                station, frequencies, use_channels, det, zenith, azimuth, self.antenna_provider,
+                ice_model=self.__ice_model)
             V = np.zeros((len(use_channels), len(frequencies)), dtype=complex)
             for i_ch, channel_id in enumerate(use_channels):
                 V[i_ch] = station.get_channel(channel_id).get_frequency_spectrum()

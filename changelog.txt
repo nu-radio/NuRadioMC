@@ -4,8 +4,14 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.2.0-dev
 new features:
+- Added `NuRadioReco.utilities.coding_helper.get_rng` and replaced the remaining uses of numpy's global random state
+  in library code by dedicated generators. efieldToVoltageConverter, channelIceThermalNoiseAdder,
+  efieldRadioInterferometricReconstruction, beamformingDirectionFitter_LOFAR (`begin`), channelBlockOffsets and
+  utilities.noise.thermalNoiseGenerator (`__init__`) and the legacy event generators generate_unforced/generator_ASCII
+  have a new `seed` argument (default None, as before not reproducible).
 - Added AGENTS.md (imported by .claude/CLAUDE.md) describing code structure, data structure and conventions for AI coding agents
   and new developers.
+- Added agent skills in .agents/skills (.claude/skills links to it) for adding tests / updating references, writing PR descriptions and reviewing PRs.
 - Added automatic test coverage measurement to CI. Coverage is combined across all test jobs and reported as a PR
   comment and a README badge; see the "Test coverage" section of the contributing guide for details.
 - Store shower Xmax in simulated shower when simulating with ARZ Askaryan emission models.
@@ -43,8 +49,68 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   `get_spectral_energy_quantile_frequency` and `get_spectral_centroid` to quantify the relative frequency content of waveforms
   (target/reference band energy ratio, median frequency, spectral centroid).
 - The channelResampler resamples all channels with the same number of samples and sampling rate together as one 2D array (faster).
+- Added `impulsiveSignalReconstructor` module to reconstruct 'generic' impulsive signals
+- New module `NuRadioMC.utilities.neutrino_fluxes` with neutrino flux models (IceCube fits, cosmogenic models of van Vliet,
+  Heinze and TA, source populations, AGN, GRB afterglows, blazars) as all-flavour dN/dE. The event generator uses it for its
+  GZK spectra instead of importing them from an example script.
+- The Sensitivities example `E2_fluxes3.py` is now `limit_plot.py` (`get_limit_figure`, `add_limit`) with a command line,
+  options for the models of the RNO-G multimessenger figure and no side effects on import (no data loading, no change of
+  matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
+
+- Replaced the legacy `NuRadioReco.utilities.ice.get_refractive_index` (n = 1.3 at any depth in ice, n = 1.000293 in air;
+  now deprecated) by the ice models of `NuRadioMC.utilities.medium`. New helpers `medium.get_station_ice_model` (ice
+  model from an explicit argument, the detector, or the site default `medium.SITE_ICE_MODELS`: greenland_3exp_timing_2025
+  for Summit/Greenland, southpole_2015, mooresbay_simple; error for other in-ice sites) and `medium.get_refractive_index`
+  (n(z) of the model; above the surface the model's air layer or the site's air value `medium.get_n_air`).
+  voltageToEfieldConverter, efieldToVoltageConverter, beamFormingDirectionFitter, templateDirectionFitter,
+  efieldTimeDirectionFitter (new `ice_model` argument in `begin`), channel/efieldGalacticNoiseAdder and
+  `geometryUtilities.fresnel_factors_and_signal_zenith` / `signal_processing.get_efield_antenna_factor` (new `ice_model`
+  argument) use them. This changes outputs: e.g. surface n at Summit 1.3 -> 1.272, n at -100 m 1.3 -> 1.743,
+  n in air 1.000293 -> `medium.get_n_air`: `medium_base.N_AIR_SEA_LEVEL` = 1.00027 scaled to the site elevation of
+  ``NuRadioReco/detector/coordinates.json`` (e.g. Auger 1.000222), measured `medium.N_AIR_SUMMIT` at Summit.
+  beamFormingDirectionFitter uses its `n_index` argument (was ignored, n = 1.353 was hard-coded).
+  `fresnel_factors_and_signal_zenith` uses the site air instead of n = 1; impulsiveSignalReconstructor (`n_index` default
+  and refraction into air) and voltageToAnalyticEfieldConverter (time shifts, new `ice_model` argument in `begin`) use
+  the station's refractive index. New `ice_model` argument also in voltageToEfieldConverterPerChannel(Group),
+  efieldToVoltageConverterPerEfield, neutrino3DVertexReconstructor, iftElectricFieldReconstructor (`begin`) and
+  `signal_processing.get_channel_voltage_from_efield`; efieldToVoltageConverter and beamFormingDirectionFitter pass
+  theirs on to the Fresnel factors. New `NuRadioReco.utilities.constants.n_air_sea_level` (1.00027, also
+  `medium_base.N_AIR_SEA_LEVEL`) replaces the 1.000293 / 1.000292 defaults of `get_time_delay_from_direction`,
+  `analytic_plane_wave_fit`, `interfere_traces_plane` and `get_dt_correlation`.
+- Ice models have an `n_air` attribute, the refractive index above the surface of models without an air layer (default
+  `medium_base.N_AIR_SEA_LEVEL`; South Pole and Moore's Bay models: `medium.get_n_air` of their site; single-layer
+  Greenland models: `medium.N_AIR_SUMMIT`; models with an air layer: its value at the surface). The single-layer
+  analytic ray tracer uses it instead of n = 1 for paths through air, and the Fresnel coefficients at the surface
+  (`ray_tracing.get_fresnel_coefficients`, voltageToEfieldAnalyticConverterForNeutrinos) instead of n = 1.000293.
+  This changes the amplitudes of surface-reflected rays (single-event references: up to 1 % at the South Pole, 9 % at
+  Moore's Bay for single rays) and C0, focusing and transmission of ice-air rays (~2e-4).
 
 bugfixes:
+- `ray_tracing.get_time_difference_plane_wave` no longer raises a ZeroDivisionError for a vertical plane wave (zenith 0).
+  The zenith angle is the one in air at the surface (ray parameter p = n_air * sin(zenith), n_air of the model's air layer).
+- The air layer of `IceModelContinuousExpLayers` (e.g. greenland_3exp_density) was upside down: n rose from 1.0 at the
+  surface to 1.00027. It now falls from n_air_surface to 1 above the surface; new arguments `n_air_surface` (default
+  1.00027) and `air_scale_height` (default 8 km). The Greenland models use the air at Summit: n - 1 = 2.14e-4, 9 km
+  (from NOAA GML Summit meteorology, April-October; see `medium.N_AIR_SUMMIT`).
+- Multilayer analytic ray tracer: rays from air with ray parameter p > 1 (allowed where n > p, i.e. near the surface) are
+  now solved (closed forms for layers with n_ice^2 <= p^2), and solutions with p above n at either end point are discarded.
+  This removes isolated wrong air-to-ice solutions near the horizon. Air-to-ice travel times for greenland_3exp_timing_2025
+  change by up to a few ns (e.g. +2.0 ns at 3 km distance, 1 km height; +3.5 ns at 5 km, 100 m height).
+- The C++ backend of the single-layer analytic ray tracer raises a NotImplementedError for paths with an end point in
+  air instead of returning no solution without notice (air propagation needs `use_cpp=False`).
+- `IceModelExpLayers.from_IceModel` built the same upside-down air layer (n < 1 at the surface); it now uses the
+  exponential air layer of `IceModelContinuousExpLayers` (new `medium_base.exponential_air_layer`). Calling
+  `IceModelContinuousExpLayers._set_params` without air arguments keeps the model's air instead of resetting it.
+- Multilayer analytic ray tracer, paths through air: the root search starts at p = n at the upper end point and
+  converges to machine precision; direct rays in the last ~20 % of the horizontal reach of low emitters were not
+  found. An emitter in air straight above the receiver gets one solution instead of three identical ones.
+- `ray_tracing.get_time_difference_plane_wave` raises a ValueError for a receiver above the surface.
+- Multilayer analytic ray tracer: for an emitter in air beyond the horizontal reach of the direct ray, the only rays to
+  the receiver turn in the air; their solutions were returned with the travel time of a direct ray (e.g. 21009 ns instead
+  of 46704 ns at 13.9 km distance, 1 m height). These rays are not supported (nor is a curved atmosphere): their
+  solutions are dropped with a warning.
+- The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
+  (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported
   with only numpy, scipy and matplotlib: radiotools, astropy, the `NuRadioReco.detector`/`framework` packages etc. are imported lazily
   and the version lookup in `__init__` is guarded.
@@ -69,6 +135,7 @@ bugfixes:
 - Antenna responses for directions outside the tabulated range return one value per frequency instead of a single value.
 - Fix bug in the readRNOGDataMattak where the trigger dependend readout delays were applied with the
   the wrong sign to the trace_start_time
+- Limit plot for source populations (`diffuse=False`): the energy axis was left in GeV and the plot was empty.
 
 deprecations:
 - Remove default values for `use_channels` and `bandpass` in voltageToAnalyticEfieldConverter.py and voltageToEfieldConverter.py which were suitable for ARIANNA.
@@ -76,6 +143,8 @@ deprecations:
 - Replaced the readCoREASShower module with the readCoREAS module. readCoREAS returns a single station (id 0) holding all
   CoREAS observers as electric fields; use an event_builder helper (see the examples) to organize the observers into
   per-observer stations. The examples read_full_CoREAS_shower.py and RIT_sim_air_shower_reconstruction.py were updated accordingly.
+- Removed `NuRadioMC.examples.Sensitivities.E2_fluxes3` (importing it raises an ImportError naming its replacements) and the
+  broken, outdated examples `E1_fluxes.py`, `E2_Gen2_Long_whitepaper.py`, `Multimessenger_Figure.py` and `makeMyLimitPlot.py`.
 
 version 3.1.1
 new features:

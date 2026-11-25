@@ -1,4 +1,4 @@
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, constants
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays
 
 from scipy import interpolate, integrate, linalg
@@ -19,11 +19,20 @@ except ImportError:
 
 logger = logging.getLogger('NuRadioMC.ice_model')
 
+# Default air above the ice: US standard atmosphere at sea level. The Greenland models in `medium` use the
+# air at Summit Station instead (`medium.N_AIR_SUMMIT`, `medium.AIR_SCALE_HEIGHT_SUMMIT`).
+N_AIR_SEA_LEVEL = constants.n_air_sea_level
+AIR_SCALE_HEIGHT_DEFAULT = constants.air_refractivity_scale_height
+
 
 class IceModel():
     """
     Base class from which all ice models should inheret
     """
+    #: Refractive index of the air above the surface (constant), for models without an air layer of their own.
+    #: The site models in `medium` set it for their site (`medium.get_n_air`); models with an air layer
+    #: (`exponential_air_layer`) use the layer's value at the surface.
+    n_air = N_AIR_SEA_LEVEL
     def __init__(self, z_air_boundary=0*units.meter, z_bottom=None):
         """
         initiaion of a basic ice model
@@ -272,10 +281,10 @@ class IceModelSimple(IceModel):
             if (position[2] - self.z_air_boundary) <= 0:
                 return self.n_ice - self.delta_n * np.exp((position[2] - self.z_shift) / self.z_0)
             else:
-                return 1
+                return self.n_air
         else:
             ior = self.n_ice - self.delta_n * np.exp((position[:, 2] - self.z_shift) / self.z_0)
-            ior[position[:, 2] - self.z_air_boundary > 0] = 1.
+            ior[position[:, 2] - self.z_air_boundary > 0] = self.n_air
             return ior
 
     def get_average_index_of_refraction(self, position1, position2):
@@ -308,15 +317,15 @@ class IceModelSimple(IceModel):
                 return exp_average(zmax, zmin)
             elif ((zmin - self.z_air_boundary) <=0):
                 n1 = exp_average(self.z_air_boundary, zmin)
-                n2 = 1
+                n2 = self.n_air
                 return (n1 * (self.z_air_boundary - zmin) + n2 * (zmax - self.z_air_boundary)) / (zmax - zmin)
             else:
-                return 1
+                return self.n_air
         else:
             if all((position1[:,2] - self.z_air_boundary) <= 0) and all((position2[:,2] - self.z_air_boundary) <= 0):
                 return exp_average(position1[:,2], position2[:,2])
             elif all((position1[:,2] - self.z_air_boundary) > 0) and all((position2[:,2] - self.z_air_boundary) > 0):
-                return np.ones_like(position1[:,2])
+                return np.full_like(position1[:, 2], self.n_air, dtype=float)
             else:
                 raise NotImplementedError('function cannot handle averages accros boundary when using arrays of positions.')
 
@@ -506,10 +515,10 @@ class IceModelExponentialPolynomial(IceModel):
             if (position[2] - self.z_air_boundary) <= 0:
                 return ior(position[2])
             else:
-                return 1.
+                return self.n_air
         else:
             ior = ior(position[:,2])
-            ior[position[:, 2] - self.z_air_boundary > 0] = 1.
+            ior[position[:, 2] - self.z_air_boundary > 0] = self.n_air
             return ior
 
     def get_average_index_of_refraction(self, position1, position2):
@@ -544,7 +553,7 @@ class IceModelExponentialPolynomial(IceModel):
             if (position1[2] - self.z_air_boundary) <= 0 and (position2[2] - self.z_air_boundary) <= 0:
                 return ((int_rho(position2[2]) - int_rho(position1[2])) / (position2[2] - position1[2]))*self._density_factor + 1
             elif (position1[2] - self.z_air_boundary) > 0 and (position2[2] - self.z_air_boundary) > 0:
-                return 1
+                return self.n_air
             else:
                 pos_min = position1
                 pos_max = position2
@@ -552,13 +561,13 @@ class IceModelExponentialPolynomial(IceModel):
                     pos_min = position2
                     pos_max = position1
                 integral_ice = abs(int_rho(self._z_air_boundary) - int_rho(pos_min[2]))*self._density_factor + 1
-                integral_air = 1 * (pos_max[2] - self._z_air_boundary)
+                integral_air = self.n_air * (pos_max[2] - self._z_air_boundary)
                 return (integral_ice + integral_air) / abs(pos_max[2] - pos_min[2])
         else:
             if all((position1[:,2] - self.z_air_boundary) <= 0) and all((position2[:,2] - self.z_air_boundary) <= 0):
                 return ((int_rho(position2[:,2]) - int_rho(position1[:,2])) / (position2[:,2] - position1[:,2]))*self._density_factor + 1
             elif all((position1[:,2] - self.z_air_boundary) > 0) and all((position2[:,2] - self.z_air_boundary) > 0):
-                return np.ones_like(position1[:,2])
+                return np.full_like(position1[:, 2], self.n_air, dtype=float)
             else:
                 raise NotImplementedError('function cannot handle averages accros boundary when using arrays of positions.')
 
@@ -844,6 +853,39 @@ if radiopropa_is_imported:
             return RP.Vector3d(*gradient)
 
 
+
+def exponential_air_layer(n_air_surface, air_scale_height, z_surface=0.0):
+    """
+    Air layer for `IceModelExpLayers`: n(z) = 1 + (n_air_surface - 1) * exp(-(z - z_surface) / air_scale_height).
+
+    n falls from n_air_surface at the surface to 1 (exponential atmosphere). In the layer form
+    n_ice - delta_n * exp(z / z_0) this is n_ice = 1, delta_n < 0, z_0 < 0.
+
+    Parameters
+    ----------
+    n_air_surface : float
+        Refractive index of the air at the surface.
+    air_scale_height : float
+        Scale height of the air refractivity n - 1.
+    z_surface : float
+        Height of the surface (lower boundary of the layer).
+
+    Returns
+    -------
+    dict
+        Layer definition.
+    """
+    return {
+        "z_min": z_surface,
+        "z_max": np.inf,
+        "n_ice": 1.0,
+        "delta_n": -(n_air_surface - 1.0) * np.exp(z_surface / air_scale_height),
+        "z_0": -air_scale_height,
+        "region": "air",
+        "region_name": "Air"
+    }
+
+
 class IceModelExpLayers(IceModel):
     """
     Medium model consisting of multiple exponential layers.
@@ -890,7 +932,49 @@ class IceModelExpLayers(IceModel):
         """
         
         self._set_layers(layers)
-        
+
+    @classmethod
+    def from_IceModel(cls, ice_model: IceModelSimple, n_air_surface=None,
+                      air_scale_height=AIR_SCALE_HEIGHT_DEFAULT):
+        """
+        Create a multi-layered `IceModelExpLayers` from a single-layer `IceModelSimple`.
+
+        This is mostly useful to e.g. test / use the additional functionality
+        available in the multi-layer analytic raytracer instead of the single-layer
+        raytracer.
+
+        Parameters
+        ----------
+        ice_model : `IceModelSimple`
+            An `IceModelSimple` instance to convert to a multi-layered ice model
+        n_air_surface, air_scale_height : float
+            Air layer above the ice, see `exponential_air_layer`. Default for ``n_air_surface``: ``ice_model.n_air``.
+        """
+        if n_air_surface is None:
+            n_air_surface = ice_model.n_air
+
+        # the single layer raytracer treats air differently, we need to add an air-layer for the mutlilayer raytracer to work with
+        airlayer = exponential_air_layer(n_air_surface, air_scale_height, ice_model.z_air_boundary)
+
+        # defining IceModelExpLayers parameters from input ice model
+        icelayer = dict(
+            z_min = ice_model.z_bottom,
+            z_max = ice_model.z_air_boundary,
+            n_ice = ice_model.n_ice,
+            delta_n = ice_model.delta_n,
+            z_0 = ice_model.z_0,
+            region_name = 'ice'
+        )
+        new_model = cls([airlayer,icelayer])
+
+        if ice_model.reflection is not None:
+            new_model.add_reflective_bottom(
+                refl_z=ice_model.reflection,
+                refl_coef=ice_model.reflection_coefficient,
+                refl_phase_shift=ice_model.reflection_phase_shift
+            )
+
+        return new_model
 
     def _set_layers(self, layers, z_shift=0*units.meter, z_air_boundary=0*units.meter):
         """
@@ -910,6 +994,11 @@ class IceModelExpLayers(IceModel):
         self._validate_layers()
 
         self._layers_arr = layers_to_arrays(self.layers)
+
+        # air layer of `exponential_air_layer`: `n_air` is its value at the surface
+        for layer in self.layers:
+            if layer.get("region") == "air":
+                self.n_air = layer["n_ice"] - layer["delta_n"] * np.exp(layer["z_min"] / layer["z_0"])
 
     def _validate_layers(self):
         """
@@ -1133,6 +1222,9 @@ class IceModelExpLayers(IceModel):
                 axis=1
             )
 
+    def add_reflective_bottom(self, refl_z, refl_coef, refl_phase_shift):
+        """Reflective layers not currently implemented in IceModelExpLayers"""
+        raise NotImplementedError("Reflective layers not currently implemented in IceModelExpLayers")
 
     @property
     def get_layers_array(self):
@@ -1173,7 +1265,7 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
     """
     Implements a continuous and continuously-differentiable piecewise-exponential ice model.
     """
-    def _parametrized_layers(self, nN, delta_nN, ls, zs,
+    def _parametrized_layers(self, nN, delta_nN, ls, zs, n_air_surface, air_scale_height,
                              z_bot = -3000.0, z_surface = 0.0):
         """
         Parametrizes a three-layer ice model with continuous n(z) and n'(z) in terms of
@@ -1181,6 +1273,8 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
             delta_nN  ... Refractive index step in the bottommost layer
             ls        ... Length scale of the layers, starting at the bottommost layer
             zs        ... Depth of transition between layers, starting at the bottom
+        plus an air layer n(z) = 1 + (n_air_surface - 1) * exp(-(z - z_surface) / air_scale_height)
+        (see `__init__`).
         """
 
         # Need to have one more layer than layer transition
@@ -1219,26 +1313,34 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
                 )
             cur_n, cur_delta_n = _get_ni_delta_ni(cur_zmax, next_l, cur_n, cur_delta_n, cur_l)
 
-        # Add the air layer, which is constant and not parametrized
-        layers_gen.append(
-                # The air is constant and not parametrized
-                {
-                    "z_min": z_surface,
-                    "z_max": np.inf,
-                    "n_ice": 1.00027,
-                    "delta_n": 2.7e-4,
-                    "z_0": -8000.0,
-                    "region": "air",
-                    "region_name": "Air"
-                }
-            )
+        layers_gen.append(exponential_air_layer(n_air_surface, air_scale_height, z_surface))
 
         return layers_gen
 
-    def __init__(self, nN, delta_nN, ls, zs):
-        layers = self._parametrized_layers(nN, delta_nN, ls, zs)
+    def __init__(self, nN, delta_nN, ls, zs, n_air_surface=N_AIR_SEA_LEVEL, air_scale_height=AIR_SCALE_HEIGHT_DEFAULT):
+        """
+        Parametrizes a three-layer ice model with continuous n(z) and n'(z)
+
+        Parameters
+        ----------
+        nN : float
+            Asymptotic refractive index of the bottommost layer
+        delta_nN : float
+            Refractive index step in the bottommost layer
+        ls : list of float
+            Length scales of the layers, starting at the bottommost layer
+        zs : list of float
+            Depth of transition between layers, starting at the bottom
+        n_air_surface : float
+            Refractive index of the air at the surface, see `exponential_air_layer`.
+            Default: 1.00027 (US standard atmosphere at sea level)
+        air_scale_height : float
+            Scale height of the air refractivity. Default: 8 km
+        """
+
+        layers = self._parametrized_layers(nN, delta_nN, ls, zs, n_air_surface, air_scale_height)
         super().__init__(layers)
-        self._set_params(nN, delta_nN, ls, zs)
+        self._set_params(nN, delta_nN, ls, zs, n_air_surface, air_scale_height)
 
     def get_average_index_of_refraction(self, position1, position2):
         z1, z2 = position1[2], position2[2]
@@ -1247,14 +1349,19 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
         int_ior = integrate.quad(get_ior, z1, z2)[0]
         return np.abs(int_ior / (z2 - z1))
 
-    def _set_params(self, nN, delta_nN, ls, zs):
-        # keep values of continuous-ice parameterization around
+    def _set_params(self, nN, delta_nN, ls, zs, n_air_surface=None, air_scale_height=None):
+        # keep values of continuous-ice parameterization around; the air keeps its current values unless given
         self.nN = nN
         self.delta_nN = delta_nN
         self.ls = ls
         self.zs = zs
+        if n_air_surface is not None:
+            self.n_air_surface = n_air_surface
+        if air_scale_height is not None:
+            self.air_scale_height = air_scale_height
 
-        layers = self._parametrized_layers(self.nN, self.delta_nN, self.ls, self.zs)
+        layers = self._parametrized_layers(self.nN, self.delta_nN, self.ls, self.zs,
+                                           self.n_air_surface, self.air_scale_height)
         self._set_layers(layers)
 
     def get_description(self):
@@ -1264,7 +1371,9 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
                         "nN": self.nN,
                         "delta_nN": self.delta_nN,
                         "ls": self.ls,
-                        "zs": self.zs
+                        "zs": self.zs,
+                        "n_air_surface": self.n_air_surface,
+                        "air_scale_height": self.air_scale_height
                         }
                     }
         return desc

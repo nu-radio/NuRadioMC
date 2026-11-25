@@ -3,7 +3,7 @@ import numpy as np
 
 from NuRadioMC.SignalProp.propagation import solution_types_revert
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba import njit
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl._maybenumba import njit
 
 
 NumbaList = list # fallback for get_path_segments function
@@ -127,6 +127,118 @@ def get_layer_index(z, z_min, z_max):
     return -1
 
 
+# alpha = n_ice^2 - beta^2 of a layer. The closed forms of the original implementation are logarithmic and need
+# alpha > 0; `use_no_log_forms` selects `inverse_root_integral_no_log` for alpha <= ALPHA_EPS (in air: rays with
+# beta >= 1). Close to alpha = 0 the log forms lose precision (1 / sqrt(alpha) times a difference of nearly equal logs);
+# air-to-ice travel times for |beta - 1| <= 1e-5 stay within 0.035 ns of quadrature (emitters at 50 m to 5 km height).
+ALPHA_EPS = 1e-12
+
+
+@njit(cache = True)
+def use_no_log_forms(alpha):
+    """Whether a layer with this alpha uses `inverse_root_integral_no_log` (see ``ALPHA_EPS``)."""
+    return alpha <= ALPHA_EPS
+
+
+@njit(cache = True)
+def _no_log_terms(z, beta, n_ice, delta_n, z0):
+    """u = exp(z / z0), n - beta and gamma = n^2 - beta^2 (clipped at 0) for `inverse_root_integral_no_log`."""
+    u = np.exp(z / z0)
+    # n - beta without the cancellation of n ~ beta near a turning point
+    n_minus_beta = (n_ice - beta) - delta_n * u
+    gamma = max(n_minus_beta * (n_minus_beta + 2 * beta), 0.0)
+    return u, n_minus_beta, gamma
+
+
+@njit(cache = True)
+def _inverse_root_integral(u, n_minus_beta, gamma, beta, n_ice, delta_n, z0):
+    """J0 of `inverse_root_integral_no_log` from the terms of `_no_log_terms` (u > 0)."""
+    alpha = n_ice * n_ice - beta * beta
+    if alpha < -ALPHA_EPS:
+        if delta_n < 0:
+            # arcsin(x) = 2 arcsin(sqrt((1 + x) / 2)) - pi / 2, with 1 + x = (n - beta) (n_ice + beta) / (u |delta_n| beta)
+            # (x -> -1 at the turning point, where arcsin(x) is ill-conditioned)
+            half_1px = 0.5 * n_minus_beta * (n_ice + beta) / (u * abs(delta_n) * beta)
+            return z0 / np.sqrt(-alpha) * (2 * np.arcsin(np.sqrt(min(max(half_1px, 0.0), 1.0))) - 0.5 * np.pi)
+        n = n_ice - delta_n * u
+        arg = (n_ice * n - beta * beta) / (u * abs(delta_n) * beta)
+        return z0 / np.sqrt(-alpha) * np.arcsin(min(max(arg, -1.0), 1.0))
+
+    return z0 * np.sqrt(gamma) / (n_ice * delta_n * u)
+
+
+@njit(cache = True)
+def _value_at_infinity(beta, n_ice):
+    """
+    The antiderivatives at z = inf in an air layer (u = 0): without a turning point (alpha >= 0) the ray
+    reaches z = inf and the integrals diverge to +inf; with one (alpha < 0) z = inf is not on the ray.
+    """
+    return np.inf if n_ice * n_ice - beta * beta >= 0 else np.nan
+
+
+@njit(cache = True)
+def inverse_root_integral_no_log(z, beta, n_ice, delta_n, z0):
+    """
+    Antiderivative J0(z) of 1 / sqrt(n(z)^2 - beta^2) for n(z) = n_ice - delta_n * exp(z / z0), where the
+    logarithmic closed forms fail (see `use_no_log_forms`).
+
+    alpha = n_ice^2 - beta^2. In an air layer, whose index tends to n_ice = 1 far above the surface,
+    alpha <= 0 holds for rays with beta >= 1. These rays exist where n(z) > beta, i.e. near the surface,
+    where n(z) > 1. With u = exp(z / z0) and gamma = n^2 - beta^2 = delta_n^2 u^2 - 2 n_ice delta_n u + alpha:
+
+    - alpha < 0: J0 = z0 / sqrt(-alpha) * arcsin((n_ice n - beta^2) / (u abs(delta_n) beta))
+    - alpha = 0: J0 = z0 sqrt(gamma) / (n_ice delta_n u)
+
+    The path length and the travel time follow from J0:
+    int n / sqrt(gamma) dz = n_ice J0 + z0 log(n + sqrt(gamma)) and
+    int n^2 / sqrt(gamma) dz = n_ice^2 J0 + z0 (sqrt(gamma) + n_ice log(n + sqrt(gamma))).
+
+    Parameters
+    ----------
+    z : float
+        Depth coordinate.
+    beta : float
+        Ray parameter p = 1 / c0.
+    n_ice, delta_n, z0 : float
+        Layer parameters.
+
+    Returns
+    -------
+    float
+        J0(z), defined up to a constant.
+    """
+    u, n_minus_beta, gamma = _no_log_terms(z, beta, n_ice, delta_n, z0)
+    if u == 0.0:
+        return _value_at_infinity(beta, n_ice)
+    return _inverse_root_integral(u, n_minus_beta, gamma, beta, n_ice, delta_n, z0)
+
+
+@njit(cache = True)
+def path_integrals_no_log(z, beta, n_ice, delta_n, z0):
+    """
+    Antiderivatives of ds/dz = n / sqrt(n^2 - beta^2) and of the optical path n^2 / sqrt(n^2 - beta^2)
+    where the logarithmic closed forms fail, see `inverse_root_integral_no_log`.
+
+    Returns
+    -------
+    s : float
+        Path length antiderivative.
+    optical_path : float
+        Antiderivative of n ds; the travel time is its difference divided by the speed of light.
+    """
+    u, n_minus_beta, gamma = _no_log_terms(z, beta, n_ice, delta_n, z0)
+    if u == 0.0:
+        value = _value_at_infinity(beta, n_ice)
+        return value, value
+    j0 = _inverse_root_integral(u, n_minus_beta, gamma, beta, n_ice, delta_n, z0)
+    n = n_ice - delta_n * u
+    root_gamma = np.sqrt(gamma)
+    log_term = np.log(n + root_gamma)
+    s = n_ice * j0 + z0 * log_term
+    optical_path = n_ice * n_ice * j0 + z0 * (root_gamma + n_ice * log_term)
+    return s, optical_path
+
+
 @njit(cache = True)
 def analytic_F(z, c0, n_ice, delta_n, z0):
     """
@@ -174,14 +286,13 @@ def analytic_F(z, c0, n_ice, delta_n, z0):
     n_ice = float(n_ice)
     delta_n = float(delta_n)
     z0 = float(z0)
+
+    c = n_ice * n_ice - 1.0 / (c0 * c0)  # alpha
+    if use_no_log_forms(c):
+        # dy/dz = beta / sqrt(n^2 - beta^2), beta = 1 / c0
+        return float(inverse_root_integral_no_log(z, 1.0 / c0, n_ice, delta_n, z0) / c0)
+
     b = 2.0 * n_ice
-    n = n_ice - delta_n*np.exp(z / z0)
-    c = max(abs(n_ice*n_ice - 1.0/(c0*c0)),1e-14)
-
-    # f only valid for positive c
-    if c < 0 :
-        return np.nan
-
 
     gamma = delta_n * np.exp(z / z0)
     root = max(gamma*gamma - gamma*b + c, 1e-14)
