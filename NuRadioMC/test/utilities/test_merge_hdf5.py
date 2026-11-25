@@ -15,14 +15,14 @@ from NuRadioMC.utilities import merge_hdf5
 from NuRadioMC.utilities.merge_hdf5 import merge2
 
 
-def _write_file(filename, event_group_ids, shower_ids, attrs=None, station_attrs=None, triggered=True):
+def _write_file(filename, event_group_ids, shower_ids, attrs=None, station_attrs=None, triggered=True, libver=None):
     """
     Minimal NuRadioMC output file: one station that sees every shower, one event per event group. ``attrs`` and
     ``station_attrs`` are added to the file and station group attributes; ``triggered`` is the value of all
-    ``triggered`` entries.
+    ``triggered`` entries; ``libver`` is passed to `h5py.File`.
     """
     event_group_ids = np.asarray(event_group_ids)
-    with h5py.File(filename, "w") as f:
+    with h5py.File(filename, "w", libver=libver) as f:
         f.attrs["n_events"] = len(np.unique(event_group_ids))
         f.attrs.update(attrs or {})
         f["event_group_ids"] = event_group_ids
@@ -208,6 +208,26 @@ def test_merge_incomplete_merge_history():
             np.testing.assert_array_equal(f.attrs["event_group_id_starts"], [1, 5])
 
 
+def test_merge_long_merge_history():
+    # more original files than fit into an attribute of the default HDF5 file format (64 kB, about 4000 file names)
+    n = 5000
+    with tempfile.TemporaryDirectory() as tmpdir:
+        filenames = [os.path.join(tmpdir, f"{name}.hdf5") for name in ["merged", "new"]]
+        # a merged file of n original files (written like merge2 does, else its own attributes would not fit)
+        _write_file(filenames[0], [1, 2], [1, 2], libver=("v108", "latest"), attrs={
+            "merged_files": [f"part{i:05d}.hdf5" for i in range(n)],
+            "event_group_id_offsets": np.zeros(n, dtype=np.int64),
+            "shower_id_offsets": np.zeros(n, dtype=np.int64),
+            "event_group_id_starts": np.full(n, -1, dtype=np.int64)})
+        _write_file(filenames[1], [3], [3])
+        output = os.path.join(tmpdir, "out.hdf5")
+        merge2(filenames, output)
+        with h5py.File(output, "r") as f:
+            assert len(f.attrs["merged_files"]) == n + 1, len(f.attrs["merged_files"])
+            assert f.attrs["merged_files"][-1] == "new.hdf5", f.attrs["merged_files"][-1]
+            assert len(f.attrs["event_group_id_starts"]) == n + 1
+
+
 def test_merge_duplicate_path():
     # a file given twice (also via another path) is merged once
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -350,6 +370,7 @@ if __name__ == "__main__":
     test_merge_merged_files()
     test_merge_event_group_id_starts()
     test_merge_incomplete_merge_history()
+    test_merge_long_merge_history()
     test_merge_duplicate_path()
     test_merge_trigger_names_differ()
     test_merge_station_attrs()

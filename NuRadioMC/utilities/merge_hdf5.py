@@ -221,7 +221,10 @@ def merge2(filenames, output_filename):
 
     # create data sets
     logger.info("creating data sets")
-    fout = h5py.File(output_filename, 'w')
+    # HDF5 keeps attributes in the object header, limited to 64 kB per attribute in the default (earliest) file format:
+    # the merge history attributes (one entry per original file) would fail beyond about 4000 files. The 1.8 file
+    # format (readable by HDF5 >= 1.8) stores large attributes outside the header.
+    fout = h5py.File(output_filename, 'w', libver=('v108', 'latest'))
     if(len(non_empty_filenames)):
         # unique event group ids: the effective volume/area calculation uses them to find multi-station coincidences
         # (shifting: see `_make_ids_unique`)
