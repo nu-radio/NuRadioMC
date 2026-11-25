@@ -10,8 +10,10 @@ from NuRadioMC.utilities import medium_base
 import numpy as np
 import os
 from NuRadioReco.utilities import units
+import NuRadioReco
 
 import functools
+import json
 
 logger = medium_base.logger
 
@@ -534,16 +536,33 @@ SITE_ICE_MODELS = {
 #: Sites without ice: the antennas are in air (`get_station_ice_model` returns None).
 AIR_SITES = ('lofar', 'auger', 'ska')
 
-#: Refractive index of air at the surface per site, used above the surface by ice models without an air layer.
-#: Sites not listed use `medium_base.N_AIR_SEA_LEVEL`.
+#: Measured refractive index of air at the surface per site; overrides the elevation scaling in `get_n_air`.
 SITE_N_AIR = {
     'summit': N_AIR_SUMMIT,
     'greenland': N_AIR_SUMMIT,
 }
 
+#: Site names that ``NuRadioReco/detector/coordinates.json`` lists under another name.
+_SITE_ALIASES = {'greenland': 'summit', 'sp': 'southpole'}
+
+
+@functools.lru_cache(maxsize=None)
+def _get_site_elevations():
+    path = os.path.join(os.path.dirname(NuRadioReco.__file__), 'detector', 'coordinates.json')
+    with open(path) as f:
+        return {site: coords['elevation'] * units.m for site, coords in json.load(f).items()}
+
+
 def get_n_air(site):
     """
-    Returns the refractive index of air at the surface of a site (`SITE_N_AIR`, else `medium_base.N_AIR_SEA_LEVEL`).
+    Returns the refractive index of air at the surface of a site.
+
+    Measured values (`SITE_N_AIR`) take precedence. Otherwise the sea-level value `medium_base.N_AIR_SEA_LEVEL`
+    is scaled to the site elevation (``NuRadioReco/detector/coordinates.json``, as ``Detector.get_site_elevation``)
+    with the exponential atmosphere of `medium_base.exponential_air_layer`:
+    n = 1 + (N_AIR_SEA_LEVEL - 1) * exp(-elevation / AIR_SCALE_HEIGHT_DEFAULT). This ignores the site temperature,
+    so it underestimates n - 1 at cold sites (Summit: 1.81e-4 instead of the measured 2.14e-4).
+    Sites without a known elevation get the sea-level value.
 
     Parameters
     ----------
@@ -554,7 +573,12 @@ def get_n_air(site):
     -------
     n_air: float
     """
-    return SITE_N_AIR.get(site.lower(), medium_base.N_AIR_SEA_LEVEL)
+    site = site.lower()
+    if site in SITE_N_AIR:
+        return SITE_N_AIR[site]
+
+    elevation = _get_site_elevations().get(_SITE_ALIASES.get(site, site), 0)
+    return 1 + (medium_base.N_AIR_SEA_LEVEL - 1) * np.exp(-elevation / medium_base.AIR_SCALE_HEIGHT_DEFAULT)
 
 
 @functools.lru_cache(maxsize=None)

@@ -72,8 +72,13 @@ def test_resolution_order():
 def test_n_air():
     assert medium.get_n_air("summit") == medium.N_AIR_SUMMIT
     assert medium.get_n_air("Greenland") == medium.N_AIR_SUMMIT
-    for site in ["southpole", "mooresbay", "lofar", "auger", "ska", "anything"]:
-        assert medium.get_n_air(site) == medium_base.N_AIR_SEA_LEVEL, site
+    # elevation from coordinates.json, exponential atmosphere
+    for site, elevation in [("auger", 1552), ("lofar", 7.6), ("ska", 365), ("southpole", 2745), ("SP", 2745), ("mooresbay", 26)]:
+        expected = 1 + (medium_base.N_AIR_SEA_LEVEL - 1) * np.exp(-elevation * units.m / medium_base.AIR_SCALE_HEIGHT_DEFAULT)
+        np.testing.assert_allclose(medium.get_n_air(site), expected, rtol=1e-12, err_msg=site)
+    np.testing.assert_allclose(medium.get_n_air("auger") - 1, 2.224e-4, rtol=1e-3)
+    # unknown elevation: sea level
+    assert medium.get_n_air("simulation") == medium_base.N_AIR_SEA_LEVEL
 
 
 def test_refractive_index():
@@ -86,7 +91,7 @@ def test_refractive_index():
     # above the surface, model without air layer (returns n = 1 itself): site air value
     southpole = medium.southpole_2015()
     assert n_model(southpole, 1 * units.m) == 1
-    assert medium.get_refractive_index(1 * units.m, southpole, "southpole") == medium_base.N_AIR_SEA_LEVEL
+    assert medium.get_refractive_index(1 * units.m, southpole, "southpole") == medium.get_n_air("southpole")
     assert medium.get_refractive_index(1 * units.m, medium.greenland_simple(), "summit") == medium.N_AIR_SUMMIT
 
     # above the surface, model with air layer: the air layer
@@ -107,11 +112,11 @@ def test_refractive_index():
         if layer.get("region") == "air":
             del layer["region"]
     placeholder = medium_base.IceModelExpLayers(layers)
-    assert medium.get_refractive_index(1 * units.m, placeholder, "southpole") == medium_base.N_AIR_SEA_LEVEL
+    assert medium.get_refractive_index(1 * units.m, placeholder, "southpole") == medium.get_n_air("southpole")
 
     # no ice (air-only site): air value everywhere
     for z in np.array([10, -0.01, -2]) * units.m:
-        assert medium.get_refractive_index(z, None, "lofar") == medium_base.N_AIR_SEA_LEVEL, z
+        assert medium.get_refractive_index(z, None, "lofar") == medium.get_n_air("lofar"), z
 
 
 def test_station_refractive_index():
