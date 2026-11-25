@@ -16,6 +16,7 @@ files in parallel (directory mode); ``--loglevel`` sets the log level (e.g. ``DE
 """
 import argparse
 import dataclasses
+import functools
 import glob
 import logging
 import os
@@ -161,8 +162,7 @@ def _merge_trigger_names(attrs_per_file):
         merged ``trigger_names``: the value of the first file if all files agree, else the union; None if no file has
         ``trigger_names``
     columns : dict
-        per file name with ``trigger_names``, the merged column of each of its triggers, or None if its names are the
-        merged names
+        per file name whose ``trigger_names`` differ from the merged ones, the merged column of each of its triggers
     """
     names_per_file = {}
     for f, attrs in attrs_per_file.items():
@@ -172,14 +172,13 @@ def _merge_trigger_names(attrs_per_file):
     if not names_per_file:
         return None, {}
     union = _ordered_union(names_per_file.values())
-    columns = {f: None if names == union else np.array([union.index(n) for n in names], dtype=int)
-               for f, names in names_per_file.items()}
-    differing = [f for f, c in columns.items() if c is not None]
-    if not differing:
+    columns = {f: np.array([union.index(n) for n in names], dtype=int)
+               for f, names in names_per_file.items() if names != union}
+    if not columns:
         return attrs_per_file[next(iter(names_per_file))]['trigger_names'], columns
-    logger.warning(f"the trigger names of {len(differing)} files differ from the merged trigger names {union}; "
+    logger.warning(f"the trigger names of {len(columns)} files differ from the merged trigger names {union}; "
                    "their per-trigger datasets are re-indexed, columns of triggers missing in a file are False / NaN")
-    for f in differing:
+    for f in columns:
         logger.info(f"trigger names of {f}: {names_per_file[f]}")
     return union, columns
 
@@ -291,31 +290,11 @@ def _read_file_info(filename):
             ids={} if is_empty else {key: np.unique(fin[key][...]) for key in set(_ID_DATASETS.values()) if key in fin})
 
 
-def _dataset_layout(name, shapes_dtypes):
-    """
-    Shape and dtype of the merged dataset ``name`` from the (filename, shape, dtype) of each file that contributes rows:
-    rows summed, trailing shape and dtype of the first file.
-    """
-    _, shape, dtype = shapes_dtypes[0]
-    for filename, other_shape, other_dtype in shapes_dtypes[1:]:
-        if tuple(other_shape[1:]) != tuple(shape[1:]):
-            raise ValueError(f"dataset {name} of {filename} has shape {other_shape}, incompatible with {shape} of "
-                             f"{shapes_dtypes[0][0]}")
-        if other_dtype != dtype:
-            logger.warning(f"dataset {name} of {filename} has dtype {other_dtype}, converting it to {dtype} of "
-                           f"{shapes_dtypes[0][0]}")
-    return (sum(s[0] for _, s, _ in shapes_dtypes),) + tuple(shape[1:]), dtype
-
-
-def _per_trigger_shape(path, info, trigger_columns, shape, n_triggers):
-    """ Shape of the per-trigger dataset ``path`` of the file ``info`` after re-indexing to the merged triggers. """
-    columns = trigger_columns.get(info.filename)
-    if columns is None:
-        return shape
-    if len(shape) != 2 or shape[1] != len(columns):
-        raise ValueError(f"dataset {path} of {info.filename} has shape {shape}, but the file has {len(columns)} "
-                         "trigger names")
-    return (shape[0], n_triggers)
+def _reindex_triggers(data, columns, n_triggers):
+    """ Per-trigger dataset ``data`` with its columns moved to ``columns`` of ``n_triggers``; others False / NaN. """
+    reindexed = np.full((len(data), n_triggers), np.nan if data.dtype.kind == 'f' else 0, data.dtype)
+    reindexed[:, columns] = data
+    return reindexed
 
 
 def _merge_datasets(fout, infos, trigger_columns, n_triggers, skip_incomplete_stations=False):
@@ -338,17 +317,38 @@ def _merge_datasets(fout, infos, trigger_columns, n_triggers, skip_incomplete_st
             if offset:
                 logger.warning(f"{key} of {info.filename} overlap with previous files; shifted by {offset}")
 
-    # output datasets: path -> (open dataset, offset per index of a file that adds rows)
+    # output datasets: path -> (open dataset, {index of a file that adds rows: (offset, row transform or None)})
     outputs = {}
 
     def create(path, files):
-        if path.split('/')[-1] in _PER_TRIGGER_DATASETS:
-            files = [(i, (_per_trigger_shape(path, infos[i], trigger_columns, shape, n_triggers), dtype))
-                     for i, (shape, dtype) in files]
-        shape, dtype = _dataset_layout(path, [(infos[i].filename, *shapes_dtypes) for i, shapes_dtypes in files])
-        dset = fout.create_dataset(path, shape, dtype=dtype, compression='gzip')
-        offsets = np.cumsum([0] + [shapes_dtypes[0][0] for _, shapes_dtypes in files])
-        outputs[path] = (dset, dict(zip([i for i, _ in files], offsets)))
+        """ Creates the merged dataset ``path`` from the (file index, (shape, dtype)) of the files that add rows. """
+        name = path.split('/')[-1]
+        transforms = {}
+        for i, (shape, _) in files:
+            id_offset = id_offsets[_ID_DATASETS[name]][i] if _ID_DATASETS.get(name) in id_offsets else 0
+            if id_offset:
+                transforms[i] = functools.partial(np.add, id_offset)
+            elif name in _PER_TRIGGER_DATASETS and infos[i].filename in trigger_columns:
+                columns = trigger_columns[infos[i].filename]
+                if len(shape) != 2 or shape[1] != len(columns):
+                    raise ValueError(f"dataset {path} of {infos[i].filename} has shape {shape}, but the file has "
+                                     f"{len(columns)} trigger names")
+                transforms[i] = functools.partial(_reindex_triggers, columns=columns, n_triggers=n_triggers)
+        # trailing shape after re-indexing the trigger columns
+        trailing = [(n_triggers,) if i in transforms and name in _PER_TRIGGER_DATASETS else tuple(shape[1:])
+                    for i, (shape, _) in files]
+        (i0, (_, dtype)) = files[0]
+        for (i, (shape, other_dtype)), other_trailing in zip(files[1:], trailing[1:]):
+            if other_trailing != trailing[0]:
+                raise ValueError(f"dataset {path} of {infos[i].filename} has shape {shape}, incompatible with "
+                                 f"{files[0][1][0]} of {infos[i0].filename}")
+            if other_dtype != dtype:
+                logger.warning(f"dataset {path} of {infos[i].filename} has dtype {other_dtype}, converting it to "
+                               f"{dtype} of {infos[i0].filename}")
+        rows = [shape[0] for _, (shape, _) in files]
+        dset = fout.create_dataset(path, (sum(rows),) + trailing[0], dtype=dtype, compression='gzip')
+        offsets = np.cumsum([0] + rows)
+        outputs[path] = (dset, {i: (offset, transforms.get(i)) for (i, _), offset in zip(files, offsets)})
 
     for key in _ordered_union(info.datasets for info in infos):
         logger.info(f"merging key {key}")
@@ -375,28 +375,23 @@ def _merge_datasets(fout, infos, trigger_columns, n_triggers, skip_incomplete_st
             logger.warning(f"{infos[i].filename} misses the datasets {missing[i]} of {group}: leaving out its rows "
                            "for this station")
         members = [i for i in members if not missing[i]]
-        if not members:
-            keys = []
-        for key in keys:
-            create(f"{group}/{key}", [(i, infos[i].groups[group][key]) for i in members])
+        if members:
+            for key in keys:
+                create(f"{group}/{key}", [(i, infos[i].groups[group][key]) for i in members])
 
     # copy the rows file by file; one dataset of one file is in memory at a time
     for i, info in enumerate(infos):
         logger.info(f"copying {info.filename}")
         with h5py.File(info.filename, 'r') as fin:
-            for path, (dset, offsets) in outputs.items():
-                if i not in offsets:
+            for path, (dset, per_file) in outputs.items():
+                if i not in per_file:
                     continue
+                offset, transform = per_file[i]
                 data = fin[path][...]
-                kind = _ID_DATASETS.get(path.split('/')[-1])
-                if kind in id_offsets:
-                    data = data + id_offsets[kind][i]
-                if path.split('/')[-1] in _PER_TRIGGER_DATASETS and trigger_columns.get(info.filename) is not None:
-                    reindexed = np.full((len(data), n_triggers), np.nan if data.dtype.kind == 'f' else 0, data.dtype)
-                    reindexed[:, trigger_columns[info.filename]] = data
-                    data = reindexed
+                if transform is not None:
+                    data = transform(data)
                 if len(data):
-                    dset[offsets[i]:offsets[i] + len(data)] = data
+                    dset[offset:offset + len(data)] = data
     return {key: {info.filename: offset for info, offset in zip(infos, offsets)} for key, offsets in id_offsets.items()}
 
 
