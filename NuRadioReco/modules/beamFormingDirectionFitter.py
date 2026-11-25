@@ -115,13 +115,14 @@ class beamFormingDirectionFitter:
             Logging level
         ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
             Ice model for the signal propagation speed between the antennas (beam timing), used if ``n_index`` is
-            not given to `run`. Default: from the detector or the site (see `NuRadioMC.utilities.medium.get_station_ice_model`).
-            The electric-field reconstruction in `run` (voltageToEfieldConverterPerChannel) always uses the
-            detector or site default for the Fresnel factors at the surface.
+            not given to `run`, and for the refraction and Fresnel factors at the surface in the electric-field
+            reconstruction (voltageToEfieldConverterPerChannel). Default: from the detector or the site
+            (see `NuRadioMC.utilities.medium.get_station_ice_model`).
         """
         self.logger.setLevel(log_level)
         self.__debug = debug
         self.__ice_model = ice_model
+        voltageToEfieldConverterPerChannel.begin(ice_model=ice_model)
 
     @register_run()
     def run(self, evt, station, det, polarization, n_index=None, channels=None, ZenLim=None,

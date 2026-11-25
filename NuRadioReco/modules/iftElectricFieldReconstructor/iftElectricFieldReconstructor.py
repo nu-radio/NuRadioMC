@@ -58,6 +58,7 @@ class IftElectricFieldReconstructor:
         self.__phase_slope = None
         self.__slope_passbands = None
         self.__energy_fluence_passbands = None
+        self.__ice_model = None
         return
 
     def begin(
@@ -76,7 +77,8 @@ class IftElectricFieldReconstructor:
         energy_fluence_passbands=None,
         slope_passbands=None,
         phase_slope='both',
-        debug=False
+        debug=False,
+        ice_model=None
     ):
         """
         Define settings for the reconstruction.
@@ -125,9 +127,13 @@ class IftElectricFieldReconstructor:
             are used and the best fit is selected.
         debug: bool
             If true, debug plots are drawn.
+        ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+            Ice model for the refraction and Fresnel factors at the surface. Default: from the detector or the site
+            (see `NuRadioMC.utilities.medium.get_station_ice_model`)
 
         """
         self.__passband = passband
+        self.__ice_model = ice_model
         self.__filter_type = filter_type
         self.__debug = debug
         self.__n_iterations = n_iterations
@@ -521,7 +527,9 @@ class IftElectricFieldReconstructor:
                 receive_azimuth = channel.get_parameter(chp.signal_receiving_azimuth)
             else:
                 receive_azimuth = 0.
-            antenna_response = signal_processing.get_efield_antenna_factor(station, frequencies, [channel_id], detector, receiving_zenith, receive_azimuth, self.__antenna_pattern_provider)[0]
+            antenna_response = signal_processing.get_efield_antenna_factor(
+                station, frequencies, [channel_id], detector, receiving_zenith, receive_azimuth,
+                self.__antenna_pattern_provider, ice_model=self.__ice_model)[0]
             amp_response = detector.get_amplifier_response(station.get_id(), channel_id, frequencies)
             amp_gain = np.abs(amp_response)
             amp_phase = np.unwrap(np.angle(amp_response))

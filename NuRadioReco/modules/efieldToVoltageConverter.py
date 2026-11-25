@@ -74,8 +74,8 @@ class efieldToVoltageConverter():
             `NuRadioReco.utilities.coding_helper.get_rng`).
         ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
             Ice model for the refractive index used in the time shift between an electric field and an antenna
-            at different positions (cosmic rays). Default: from the detector or the site
-            (see `NuRadioMC.utilities.medium.get_station_ice_model`)
+            at different positions (cosmic rays), and for the refraction and Fresnel factors at the surface.
+            Default: from the detector or the site (see `NuRadioMC.utilities.medium.get_station_ice_model`)
         """
 
         if time_resolution is not None:
@@ -305,7 +305,7 @@ class efieldToVoltageConverter():
                 # missing power due to the Fresnel factors.
                 if not efield_is_at_antenna:
                     zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(
-                        det, sim_station, channel_id, zenith)
+                        det, sim_station, channel_id, zenith, ice_model=self.__ice_model)
                 else:
                     zenith_antenna = zenith
                     t_theta = 1

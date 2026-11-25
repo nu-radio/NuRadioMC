@@ -79,7 +79,8 @@ class neutrino3DVertexReconstructor:
             z_step_3d=2 * units.m,
             passband=None,
             min_antenna_distance=5. * units.m,
-            debug_folder='.'
+            debug_folder='.',
+            ice_model=None
     ):
         """
         General settings for vertex reconstruction
@@ -122,10 +123,14 @@ class neutrino3DVertexReconstructor:
         debug_folder: string
             Path to the folder in which debug plots should be saved if the debug=True option
             is picked in the run() method.
+        ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+            Ice model for the refraction and Fresnel factors at the surface. Default: from the detector or the site
+            (see `NuRadioMC.utilities.medium.get_station_ice_model`)
 
         """
 
         self.__detector = detector
+        self.__ice_model = ice_model
         self.__channel_ids = channel_ids
         self.__station_id = station_id
         self.__debug_folder = debug_folder
@@ -192,7 +197,8 @@ class neutrino3DVertexReconstructor:
                 detector=det,
                 zenith=90. * units.deg,
                 azimuth=0,
-                antenna_pattern_provider=self.__antenna_pattern_provider
+                antenna_pattern_provider=self.__antenna_pattern_provider,
+                ice_model=self.__ice_model
             )[0]
             voltage_spec = (
                 antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() + antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()
@@ -347,7 +353,8 @@ class neutrino3DVertexReconstructor:
                 detector=det,
                 zenith=90. * units.deg,
                 azimuth=0,
-                antenna_pattern_provider=self.__antenna_pattern_provider
+                antenna_pattern_provider=self.__antenna_pattern_provider,
+                ice_model=self.__ice_model
             )[0]
             voltage_spec = (
                 antenna_response[0] * self.__electric_field_template.get_frequency_spectrum() + antenna_response[1] * self.__electric_field_template.get_frequency_spectrum()

@@ -656,7 +656,7 @@ def get_efield_antenna_factor(station, frequencies, channels, detector, zenith, 
 
 def get_channel_voltage_from_efield(
         station, electric_field, channels, detector,
-        zenith, azimuth, antenna_pattern_provider, return_spectrum=True):
+        zenith, azimuth, antenna_pattern_provider, return_spectrum=True, ice_model=None):
     """
     Returns the voltage traces that would result in the channels from the station's E-field.
 
@@ -673,12 +673,15 @@ def get_channel_voltage_from_efield(
     antenna_pattern_provider: AntennaPatternProvider
     return_spectrum: boolean
         if True, returns the spectrum, if False return the time trace
+    ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+        Ice model for the refraction and Fresnel factors at the surface. Default: from the detector or the site
+        (see `NuRadioMC.utilities.medium.get_station_ice_model`)
     """
 
     frequencies = electric_field.get_frequencies()
     spectrum = electric_field.get_frequency_spectrum()
     efield_antenna_factor = get_efield_antenna_factor(
-        station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider)
+        station, frequencies, channels, detector, zenith, azimuth, antenna_pattern_provider, ice_model=ice_model)
 
     voltage_spectrum = np.array([
         np.sum(efield_antenna_factor[i_ch] * np.array([spectrum[1], spectrum[2]]), axis=0)

@@ -19,10 +19,19 @@ class voltageToEfieldConverterPerChannel:
         self.logger = logging.getLogger('NuRadioReco.voltageToEfieldConverterPerChannel')
         self.antenna_provider = None
         self.__counter = 0
+        self.__ice_model = None
         self.begin()
 
-    def begin(self):
+    def begin(self, ice_model=None):
+        """
+        Parameters
+        ----------
+        ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+            Ice model for the refraction and Fresnel factors at the surface. Default: from the detector or the site
+            (see `NuRadioMC.utilities.medium.get_station_ice_model`)
+        """
         self.antenna_provider = antennapattern.AntennaPatternProvider()
+        self.__ice_model = ice_model
 
     @register_run()
     def run(self, evt, station, det, pol=0):
@@ -58,8 +67,8 @@ class voltageToEfieldConverterPerChannel:
 
         use_channels = station.get_channel_ids()
         frequencies = station.get_channel(use_channels[0]).get_frequencies()  # assuming that all channels have the  same sampling rate and length
-        efield_antenna_factor = signal_processing.get_efield_antenna_factor(station, frequencies, use_channels, det,
-                                                                          zenith, azimuth, self.antenna_provider)
+        efield_antenna_factor = signal_processing.get_efield_antenna_factor(
+            station, frequencies, use_channels, det, zenith, azimuth, self.antenna_provider, ice_model=self.__ice_model)
 
         sampling_rate = station.get_channel(use_channels[0]).get_sampling_rate()
 

@@ -64,7 +64,10 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   beamFormingDirectionFitter uses its `n_index` argument (was ignored, n = 1.353 was hard-coded).
   `fresnel_factors_and_signal_zenith` uses the site air instead of n = 1; impulsiveSignalReconstructor (`n_index` default
   and refraction into air) and voltageToAnalyticEfieldConverter (time shifts, new `ice_model` argument in `begin`) use
-  the station's refractive index. New `NuRadioReco.utilities.constants.n_air_sea_level` (1.00027, also
+  the station's refractive index. New `ice_model` argument also in voltageToEfieldConverterPerChannel(Group),
+  efieldToVoltageConverterPerEfield, neutrino3DVertexReconstructor, iftElectricFieldReconstructor (`begin`) and
+  `signal_processing.get_channel_voltage_from_efield`; efieldToVoltageConverter and beamFormingDirectionFitter pass
+  theirs on to the Fresnel factors. New `NuRadioReco.utilities.constants.n_air_sea_level` (1.00027, also
   `medium_base.N_AIR_SEA_LEVEL`) replaces the 1.000293 / 1.000292 defaults of `get_time_delay_from_direction`,
   `analytic_plane_wave_fit`, `interfere_traces_plane` and `get_dt_correlation`.
 - Ice models have an `n_air` attribute, the refractive index above the surface of models without an air layer (default
