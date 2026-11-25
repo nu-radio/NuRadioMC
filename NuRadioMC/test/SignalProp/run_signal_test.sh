@@ -9,6 +9,7 @@ NUMBA_DISABLE_JIT=1 python3 T09_compare_raytracing_modules.py  # numba-compiled 
 python3 T11test_find_solutions_known_geometries.py
 python3 T12test_air_to_ice.py
 NUMBA_DISABLE_JIT=1 python3 T12test_air_to_ice.py  # numba-compiled code is invisible to coverage
+rm -r raytracing_output  # written by T09
 
 cd ../../examples/SignalProp
 python3 example_3d.py
