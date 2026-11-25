@@ -96,9 +96,18 @@ def test_refractive_index():
     np.testing.assert_allclose(medium.get_refractive_index(0.01 * units.m, greenland, "summit"), medium.N_AIR_SUMMIT, rtol=1e-8)
     assert medium.get_refractive_index(9 * units.km, greenland, "summit") < medium.N_AIR_SUMMIT
 
-    # placeholder air layer of IceModelExpLayers.from_IceModel (n = 1.000001) is not used: site air value
-    converted = medium_base.IceModelExpLayers.from_IceModel(medium.southpole_2015())
-    assert medium.get_refractive_index(1 * units.m, converted, "southpole") == medium.N_AIR_DEFAULT
+    # air layer of IceModelExpLayers.from_IceModel (exponential_air_layer): the air layer
+    converted = medium_base.IceModelExpLayers.from_IceModel(medium.southpole_2015(), n_air_surface=1.0003)
+    assert medium.get_refractive_index(1 * units.m, converted, "southpole") == n_model(converted, 1 * units.m)
+    np.testing.assert_allclose(medium.get_refractive_index(0.01 * units.m, converted, "southpole"), 1.0003, rtol=1e-8)
+
+    # air layer without the "region" key of exponential_air_layer (n ~ 1 placeholder): site air value
+    layers = [dict(layer) for layer in converted.layers]
+    for layer in layers:
+        if layer.get("region") == "air":
+            del layer["region"]
+    placeholder = medium_base.IceModelExpLayers(layers)
+    assert medium.get_refractive_index(1 * units.m, placeholder, "southpole") == medium.N_AIR_DEFAULT
 
     # no ice (air-only site): air value everywhere
     for z in np.array([10, -0.01, -2]) * units.m:

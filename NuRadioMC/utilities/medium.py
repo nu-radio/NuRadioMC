@@ -621,9 +621,10 @@ def get_station_ice_model(det, station_id, ice_model=None):
 
 
 def _has_air_layer(ice_model):
-    # Only the air layer of IceModelContinuousExpLayers is physical (Summit values for the Greenland models); e.g.
-    # IceModelExpLayers.from_IceModel adds a placeholder (n = 1.000001) that the multilayer ray tracer needs.
-    return isinstance(ice_model, medium_base.IceModelContinuousExpLayers)
+    # Air layers built by `medium_base.exponential_air_layer` (IceModelContinuousExpLayers,
+    # IceModelExpLayers.from_IceModel) are physical; other layer definitions may carry an n ~ 1 placeholder.
+    return isinstance(ice_model, medium_base.IceModelExpLayers) and any(
+        layer.get("region") == "air" for layer in ice_model.layers)
 
 
 def get_refractive_index(z, ice_model, site):
@@ -631,7 +632,7 @@ def get_refractive_index(z, ice_model, site):
     Returns the refractive index at height ``z`` of a station.
 
     Below the surface (``z <= ice_model.z_air_boundary``), this is the ice model's n(z). Above it, the model's
-    air layer if it has a physical one (`IceModelContinuousExpLayers`), else the site's air value (`get_n_air`);
+    air layer if it has a physical one (built by `medium_base.exponential_air_layer`), else the site's air value (`get_n_air`);
     most ice models themselves return n = 1 in air.
 
     Parameters
