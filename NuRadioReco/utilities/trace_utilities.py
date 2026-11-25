@@ -603,13 +603,107 @@ def get_impulsivity(trace, envelope=None):
     return impulsivity
 
 
+def get_coherent_lags(trace_set, ref_trace, use_envelope = False, lag_range = None, ref_window = None):
+    """
+    Finds the lags which align a set of traces with a reference trace (or template).
+
+    For each trace, the lag is the maximum of its (linear, i.e., zero-padded) cross correlation
+    with the reference trace: ``np.roll(trace, lag)`` aligns the trace with the reference trace.
+    The traces may have another length than the reference trace.
+    Used by `get_coherent_sum`.
+
+    Parameters
+    ----------
+    trace_set: 2-D array of floats
+        Traces to align (all of the same length)
+    ref_trace: 1-D array of floats
+        Reference trace
+    use_envelope: bool
+        If True, correlate the Hilbert envelopes instead of the traces (default: False)
+    lag_range: tuple of (int, int), list of (tuple of (int, int) or None), or None
+        ``(min, max)`` of the allowed lags in **samples** (not time, inclusive), for all traces,
+        or a list with one ``(min, max)`` per trace of ``trace_set`` (None: all lags for this trace).
+        If None (default), all lags are allowed.
+    ref_window: tuple of (int, int) or None
+        ``(start, stop)`` sample indices (half-open) of the reference trace used for the
+        cross correlation. The processed reference trace is set to zero outside this window,
+        i.e., only this part of the reference contributes to the correlation.
+        If None (default), the full reference trace is used.
+
+    Returns
+    -------
+    lags: 1-D array of int
+        Lag (in samples) of each trace of ``trace_set``
+    correlations: 1-D array of floats
+        Pearson-like correlation coefficient (in [-1, 1]) at the selected lag, computed between the
+        (processed) reference trace within ``ref_window`` and the overlapping part of the shifted
+        (not rolled) trace.
+    """
+    # Normalize: subtract mean, divide by std (z-score)
+    def process(trace):
+        if use_envelope:
+            trace = get_hilbert_envelope(trace)
+        return (trace - np.mean(trace, axis=-1, keepdims=True)) / np.std(trace, axis=-1, keepdims=True)
+
+    n_ref = len(ref_trace)
+    ref_processed = process(ref_trace)
+
+    window_mask = np.ones(n_ref, dtype=bool)
+    if ref_window is not None:
+        window_mask[:] = False
+        window_mask[slice(*ref_window)] = True
+        if not np.any(window_mask):
+            raise ValueError(f"ref_window {ref_window} (in samples) contains no sample.")
+        ref_processed = np.where(window_mask, ref_processed, 0)
+
+    trace_set = np.stack(trace_set)  # Make sure it's 2D
+    traces_processed = process(trace_set)
+    n_samples = trace_set.shape[-1]
+
+    lag_array = scipy.signal.correlation_lags(n_ref, n_samples, mode='full')
+
+    # One (min, max) per trace: a single (min, max) or None applies to all traces
+    if lag_range is None or np.isscalar(lag_range[0]):
+        lag_range = [lag_range] * len(trace_set)
+    if len(lag_range) != len(trace_set):
+        raise ValueError(f"lag_range has {len(lag_range)} entries for {len(trace_set)} traces.")
+
+    lags = np.zeros(len(trace_set), dtype=int)
+    correlations = np.zeros(len(trace_set))
+    for i, trace_lag_range in enumerate(lag_range):
+        lag_min, lag_max = trace_lag_range or (-np.inf, np.inf)
+        lag_mask = (lag_array >= lag_min) & (lag_array <= lag_max)
+        if not np.any(lag_mask):
+            raise ValueError(f"lag_range {trace_lag_range} (in samples) contains no valid lag.")
+
+        corr = scipy.signal.correlate(ref_processed, traces_processed[i], mode='full') / n_samples
+        lags[i] = lag_array[lag_mask][np.argmax(corr[lag_mask])]
+
+        # Normalize over the overlap (zero-filled shift onto the reference samples, as in the correlation)
+        shifted = _shift_onto(traces_processed[i], lags[i], n_ref)
+        shifted[~window_mask] = 0
+        norm = np.sqrt(np.sum(ref_processed ** 2) * np.sum(shifted ** 2))
+        correlations[i] = np.sum(ref_processed * shifted) / norm if norm > 0 else 0.
+
+    return lags, correlations
+
+
+def _shift_onto(trace, lag, n_out):
+    """ Returns ``out`` of length ``n_out`` with ``out[n] = trace[n - lag]`` where defined, else 0 (no wrap-around) """
+    out = np.zeros(n_out, dtype=np.result_type(trace))
+    start, stop = max(0, lag), min(n_out, len(trace) + lag)
+    if start < stop:
+        out[start:stop] = trace[start - lag:stop - lag]
+    return out
+
+
 def get_coherent_sum(trace_set, ref_trace, use_envelope = False, lag_range = None, ref_window = None,
                      crop_to_overlap = False, return_lags = False, return_correlations = False):
     """
     Generates the coherently-summed waveform (CSW) of a sets of traces.
 
-    This function finds the correlation between each trace from a set and the reference trace,
-    then shifts all traces to align with the reference trace,
+    This function finds the correlation between each trace from a set and the reference trace
+    (see `get_coherent_lags`), then shifts all traces to align with the reference trace,
     and then add them up to get the CSW.
 
     The cross correlation is linear, i.e., the traces are zero-padded (``scipy.signal.correlate``
@@ -622,19 +716,11 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False, lag_range = Non
     ----------
     trace_set: 2-D array of floats
         Traces of multiple channel waveforms without the reference trace
+        (of the same length as the reference trace)
     ref_trace: 1-D array of floats
         Trace of the reference channel
-    use_envelope: bool
-        See if users would like to find the correlation between envelopes or just normal traces (default: False)
-    lag_range: tuple of (int, int), list of (tuple of (int, int) or None), or None
-        ``(min, max)`` of the allowed lags in **samples** (not time, inclusive), for all traces,
-        or a list with one ``(min, max)`` per trace of ``trace_set`` (None: all lags for this trace).
-        If None (default), all lags are allowed.
-    ref_window: tuple of (int, int) or None
-        ``(start, stop)`` sample indices (half-open) of the reference trace used for the
-        cross correlation. The processed reference trace is set to zero outside this window,
-        i.e., only this part of the reference contributes to the correlation.
-        If None (default), the full reference trace is used.
+    use_envelope, lag_range, ref_window:
+        See `get_coherent_lags`
     crop_to_overlap: bool
         If False (default), traces are rolled (circular shift, see above) and the CSW has the
         same length as the input traces. If True, traces are shifted with zero filling (consistent
@@ -655,80 +741,27 @@ def get_coherent_sum(trace_set, ref_trace, use_envelope = False, lag_range = Non
         Only if ``return_lags``: lag (in samples) by which each trace of ``trace_set`` was shifted
         to align with the reference trace (``np.roll(trace, lag)`` without ``crop_to_overlap``).
     correlations: 1-D array of floats
-        Only if ``return_correlations``: Pearson-like correlation coefficient (in [-1, 1]) at the
-        selected lag, computed between the (processed) reference trace within ``ref_window`` and
-        the overlapping part of the shifted (not rolled) trace.
+        Only if ``return_correlations``: see `get_coherent_lags`
 
     Notes
     -----
     The returned objects are ``sum_trace``, then ``lags``, then ``correlations``
     (the latter two only if requested).
     """
-    def shift(trace, lag):
-        # Shift by ``lag`` samples, filling with zeros (no wrap-around)
-        shifted = np.zeros_like(trace)
-        if lag >= 0:
-            shifted[lag:] = trace[:len(trace) - lag]
-        else:
-            shifted[:lag] = trace[-lag:]
-        return shifted
-
-    # Normalize: subtract mean, divide by std (z-score)
-    def process(trace):
-        if use_envelope:
-            trace = get_hilbert_envelope(trace)
-        return (trace - np.mean(trace, axis=-1, keepdims=True)) / np.std(trace, axis=-1, keepdims=True)
-
     n_samples = len(ref_trace)
-    ref_processed = process(ref_trace)
-
-    window_mask = np.ones(n_samples, dtype=bool)
-    if ref_window is not None:
-        window_mask[:] = False
-        window_mask[slice(*ref_window)] = True
-        if not np.any(window_mask):
-            raise ValueError(f"ref_window {ref_window} (in samples) contains no sample.")
-        ref_processed = np.where(window_mask, ref_processed, 0)
-
-    # Process all traces
     trace_set = np.stack(trace_set)  # Make sure it's 2D
-    traces_processed = process(trace_set)
+    if trace_set.shape[-1] != n_samples:
+        raise ValueError(f"The traces have {trace_set.shape[-1]} samples, the reference trace {n_samples}.")
+
+    lags, correlations = get_coherent_lags(
+        trace_set, ref_trace, use_envelope, lag_range=lag_range, ref_window=ref_window)
 
     sum_trace = np.copy(ref_trace)
-
-    lag_array = scipy.signal.correlation_lags(n_samples, n_samples, mode='full')
-
-    # One (min, max) per trace: a single (min, max) or None applies to all traces
-    if lag_range is None or np.isscalar(lag_range[0]):
-        lag_range = [lag_range] * len(trace_set)
-    if len(lag_range) != len(trace_set):
-        raise ValueError(f"lag_range has {len(lag_range)} entries for {len(trace_set)} traces.")
-
-    lag_masks = []
-    for trace_lag_range in lag_range:
-        lag_min, lag_max = trace_lag_range or (-np.inf, np.inf)
-        lag_mask = (lag_array >= lag_min) & (lag_array <= lag_max)
-        if not np.any(lag_mask):
-            raise ValueError(f"lag_range {trace_lag_range} (in samples) contains no valid lag.")
-        lag_masks.append(lag_mask)
-
-    lags = np.zeros(len(trace_set), dtype=int)
-    correlations = np.zeros(len(trace_set))
-    for i, trace in enumerate(trace_set):
-        corr = scipy.signal.correlate(ref_processed, traces_processed[i], mode='full') / n_samples
-        best_lag = lag_array[lag_masks[i]][np.argmax(corr[lag_masks[i]])]
+    for trace, lag in zip(trace_set, lags):
         if crop_to_overlap:
-            sum_trace += shift(trace, best_lag)
+            sum_trace += _shift_onto(trace, lag, n_samples)
         else:
-            sum_trace += np.roll(trace, best_lag)
-        lags[i] = best_lag
-
-        if return_correlations:
-            # Normalize over the overlap (zero-filled shift, as in the correlation)
-            shifted = shift(traces_processed[i], best_lag)
-            shifted[~window_mask] = 0
-            norm = np.sqrt(np.sum(ref_processed ** 2) * np.sum(shifted ** 2))
-            correlations[i] = np.sum(ref_processed * shifted) / norm if norm > 0 else 0.
+            sum_trace += np.roll(trace, lag)
 
     if crop_to_overlap:
         start, stop = max(0, lags.max()), n_samples + min(0, lags.min())
