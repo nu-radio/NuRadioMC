@@ -51,6 +51,9 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
 
 bugfixes:
+- NuRadioMC simulation: when two or more stations triggered in the same event group, the showers and events of the
+  earlier stations were written to the HDF5 output several times (top level and station groups). The effective volume
+  was not affected (`remove_duplicate_triggers` counts each event group once); the .nur output was not affected.
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported

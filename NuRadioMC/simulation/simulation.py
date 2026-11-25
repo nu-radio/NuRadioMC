@@ -1819,6 +1819,8 @@ class simulation:
 
                     remove_all_traces(evt)  # remove all traces to save memory
 
+            # end station loop: output_buffer holds the triggered events of all stations, write it once
+            if any(output_buffer.values()):
                 self._output_writer_hdf5.add_event_group(output_buffer)
 
         time_logger.show_time(len(unique_event_group_ids), i_event_group_id + 1, num_triggers=i_triggered_events, force=True)
