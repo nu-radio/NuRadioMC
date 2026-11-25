@@ -112,7 +112,7 @@
 | NuRadioReco/eventbrowser/index.py                                                                        |      197 |      197 |      0% |     1-433 |
 | NuRadioReco/framework/\_\_init\_\_.py                                                                    |        0 |        0 |    100% |           |
 | NuRadioReco/framework/base\_shower.py                                                                    |       49 |       21 |     57% |37-39, 59-67, 72-78, 113-127 |
-| NuRadioReco/framework/base\_station.py                                                                   |      182 |       53 |     71% |49-55, 88, 104, 120-123, 132, 154, 172, 199-203, 206, 232, 236-237, 241-245, 251-255, 311-312, 332-347, 353-354, 357-358, 361-362, 365-366 |
+| NuRadioReco/framework/base\_station.py                                                                   |      185 |       56 |     70% |48-54, 92-95, 104, 120, 136-139, 148, 170, 188, 215-219, 222, 248, 252-253, 257-261, 267-271, 327-328, 348-363, 369-370, 373-374, 377-378, 381-382 |
 | NuRadioReco/framework/base\_trace.py                                                                     |      277 |       83 |     70% |37, 99-101, 119, 129, 135, 158, 164, 183-188, 217, 266, 287, 296, 349-350, 368-369, 383-384, 400-401, 431-451, 463, 466, 469, 474-487, 499-501, 522-527, 543-549, 553, 556, 559-568 |
 | NuRadioReco/framework/channel.py                                                                         |       59 |       17 |     71% |35-45, 56, 60, 71-74, 84, 108-110 |
 | NuRadioReco/framework/electric\_field.py                                                                 |       71 |       15 |     79% |57, 134-153 |
@@ -268,7 +268,7 @@
 | NuRadioReco/utilities/dataservers.py                                                                     |       71 |       33 |     54% |14-30, 47-48, 50-51, 54, 68-81, 84-85 |
 | NuRadioReco/utilities/diodeSimulator.py                                                                  |       90 |       69 |     23% |29-32, 49, 53, 57, 82-111, 150-174, 177, 215-256 |
 | NuRadioReco/utilities/fft.py                                                                             |        9 |        0 |    100% |           |
-| NuRadioReco/utilities/framework\_utilities.py                                                            |       26 |       26 |      0% |      1-41 |
+| NuRadioReco/utilities/framework\_utilities.py                                                            |       30 |       23 |     23% | 11-43, 60 |
 | NuRadioReco/utilities/geometryUtilities.py                                                               |      101 |       35 |     65% |47-54, 59-66, 71-78, 100-111, 133-135, 138, 169, 201, 322, 338, 341-344, 384, 394-398, 409-410, 415-418 |
 | NuRadioReco/utilities/ice.py                                                                             |       10 |        1 |     90% |        48 |
 | NuRadioReco/utilities/interferometry.py                                                                  |       77 |       61 |     21% |49-80, 109-111, 143-145, 165-186, 211-220, 246-248, 283-288, 319-327 |
@@ -284,7 +284,7 @@
 | NuRadioReco/utilities/trace\_utilities.py                                                                |      272 |      190 |     30% |40-42, 49-51, 57-59, 66-68, 75-77, 84-86, 133, 136-141, 149-150, 154-190, 193, 230-285, 321-345, 401-423, 499-506, 637-659, 726-729, 753-763, 793-862 |
 | NuRadioReco/utilities/units.py                                                                           |      166 |        0 |    100% |           |
 | NuRadioReco/utilities/version.py                                                                         |       27 |        5 |     81% |16, 25-27, 47 |
-| **TOTAL**                                                                                                | **32363** | **20284** | **37%** |           |
+| **TOTAL**                                                                                                | **32370** | **20284** | **37%** |           |
 
 
 ## Setup coverage badge
