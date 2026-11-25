@@ -20,18 +20,19 @@ from NuRadioMC.SignalProp.AnalyticRayTracingImpl import single_layer_analytic_ra
 from NuRadioMC.utilities import medium, medium_base
 from NuRadioReco.utilities import units, constants
 
-ice = medium.greenland_3exp_timing_2025()
+ice = medium.greenland_3exp_timing_2025()  # multilayer model with an exponential air layer
+ice_simple = medium.greenland_simple()  # single-layer model, n = 1 in air
+# where n(z) has kinks: layer boundaries of `ice`, incl. the surface (also the kink of `ice_simple`)
 breaks = [layer["z_min"] for layer in ice.layers]
-ice_simple = medium.greenland_simple()  # single-layer model (single-layer ray tracer: n = 1 in air)
 
 
 # refractive index profiles
-def n(z):
-    return ice.get_index_of_refraction(np.array([0, 0, z]))
+def index_profile(model):
+    return lambda z: model.get_index_of_refraction(np.array([0, 0, z]))
 
 
-def n_simple(z):
-    return ice_simple.n_ice - ice_simple.delta_n * np.exp(z / ice_simple.z_0)
+n = index_profile(ice)
+n_simple = index_profile(ice_simple)
 
 
 # integrands of a ray with ray parameter p (p = n sin(theta), constant along the ray) in a profile n(z), per dz
@@ -52,32 +53,17 @@ def plane_wave_integrand(p, n_of_z):
 
 # numerical integration
 def integrate(f, z1, z2):
-    """int_z1^z2 f dz for z1 < z2 in `ice`, split at its layer boundaries."""
+    """int_z1^z2 f dz for z1 < z2, split at `breaks`."""
     points = [b for b in breaks if z1 < b < z2]
     return quad(f, z1, z2, points=points, limit=500, epsabs=1e-12, epsrel=1e-12)[0]
 
 
-def integrate_simple(f, z):
-    """int_z^0 f dz for z < 0 in `ice_simple` (the part of the path in the ice)."""
-    return quad(f, z, 0, limit=500, epsabs=1e-12, epsrel=1e-12)[0]
-
-
-# reference solutions: p from the horizontal distance, then the travel time
-def reference_air_to_ice(distance, height, z_rx):
-    """p and travel time of the direct ray from (distance, height) in air to (0, z_rx) in `ice`."""
-    p = brentq(lambda p: integrate(horizontal_integrand(p, n), z_rx, height) - distance,
-               1e-6, n(height) * (1 - 1e-14), xtol=1e-16, rtol=8.9e-16)
-    return p, integrate(optical_path_integrand(p, n), z_rx, height) / constants.c
-
-
-def reference_single_layer(distance, height, z_rx):
-    """p and travel time of the direct ray in `ice_simple`; the air part (n = 1) is a straight line."""
-    def reach(p):
-        return integrate_simple(horizontal_integrand(p, n_simple), z_rx) + height * p / np.sqrt(1 - p**2)
-
-    p = brentq(lambda p: reach(p) - distance, 1e-9, 1 - 1e-15, xtol=1e-16, rtol=1e-15)
-    t = (integrate_simple(optical_path_integrand(p, n_simple), z_rx) + height / np.sqrt(1 - p**2)) / constants.c
-    return p, t
+# reference solution: p from the horizontal distance, then the travel time
+def reference_direct_ray(n_of_z, distance, height, z_rx):
+    """p and travel time of the direct ray from (distance, height) in air to (0, z_rx) in ice with profile n_of_z."""
+    p = brentq(lambda p: integrate(horizontal_integrand(p, n_of_z), z_rx, height) - distance,
+               1e-6, n_of_z(height) * (1 - 1e-14), xtol=1e-16, rtol=8.9e-16)
+    return p, integrate(optical_path_integrand(p, n_of_z), z_rx, height) / constants.c
 
 
 def test_air_layer():
@@ -129,11 +115,11 @@ AIR_TO_ICE_GEOMETRIES = [(100, 10, -97), (1000, 100, -97), (30, 1, -20), (3000, 
 
 
 def test_air_to_ice():
-    """Multilayer ray tracer against `reference_air_to_ice`."""
+    """Multilayer ray tracer against `reference_direct_ray`."""
     r = ray.ray_tracing(ice, compile_numba=True)
     for distance, height, z_rx in AIR_TO_ICE_GEOMETRIES:
         distance, height, z_rx = distance * units.m, height * units.m, z_rx * units.m
-        p, t_ref = reference_air_to_ice(distance, height, z_rx)
+        p, t_ref = reference_direct_ray(n, distance, height, z_rx)
 
         r.set_start_and_end_point(np.array([distance, 0, height]), np.array([0, 0, z_rx]))
         r.find_solutions()
@@ -161,14 +147,14 @@ def test_vertical_air_path():
 
 
 def test_single_layer_air_to_ice():
-    """Single-layer ray tracer, numba and python backends, both directions, against `reference_single_layer`."""
+    """Single-layer ray tracer, numba and python backends, both directions, against `reference_direct_ray`."""
     geometries = [(100, 10, -97), (1000, 100, -97), (30, 1, -20), (3000, 1000, -20), (1271.4, 10, -97),
                   (2392, 10, -40), (5000, 1, -97), (5000, 100, -20), (13880, 1, -97)]
     for compile_numba in [True, False]:
         r = ray.ray_tracing(ice_simple, use_cpp=False, compile_numba=compile_numba)
         for distance, height, z_rx in geometries:
             distance, height, z_rx = distance * units.m, height * units.m, z_rx * units.m
-            _, t_ref = reference_single_layer(distance, height, z_rx)
+            _, t_ref = reference_direct_ray(n_simple, distance, height, z_rx)
             for start, end in [([distance, 0, height], [0, 0, z_rx]), ([0, 0, z_rx], [distance, 0, height])]:
                 r.set_start_and_end_point(np.array(start), np.array(end))
                 r.find_solutions()
