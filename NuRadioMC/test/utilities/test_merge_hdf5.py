@@ -580,6 +580,16 @@ def test_find_part_files_same_name_in_two_folders(tmp_path, caplog):
     assert "subfolders" not in caplog.text, caplog.text
 
 
+def test_find_part_files_all_parts_small(tmp_path, caplog):
+    # a name whose part files are all too small gives no group
+    parts = _write_part_tree(str(tmp_path))
+    open(os.path.join(str(tmp_path), "1e19", "d.hdf5.part0000"), "w").close()
+    with caplog.at_level(logging.ERROR, logger="NuRadioMC.HDF5-merger"):
+        found = merge_hdf5.find_part_files(str(tmp_path))
+    assert {x["output_filename"]: list(x["filenames"]) for x in found} == parts, found
+    assert os.path.join(str(tmp_path), "d.hdf5") in caplog.text, caplog.text
+
+
 @pytest.fixture
 def restore_loglevel():
     """ `merge_hdf5.main` sets the level of the merger's logger """

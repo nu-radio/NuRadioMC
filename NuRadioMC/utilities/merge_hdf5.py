@@ -179,8 +179,9 @@ def find_part_files(root_directory, skip_existing=True):
     Groups the files ``root_directory/<subfolder>/<name>.hdf5.partNNNN`` by ``<name>.hdf5``.
 
     Files of at most 1000 bytes (e.g. truncated by a failed job) are left out with a warning; their events are then
-    missing from ``n_events`` of the merged file. A name in several subfolders gives one entry per subfolder, all
-    with the same output file, and a warning.
+    missing from ``n_events`` of the merged file. A name whose part files are all that small is left out with an
+    error message. A name in several subfolders gives one entry per subfolder, all with the same output file, and a
+    warning.
 
     Parameters
     ----------
@@ -215,6 +216,9 @@ def find_part_files(root_directory, skip_existing=True):
             logger.error(f'file {output_filename} already exists, skipping')
             continue
         small = {f for f in input_files if os.path.getsize(f) <= 1000}
+        if len(small) == len(input_files):
+            logger.error(f"all part files of {output_filename} are too small (at most 1000 bytes), skipping")
+            continue
         if small:
             logger.warning(f"{len(small)} files were deselected because their filesize was too small, the merged "
                            f"{output_filename} misses their events in n_events: {sorted(small)}")
