@@ -64,11 +64,14 @@ for compile_numba in [True, False]:
 # emitter in air -> receiver in ice: p from the horizontal distance, then the travel time by quadrature.
 # Near-horizontal rays from low emitters have p > 1 (allowed up to n at the emitter, as n > 1 near the surface).
 r = ray.ray_tracing(ice, compile_numba=True)
+# (7000, 1, -97) is at 76 % of the direct reach (9252 m), where p is within 1e-12 of n at the emitter; the
+# 50 m emitters cover p = 1 -+ 2e-7 (alpha = 1 - p^2 -> 0 in the air layer).
 for distance, height, z_rx in [(100, 10, -97), (1000, 100, -97), (30, 1, -20), (3000, 1000, -20),
-                               (1271.4, 10, -97), (2392, 10, -40), (5000, 1, -97), (5000, 100, -20)]:
+                               (1271.4, 10, -97), (2392, 10, -40), (5000, 1, -97), (5000, 100, -20), (7000, 1, -97),
+                               (2500, 50, -97), (2501, 50, -97), (2501.25, 50, -97), (2502.5, 50, -97)]:
     distance, height, z_rx = distance * units.m, height * units.m, z_rx * units.m
     horizontal = lambda p: integrate(lambda z: p / np.sqrt(n(z)**2 - p**2), z_rx, height)
-    p = brentq(lambda p: horizontal(p) - distance, 1e-6, n(height) * (1 - 1e-12), xtol=1e-14)
+    p = brentq(lambda p: horizontal(p) - distance, 1e-6, n(height) * (1 - 1e-14), xtol=1e-16, rtol=8.9e-16)
     t_ref = integrate(lambda z: n(z)**2 / np.sqrt(n(z)**2 - p**2), z_rx, height) / constants.c
 
     r.set_start_and_end_point(np.array([distance, 0, height]), np.array([0, 0, z_rx]))
@@ -79,6 +82,16 @@ for distance, height, z_rx in [(100, 10, -97), (1000, 100, -97), (30, 1, -20), (
     testing.assert_allclose(1 / r.get_results()[0]["C0"], p, rtol=1e-9)
     print(f"air to ice: p = {p:.7f}, d = {distance:6.0f} m, h = {height:6.0f} m, z = {z_rx:4.0f} m: t = {t:.4f} ns, "
           f"quadrature {t_ref:.4f} ns")
+
+# emitter in air straight above the receiver: one solution (vertical ray)
+r.set_start_and_end_point(np.array([0., 0, 100]), np.array([0., 0, -50]))
+r.find_solutions()
+assert r.get_number_of_solutions() == 1, r.get_number_of_solutions()
+testing.assert_allclose(r.get_travel_time(0), integrate(n, -50, 100) / constants.c, atol=1e-3 * units.ns)
+
+# plane-wave time differences need both receivers in the ice
+r.set_start_and_end_point(np.array([0., 0, -97]), np.array([0., 0, 2]))
+testing.assert_raises(ValueError, r.get_time_difference_plane_wave, 0, 0)
 
 # single-layer ray tracer (fixed n = 1 in air): numba and python backends; the C++ backend has no air propagation
 ice_simple = medium.greenland_simple()
