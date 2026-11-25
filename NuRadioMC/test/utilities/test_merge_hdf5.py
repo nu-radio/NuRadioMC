@@ -14,7 +14,7 @@ import pytest
 
 import NuRadioMC
 from NuRadioMC.utilities import merge_hdf5
-from NuRadioMC.utilities.merge_hdf5 import merge2
+from NuRadioMC.utilities.merge_hdf5 import merge_hdf5_files
 
 REFERENCE = os.path.join(os.path.dirname(NuRadioMC.__file__), "test", "SingleEvents", "1e18_output_reference.hdf5")
 
@@ -61,14 +61,14 @@ def _read(filename):
 def _merge(tmp_path, inputs):
     """ Writes one file per (event_group_ids, shower_ids) pair, merges them and returns the merged datasets. """
     output = str(tmp_path / "merged.hdf5")
-    merge2(_write_files(tmp_path, inputs), output)
+    merge_hdf5_files(_write_files(tmp_path, inputs), output)
     return _read(output)[0]
 
 
 def _merge_with_attrs(tmp_path, inputs):
     """ As `_merge`, but returns the merged datasets and the file attributes. """
     output = str(tmp_path / "merged.hdf5")
-    merge2(_write_files(tmp_path, inputs), output)
+    merge_hdf5_files(_write_files(tmp_path, inputs), output)
     return _read(output)
 
 
@@ -152,7 +152,7 @@ def test_merge_untriggered_file_adds_no_rows(tmp_path):
     _write_file(filenames[0], [1, 2, 2], [1, 2, 3])
     _write_file(filenames[1], [5, 6], [5, 6], triggered=False)
     output = str(tmp_path / "merged.hdf5")
-    merge2(filenames, output)
+    merge_hdf5_files(filenames, output)
     data, attrs = _read(output)
     np.testing.assert_array_equal(data["shower_ids"], [1, 2, 3])
     np.testing.assert_array_equal(data["station_101/shower_id"], [1, 2, 3])
@@ -170,10 +170,10 @@ def test_merge_merged_files(tmp_path):
     inputs = {"a": ([1, 2], [1, 2]), "b": ([1, 2], [1, 2]), "c": ([0], [0]), "d": ([0], [0])}
     for name, (egids, sids) in inputs.items():
         _write_file(str(tmp_path / f"{name}.hdf5"), egids, sids)
-    merge2([str(tmp_path / "a.hdf5"), str(tmp_path / "b.hdf5")], str(tmp_path / "ab.hdf5"))
-    merge2([str(tmp_path / "c.hdf5"), str(tmp_path / "d.hdf5")], str(tmp_path / "cd.hdf5"))
+    merge_hdf5_files([str(tmp_path / "a.hdf5"), str(tmp_path / "b.hdf5")], str(tmp_path / "ab.hdf5"))
+    merge_hdf5_files([str(tmp_path / "c.hdf5"), str(tmp_path / "d.hdf5")], str(tmp_path / "cd.hdf5"))
     output = str(tmp_path / "merged.hdf5")
-    merge2([str(tmp_path / "ab.hdf5"), str(tmp_path / "cd.hdf5")], output)
+    merge_hdf5_files([str(tmp_path / "ab.hdf5"), str(tmp_path / "cd.hdf5")], output)
     data, attrs = _read(output)
     assert list(attrs["merged_files"]) == ["a.hdf5", "b.hdf5", "c.hdf5", "d.hdf5"], attrs["merged_files"]
     # ab: 1, 2, 3, 4; cd: 0, 1 shifted by 5
@@ -196,7 +196,7 @@ def test_merge_event_group_id_starts(tmp_path):
     for i, (f, (egids, sids)) in enumerate(zip(filenames, inputs)):
         _write_file(f, egids, sids, triggered=i != 1)
     output = str(tmp_path / "merged.hdf5")
-    merge2(filenames, output)
+    merge_hdf5_files(filenames, output)
     data, attrs = _read(output)
     egids, sids = data["event_group_ids"], data["shower_ids"]
     # in1 has no triggered events; in2 is shifted by 5 (to 5, 6); in3 keeps its ids
@@ -214,11 +214,11 @@ def test_merge_incomplete_merge_history(tmp_path):
     # a merged file without event_group_id_starts (merged before it existed) is listed as one file
     for name, egids in [("a", [1, 2]), ("b", [1, 2]), ("c", [0])]:
         _write_file(str(tmp_path / f"{name}.hdf5"), egids, egids)
-    merge2([str(tmp_path / "a.hdf5"), str(tmp_path / "b.hdf5")], str(tmp_path / "ab.hdf5"))
+    merge_hdf5_files([str(tmp_path / "a.hdf5"), str(tmp_path / "b.hdf5")], str(tmp_path / "ab.hdf5"))
     with h5py.File(tmp_path / "ab.hdf5", "a") as f:
         del f.attrs["event_group_id_starts"]
     output = str(tmp_path / "merged.hdf5")
-    merge2([str(tmp_path / "ab.hdf5"), str(tmp_path / "c.hdf5")], output)
+    merge_hdf5_files([str(tmp_path / "ab.hdf5"), str(tmp_path / "c.hdf5")], output)
     attrs = _read(output)[1]
     assert list(attrs["merged_files"]) == ["ab.hdf5", "c.hdf5"], attrs["merged_files"]
     np.testing.assert_array_equal(attrs["event_group_id_offsets"], [0, 5])
@@ -229,8 +229,8 @@ def test_merge_duplicate_path(tmp_path):
     # a file given twice (also via another path) is merged once
     a = str(tmp_path / "a.hdf5")
     _write_file(a, [1, 2, 2], [1, 2, 3])
-    merge2([a], str(tmp_path / "once.hdf5"))
-    merge2([a, os.path.join(str(tmp_path), ".", "a.hdf5")], str(tmp_path / "twice.hdf5"))
+    merge_hdf5_files([a], str(tmp_path / "once.hdf5"))
+    merge_hdf5_files([a, os.path.join(str(tmp_path), ".", "a.hdf5")], str(tmp_path / "twice.hdf5"))
     once, once_attrs = _read(str(tmp_path / "once.hdf5"))
     twice, twice_attrs = _read(str(tmp_path / "twice.hdf5"))
     assert twice_attrs["n_events"] == once_attrs["n_events"] == 2, twice_attrs["n_events"]
@@ -248,7 +248,7 @@ def test_merge_file_without_datasets(tmp_path):
     with h5py.File(tmp_path / "empty.hdf5", "w") as f:
         f.attrs["n_events"] = 7
     output = str(tmp_path / "merged.hdf5")
-    merge2([str(tmp_path / "empty.hdf5")] + filenames, output)
+    merge_hdf5_files([str(tmp_path / "empty.hdf5")] + filenames, output)
     data, attrs = _read(output)
     np.testing.assert_array_equal(data["shower_ids"], [1, 2])
     assert attrs["n_events"] == 7 + 2, attrs["n_events"]
@@ -260,7 +260,7 @@ def test_merge_all_files_empty(tmp_path):
     _write_file(filenames[0], [1, 2], [1, 2], triggered=False, attrs={"x": 1})
     _write_file(filenames[1], [5, 6, 7], [5, 6, 7], triggered=False, attrs={"x": 2})
     output = str(tmp_path / "merged.hdf5")
-    merge2(filenames, output)
+    merge_hdf5_files(filenames, output)
     data, attrs = _read(output)
     np.testing.assert_array_equal(data["shower_ids"], [1, 2])
     np.testing.assert_array_equal(data["station_101/shower_id"], [1, 2])
@@ -276,7 +276,7 @@ def test_merge_top_level_dataset_missing(tmp_path, caplog):
         f["xx"] = [1.]
     output = str(tmp_path / "merged.hdf5")
     with caplog.at_level(logging.WARNING, logger="NuRadioMC.HDF5-merger"):
-        merge2(filenames, output)
+        merge_hdf5_files(filenames, output)
     assert "xx" not in _read(output)[0]
     assert "not all files have the key xx" in caplog.text
 
@@ -291,7 +291,7 @@ def _merge_attrs(tmp_path, attrs, station_attrs=None):
     output = str(tmp_path / "merged.hdf5")
     if os.path.exists(output):
         os.remove(output)
-    merge2(filenames, output)
+    merge_hdf5_files(filenames, output)
     with h5py.File(output, "r") as f:
         return dict(f.attrs), dict(f["station_101"].attrs)
 
@@ -358,7 +358,7 @@ def test_merge_reference_file(tmp_path):
     for f in filenames:
         shutil.copy(REFERENCE, f)
     output = str(tmp_path / "merged.hdf5")
-    merge2(filenames, output)
+    merge_hdf5_files(filenames, output)
     ref, ref_attrs = _read(REFERENCE)
     data, attrs = _read(output)
     assert attrs["n_events"] == 2 * ref_attrs["n_events"]
@@ -378,6 +378,50 @@ def test_merge_reference_file(tmp_path):
         assert f["xx"].compression == "gzip"
         assert h5py.check_string_dtype(f["interaction_type"].dtype).encoding == "utf-8"
         assert "station_102" in f
+
+
+def test_merge2_deprecated(tmp_path):
+    # merge2 warns and, as before, overwrites the output
+    filenames = _write_files(tmp_path, [([1], [1]), ([2], [2])])
+    output = str(tmp_path / "merged.hdf5")
+    open(output, "w").close()
+    with pytest.warns(DeprecationWarning):
+        merge_hdf5.merge2(filenames, output)
+    np.testing.assert_array_equal(_read(output)[0]["shower_ids"], [1, 2])
+
+
+def test_merge_output_checks(tmp_path):
+    filenames = _write_files(tmp_path, [([1], [1]), ([2], [2])])
+    output = str(tmp_path / "merged.hdf5")
+    with pytest.raises(ValueError):
+        merge_hdf5_files([], output)
+    with pytest.raises(ValueError):
+        merge_hdf5_files(filenames, filenames[0])
+    merge_hdf5_files(filenames, output)
+    # an existing output is overwritten only on request
+    with pytest.raises(FileExistsError):
+        merge_hdf5_files(filenames[:1], output)
+    merge_hdf5_files(filenames[:1], output, overwrite=True)
+    np.testing.assert_array_equal(_read(output)[0]["shower_ids"], [1])
+    # a failed merge leaves neither the output nor the temporary file
+    with h5py.File(filenames[1], "a") as f:
+        f.attrs["config"] = "x"
+    with h5py.File(filenames[0], "a") as f:
+        f.attrs["config"] = "y"
+    os.remove(output)
+    with pytest.raises(AttributeError):
+        merge_hdf5_files(filenames, output)
+    assert not os.path.exists(output) and not os.path.exists(output + ".tmp")
+
+
+def test_merge_trailing_shape_mismatch(tmp_path):
+    filenames = _write_files(tmp_path, [([1], [1]), ([2], [2])])
+    for f, n in zip(filenames, [2, 3]):
+        with h5py.File(f, "a") as fin:
+            fin["station_101/maximum_amplitudes"] = np.zeros((1, n))
+    with pytest.raises(ValueError, match="maximum_amplitudes"):
+        merge_hdf5_files(filenames, str(tmp_path / "merged.hdf5"))
+    assert not os.path.exists(str(tmp_path / "merged.hdf5.tmp"))
 
 
 def _write_part_tree(root):
