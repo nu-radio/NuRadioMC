@@ -5,7 +5,8 @@ Air-to-ice propagation with the analytic ray tracers, compared with numerical qu
 - plane-wave time differences, incl. a vertical plane wave (zenith 0)
 - travel times from emitters in air to receivers in ice (multilayer ray tracer)
 - geometries without support: beyond the direct reach, plane wave with a receiver above the surface
-- the single-layer ray tracer (fixed n = 1 in air): numba and python backends, the C++ backend raises
+- the single-layer ray tracer (fixed n = 1 in air): numba and python backends, the C++ backend raises; focusing and
+  fresnel coefficients against reference values
 
 Runs as a script (all tests) or with pytest.
 """
@@ -155,6 +156,61 @@ def test_single_layer_cpp_raises():
     r = ray.ray_tracing(ice_simple, use_cpp=True)
     r.set_start_and_end_point(np.array([1000., 0, 100]), np.array([0., 0, -97]))
     testing.assert_raises(NotImplementedError, r.find_solutions)
+
+
+def test_single_layer_focusing_fresnel_regression():
+    """
+    Single-layer ray tracer (python backend, southpole_simple): C0, focusing factor and fresnel transmission
+    coefficients of the geometries of ``NuRadioMC/examples/SignalProp/E02ToAir.py`` against stored reference values
+    (regression test; NaN = no solution).
+    """
+    x_ice = np.array([0, 0., -149.]) * units.m
+    x_air = [np.array([d, 0., 100]) * units.m for d in [0, 200, 1000, 10000]]
+    x_starts = [x_ice] * 4 + [x_air[3]]
+    x_stops = x_air + [x_ice]
+    c0, focusing, t_p, t_s = (np.full((5, 2), np.nan) for _ in range(4))
+    r = ray.ray_tracing(medium.southpole_simple(), use_cpp=False)
+    for i, (x_start, x_stop) in enumerate(zip(x_starts, x_stops)):
+        r.set_start_and_end_point(x_start, x_stop)
+        r.find_solutions()
+        for i_s in range(r.get_number_of_solutions()):
+            c0[i, i_s] = r.get_results()[i_s]['C0']
+            focusing[i, i_s] = r.get_focusing(i_s)
+            fresnel = r.get_fresnel_coefficients(i_s)[0]
+            t_p[i, i_s], t_s[i, i_s] = fresnel['theta'], fresnel['phi']
+
+    ray_tracing_C0_reference = np.array([
+        [np.nan, np.nan],
+        [1.3087854182874152, np.nan],
+        [1.0064308743162975, np.nan],
+        [1.000051230401809, np.nan],
+        [1.000051230401809, np.nan],
+    ])
+    focusing_factors_reference = np.array([
+        [np.nan, np.nan],
+        [0.6745227377161311, np.nan],
+        [0.11277309434909118, np.nan],
+        [0.00904289875471403, np.nan],
+        [0.8156210793664358, np.nan],
+    ])
+    transmission_t_p_reference = np.array([
+        [np.nan, np.nan],
+        [1.3157903900606893, np.nan],
+        [2.210688211073233, np.nan],
+        [2.654051751148146, np.nan],
+        [0.02942659577064398, np.nan],
+    ])
+    transmission_t_s_reference = np.array([
+        [np.nan, np.nan],
+        [1.2681188663353486, np.nan],
+        [1.7814111089911056, np.nan],
+        [1.9780683188262487, np.nan],
+        [0.02193168117375125, np.nan],
+    ])
+    testing.assert_allclose(c0, ray_tracing_C0_reference, rtol=1e-5, equal_nan=True)
+    testing.assert_allclose(focusing, focusing_factors_reference, rtol=1e-5, equal_nan=True)
+    testing.assert_allclose(t_p, transmission_t_p_reference, rtol=1e-5, equal_nan=True)
+    testing.assert_allclose(t_s, transmission_t_s_reference, rtol=1e-5, equal_nan=True)
 
 
 if __name__ == "__main__":
