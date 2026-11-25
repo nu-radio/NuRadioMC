@@ -51,6 +51,15 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
 
 bugfixes:
+- `NuRadioMC.utilities.Veff.get_Veff_Aeff_array` combines several files with the same energy and zenith bin (summed
+  triggered events and simulated events) instead of keeping only the last file (#490). `get_Veff_Aeff` now also
+  returns `n_events`, `volume_proj_area` and `filename` per file; the same file twice in one bin raises an error.
+- `NuRadioMC.utilities.Veff.get_Veff_Aeff_array` puts files whose zenith ranges share only one edge (e.g. 0-90 deg
+  and 0-180 deg) into separate zenith bins instead of the first bin with a matching edge.
+- `NuRadioMC.utilities.Veff.get_Veff_Aeff_array` defines an energy bin by its mean energy and its energy range, so
+  e.g. a 1e17-1e19 eV and a mono-energetic 1e18 eV file are separate bins; the returned mean, lower and upper
+  energies have one entry per energy bin.
+- `NuRadioMC.utilities.Veff.get_Veff_Aeff` no longer fails with a KeyError for trigger combinations with `min_sigma`.
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported
