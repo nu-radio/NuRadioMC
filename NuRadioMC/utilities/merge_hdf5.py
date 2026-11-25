@@ -240,7 +240,7 @@ def _parse_loglevel(value):
 class _FileInfo:
     """
     What the first pass of `merge_hdf5_files` reads from one input file: everything except the dataset contents
-    (apart from the ids in ``ids``).
+    (apart from the id ranges in ``ids``).
 
     Attributes
     ----------
@@ -256,8 +256,8 @@ class _FileInfo:
     group_attrs : dict
         attributes per station group
     ids : dict
-        unique values of the top-level id datasets that the merge may shift (``event_group_ids``, ``shower_ids``;
-        non-empty files only)
+        smallest and largest value of the top-level id datasets that the merge may shift (``event_group_ids``,
+        ``shower_ids``; non-empty files only), all that `_make_ids_unique` needs
     """
 
     filename: str
@@ -267,6 +267,11 @@ class _FileInfo:
     groups: dict
     group_attrs: dict
     ids: dict
+
+
+def _min_max(ids):
+    """ Smallest and largest of ``ids`` (empty: empty array). """
+    return np.array([ids.min(), ids.max()]) if len(ids) else ids
 
 
 def _read_file_info(filename):
@@ -282,7 +287,7 @@ def _read_file_info(filename):
             datasets={key: (obj.shape, obj.dtype) for key, obj in fin.items() if key not in groups},
             groups={key: {key2: (dset.shape, dset.dtype) for key2, dset in obj.items()} for key, obj in groups.items()},
             group_attrs={key: dict(obj.attrs) for key, obj in groups.items()},
-            ids={} if is_empty else {key: np.unique(fin[key][...]) for key in set(_ID_DATASETS.values()) if key in fin})
+            ids={} if is_empty else {key: _min_max(fin[key][...]) for key in set(_ID_DATASETS.values()) if key in fin})
 
 
 def _reindex_triggers(data, columns, n_triggers):
