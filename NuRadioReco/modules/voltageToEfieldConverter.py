@@ -3,7 +3,7 @@ import numpy as np
 import copy
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units
-from NuRadioReco.utilities import ice
+from NuRadioMC.utilities import medium
 from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import signal_processing
 import NuRadioReco.framework.base_trace
@@ -17,7 +17,7 @@ logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
 
 def get_array_of_channels(station, use_channels, det, zenith, azimuth,
-                          antenna_pattern_provider, time_domain=False, efield_position=None):
+                          antenna_pattern_provider, time_domain=False, efield_position=None, ice_model=None):
     """ Get the voltage traces and antenna factors for the electric field reconstruction.
 
     Parameters
@@ -39,6 +39,9 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         If None, it raises an error.
     time_domain : bool, optional
         If True, returns the time domain traces as well. Default is False.
+    ice_model : str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+        Ice model for the signal propagation speed between the antennas and the air-ice boundary.
+        Default: from the detector or the site (see `NuRadioMC.utilities.medium.get_station_ice_model`)
 
     Returns
     -------
@@ -66,19 +69,20 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
     t_shifts = []
 
     station_id = station.get_id()
-    site = det.get_site(station_id)
     for iCh, channel in enumerate(station.iter_channels(use_channels)):
         channel_id = channel.get_id()
 
         antenna_position = det.get_relative_position(station_id, channel_id)
         # determine refractive index of signal propagation speed between antennas
-        refractive_index = ice.get_refractive_index(1, site)  # if signal comes from above, in-air propagation speed
+        z = 1 * units.m  # if signal comes from above, in-air propagation speed
         if station.is_cosmic_ray():
             if zenith > 0.5 * np.pi:
-                refractive_index = ice.get_refractive_index(antenna_position[2], site)  # if signal comes from below, use refractivity at antenna position
+                z = antenna_position[2]  # if signal comes from below, use refractivity at antenna position
 
         if station.is_neutrino():
-            refractive_index = ice.get_refractive_index(antenna_position[2], site)
+            z = antenna_position[2]
+
+        refractive_index = medium.get_station_refractive_index(det, station_id, z, ice_model)
 
         time_shift = -geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position - efield_position, n=refractive_index)
 
@@ -121,7 +125,7 @@ def get_array_of_channels(station, use_channels, det, zenith, azimuth,
         V[iCh] = trace.get_frequency_spectrum()
 
     efield_antenna_factor = signal_processing.get_efield_antenna_factor(
-        station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider)
+        station, frequencies, use_channels, det, zenith, azimuth, antenna_pattern_provider, ice_model=ice_model)
 
     if time_domain:
         return times, efield_antenna_factor, V, V_timedomain
@@ -174,11 +178,19 @@ class voltageToEfieldConverter:
 
     def __init__(self):
         self.antenna_provider = None
+        self.__ice_model = None
         self.begin()
 
-    def begin(self):
+    def begin(self, ice_model=None):
+        """
+        Parameters
+        ----------
+        ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+            Ice model for the signal propagation speed between the antennas and the air-ice boundary.
+            Default: from the detector or the site (see `NuRadioMC.utilities.medium.get_station_ice_model`)
+        """
         self.antenna_provider = antennapattern.AntennaPatternProvider()
-        pass
+        self.__ice_model = ice_model
 
     @register_run()
     def run(self, evt, station, det, use_channels=None, use_MC_direction=False, force_Polarization=''):
@@ -223,7 +235,8 @@ class voltageToEfieldConverter:
             for channel_id in use_channels], axis=0)
 
         times, efield_antenna_factor, V = get_array_of_channels(
-            station, use_channels, det, zenith, azimuth, self.antenna_provider, efield_position=efield_position)
+            station, use_channels, det, zenith, azimuth, self.antenna_provider, efield_position=efield_position,
+            ice_model=self.__ice_model)
 
         n_frequencies = len(V[0])
         denom = (efield_antenna_factor[0][0] * efield_antenna_factor[-1][1] -

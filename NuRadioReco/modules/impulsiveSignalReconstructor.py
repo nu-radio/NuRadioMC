@@ -36,7 +36,8 @@ import scipy.signal
 import scipy.ndimage
 import scipy.stats
 from math import ceil
-from NuRadioReco.utilities import units, ice, geometryUtilities
+from NuRadioReco.utilities import units, geometryUtilities, constants
+from NuRadioMC.utilities import medium
 from NuRadioReco.framework.parameters import stationParameters
 from NuRadioReco.modules.base.module import register_run
 import radiotools.helper as hp
@@ -46,7 +47,6 @@ import warnings
 logger = logging.getLogger('NuRadioReco.impulsiveSignalReconstructor')
 
 SPEED_OF_LIGHT = scipy.constants.c * units.m / units.s # convert to NuRadio units
-_REFRACTIVE_INDEX_AIR = 1.000293
 
 
 def find_threshold_crossing(channels, threshold=None, offset=5*units.ns, min_amp=0, debug=False):
@@ -340,7 +340,7 @@ def find_threshold_crossing_from_stft(
     return crossing_times
 
 
-def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_AIR, templates=None, full_output=False):
+def get_dt_correlation(channels, pos, passband=None, n_index=constants.n_air_sea_level, templates=None, full_output=False):
     """
     Determines the time delay between 3 channels using correlation
 
@@ -366,7 +366,7 @@ def get_dt_correlation(channels, pos, passband=None, n_index=_REFRACTIVE_INDEX_A
     n_index : float, optional
         Used to compute the maximum allowed time delay between two channels;
         time delays larger than the travel time of light are excluded.
-        Default: 1.000293 (refractive index of air)
+        Default: `NuRadioReco.utilities.constants.n_air_sea_level` (refractive index of air)
     templates : None | 1dim or 2dim array of floats, optional
         If no template is provided, the channel traces are cross-correlated directly with each other.
         Otherwise, if a template is provided, the channel traces are correlated with the template.
@@ -542,7 +542,7 @@ class ImpulsiveSignalReconstructor():
         """Unused"""
 
     @register_run()
-    def run(self, evt, station, det, use_channels, method='stft', n_index=_REFRACTIVE_INDEX_AIR, **kwargs):
+    def run(self, evt, station, det, use_channels, method='stft', n_index=None, **kwargs):
         """
         Run the direction reconstruction
 
@@ -575,8 +575,9 @@ class ImpulsiveSignalReconstructor():
               approach to identify the start of the pulse
               (see `find_threshold_crossing_from_stft`)
 
-        n_index : float, default 1.000293
-            The refractive index of the antennas. Note that the returned zenith
+        n_index : float, optional
+            The refractive index of the antennas. Default: the air at the station's site
+            (`NuRadioMC.utilities.medium.get_n_air`). Note that the returned zenith
             is always computed in air, i.e. if a different refractive index is specified
             the refraction from air to ice is accounted for.
 
@@ -604,6 +605,10 @@ class ImpulsiveSignalReconstructor():
            the reconstruction will fail
         """
 
+        n_air = medium.get_n_air(det.get_site(station.get_id()))
+        if n_index is None:
+            n_index = n_air
+
         channels = [station.get_channel(channel_id) for channel_id in use_channels]
         pos = np.array([
             det.get_relative_position(station.get_id(), channel_id)
@@ -629,7 +634,7 @@ class ImpulsiveSignalReconstructor():
 
         zenith, azimuth = geometryUtilities.analytic_plane_wave_fit(dt, pos, n_index=n_index)
 
-        zenith = geometryUtilities.get_fresnel_angle(zenith, n_1=n_index, n_2=_REFRACTIVE_INDEX_AIR)
+        zenith = geometryUtilities.get_fresnel_angle(zenith, n_1=n_index, n_2=n_air)
 
         if (zenith is None) or np.isnan(zenith):
             logger.warning(f'No valid analytic solution for event {evt.get_id()} / station {station.get_id()}, direction reconstruction failed')

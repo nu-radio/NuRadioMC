@@ -4,9 +4,11 @@ from scipy import constants, stats
 
 from radiotools import helper as hp
 
-from NuRadioReco.utilities import units, ice
+from NuRadioReco.utilities import units
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
+
+from NuRadioMC.utilities import medium
 
 import logging
 logger = logging.getLogger('NuRadioReco.efieldTimeDirectionFitter')
@@ -20,12 +22,25 @@ class efieldTimeDirectionFitter:
     def __init__(self):
         self.__debug = None
         self.__time_uncertainty = None
+        self.__ice_model = None
         self.begin()
         pass
 
-    def begin(self, debug=False, time_uncertainty=0.1 * units.ns):
+    def begin(self, debug=False, time_uncertainty=0.1 * units.ns, ice_model=None):
+        """
+        Parameters
+        ----------
+        debug: bool
+            Enable debug output
+        time_uncertainty: float
+            Time uncertainty added in quadrature to the signal time errors
+        ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+            Ice model for the refractive index at the surface. Default: from the detector or the site
+            (see `NuRadioMC.utilities.medium.get_station_ice_model`)
+        """
         self.__debug = debug
         self.__time_uncertainty = time_uncertainty
+        self.__ice_model = ice_model
         pass
 
     @register_run()
@@ -69,8 +84,7 @@ class efieldTimeDirectionFitter:
         times = np.array(times)
         times_error = np.array(times_error)
         positions = np.array(positions)
-        site = det.get_site(station_id)
-        n_ice = ice.get_refractive_index(-0.01, site)
+        n_ice = medium.get_station_refractive_index(det, station_id, -0.01 * units.m, self.__ice_model)
 
         from scipy import optimize as opt
 

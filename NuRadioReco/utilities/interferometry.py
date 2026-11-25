@@ -12,6 +12,7 @@ import sys
 from scipy import signal, constants
 from radiotools import helper as hp
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.constants import n_air_sea_level
 from NuRadioReco.utilities.geometryUtilities import get_time_delay_from_direction
 import warnings
 
@@ -111,7 +112,7 @@ def interfere_traces_rit(target_pos, positions, traces, times, tab):
     return interfere_traces_interpolation(traces, times_new)
 
 
-def interfere_traces_plane(positions, traces, times, zenith, azimuth, n0=1.000292):
+def interfere_traces_plane(positions, traces, times, zenith, azimuth, n0=n_air_sea_level):
     """
     Shifts the waveforms of observers onto a plane wave.
 
@@ -132,7 +133,7 @@ def interfere_traces_plane(positions, traces, times, zenith, azimuth, n0=1.00029
     azimuth : float
         Azimuth angle of the plane wavefront
 
-    n0 : float (default: 1.000292)
+    n0 : float (default: `NuRadioReco.utilities.constants.n_air_sea_level`)
         Refractivity at observation level
 
     Returns

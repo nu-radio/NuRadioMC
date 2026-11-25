@@ -21,6 +21,17 @@ class efieldToVoltageConverterPerEfield():
         self.logger = logging.getLogger('NuRadioReco.efieldToVoltageConverterPerEfield')
         self.logger.setLevel(log_level)
         self.antenna_provider = antennapattern.AntennaPatternProvider()
+        self.__ice_model = None
+
+    def begin(self, ice_model=None):
+        """
+        Parameters
+        ----------
+        ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+            Ice model for the refraction and Fresnel factors at the surface. Default: from the detector or the site
+            (see `NuRadioMC.utilities.medium.get_station_ice_model`)
+        """
+        self.__ice_model = ice_model
 
     @register_run()
     def run(self, evt, station, det):
@@ -71,7 +82,8 @@ class efieldToVoltageConverterPerEfield():
                 azimuth = electric_field[efp.azimuth]
 
                 # get antenna pattern for current channel
-                VEL = signal_processing.get_efield_antenna_factor(sim_station, ff, [channel_id], det, zenith, azimuth, self.antenna_provider)
+                VEL = signal_processing.get_efield_antenna_factor(sim_station, ff, [channel_id], det, zenith, azimuth,
+                                                                  self.antenna_provider, ice_model=self.__ice_model)
 
                 if VEL is None:  # this can happen if there is not signal path to the antenna
                     voltage_fft = np.zeros_like(efield_fft[1])  # set voltage trace to zeros
@@ -86,7 +98,7 @@ class efieldToVoltageConverterPerEfield():
                 dist_channel_efield = np.linalg.norm(det.get_relative_position(sim_station.get_id(), channel_id) - electric_field.get_position())
                 if dist_channel_efield / units.mm > 0.01:
                     travel_time_shift = calculate_time_shift_for_cosmic_ray(
-                        det, sim_station, electric_field, channel_id)
+                        det, sim_station, electric_field, channel_id, ice_model=self.__ice_model)
                 else:
                     travel_time_shift = 0
 

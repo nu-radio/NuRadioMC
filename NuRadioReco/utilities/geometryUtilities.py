@@ -5,7 +5,8 @@ In particular to calculate time delays between positions for a given arrival
 direction and to simulate reflection and refraction at boundaries between different media.
 """
 
-from NuRadioReco.utilities import units, ice
+from NuRadioReco.utilities import units
+from NuRadioReco.utilities.constants import n_air_sea_level
 from numpy.lib import scimath as SM
 from scipy import constants
 from scipy.spatial.transform import Rotation
@@ -14,7 +15,7 @@ import logging
 logger = logging.getLogger('NuRadioReco.geometryUtilities')
 SPEED_OF_LIGHT = constants.c * units.m / units.s
 
-def get_time_delay_from_direction(zenith, azimuth, positions, n=1.000293):
+def get_time_delay_from_direction(zenith, azimuth, positions, n=n_air_sea_level):
     """
     Calculate the time delay between given positions for an arrival direction
 
@@ -27,8 +28,8 @@ def get_time_delay_from_direction(zenith, azimuth, positions, n=1.000293):
         Azimuth angle in convention East = 0, counter-clock-wise
     positions: array[N x 3]
         Positions on ground
-    n: float (default: 1.000293)
-        Index of reflection of propagation medium. By default, air is assumed
+    n: float (default: `NuRadioReco.utilities.constants.n_air_sea_level`)
+        Index of refraction of propagation medium. By default, air at sea level is assumed
 
     Returns
     -------
@@ -262,7 +263,7 @@ def get_fresnel_r_s(zenith_incoming, n_2=1.3, n_1=1.):
                         (np.cos(zenith_incoming) + SM.sqrt(n**2 - np.sin(zenith_incoming)**2)))
 
 
-def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
+def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith, ice_model=None):
     """
     Handles potential refraction into the firn if necessary.
     Returns the zenith angle at the antenna and the fresnel coefficients t for theta (parallel)
@@ -298,6 +299,9 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
         Channel ID of the desired channel
     zenith: float
         Zenith angle of the incoming signal
+    ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+        Ice model for the refractive index at the surface. Default: from the detector or the site
+        (see `NuRadioMC.utilities.medium.get_station_refractive_index`)
 
     Returns
     -------
@@ -308,12 +312,20 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
     t_phi: float
         Fresnel transmission coefficient for phi polarization
     """
-    n_ice = ice.get_refractive_index(-0.01, detector.get_site(station.get_id()))
-
     # no reflection/refraction at the ice-air boundary
     zenith_antenna = zenith
     t_theta = 1.
     t_phi = 1.
+
+    def get_n(z):
+        from NuRadioMC.utilities import medium  # not at module level: keeps this module light (see NuRadioReco.utilities)
+        return medium.get_station_refractive_index(detector, station.get_id(), z, ice_model)
+
+    def get_n_ice_surface():
+        return get_n(-0.01 * units.m)
+
+    def get_n_air():
+        return get_n(0.01 * units.m)
 
     position = detector.get_relative_position(station.get_id(), channel_id)
     # first check case if signal comes from above
@@ -324,9 +336,11 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
                 "Consider using raytracing instead.")
 
         # is antenna below surface?
-        zenith_antenna = get_fresnel_angle(zenith, n_ice, 1)
-        t_theta = get_fresnel_t_p(zenith, n_ice, 1)
-        t_phi = get_fresnel_t_s(zenith, n_ice, 1)
+        n_ice = get_n_ice_surface()
+        n_air = get_n_air()
+        zenith_antenna = get_fresnel_angle(zenith, n_ice, n_air)
+        t_theta = get_fresnel_t_p(zenith, n_ice, n_air)
+        t_phi = get_fresnel_t_s(zenith, n_ice, n_air)
         logger.debug((
             "Channel {}: electric field is refracted into the firn. "
             "theta {:.0f} -> {:.0f}. Transmission coefficient p (eTheta) "
@@ -335,7 +349,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
 
     elif position[2] > 0 and zenith > 0.5 * np.pi:
         # now the signal is coming from below, do we have an antenna above the surface?
-        zenith_antenna = get_fresnel_angle(zenith, n2=1., n1=n_ice)
+        zenith_antenna = get_fresnel_angle(zenith, n_2=get_n_air(), n_1=get_n_ice_surface())
 
     if zenith_antenna is None:
         logger.warning(
@@ -346,7 +360,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
     return zenith_antenna, t_theta, t_phi
 
 
-def analytic_plane_wave_fit(dt, pos, n_index=1.000293):
+def analytic_plane_wave_fit(dt, pos, n_index=n_air_sea_level):
     """Analytic plane wave fit
 
     Given three time delays ``dt`` and three positions
@@ -365,7 +379,7 @@ def analytic_plane_wave_fit(dt, pos, n_index=1.000293):
         The 3D positions of the three observers.
         The first axis corresponds to the three observers,
         the second axis to their x, y and z coordinates.
-    n_index : float, default 1.
+    n_index : float, default `NuRadioReco.utilities.constants.n_air_sea_level`
         The index of refraction
 
     Returns

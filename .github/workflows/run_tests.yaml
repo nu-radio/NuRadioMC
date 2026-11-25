@@ -267,6 +267,11 @@ jobs:
       run: |
         python NuRadioMC/test/utilities/test_neutrino_fluxes.py
 
+    - name: "Test ice model site defaults and refractive-index helpers"
+      if: always()
+      run: |
+        python NuRadioMC/test/utilities/test_medium_site_defaults.py
+
     - name: "Test limit plot"
       if: always()
       run: |

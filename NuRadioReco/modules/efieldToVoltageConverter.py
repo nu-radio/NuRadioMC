@@ -10,8 +10,10 @@ from NuRadioReco.framework.parameters import stationParameters as stnp
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.detector import antennapattern
-from NuRadioReco.utilities import units, fft, ice, geometryUtilities as geo_utl
+from NuRadioReco.utilities import units, fft, geometryUtilities as geo_utl
 from NuRadioReco.utilities.coding_helper import get_rng
+
+from NuRadioMC.utilities import medium
 
 logger = logging.getLogger('NuRadioReco.efieldToVoltageConverter')
 
@@ -40,7 +42,7 @@ class efieldToVoltageConverter():
 
     def begin(self, debug=False, uncertainty=None, time_resolution=None,
               pre_pulse_time=200 * units.ns, post_pulse_time=400 * units.ns,
-              caching=True, seed=None
+              caching=True, seed=None, ice_model=None
               ):
         """
         Begin method, sets general parameters of module
@@ -70,6 +72,10 @@ class efieldToVoltageConverter():
         seed: int or None (default: None)
             Seed for the random generator used for the uncertainties (see
             `NuRadioReco.utilities.coding_helper.get_rng`).
+        ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+            Ice model for the refractive index used in the time shift between an electric field and an antenna
+            at different positions (cosmic rays), and for the refraction and Fresnel factors at the surface.
+            Default: from the detector or the site (see `NuRadioMC.utilities.medium.get_station_ice_model`)
         """
 
         if time_resolution is not None:
@@ -84,6 +90,7 @@ class efieldToVoltageConverter():
         self.__pre_pulse_time = pre_pulse_time
         self.__post_pulse_time = post_pulse_time
         self.__rng = get_rng(seed)
+        self.__ice_model = ice_model
 
         # some uncertainties are systematic, fix them here
         self.__uncertainty = uncertainty or {}
@@ -138,7 +145,8 @@ class efieldToVoltageConverter():
                 # the different signal travel time to the antennas has to be taken into account
                 dist_channel_efield = np.linalg.norm(det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position())
                 if dist_channel_efield / units.mm > 0.01:
-                    travel_time_shift = calculate_time_shift_for_cosmic_ray(det, sim_station, electric_field, channel_id)
+                    travel_time_shift = calculate_time_shift_for_cosmic_ray(
+                        det, sim_station, electric_field, channel_id, ice_model=self.__ice_model)
                     t0 += travel_time_shift
 
                 if not np.isnan(t0):
@@ -220,7 +228,7 @@ class efieldToVoltageConverter():
                     dist_channel_efield = np.linalg.norm(det.get_relative_position(sim_station_id, channel_id) - electric_field.get_position())
                     if not efield_is_at_antenna:
                         travel_time_shift = calculate_time_shift_for_cosmic_ray(
-                            det, sim_station, electric_field, channel_id)
+                            det, sim_station, electric_field, channel_id, ice_model=self.__ice_model)
                     else:
                         travel_time_shift = 0
 
@@ -297,7 +305,7 @@ class efieldToVoltageConverter():
                 # missing power due to the Fresnel factors.
                 if not efield_is_at_antenna:
                     zenith_antenna, t_theta, t_phi = geo_utl.fresnel_factors_and_signal_zenith(
-                        det, sim_station, channel_id, zenith)
+                        det, sim_station, channel_id, zenith, ice_model=self.__ice_model)
                 else:
                     zenith_antenna = zenith
                     t_theta = 1
@@ -386,7 +394,7 @@ class efieldToVoltageConverter():
         return antenna_pattern, antenna_orientation
 
 
-def calculate_time_shift_for_cosmic_ray(det, sim_station, efield, channel_id):
+def calculate_time_shift_for_cosmic_ray(det, sim_station, efield, channel_id, ice_model=None):
     """
     Calculate the time shift for an electric field to reach a channel.
 
@@ -400,6 +408,9 @@ def calculate_time_shift_for_cosmic_ray(det, sim_station, efield, channel_id):
     efield: ElectricField
     channel_id: int
         Channel id of the channel
+    ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+        Ice model for the refractive index. Default: from the detector or the site
+        (see `NuRadioMC.utilities.medium.get_station_ice_model`)
 
     Returns
     -------
@@ -407,12 +418,12 @@ def calculate_time_shift_for_cosmic_ray(det, sim_station, efield, channel_id):
         time shift in ns
     """
     station_id = sim_station.get_id()
-    site = det.get_site(station_id)
 
-    if sim_station.get_parameter(stnp.zenith) > 90 * units.deg:  # signal is coming from below, so we take IOR of ice
-        index_of_refraction = ice.get_refractive_index(det.get_relative_position(station_id, channel_id)[2], site)
+    if sim_station.get_parameter(stnp.zenith) > 90 * units.deg:  # signal is coming from below, so we take IOR at the antenna
+        z = det.get_relative_position(station_id, channel_id)[2]
     else:  # signal is coming from above, so we take IOR of air
-        index_of_refraction = ice.get_refractive_index(1, site)
+        z = 1 * units.m
+    index_of_refraction = medium.get_station_refractive_index(det, station_id, z, ice_model)
 
     antenna_position_rel = det.get_relative_position(station_id, channel_id) - efield.get_position()
 

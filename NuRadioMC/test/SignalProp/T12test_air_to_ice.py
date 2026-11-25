@@ -6,7 +6,7 @@ Air-to-ice propagation with the analytic ray tracers, compared with numerical in
 - plane-wave time differences, incl. a vertical plane wave (zenith 0)
 - travel times from emitters in air to receivers in ice (multilayer ray tracer)
 - geometries without support: beyond the direct reach, plane wave with a receiver above the surface
-- the single-layer ray tracer (fixed n = 1 in air): numba and python backends, the C++ backend raises; focusing and
+- the single-layer ray tracer (constant n = n_air of the model in air): numba and python backends, the C++ backend raises; focusing and
   fresnel coefficients against reference values
 
 Runs as a script (all tests) or with pytest.
@@ -22,7 +22,7 @@ from NuRadioMC.utilities import medium, medium_base
 from NuRadioReco.utilities import units, constants
 
 ice = medium.greenland_3exp_timing_2025()  # multilayer model with an exponential air layer
-ice_simple = medium.greenland_simple()  # single-layer model, n = 1 in air
+ice_simple = medium.greenland_simple()  # single-layer model, constant n = ice_simple.n_air in air
 # where n(z) has kinks: layer boundaries of `ice`, incl. the surface (also the kink of `ice_simple`)
 breaks = [layer["z_min"] for layer in ice.layers]
 
@@ -87,8 +87,8 @@ def test_air_layer_from_ice_model_and_set_params():
     """`from_IceModel` gets the default exponential air layer; `_set_params` without air arguments keeps the air."""
     converted = medium_base.IceModelExpLayers.from_IceModel(medium.greenland_simple())
     n_conv = [converted.get_index_of_refraction(np.array([0, 0, z])) for z in [1e-6, 8 * units.km, 100 * units.km]]
-    testing.assert_allclose(n_conv[:2], [medium_base.N_AIR_SEA_LEVEL, 1 + (medium_base.N_AIR_SEA_LEVEL - 1) / np.e],
-                            rtol=1e-12)
+    # default air: the constant air of the single-layer model (greenland_simple: Summit)
+    testing.assert_allclose(n_conv[:2], [medium.N_AIR_SUMMIT, 1 + (medium.N_AIR_SUMMIT - 1) / np.e], rtol=1e-12)
     assert np.all(np.diff(n_conv) < 0), n_conv
 
     perturbed = medium.greenland_3exp_timing_2025()
@@ -206,31 +206,31 @@ def test_single_layer_focusing_fresnel_regression():
 
     ray_tracing_C0_reference = np.array([
         [np.nan, np.nan],
-        [1.3087854182874152, np.nan],
-        [1.0064308743162975, np.nan],
-        [1.000051230401809, np.nan],
-        [1.000051230401809, np.nan],
+        [1.3086030774668076, np.nan],
+        [1.0062386581637481, np.nan],
+        [0.9998596793219048, np.nan],
+        [0.9998596793219048, np.nan],
     ])
     focusing_factors_reference = np.array([
         [np.nan, np.nan],
-        [0.6745227377161311, np.nan],
-        [0.11277309434909118, np.nan],
-        [0.00904289875471403, np.nan],
-        [0.8156210793664358, np.nan],
+        [0.674683461926115, np.nan],
+        [0.11281827029096171, np.nan],
+        [0.009046148399433658, np.nan],
+        [0.8155764525778529, np.nan],
     ])
     transmission_t_p_reference = np.array([
         [np.nan, np.nan],
-        [1.3157903900606893, np.nan],
-        [2.210688211073233, np.nan],
-        [2.654051751148146, np.nan],
-        [0.02942659577064398, np.nan],
+        [1.3155743397666821, np.nan],
+        [2.2102345968883976, np.nan],
+        [2.653541152215144, np.nan],
+        [0.029433454159990928, np.nan],
     ])
     transmission_t_s_reference = np.array([
         [np.nan, np.nan],
-        [1.2681188663353486, np.nan],
-        [1.7814111089911056, np.nan],
-        [1.9780683188262487, np.nan],
-        [0.02193168117375125, np.nan],
+        [1.2679657564627835, np.nan],
+        [1.7813220265626983, np.nan],
+        [1.9780590885280216, np.nan],
+        [0.02194091147195517, np.nan],
     ])
     testing.assert_allclose(c0, ray_tracing_C0_reference, rtol=1e-5, equal_nan=True)
     testing.assert_allclose(focusing, focusing_factors_reference, rtol=1e-5, equal_nan=True)

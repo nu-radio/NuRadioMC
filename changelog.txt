@@ -50,6 +50,34 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   options for the models of the RNO-G multimessenger figure and no side effects on import (no data loading, no change of
   matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
 
+- Replaced the legacy `NuRadioReco.utilities.ice.get_refractive_index` (n = 1.3 at any depth in ice, n = 1.000293 in air;
+  now deprecated) by the ice models of `NuRadioMC.utilities.medium`. New helpers `medium.get_station_ice_model` (ice
+  model from an explicit argument, the detector, or the site default `medium.SITE_ICE_MODELS`: greenland_3exp_timing_2025
+  for Summit/Greenland, southpole_2015, mooresbay_simple; error for other in-ice sites) and `medium.get_refractive_index`
+  (n(z) of the model; above the surface the model's air layer or the site's air value `medium.get_n_air`).
+  voltageToEfieldConverter, efieldToVoltageConverter, beamFormingDirectionFitter, templateDirectionFitter,
+  efieldTimeDirectionFitter (new `ice_model` argument in `begin`), channel/efieldGalacticNoiseAdder and
+  `geometryUtilities.fresnel_factors_and_signal_zenith` / `signal_processing.get_efield_antenna_factor` (new `ice_model`
+  argument) use them. This changes outputs: e.g. surface n at Summit 1.3 -> 1.272, n at -100 m 1.3 -> 1.743,
+  n in air 1.000293 -> `medium.get_n_air`: `medium_base.N_AIR_SEA_LEVEL` = 1.00027 scaled to the site elevation of
+  ``NuRadioReco/detector/coordinates.json`` (e.g. Auger 1.000222), measured `medium.N_AIR_SUMMIT` at Summit.
+  beamFormingDirectionFitter uses its `n_index` argument (was ignored, n = 1.353 was hard-coded).
+  `fresnel_factors_and_signal_zenith` uses the site air instead of n = 1; impulsiveSignalReconstructor (`n_index` default
+  and refraction into air) and voltageToAnalyticEfieldConverter (time shifts, new `ice_model` argument in `begin`) use
+  the station's refractive index. New `ice_model` argument also in voltageToEfieldConverterPerChannel(Group),
+  efieldToVoltageConverterPerEfield, neutrino3DVertexReconstructor, iftElectricFieldReconstructor (`begin`) and
+  `signal_processing.get_channel_voltage_from_efield`; efieldToVoltageConverter and beamFormingDirectionFitter pass
+  theirs on to the Fresnel factors. New `NuRadioReco.utilities.constants.n_air_sea_level` (1.00027, also
+  `medium_base.N_AIR_SEA_LEVEL`) replaces the 1.000293 / 1.000292 defaults of `get_time_delay_from_direction`,
+  `analytic_plane_wave_fit`, `interfere_traces_plane` and `get_dt_correlation`.
+- Ice models have an `n_air` attribute, the refractive index above the surface of models without an air layer (default
+  `medium_base.N_AIR_SEA_LEVEL`; South Pole and Moore's Bay models: `medium.get_n_air` of their site; single-layer
+  Greenland models: `medium.N_AIR_SUMMIT`; models with an air layer: its value at the surface). The single-layer
+  analytic ray tracer uses it instead of n = 1 for paths through air, and the Fresnel coefficients at the surface
+  (`ray_tracing.get_fresnel_coefficients`, voltageToEfieldAnalyticConverterForNeutrinos) instead of n = 1.000293.
+  This changes the amplitudes of surface-reflected rays (single-event references: up to 1 % at the South Pole, 9 % at
+  Moore's Bay for single rays) and C0, focusing and transmission of ice-air rays (~2e-4).
+
 bugfixes:
 - `ray_tracing.get_time_difference_plane_wave` no longer raises a ZeroDivisionError for a vertical plane wave (zenith 0).
   The zenith angle is the one in air at the surface (ray parameter p = n_air * sin(zenith), n_air of the model's air layer).
