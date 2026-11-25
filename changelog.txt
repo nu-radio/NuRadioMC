@@ -70,6 +70,7 @@ bugfixes:
 - Multilayer analytic ray tracer, paths through air: the root search starts at p = n at the upper end point and
   converges to machine precision; direct rays in the last ~20 % of the horizontal reach of low emitters were not
   found. An emitter in air straight above the receiver gets one solution instead of three identical ones.
+- `ray_tracing.get_time_difference_plane_wave` raises a ValueError for a receiver above the surface.
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported

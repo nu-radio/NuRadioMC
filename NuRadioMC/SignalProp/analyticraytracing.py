@@ -1170,6 +1170,8 @@ class ray_tracing(ray_tracing_base):
         NotImplementedError
             If the underlying 2D ray tracer does not implement the analytic
             plane-wave time difference calculation.
+        ValueError
+            If a receiver is above the surface (z > 0).
 
         Notes
         -----
@@ -1192,6 +1194,11 @@ class ray_tracing(ray_tracing_base):
         if src_zenith > np.pi/2:
             self.__logger.warning(f"Source zenith angle: {src_zenith:3f} ({src_zenith/units.deg:2f} deg) is above pi/2 (90 deg)! Returning nan. The plane wave time difference calculation only works for signals traversing from air to ice, aka coming from above, aka having theta between 0 and 90 degrees. Make sure to catch this!")
             return np.nan
+
+        if self._X1[2] > 0 or self._X2[2] > 0:
+            raise ValueError(
+                f"Plane-wave time differences need both receivers in the ice (z <= 0); got z = "
+                f"{self._X1[2] / units.m:.2f} m and {self._X2[2] / units.m:.2f} m.")
 
         dt = self._r2d.get_time_difference_plane_wave_analytic(self._X1, self._X2, src_zenith, src_azimuth)
         return dt
