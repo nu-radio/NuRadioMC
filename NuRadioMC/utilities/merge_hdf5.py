@@ -416,7 +416,7 @@ def merge_hdf5_files(filenames, output_filename, overwrite=False, skip_incomplet
       dataset or none True) are empty: they count for ``n_events`` but add no rows. If all files are empty, the first
       file is copied (with the summed ``n_events``).
     * Datasets: a top-level dataset missing in one of the non-empty files is left out with a warning. The merged file
-      has the station groups of all files; within a group, see ``skip_incomplete_stations``.
+      has the station groups of all non-empty files; within a group, see ``skip_incomplete_stations``.
     * Ids: all event group ids (shower ids) of a file whose smallest id is not above the largest id of the previous
       files are shifted by one offset, so that its smallest id becomes that largest id + 1, in the top-level datasets
       and in the station groups. Gaps and order are kept; a file whose ids lie above those of all previous files
