@@ -15,6 +15,7 @@ Existing output files are skipped with an error message unless ``--overwrite`` i
 files in parallel (directory mode); ``--loglevel`` sets the log level (e.g. ``DEBUG``, ``INFO``, ``WARNING``).
 """
 import argparse
+import dataclasses
 import glob
 import logging
 import os
@@ -31,10 +32,12 @@ str_type_attrs = ['NuRadioMC_EvtGen_version', 'NuRadioMC_EvtGen_version_hash', '
                   'NuRadioMC_version_hash', 'config']
 # attributes the effective volume/area calculation reads from the merged file: they must agree between files
 veff_attrs = ['Emin', 'Emax', 'volume', 'area']
-# datasets (top level and station groups) holding ids that the merge shifts: dataset name -> top-level id dataset
-# whose offsets apply
-# datasets (top level and station groups) with one column per trigger in ``trigger_names``
+# datasets (top level and station groups) with one column per trigger in ``trigger_names``; mirrors
+# ``output_writer_hdf5.py`` (``multiple_triggers``/``trigger_times`` extended per new trigger around :143-155, the per
+# event ones written around :239-240 and listed in ``keys_per_event`` around :496)
 _PER_TRIGGER_DATASETS = ['multiple_triggers', 'trigger_times', 'multiple_triggers_per_event', 'trigger_times_per_event']
+# datasets (top level and station groups) holding ids that the merge shifts: dataset name -> top-level id dataset
+# whose offsets apply; mirrors the ids written by ``output_writer_hdf5.py`` around :171-172, :220 and :256-257
 _ID_DATASETS = {'event_group_ids': 'event_group_ids', 'event_group_id_per_shower': 'event_group_ids',
                 'shower_ids': 'shower_ids', 'shower_id': 'shower_ids'}
 
@@ -85,6 +88,11 @@ def _merge_history(attrs, filename, start):
             return [list(attrs[key]) for key in merge_history_attrs]
         logger.warning(f"{filename} lacks some of the attributes {merge_history_attrs}, listing it as one file")
     return [[os.path.basename(filename)], [0], [0], [start]]
+
+
+def _ordered_union(sequences):
+    """ Union of the items of ``sequences``, in order of first appearance. """
+    return list(dict.fromkeys(item for sequence in sequences for item in sequence))
 
 
 def _attrs_equal(a, b):
@@ -173,9 +181,7 @@ def _merge_trigger_names(attrs_per_file):
                                  for n in np.atleast_1d(attrs['trigger_names'])]
     if not names_per_file:
         return None, {}
-    union = []
-    for names in names_per_file.values():
-        union += [n for n in names if n not in union]
+    union = _ordered_union(names_per_file.values())
     columns = {f: None if names == union else np.array([union.index(n) for n in names], dtype=int)
                for f, names in names_per_file.items()}
     differing = [f for f, c in columns.items() if c is not None]
@@ -280,6 +286,7 @@ def _parse_loglevel(value):
     return level
 
 
+@dataclasses.dataclass
 class _FileInfo:
     """
     What the first pass of `merge_hdf5_files` reads from one input file: everything except the dataset contents
@@ -299,37 +306,33 @@ class _FileInfo:
     group_attrs : dict
         attributes per station group
     ids : dict
-        top-level id datasets that the merge may shift (``event_group_ids``, ``shower_ids``; non-empty files only)
+        unique values of the top-level id datasets that the merge may shift (``event_group_ids``, ``shower_ids``;
+        non-empty files only)
     """
 
-    def __init__(self, filename):
-        self.filename = filename
-        self.attrs = {}
-        self.is_empty = True
-        self.datasets = {}
-        self.groups = {}
-        self.group_attrs = {}
-        self.ids = {}
+    filename: str
+    attrs: dict
+    is_empty: bool
+    datasets: dict
+    groups: dict
+    group_attrs: dict
+    ids: dict
 
 
 def _read_file_info(filename):
     """ First pass of `merge_hdf5_files`: returns the `_FileInfo` of the file. """
-    info = _FileInfo(filename)
     with h5py.File(filename, 'r') as fin:
-        info.attrs = dict(fin.attrs)
         # empty files might not have the triggered object at all
-        info.is_empty = 'triggered' not in fin or np.sum(fin['triggered'][...]) == 0
-        for key, obj in fin.items():
-            if isinstance(obj, h5py.Group):  # station groups
-                info.groups[key] = {key2: (dset.shape, dset.dtype) for key2, dset in obj.items()}
-                info.group_attrs[key] = dict(obj.attrs)
-            else:
-                info.datasets[key] = (obj.shape, obj.dtype)
-        if not info.is_empty:
-            for key in set(_ID_DATASETS.values()):
-                if key in fin:
-                    info.ids[key] = fin[key][...]
-    return info
+        is_empty = 'triggered' not in fin or not np.any(fin['triggered'][...])
+        groups = {key: obj for key, obj in fin.items() if isinstance(obj, h5py.Group)}  # station groups
+        return _FileInfo(
+            filename=filename,
+            attrs=dict(fin.attrs),
+            is_empty=is_empty,
+            datasets={key: (obj.shape, obj.dtype) for key, obj in fin.items() if key not in groups},
+            groups={key: {key2: (dset.shape, dset.dtype) for key2, dset in obj.items()} for key, obj in groups.items()},
+            group_attrs={key: dict(obj.attrs) for key, obj in groups.items()},
+            ids={} if is_empty else {key: np.unique(fin[key][...]) for key in set(_ID_DATASETS.values()) if key in fin})
 
 
 def _dataset_layout(name, shapes_dtypes):
@@ -391,30 +394,19 @@ def _merge_datasets(fout, infos, trigger_columns, n_triggers, skip_incomplete_st
         offsets = np.cumsum([0] + [shapes_dtypes[0][0] for _, shapes_dtypes in files])
         outputs[path] = (dset, dict(zip([i for i, _ in files], offsets)))
 
-    first = infos[0]
-    for key in first.datasets:
+    for key in _ordered_union(info.datasets for info in infos):
         logger.info(f"merging key {key}")
         if not all(key in info.datasets for info in infos):
             logger.warning(f"not all files have the key {key}. This key will not be present in the merged file.")
             continue
         create(key, [(i, info.datasets[key]) for i, info in enumerate(infos)])
-    for info in infos[1:]:
-        for key in info.datasets:
-            if key not in first.datasets:
-                logger.warning(f"{info.filename} has the key {key}, but {first.filename} has not. This key will not be "
-                               "present in the merged file.")
 
-    groups = []  # union of the station groups, in order of first appearance
-    for info in infos:
-        groups += [group for group in info.groups if group not in groups]
-    for group in groups:
+    for group in _ordered_union(info.groups for info in infos):
         logger.info(f"writing group {group}")
         fout.create_group(group)
         # files with datasets in this group (the writer leaves the group of a station without events empty)
         members = [i for i, info in enumerate(infos) if info.groups.get(group)]
-        keys = []  # union of the datasets of the group, in order of first appearance
-        for i in members:
-            keys += [key for key in infos[i].groups[group] if key not in keys]
+        keys = _ordered_union(infos[i].groups[group] for i in members)
         # the datasets of a group are row-aligned, so a file must have all of them or add no rows
         missing = {i: [key for key in keys if key not in infos[i].groups[group]] for i in members}
         incomplete = [i for i in members if missing[i]]
