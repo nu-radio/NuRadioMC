@@ -54,6 +54,12 @@ bugfixes:
 - NuRadioMC simulation: when two or more stations triggered in the same event group, the showers and events of the
   earlier stations were written to the HDF5 output several times (top level and station groups). The effective volume
   was not affected (`remove_duplicate_triggers` counts each event group once); the .nur output was not affected.
+- NuRadioMC HDF5 output: trigger datasets when the trigger names differ between event groups. A trigger first seen in a
+  later event group no longer adds its values element-wise to the stored rows (invented trigger hits/times) or crashes
+  the writer; the stored rows of `multiple_triggers`, `trigger_times`, `multiple_triggers_per_event` and
+  `trigger_times_per_event` are extended with False/NaN. `trigger_names` keeps its order across event groups (an event
+  group whose triggers were set in a different order reordered the names, mislabelling the columns of earlier rows), and a trigger missing in a later group no
+  longer drops its name or crashes the writer.
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported
