@@ -844,6 +844,44 @@ if radiopropa_is_imported:
             return RP.Vector3d(*gradient)
 
 
+# Default air above the ice: US standard atmosphere at sea level. The Greenland models in `medium` use the
+# air at Summit Station instead (`medium.N_AIR_SUMMIT`, `medium.AIR_SCALE_HEIGHT_SUMMIT`).
+N_AIR_SEA_LEVEL = 1.00027
+AIR_SCALE_HEIGHT_DEFAULT = 8 * units.km
+
+
+def exponential_air_layer(n_air_surface, air_scale_height, z_surface=0.0):
+    """
+    Air layer for `IceModelExpLayers`: n(z) = 1 + (n_air_surface - 1) * exp(-(z - z_surface) / air_scale_height).
+
+    n falls from n_air_surface at the surface to 1 (exponential atmosphere). In the layer form
+    n_ice - delta_n * exp(z / z_0) this is n_ice = 1, delta_n < 0, z_0 < 0.
+
+    Parameters
+    ----------
+    n_air_surface : float
+        Refractive index of the air at the surface.
+    air_scale_height : float
+        Scale height of the air refractivity n - 1.
+    z_surface : float
+        Height of the surface (lower boundary of the layer).
+
+    Returns
+    -------
+    dict
+        Layer definition.
+    """
+    return {
+        "z_min": z_surface,
+        "z_max": np.inf,
+        "n_ice": 1.0,
+        "delta_n": -(n_air_surface - 1.0) * np.exp(z_surface / air_scale_height),
+        "z_0": -air_scale_height,
+        "region": "air",
+        "region_name": "Air"
+    }
+
+
 class IceModelExpLayers(IceModel):
     """
     Medium model consisting of multiple exponential layers.
@@ -892,7 +930,8 @@ class IceModelExpLayers(IceModel):
         self._set_layers(layers)
 
     @classmethod
-    def from_IceModel(cls, ice_model : IceModelSimple):
+    def from_IceModel(cls, ice_model : IceModelSimple, n_air_surface=N_AIR_SEA_LEVEL,
+                      air_scale_height=AIR_SCALE_HEIGHT_DEFAULT):
         """
         Create a multi-layered `IceModelExpLayers` from a single-layer `IceModelSimple`.
 
@@ -904,17 +943,12 @@ class IceModelExpLayers(IceModel):
         ----------
         ice_model : `IceModelSimple`
             An `IceModelSimple` instance to convert to a multi-layered ice model
+        n_air_surface, air_scale_height : float
+            Air layer above the ice, see `exponential_air_layer`.
         """
 
         # the single layer raytracer treats air differently, we need to add an air-layer for the mutlilayer raytracer to work with
-        airlayer = dict(
-                z_min=ice_model.z_air_boundary,
-                z_max=np.inf,
-                n_ice=1.000001,
-                delta_n=2.7e-6,
-                z_0=-8000.0,
-                region_name="air"
-            )
+        airlayer = exponential_air_layer(n_air_surface, air_scale_height, ice_model.z_air_boundary)
 
         # defining IceModelExpLayers parameters from input ice model
         icelayer = dict(
@@ -1268,23 +1302,11 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
                 )
             cur_n, cur_delta_n = _get_ni_delta_ni(cur_zmax, next_l, cur_n, cur_delta_n, cur_l)
 
-        # Add the air layer: n falls from n_air_surface at the surface to 1 (exponential atmosphere).
-        # In the layer form n_ice - delta_n * exp(z / z_0) this is n_ice = 1, delta_n < 0, z_0 < 0.
-        layers_gen.append(
-                {
-                    "z_min": z_surface,
-                    "z_max": np.inf,
-                    "n_ice": 1.0,
-                    "delta_n": -(n_air_surface - 1.0) * np.exp(z_surface / air_scale_height),
-                    "z_0": -air_scale_height,
-                    "region": "air",
-                    "region_name": "Air"
-                }
-            )
+        layers_gen.append(exponential_air_layer(n_air_surface, air_scale_height, z_surface))
 
         return layers_gen
 
-    def __init__(self, nN, delta_nN, ls, zs, n_air_surface=1.00027, air_scale_height=8 * units.km):
+    def __init__(self, nN, delta_nN, ls, zs, n_air_surface=N_AIR_SEA_LEVEL, air_scale_height=AIR_SCALE_HEIGHT_DEFAULT):
         """
         Parametrizes a three-layer ice model with continuous n(z) and n'(z)
 
@@ -1299,8 +1321,7 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
         zs : list of float
             Depth of transition between layers, starting at the bottom
         n_air_surface : float
-            Refractive index of the air at the surface. The air above the surface is modelled as
-            n(z) = 1 + (n_air_surface - 1) * exp(-z / air_scale_height).
+            Refractive index of the air at the surface, see `exponential_air_layer`.
             Default: 1.00027 (US standard atmosphere at sea level)
         air_scale_height : float
             Scale height of the air refractivity. Default: 8 km
@@ -1317,14 +1338,16 @@ class IceModelContinuousExpLayers(IceModelExpLayers):
         int_ior = integrate.quad(get_ior, z1, z2)[0]
         return np.abs(int_ior / (z2 - z1))
 
-    def _set_params(self, nN, delta_nN, ls, zs, n_air_surface=1.00027, air_scale_height=8 * units.km):
-        # keep values of continuous-ice parameterization around
+    def _set_params(self, nN, delta_nN, ls, zs, n_air_surface=None, air_scale_height=None):
+        # keep values of continuous-ice parameterization around; the air keeps its current values unless given
         self.nN = nN
         self.delta_nN = delta_nN
         self.ls = ls
         self.zs = zs
-        self.n_air_surface = n_air_surface
-        self.air_scale_height = air_scale_height
+        if n_air_surface is not None:
+            self.n_air_surface = n_air_surface
+        if air_scale_height is not None:
+            self.air_scale_height = air_scale_height
 
         layers = self._parametrized_layers(self.nN, self.delta_nN, self.ls, self.zs,
                                            self.n_air_surface, self.air_scale_height)

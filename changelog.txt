@@ -62,6 +62,9 @@ bugfixes:
   change by up to a few ns (e.g. +2.0 ns at 3 km distance, 1 km height; +3.5 ns at 5 km, 100 m height).
 - The C++ backend of the single-layer analytic ray tracer raises a NotImplementedError for paths with an end point in
   air instead of returning no solution without notice (air propagation needs `use_cpp=False`).
+- `IceModelExpLayers.from_IceModel` built the same upside-down air layer (n < 1 at the surface); it now uses the
+  exponential air layer of `IceModelContinuousExpLayers` (new `medium_base.exponential_air_layer`). Calling
+  `IceModelContinuousExpLayers._set_params` without air arguments keeps the model's air instead of resetting it.
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported

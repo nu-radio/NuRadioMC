@@ -37,6 +37,16 @@ testing.assert_allclose(n_air[2], 1 + (medium.N_AIR_SUMMIT - 1) / np.e, rtol=1e-
 assert np.all(np.diff(n_air) < 0), n_air
 print("air layer: n(0, 1 km, H, 100 km) =", n_air)
 
+# the air layer of a model converted from a single-layer model, and _set_params keeping the air
+from NuRadioMC.utilities import medium_base
+converted = medium_base.IceModelExpLayers.from_IceModel(medium.greenland_simple())
+n_conv = [converted.get_index_of_refraction(np.array([0, 0, z])) for z in [1e-6, 8 * units.km, 100 * units.km]]
+testing.assert_allclose(n_conv[:2], [medium_base.N_AIR_SEA_LEVEL, 1 + (medium_base.N_AIR_SEA_LEVEL - 1) / np.e], rtol=1e-12)
+assert np.all(np.diff(n_conv) < 0), n_conv
+perturbed = medium.greenland_3exp_timing_2025()
+perturbed._set_params(perturbed.nN, perturbed.delta_nN, perturbed.ls, perturbed.zs)
+testing.assert_allclose(perturbed.get_index_of_refraction(np.array([0, 0, 1e-6])), medium.N_AIR_SUMMIT, rtol=1e-12)
+
 # plane wave: for two receivers on one vertical, dt = int sqrt(n^2 - p^2) dz / c with p = n_air(surface) * sin(zenith)
 z_low, z_high = -97 * units.m, -20 * units.m
 for compile_numba in [True, False]:
