@@ -512,30 +512,16 @@ def test_merge_station_groups_union(tmp_path):
         np.testing.assert_array_equal(f["station_102"].attrs["Vrms"], [1.])
 
 
-def test_merge_incomplete_station(tmp_path, caplog, restore_loglevel):
-    # a station dataset missing in one file raises by default, or that file's rows of the station are left out
+def test_merge_incomplete_station(tmp_path):
+    # a file with rows for a station but without one of its datasets cannot be aligned: raises, naming the file
     filenames = _write_files(tmp_path, [([1, 2], [1, 2]), ([3], [3]), ([4], [4])])
     for f in filenames[::2]:
         with h5py.File(f, "a") as fin:
             fin["station_101/maximum_amplitudes"] = np.ones((len(fin["station_101/event_ids"]), 4))
     output = str(tmp_path / "merged.hdf5")
-    with pytest.raises(ValueError, match="maximum_amplitudes"):
+    with pytest.raises(ValueError, match=r"in1\.hdf5 misses \['maximum_amplitudes'\]"):
         merge_hdf5_files(filenames, output)
-    with caplog.at_level(logging.WARNING, logger="NuRadioMC.HDF5-merger"):
-        merge_hdf5_files(filenames, output, skip_incomplete_stations=True)
-    assert "in1.hdf5 misses the datasets ['maximum_amplitudes'] of station_101" in caplog.text
-    data, attrs = _read(output)
-    # the top level keeps all files
-    np.testing.assert_array_equal(data["shower_ids"], [1, 2, 3, 4])
-    assert attrs["n_events"] == 4
-    # all datasets of the station group stay aligned
-    np.testing.assert_array_equal(data["station_101/shower_id"], [1, 2, 4])
-    np.testing.assert_array_equal(data["station_101/event_group_id_per_shower"], [1, 2, 4])
-    np.testing.assert_array_equal(data["station_101/event_group_ids"], [1, 2, 4])
-    assert data["station_101/maximum_amplitudes"].shape == (3, 4)
-    # command line
-    merge_hdf5.main([output, *filenames, "--overwrite", "--skip-incomplete-stations"])
-    np.testing.assert_array_equal(_read(output)[0]["station_101/shower_id"], [1, 2, 4])
+    assert not os.path.exists(output)
 
 
 def test_merge_empty_station_group(tmp_path):

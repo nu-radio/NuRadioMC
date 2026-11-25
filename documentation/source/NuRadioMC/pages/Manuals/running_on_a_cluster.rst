@@ -125,7 +125,6 @@ Options:
 * ``--overwrite``: overwrite existing output files (by default they are skipped with an error message)
 * ``--cores N``: merge N output files in parallel (directory mode)
 * ``--loglevel LEVEL``: e.g. ``DEBUG``, ``INFO`` or ``WARNING``
-* ``--skip-incomplete-stations``: see below
 
 In Python, use :func:`NuRadioMC.utilities.merge_hdf5.merge_hdf5_files`. The merge
 
@@ -135,8 +134,9 @@ In Python, use :func:`NuRadioMC.utilities.merge_hdf5.merge_hdf5_files`. The merg
 * requires the files to agree on ``config``, the NuRadioMC versions, ``Emin``, ``Emax``, ``volume`` and ``area``,
   and merges ``trigger_names`` by name (a trigger that never fired in a file is missing from its trigger names; its
   columns are ``False`` / ``NaN`` there);
-* raises an error if a station group lacks datasets in some of the files, unless ``--skip-incomplete-stations``
-  (``skip_incomplete_stations=True``) is given, which leaves out the rows of such a file for that station;
+* merges the station groups of all files: a file without events for a station adds no rows to it, but a file with
+  rows for a station must have all datasets the other files have in that group (else an error, as files simulated
+  with the same config write the same datasets);
 * reads one dataset of one file at a time and writes to ``<output>.tmp``, which is renamed when the merge is done.
 
 
