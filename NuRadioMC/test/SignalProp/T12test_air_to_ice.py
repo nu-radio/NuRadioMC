@@ -46,6 +46,11 @@ def optical_path_integrand(p, n_of_z):
     return lambda z: n_of_z(z)**2 / np.sqrt(n_of_z(z)**2 - p**2)
 
 
+def path_length_integrand(p, n_of_z):
+    """ds/dz = n / sqrt(n^2 - p^2): integrated, the path length."""
+    return lambda z: n_of_z(z) / np.sqrt(n_of_z(z)**2 - p**2)
+
+
 def plane_wave_integrand(p, n_of_z):
     """n cos(theta) = sqrt(n^2 - p^2): integrated between two depths and divided by c, the plane-wave delay."""
     return lambda z: np.sqrt(n_of_z(z)**2 - p**2)
@@ -115,7 +120,7 @@ AIR_TO_ICE_GEOMETRIES = [(100, 10, -97), (1000, 100, -97), (30, 1, -20), (3000, 
 
 
 def test_air_to_ice():
-    """Multilayer ray tracer against `reference_direct_ray`."""
+    """Multilayer ray tracer against `reference_direct_ray`; the path length against its integral."""
     r = ray.ray_tracing(ice, compile_numba=True)
     for distance, height, z_rx in AIR_TO_ICE_GEOMETRIES:
         distance, height, z_rx = distance * units.m, height * units.m, z_rx * units.m
@@ -127,6 +132,8 @@ def test_air_to_ice():
         testing.assert_allclose(r.get_travel_time(0), t_ref, atol=1e-3 * units.ns,
                                 err_msg=f"air to ice, {distance}, {height}, {z_rx}")
         testing.assert_allclose(1 / r.get_results()[0]["C0"], p, rtol=1e-9)
+        testing.assert_allclose(r.get_path_length(0), integrate(path_length_integrand(p, n), z_rx, height),
+                                atol=1e-4 * units.m, err_msg=f"path length, {distance}, {height}, {z_rx}")
 
 
 def test_beyond_direct_reach():
