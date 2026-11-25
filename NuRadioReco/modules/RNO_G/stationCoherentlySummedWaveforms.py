@@ -1,4 +1,5 @@
 from NuRadioReco.framework.parameters import stationParametersRNOG as stpRNOG
+from NuRadioReco.framework.parameters import channelParameters as chp
 
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import trace_utilities, units
@@ -9,6 +10,7 @@ from scipy import signal
 import matplotlib.pyplot as plt
 
 import logging
+import warnings
 logger = logging.getLogger('NuRadioReco.RNO_G.stationCoherentlySummedWaveforms')
 
 
@@ -32,7 +34,8 @@ class stationCoherentlySummedWaveforms:
         pass
 
     def begin(self, coincidence_window_size=6 * units.ns, pad_length=500, channel_ids=[0, 1, 2, 3], time_lag_range=None,
-              ref_time_window=None, crop_to_overlap=False):
+              ref_time_window=None, crop_to_overlap=False, lag_channel_ids=None, lag_template="sum",
+              time_lag_ref_ch_id=None):
         """
         Parameters
         ----------
@@ -43,14 +46,15 @@ class stationCoherentlySummedWaveforms:
             Padding length used for calculating the coherent sum
 
         channel_ids: array of int (default: [0, 1, 2, 3])
-            Channels for which to calculate the variables
+            Channels which are summed (and for which time lags are calculated)
 
         time_lag_range: tuple of (float, float), dict or None (default: None)
             ``(min, max)`` of the allowed time lags for the cross correlation, in units of time
             (e.g. ``(-50 * units.ns, 50 * units.ns)``), for all channels, or a dict
             ``{channel_id: (min, max)}`` per channel (channels not listed: all lags). If None,
-            the full trace is used. A time lag is the shift of a channel onto the reference
-            channel (``coherent_time_lags``).
+            the full trace is used. Time lags are relative to ``time_lag_ref_ch_id`` (``coherent_time_lags``),
+            also if the reference channel of the sum is another one (``ref_selection`` of ``run``): the
+            ranges are then translated into lags relative to that reference channel.
 
         ref_time_window: tuple of (float, float) or None (default: None)
             ``(start, stop)`` time window of the reference channel used for the cross correlation,
@@ -63,17 +67,52 @@ class stationCoherentlySummedWaveforms:
             at one end re-enter at the other (the cross correlation itself uses zero padding).
             If True, traces are shifted with zero filling and the coherent sum is cropped to the
             samples covered by all channels. See `NuRadioReco.utilities.trace_utilities.get_coherent_sum`.
+
+        lag_channel_ids: array of int or None (default: None)
+            Additional channels for which only the time lags (and correlations) are calculated:
+            they are not part of the coherent sum, i.e., do not change its SNR, impulsivity, etc.
+
+        lag_template: str (default: "sum")
+            Template onto which the channels of ``lag_channel_ids`` are correlated: "sum" (the coherently-summed
+            waveform, aligned with the reference channel) or "reference" (the reference channel).
+
+        time_lag_ref_ch_id: int or None (default: None)
+            Fixed channel to which the stored time lags (``coherent_time_lags``, T_fix - T_i) and
+            ``time_lag_range`` refer. If it is not the reference channel of the coherent sum, it must be one
+            of ``channel_ids``. None: the reference channel of the coherent sum (``ref_selection`` of ``run``,
+            which must then be a channel id).
         """
+        if lag_template not in ("sum", "reference"):
+            raise ValueError(f"lag_template must be 'sum' or 'reference', not {lag_template!r}.")
+
         self.__coincidence_window_size = coincidence_window_size
         self.__pad_length = pad_length
         self.__channel_ids = channel_ids
         self.__time_lag_range = time_lag_range
         self.__ref_time_window = ref_time_window
         self.__crop_to_overlap = crop_to_overlap
+        self.__lag_channel_ids = [ch_id for ch_id in (lag_channel_ids or []) if ch_id not in channel_ids]
+        self.__lag_template = lag_template
+        self.__time_lag_ref_ch_id = time_lag_ref_ch_id
 
+    def __get_snr(self, channel):
+        """
+        SNR of a single channel, with the definition used for the coherent sum: key
+        'peak_2_peak_amplitude_split_noise_rms' of channelParameters.SNR (as set by the channelSignalReconstructor).
+        Taken from the channel if set there, else calculated and stored in the channel.
+        """
+        key = 'peak_2_peak_amplitude_split_noise_rms'
+        snrs = channel.get_parameter(chp.SNR) if channel.has_parameter(chp.SNR) else {}
+        if key not in snrs:
+            window = int(round(self.__coincidence_window_size * channel.get_sampling_rate()))
+            trace = channel.get_trace()
+            rms = trace_utilities.get_split_trace_noise_RMS(trace, segments=4, lowest=2)
+            snrs[key] = trace_utilities.get_signal_to_noise_ratio(trace, rms, window_size=window)
+            channel.set_parameter(chp.SNR, snrs)
+        return snrs[key]
 
     @register_run()
-    def run(self, evt, station, det, ref_ch_id=0, use_envelope=True):
+    def run(self, evt, station, det, ref_selection=0, use_envelope=True, ref_ch_id=None):
         """
         Calculate the SNR of the coherently-summed waveform and add to the station object.
 
@@ -81,36 +120,72 @@ class stationCoherentlySummedWaveforms:
         ----------
         evt, station, det
             Event, Station, Detector
-        ref_ch_id: int (default: 0)
-            Reference channel for the coherent sum
+        ref_selection: int or str (default: 0)
+            Reference channel of the coherent sum: a channel id, or "max_snr" for the channel of
+            ``channel_ids`` with the highest SNR, chosen per event (key ``peak_2_peak_amplitude_split_noise_rms`` of ``channelParameters.SNR``, taken from the channel if set, else calculated and stored there).
+            The reference channel is stored as ``coherent_ref_channel_id``. The time lags are stored relative
+            to ``time_lag_ref_ch_id`` (see ``begin``).
         use_envelope: bool (default: True)
             If use Hilbert envelopes to find the cross correlation or not
+        ref_ch_id: int or None (default: None)
+            Deprecated, use ``ref_selection``: if set, it is passed on as ``ref_selection``.
         """
+        if ref_ch_id is not None:
+            warnings.warn("The argument ref_ch_id of stationCoherentlySummedWaveforms.run is deprecated, "
+                          "use ref_selection instead.", DeprecationWarning)
+            ref_selection = ref_ch_id
 
-        ref_ch = station.get_channel(ref_ch_id)
+        sum_channels = list(station.iter_channels(use_channels=self.__channel_ids))
+        lag_channels = list(station.iter_channels(use_channels=self.__lag_channel_ids))
+        sum_ids = [ch.get_id() for ch in sum_channels]
+
+        if ref_selection == "max_snr":
+            ref_ch = max(sum_channels, key=self.__get_snr)
+        elif isinstance(ref_selection, (int, np.integer)):
+            ref_ch = station.get_channel(ref_selection)
+        else:
+            raise ValueError(f"ref_selection must be a channel id or 'max_snr', not {ref_selection!r}.")
+
+        # Lags are found relative to the reference channel ref of the sum and stored relative to the fixed
+        # channel fix_id: lag_i(fix) = T_fix - T_i = lag_i(ref) - lag_fix(ref).
+        fix_id = self.__time_lag_ref_ch_id
+        if fix_id is None:
+            if ref_selection == "max_snr":
+                raise ValueError("Set time_lag_ref_ch_id in begin if the reference channel is chosen per event.")
+            fix_id = ref_ch.get_id()
+        if fix_id != ref_ch.get_id() and fix_id not in sum_ids:
+            raise ValueError(f"time_lag_ref_ch_id {fix_id} must be one of the summed channels {sum_ids} "
+                             f"if it is not the reference channel ({ref_ch.get_id()}) of the coherent sum.")
+
         ref_trace = ref_ch.get_trace()
-        channels = [ch for ch in station.iter_channels(use_channels = self.__channel_ids) if ch.get_id() != ref_ch.get_id()]
-        trace_set = [ch.get_trace() for ch in channels]
         sampling_rate = ref_ch.get_sampling_rate()
+        channels = [ch for ch in sum_channels if ch.get_id() != ref_ch.get_id()]
 
         coincidence_window_size_bins_ref = int(round(self.__coincidence_window_size * sampling_rate))
         if coincidence_window_size_bins_ref < 2:
             logger.warning(f"Coincidence window size of {coincidence_window_size_bins_ref} samples is too small for channel {ref_ch.get_id()}.")
 
-        # One (min, max) or None per channel of `channels`
-        if isinstance(self.__time_lag_range, dict):
-            unknown = set(self.__time_lag_range) - {ch.get_id() for ch in channels}
-            if unknown:
-                raise ValueError(f"time_lag_range has channels {sorted(unknown)} which are not summed "
-                                 f"onto the reference channel {ref_ch.get_id()}.")
-            time_lag_ranges = [self.__time_lag_range.get(ch.get_id()) for ch in channels]
-        else:
-            time_lag_ranges = [self.__time_lag_range] * len(channels)
+        for ch in lag_channels:
+            if ch.get_sampling_rate() != sampling_rate or ch.get_number_of_samples() != len(ref_trace):
+                raise ValueError(f"Channel {ch.get_id()} has another sampling rate or number of samples "
+                                 f"than the reference channel {ref_ch.get_id()}.")
 
-        lag_range_samples = [
-            None if time_range is None
-            else (int(round(time_range[0] * sampling_rate)), int(round(time_range[1] * sampling_rate)))
-            for time_range in time_lag_ranges]
+        # (min, max) in units of time relative to the fixed channel, or None, per channel id
+        if isinstance(self.__time_lag_range, dict):
+            allowed = {ch.get_id() for ch in sum_channels + lag_channels} - {fix_id}
+            unknown = set(self.__time_lag_range) - allowed
+            if unknown:
+                raise ValueError(f"time_lag_range has channels {sorted(unknown)} which are not aligned "
+                                 f"onto the fixed channel {fix_id} (channel_ids, lag_channel_ids).")
+            time_lag_ranges = dict(self.__time_lag_range)
+        else:
+            time_lag_ranges = {ch.get_id(): self.__time_lag_range for ch in sum_channels + lag_channels}
+
+        def to_samples(time_range, offset=0):
+            # (min, max) in samples, shifted by offset (in samples)
+            if time_range is None:
+                return None
+            return tuple(int(round(t * sampling_rate)) + offset for t in time_range)
 
         ref_window_samples = None
         if self.__ref_time_window is not None:
@@ -122,25 +197,65 @@ class stationCoherentlySummedWaveforms:
                     f"channel {ref_ch.get_id()} ({ref_times[0]:.1f} - {ref_times[-1]:.1f} ns).")
             ref_window_samples = (idxs[0], idxs[-1] + 1)
 
-        sum_trace, lags_samples, correlations = trace_utilities.get_coherent_sum(
-            trace_set, ref_trace, use_envelope, lag_range=lag_range_samples, ref_window=ref_window_samples,
-            crop_to_overlap=self.__crop_to_overlap, return_lags=True, return_correlations=True)
+        # Lag of the fixed channel relative to the reference channel, from the allowed lags of the
+        # reference channel relative to the fixed one (lag_fix(ref) = -lag_ref(fix)). All other ranges
+        # are shifted by it: lag_i(ref) = lag_i(fix) + lag_fix(ref).
+        fix_lag = 0
+        range_samples = {ch_id: to_samples(time_range) for ch_id, time_range in time_lag_ranges.items()}
+        if ref_ch.get_id() != fix_id:
+            ref_range = range_samples.get(ref_ch.get_id())
+            (fix_lag,), _ = trace_utilities.get_coherent_lags(
+                [station.get_channel(fix_id).get_trace()], ref_trace, use_envelope,
+                lag_range=None if ref_range is None else (-ref_range[1], -ref_range[0]),
+                ref_window=ref_window_samples)
+            range_samples[fix_id] = (0, 0)  # the sum uses the lag found above for the fixed channel
 
-        time_lags = {ref_ch.get_id(): 0.}
-        time_lags.update({ch.get_id(): lag / sampling_rate for ch, lag in zip(channels, lags_samples)})
-        coherent_correlations = {ch.get_id(): float(corr) for ch, corr in zip(channels, correlations)}
+        def shifted_range(ch_id, offset):
+            lag_range = range_samples.get(ch_id)
+            return None if lag_range is None else (lag_range[0] + offset, lag_range[1] + offset)
+
+        sum_trace, lags_samples, correlations = trace_utilities.get_coherent_sum(
+            [ch.get_trace() for ch in channels], ref_trace, use_envelope,
+            lag_range=[shifted_range(ch.get_id(), fix_lag) for ch in channels],
+            ref_window=ref_window_samples, crop_to_overlap=self.__crop_to_overlap,
+            return_lags=True, return_correlations=True)
+
+        lag_lags_samples, lag_correlations = np.zeros(0, dtype=int), np.zeros(0)
+        if lag_channels:
+            # The template's sample 0 is the reference channel's sample start
+            if self.__lag_template == "sum":
+                template = sum_trace
+                start = max(0, lags_samples.max()) if self.__crop_to_overlap else 0
+            else:
+                template, start = ref_trace, 0
+            template_window = None
+            if ref_window_samples is not None:
+                template_window = tuple(int(np.clip(i - start, 0, len(template))) for i in ref_window_samples)
+            lag_lags_samples, lag_correlations = trace_utilities.get_coherent_lags(
+                [ch.get_trace() for ch in lag_channels], template, use_envelope,
+                lag_range=[shifted_range(ch.get_id(), fix_lag - start) for ch in lag_channels],
+                ref_window=template_window)
+            lag_lags_samples = lag_lags_samples + start
+
+        time_lags = {ref_ch.get_id(): -fix_lag / sampling_rate}
+        time_lags.update({ch.get_id(): (lag - fix_lag) / sampling_rate for ch, lag in
+                          zip(channels + lag_channels, np.concatenate([lags_samples, lag_lags_samples]))})
+        time_lags[fix_id] = 0.
+        coherent_correlations = {ch.get_id(): float(corr) for ch, corr in
+                                 zip(channels + lag_channels, np.concatenate([correlations, lag_correlations]))}
         rms = trace_utilities.get_split_trace_noise_RMS(sum_trace, segments=4, lowest=2)
         snr = trace_utilities.get_signal_to_noise_ratio(sum_trace, rms, window_size=coincidence_window_size_bins_ref)
         impulsivity = trace_utilities.get_impulsivity(sum_trace)
         entropy = trace_utilities.get_entropy(sum_trace)
         kurtosis = trace_utilities.get_kurtosis(sum_trace)
-        
+
         station.set_parameter(stpRNOG.coherent_snr, snr)
         station.set_parameter(stpRNOG.coherent_impulsivity, impulsivity)
         station.set_parameter(stpRNOG.coherent_entropy, entropy)
         station.set_parameter(stpRNOG.coherent_kurtosis, kurtosis)
         station.set_parameter(stpRNOG.coherent_time_lags, time_lags)
         station.set_parameter(stpRNOG.coherent_correlations, coherent_correlations)
+        station.set_parameter(stpRNOG.coherent_ref_channel_id, ref_ch.get_id())
 
     def end(self):
         """(Unused)"""

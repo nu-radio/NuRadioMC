@@ -111,8 +111,9 @@ class stationParametersRNOG(TypedEnum):
     coherent_impulsivity = 2, float  #: impulsivity of the coherently summed waveform
     coherent_entropy = 3, float  #: Shannon entropy of the coherently summed waveform
     coherent_kurtosis = 4, float  #: kurtosis of the coherently summed waveform
-    coherent_time_lags = 5, dict[int, float]  #: time lags (in units of time, not samples) by which each channel was shifted (rolled) to align with the reference channel for the coherent sum, dict with channel id as key
-    coherent_correlations = 6, dict[int, float]  #: correlation coefficients (in [-1, 1]) between each channel and the reference channel at the selected time lag, dict with channel id as key
+    coherent_time_lags = 5, dict[int, float]  #: time lags (in units of time, not samples) of each channel relative to a fixed channel f (``time_lag_ref_ch_id`` of ``stationCoherentlySummedWaveforms.begin``), i.e., T_f - T_i: the shift (np.roll) which aligns channel i with channel f. Dict with channel id as key (f: 0). See also coherent_ref_channel_id
+    coherent_correlations = 6, dict[int, float]  #: correlation coefficients (in [-1, 1]) at the selected time lag between each channel and its template: the reference channel of the coherent sum (coherent_ref_channel_id, which has no entry) or, for channels which are not summed, the template set by ``lag_template`` of ``stationCoherentlySummedWaveforms.begin``. Dict with channel id as key
+    coherent_ref_channel_id = 7, int  #: channel onto which the other channels are aligned for the coherent sum (``ref_selection`` of ``stationCoherentlySummedWaveforms.run``: fixed or chosen per event)
 
     trigger_beam_mask = 50, int  #: bit mask (int) of the phased-array beams which were over the trigger threshold (DiDAQ only)
     trigger_channel_mask = 51, int  #: bit mask (int) of the channels which contributed to the trigger (DiDAQ only)
