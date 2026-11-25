@@ -11,9 +11,10 @@ Air-to-ice propagation with the analytic ray tracers, compared with numerical in
 
 Runs as a script (all tests) or with pytest.
 """
+import warnings
 import numpy as np
 from numpy import testing
-from scipy.integrate import quad
+from scipy.integrate import IntegrationWarning, quad
 from scipy.optimize import brentq
 from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl import single_layer_analytic_raytracer
@@ -60,7 +61,10 @@ def plane_wave_integrand(p, n_of_z):
 def integrate(f, z1, z2):
     """int_z1^z2 f dz for z1 < z2, split at `breaks`."""
     points = [b for b in breaks if z1 < b < z2]
-    return quad(f, z1, z2, points=points, limit=500, epsabs=1e-12, epsrel=1e-12)[0]
+    with warnings.catch_warnings():
+        # roundoff warnings: the requested 1e-12 is tighter than reachable, but far below the test tolerances
+        warnings.simplefilter("ignore", IntegrationWarning)
+        return quad(f, z1, z2, points=points, limit=500, epsabs=1e-12, epsrel=1e-12)[0]
 
 
 # reference solution: p from the horizontal distance, then the travel time
