@@ -18,7 +18,7 @@ def get_vertical_travel_time(z, layers):
     Integrates n(z) = n_ice - delta_n * exp(z / z_0) in closed form over each layer
     between ``z`` and the surface. Used for p = 0, where the analytic ray tracer's
     parameter c0 = 1 / p is undefined. The same layer integral is in
-    ``IceModelContinuousExpLayers.get_average_index_of_refraction``.
+    ``IceModelExpLayers.get_average_index_of_refraction``.
 
     Parameters
     ----------

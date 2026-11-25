@@ -217,7 +217,7 @@ def obj_delta_y(logc0, y1, z1, y2, z2, layers, n_deep,
     return dy
 
 
-def find_solutions(x1, x2, layers,tol=1e-12, dropped=None):
+def find_solutions(x1, x2, layers, tol=1e-12, dropped=None):
     """
     Find all valid ray tracing solutions between two points. Stable solutions over layer boundary with non-smooth n(z).
 
@@ -418,7 +418,7 @@ def find_solutions(x1, x2, layers,tol=1e-12, dropped=None):
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
 
-        result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), xtol=_brentq_xtol(with_air))
+        result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1, z1, y2, z2, layers, n_deep, downgoing, with_air), xtol=_brentq_xtol(with_air))
 
         if not np.any(np.isclose(result2, logc0s, rtol=0, atol=logc0_tol)):
             c_0 = get_c0_from_log(result2,n_deep)
@@ -463,7 +463,7 @@ def find_solutions(x1, x2, layers,tol=1e-12, dropped=None):
             )
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
-        result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air), xtol=_brentq_xtol(with_air))
+        result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1, z1, y2, z2, layers, n_deep, downgoing, with_air), xtol=_brentq_xtol(with_air))
 
 
         if not np.any(np.isclose(result3, logc0s, rtol=0, atol=logc0_tol)):
@@ -492,7 +492,7 @@ def find_solutions(x1, x2, layers,tol=1e-12, dropped=None):
 
     return sorted(results, key=itemgetter('type', 'C0'))
 
-def find_solutions_bulk(x1, x2, layers,tol=1e-12, dropped=None):
+def find_solutions_bulk(x1, x2, layers, tol=1e-12, dropped=None):
     """
     Find all valid ray tracing solutions between two points. Optimized for points below ice with z1 close to z2.
 
@@ -699,7 +699,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12, dropped=None):
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
 
-        result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), xtol=_brentq_xtol(with_air))
+        result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1, z1, y2, z2, layers, n_deep, downgoing, with_air), xtol=_brentq_xtol(with_air))
 
         if not np.any(np.isclose(result2, logc0s, rtol=0, atol=logc0_tol)):
             c_0 = get_c0_from_log(result2,n_deep)
@@ -744,7 +744,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12, dropped=None):
             )
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
-        result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air), xtol=_brentq_xtol(with_air))
+        result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1, z1, y2, z2, layers, n_deep, downgoing, with_air), xtol=_brentq_xtol(with_air))
 
 
         if not np.any(np.isclose(result3, logc0s, rtol=0, atol=logc0_tol)):
