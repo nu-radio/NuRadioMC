@@ -66,6 +66,8 @@ bugfixes:
 - `merge_hdf5` no longer crashes on string attributes (e.g. the generator's `header`), on arrays of different length
   (e.g. `flavors`) and on station group attributes missing in the first file (warns if they differ).
 - `merge_hdf5` no longer appends zero-filled rows for input files without triggered events.
+- `merge_hdf5` merges a file given more than once (also via another path) only once; before, its rows were added
+  twice with the same shifted ids and `n_events` counted it twice.
 - `merge_hdf5.py --cores N` (N > 1) no longer fails on pickling its local worker function.
 - `merge_hdf5.py --loglevel` no longer uses `eval`; it accepts level names (case-insensitive) and numbers.
 - `merge_hdf5` raises (instead of warning and keeping the value of the first file) if the attributes `Emin`, `Emax`,

@@ -127,6 +127,13 @@ def _parse_loglevel(value):
 
 
 def merge2(filenames, output_filename):
+    unique_filenames = {}  # real path -> first file name with it
+    for f in filenames:
+        if os.path.realpath(f) in unique_filenames:
+            logger.warning(f"{f} is the same file as {unique_filenames[os.path.realpath(f)]}, merging it once")
+        else:
+            unique_filenames[os.path.realpath(f)] = f
+    filenames = list(unique_filenames.values())
     logger.warning(f"merging {len(filenames)} files into {os.path.basename(output_filename)}")
     data = OrderedDict()
     attrs = OrderedDict()

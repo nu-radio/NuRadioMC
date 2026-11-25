@@ -161,6 +161,23 @@ def test_merge_merged_files():
             np.testing.assert_array_equal(f.attrs["shower_id_offsets"], [0, 2, 5, 6])
 
 
+def test_merge_duplicate_path():
+    # a file given twice (also via another path) is merged once
+    with tempfile.TemporaryDirectory() as tmpdir:
+        a = os.path.join(tmpdir, "a.hdf5")
+        _write_file(a, [1, 2, 2], [1, 2, 3])
+        outputs = [os.path.join(tmpdir, "once.hdf5"), os.path.join(tmpdir, "twice.hdf5")]
+        merge2([a], outputs[0])
+        merge2([a, os.path.join(tmpdir, ".", "a.hdf5")], outputs[1])
+        with h5py.File(outputs[0], "r") as once, h5py.File(outputs[1], "r") as twice:
+            assert twice.attrs["n_events"] == once.attrs["n_events"] == 2, twice.attrs["n_events"]
+            for key in DATASETS:
+                np.testing.assert_array_equal(twice[key][...], once[key][...])
+            assert list(twice.attrs["merged_files"]) == ["a.hdf5"], twice.attrs["merged_files"]
+            np.testing.assert_array_equal(twice.attrs["event_group_id_offsets"], [0])
+            np.testing.assert_array_equal(twice.attrs["shower_id_offsets"], [0])
+
+
 def _merge_attrs(attrs, station_attrs=None):
     """ Merges files with disjoint ids and the given file (station group) attributes; returns the merged attributes. """
     station_attrs = station_attrs or [{}] * len(attrs)
@@ -283,6 +300,7 @@ if __name__ == "__main__":
     test_merge_station_ids_consistent()
     test_merge_untriggered_file_adds_no_rows()
     test_merge_merged_files()
+    test_merge_duplicate_path()
     test_merge_trigger_names_differ()
     test_merge_station_attrs()
     test_merge_file_attrs()
