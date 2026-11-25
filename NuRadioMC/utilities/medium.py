@@ -57,9 +57,67 @@ in the a RadioPropaIceWrapper object, you can do this by redefining the
             return ice
 """
 
+# Air above Summit Station, Greenland (3216 m a.s.l.), for the Greenland models with an air layer:
+# n(z) = 1 + 2.14e-4 * exp(-z / 9 km), z above the snow surface.
+# Refractivity N = (n - 1) * 1e6 = 77.6 P / T + 3.732e5 e / T^2 (ITU-R P.453; P, e in hPa, T in K), evaluated on the
+# NOAA GML Summit hourly meteorology 2008-2026 (https://gml.noaa.gov/aftp/data/meteorology/in-situ/sum/), April to
+# October (the RNO-G data-taking season): mean P = 672.6 hPa, T(2 m) = -21.0 C, water-vapour term 6.8 (from the
+# relative humidity) -> N = 213.9 (5-95%: 205.6-223.5; monthly means 212-217).
+# Scale height of the air density for the mean T and a lapse rate of 6.5 K/km: T / (g / R_d - 6.5 K/km) = 9.1 km
+# (isothermal: 7.4 km). The US standard atmosphere at sea level would give n - 1 = 2.7e-4.
+N_AIR_SUMMIT = 1 + 2.14e-4
+AIR_SCALE_HEIGHT_SUMMIT = 9 * units.km
+
+#: Measured refractive index of air at the surface per site; overrides the elevation scaling in `get_n_air`.
+SITE_N_AIR = {
+    'summit': N_AIR_SUMMIT,
+    'greenland': N_AIR_SUMMIT,
+}
+
+#: Site names that ``NuRadioReco/detector/coordinates.json`` lists under another name.
+_SITE_ALIASES = {'greenland': 'summit', 'sp': 'southpole'}
+
+
+@functools.lru_cache(maxsize=None)
+def _get_site_elevations():
+    path = os.path.join(os.path.dirname(NuRadioReco.__file__), 'detector', 'coordinates.json')
+    with open(path) as f:
+        return {site: coords['elevation'] * units.m for site, coords in json.load(f).items()}
+
+
+def get_n_air(site):
+    """
+    Returns the refractive index of air at the surface of a site.
+
+    Measured values (`SITE_N_AIR`) take precedence. Otherwise the sea-level value `medium_base.N_AIR_SEA_LEVEL`
+    is scaled to the site elevation (``NuRadioReco/detector/coordinates.json``, as ``Detector.get_site_elevation``)
+    with the exponential atmosphere of `medium_base.exponential_air_layer`:
+    n = 1 + (N_AIR_SEA_LEVEL - 1) * exp(-elevation / AIR_SCALE_HEIGHT_DEFAULT). This ignores the site temperature,
+    so it underestimates n - 1 at cold sites (Summit: 1.81e-4 instead of the measured 2.14e-4).
+    Sites without a known elevation get the sea-level value.
+
+    Parameters
+    ----------
+    site: str
+        Site name (case insensitive), e.g. from ``Detector.get_site``
+
+    Returns
+    -------
+    n_air: float
+    """
+    site = site.lower()
+    if site in SITE_N_AIR:
+        return SITE_N_AIR[site]
+
+    elevation = _get_site_elevations().get(_SITE_ALIASES.get(site, site), 0)
+    return 1 + (medium_base.N_AIR_SEA_LEVEL - 1) * np.exp(-elevation / medium_base.AIR_SCALE_HEIGHT_DEFAULT)
+
+
 
 class southpole_simple(medium_base.IceModelSimple):
     """RICE2014/SP model from https://doi.org/10.1088/1475-7516/2018/07/055"""
+    n_air = get_n_air('southpole')  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 RICE2014/SP model
         # define model parameters (RICE 2014/southpole)
@@ -73,6 +131,8 @@ class southpole_simple(medium_base.IceModelSimple):
 
 class southpole_2015(medium_base.IceModelSimple):
     """SPICE2015/SP model from https://doi.org/10.1088/1475-7516/2018/07/055"""
+    n_air = get_n_air('southpole')  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 SPICE2015/SP model
         super().__init__(
@@ -85,6 +145,8 @@ class southpole_2015(medium_base.IceModelSimple):
 
 class ARAsim_southpole(medium_base.IceModelSimple):
     """ARA SPICE 2015/southpole model"""
+    n_air = get_n_air('southpole')  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         # define model parameters (SPICE 2015/southpole)
         super().__init__(
@@ -98,6 +160,8 @@ class ARAsim_southpole(medium_base.IceModelSimple):
 
 class ARA_2022(medium_base.IceModelSimple):
     """ARA/southpole model from https://journals.aps.org/prd/pdf/10.1103/PhysRevD.105.122006"""
+    n_air = get_n_air('southpole')  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         # define model parameters (ARA/southpole) -> https://journals.aps.org/prd/pdf/10.1103/PhysRevD.105.122006
         super().__init__(
@@ -146,6 +210,7 @@ class birefringence_medium(medium_base.IceModelBirefringence):
         """
         f = self._load_binary_data(bir_model)
         super().__init__(bir_model=f)
+        self.n_air = N_AIR_SUMMIT if bir_model.startswith('greenland') else get_n_air('southpole')
 
     @staticmethod
     @functools.lru_cache(maxsize=8)
@@ -159,6 +224,8 @@ class mooresbay_simple(medium_base.IceModelSimple):
 
     Includes reflective layer at -576 m from https://doi.org/10.3189/2015JoG14J214
     """
+    n_air = get_n_air('mooresbay')  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 MB1 model
         super().__init__(
@@ -180,6 +247,8 @@ class mooresbay_simple_2(medium_base.IceModelSimple):
 
     Includes reflective layer at -576 m from https://doi.org/10.3189/2015JoG14J214
     """
+    n_air = get_n_air('mooresbay')  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         # from https://doi.org/10.1088/1475-7516/2018/07/055 MB2 model
         super().__init__(
@@ -198,6 +267,8 @@ class mooresbay_simple_2(medium_base.IceModelSimple):
 
 class greenland_simple(medium_base.IceModelSimple):
     """Greenland ice model from C. Deaconu, fit to data from Hawley '08, Alley '88"""
+    n_air = N_AIR_SUMMIT  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         # from C. Deaconu, fit to data from Hawley '08, Alley '88
         # rho(z) = 917 - 602 * exp (-z/37.25), using n = 1 + 0.78 rho(z)/rho_0
@@ -209,6 +280,8 @@ class greenland_simple(medium_base.IceModelSimple):
             )
 
 class greenland_simple_nils(medium_base.IceModelSimple):
+    n_air = N_AIR_SUMMIT  #: air above the surface (`medium_base.IceModel.n_air`)
+
 
     def __init__(self):
         super().__init__(
@@ -226,6 +299,8 @@ class greenland_firn(medium_base.IceModel):
     This model can only be used with the radiopropa raytracer.
     Therefor, the model is implemented through radiopropa.
     """
+    n_air = N_AIR_SUMMIT  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         """
         initiation of a double exponential ice model at summit, Greenland
@@ -386,6 +461,8 @@ class greenland_poly5(medium_base.IceModelExponentialPolynomial):
 
     See https://doi.org/10.5281/zenodo.15067984 for more details
     """
+    n_air = N_AIR_SUMMIT  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self, density_factor=0.851 * (units.cm**3 / units.gram)):
         """
         initiation of the model based on the fitted coefficient
@@ -444,6 +521,8 @@ class greenland_firn_layered(medium_base.IceModelExpLayers):
     values taken from greenland_firn and adapted to match the expected medium definition needed for the multi layer analytic raytracer.
     Combination of firn layer (settling and freezing of snow in shallow ice) and bubbly ice.
     """
+    n_air = N_AIR_SUMMIT  #: air above the surface (`medium_base.IceModel.n_air`)
+
     def __init__(self):
         
         layers = [
@@ -471,16 +550,6 @@ class greenland_firn_layered(medium_base.IceModelExpLayers):
             layers=layers
         )
 
-# Air above Summit Station, Greenland (3216 m a.s.l.), for the Greenland models with an air layer:
-# n(z) = 1 + 2.14e-4 * exp(-z / 9 km), z above the snow surface.
-# Refractivity N = (n - 1) * 1e6 = 77.6 P / T + 3.732e5 e / T^2 (ITU-R P.453; P, e in hPa, T in K), evaluated on the
-# NOAA GML Summit hourly meteorology 2008-2026 (https://gml.noaa.gov/aftp/data/meteorology/in-situ/sum/), April to
-# October (the RNO-G data-taking season): mean P = 672.6 hPa, T(2 m) = -21.0 C, water-vapour term 6.8 (from the
-# relative humidity) -> N = 213.9 (5-95%: 205.6-223.5; monthly means 212-217).
-# Scale height of the air density for the mean T and a lapse rate of 6.5 K/km: T / (g / R_d - 6.5 K/km) = 9.1 km
-# (isothermal: 7.4 km). The US standard atmosphere at sea level would give n - 1 = 2.7e-4.
-N_AIR_SUMMIT = 1 + 2.14e-4
-AIR_SCALE_HEIGHT_SUMMIT = 9 * units.km
 
 
 class greenland_3exp_density(medium_base.IceModelContinuousExpLayers):
@@ -535,50 +604,6 @@ SITE_ICE_MODELS = {
 
 #: Sites without ice: the antennas are in air (`get_station_ice_model` returns None).
 AIR_SITES = ('lofar', 'auger', 'ska')
-
-#: Measured refractive index of air at the surface per site; overrides the elevation scaling in `get_n_air`.
-SITE_N_AIR = {
-    'summit': N_AIR_SUMMIT,
-    'greenland': N_AIR_SUMMIT,
-}
-
-#: Site names that ``NuRadioReco/detector/coordinates.json`` lists under another name.
-_SITE_ALIASES = {'greenland': 'summit', 'sp': 'southpole'}
-
-
-@functools.lru_cache(maxsize=None)
-def _get_site_elevations():
-    path = os.path.join(os.path.dirname(NuRadioReco.__file__), 'detector', 'coordinates.json')
-    with open(path) as f:
-        return {site: coords['elevation'] * units.m for site, coords in json.load(f).items()}
-
-
-def get_n_air(site):
-    """
-    Returns the refractive index of air at the surface of a site.
-
-    Measured values (`SITE_N_AIR`) take precedence. Otherwise the sea-level value `medium_base.N_AIR_SEA_LEVEL`
-    is scaled to the site elevation (``NuRadioReco/detector/coordinates.json``, as ``Detector.get_site_elevation``)
-    with the exponential atmosphere of `medium_base.exponential_air_layer`:
-    n = 1 + (N_AIR_SEA_LEVEL - 1) * exp(-elevation / AIR_SCALE_HEIGHT_DEFAULT). This ignores the site temperature,
-    so it underestimates n - 1 at cold sites (Summit: 1.81e-4 instead of the measured 2.14e-4).
-    Sites without a known elevation get the sea-level value.
-
-    Parameters
-    ----------
-    site: str
-        Site name (case insensitive), e.g. from ``Detector.get_site``
-
-    Returns
-    -------
-    n_air: float
-    """
-    site = site.lower()
-    if site in SITE_N_AIR:
-        return SITE_N_AIR[site]
-
-    elevation = _get_site_elevations().get(_SITE_ALIASES.get(site, site), 0)
-    return 1 + (medium_base.N_AIR_SEA_LEVEL - 1) * np.exp(-elevation / medium_base.AIR_SCALE_HEIGHT_DEFAULT)
 
 
 @functools.lru_cache(maxsize=None)
@@ -652,8 +677,8 @@ def get_refractive_index(z, ice_model, site):
     Returns the refractive index at height ``z`` of a station.
 
     Below the surface (``z <= ice_model.z_air_boundary``), this is the ice model's n(z). Above it, the model's
-    air layer if it has a physical one (built by `medium_base.exponential_air_layer`), else the site's air value (`get_n_air`);
-    most ice models themselves return n = 1 in air.
+    air layer if it has a physical one (built by `medium_base.exponential_air_layer`), else the model's constant
+    air value ``ice_model.n_air``. Without an ice model, the site's air value (`get_n_air`).
 
     Parameters
     ----------
@@ -662,7 +687,7 @@ def get_refractive_index(z, ice_model, site):
     ice_model: `NuRadioMC.utilities.medium_base.IceModel` or None
         Ice model, e.g. from `get_station_ice_model`. None means no ice (air everywhere).
     site: str
-        Site name, used for the air value
+        Site name, used for the air value without an ice model
 
     Returns
     -------
@@ -672,7 +697,7 @@ def get_refractive_index(z, ice_model, site):
         return get_n_air(site)
 
     if z > ice_model.z_air_boundary and not _has_air_layer(ice_model):
-        return get_n_air(site)
+        return ice_model.n_air
 
     return float(ice_model.get_index_of_refraction(np.array([0, 0, z])))
 

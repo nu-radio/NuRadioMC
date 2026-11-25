@@ -88,9 +88,9 @@ def test_refractive_index():
         for z in np.array([-0.01, -2, -100]) * units.m:
             assert medium.get_refractive_index(z, ice_model, "summit") == n_model(ice_model, z), (name, z)
 
-    # above the surface, model without air layer (returns n = 1 itself): site air value
+    # above the surface, model without air layer: its constant n_air
     southpole = medium.southpole_2015()
-    assert n_model(southpole, 1 * units.m) == 1
+    assert n_model(southpole, 1 * units.m) == southpole.n_air == medium.get_n_air("southpole")
     assert medium.get_refractive_index(1 * units.m, southpole, "southpole") == medium.get_n_air("southpole")
     assert medium.get_refractive_index(1 * units.m, medium.greenland_simple(), "summit") == medium.N_AIR_SUMMIT
 
@@ -106,17 +106,45 @@ def test_refractive_index():
     assert medium.get_refractive_index(1 * units.m, converted, "southpole") == n_model(converted, 1 * units.m)
     np.testing.assert_allclose(medium.get_refractive_index(0.01 * units.m, converted, "southpole"), 1.0003, rtol=1e-8)
 
-    # air layer without the "region" key of exponential_air_layer (n ~ 1 placeholder): site air value
+    # air layer without the "region" key of exponential_air_layer (n ~ 1 placeholder): the model's n_air (default:
+    # sea level), not the site value
     layers = [dict(layer) for layer in converted.layers]
     for layer in layers:
         if layer.get("region") == "air":
             del layer["region"]
     placeholder = medium_base.IceModelExpLayers(layers)
-    assert medium.get_refractive_index(1 * units.m, placeholder, "southpole") == medium.get_n_air("southpole")
+    assert medium.get_refractive_index(1 * units.m, placeholder, "southpole") == medium_base.N_AIR_SEA_LEVEL
 
     # no ice (air-only site): air value everywhere
     for z in np.array([10, -0.01, -2]) * units.m:
         assert medium.get_refractive_index(z, None, "lofar") == medium.get_n_air("lofar"), z
+
+
+def test_model_n_air():
+    """n_air attribute of the ice models: constant air above the surface of models without air layer."""
+    expected = {
+        "southpole_simple": medium.get_n_air("southpole"), "southpole_2015": medium.get_n_air("southpole"),
+        "ARAsim_southpole": medium.get_n_air("southpole"), "ARA_2022": medium.get_n_air("southpole"),
+        "mooresbay_simple": medium.get_n_air("mooresbay"), "mooresbay_simple_2": medium.get_n_air("mooresbay"),
+        "greenland_simple": medium.N_AIR_SUMMIT,
+        "greenland_poly5": medium.N_AIR_SUMMIT, "uniform_ice": medium_base.N_AIR_SEA_LEVEL,
+    }
+    for name, n_air in expected.items():
+        ice_model = medium.get_ice_model(name)
+        assert ice_model.n_air == n_air, (name, ice_model.n_air)
+        if name != "uniform_ice":
+            for z in np.array([0.01, 1, 1000]) * units.m:
+                assert n_model(ice_model, z) == n_air, (name, z)
+            np.testing.assert_allclose(
+                ice_model.get_average_index_of_refraction(np.array([0, 0, 10]), np.array([0, 0, 20])), n_air,
+                rtol=1e-12, err_msg=name)
+
+    # air layer: n_air is the layer's value at the surface
+    greenland = medium.greenland_3exp_timing_2025()
+    np.testing.assert_allclose(greenland.n_air, medium.N_AIR_SUMMIT, rtol=1e-9)
+    converted = medium_base.IceModelExpLayers.from_IceModel(medium.southpole_2015())
+    np.testing.assert_allclose(converted.n_air, medium.get_n_air("southpole"), rtol=1e-12)
+    np.testing.assert_allclose(n_model(converted, 1e-6), medium.get_n_air("southpole"), rtol=1e-12)
 
 
 def test_station_refractive_index():
@@ -144,5 +172,6 @@ if __name__ == "__main__":
     test_resolution_order()
     test_n_air()
     test_refractive_index()
+    test_model_n_air()
     test_station_refractive_index()
     print("OK")

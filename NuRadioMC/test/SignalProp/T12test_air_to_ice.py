@@ -6,7 +6,7 @@ Air-to-ice propagation with the analytic ray tracers, compared with numerical in
 - plane-wave time differences, incl. a vertical plane wave (zenith 0)
 - travel times from emitters in air to receivers in ice (multilayer ray tracer)
 - geometries without support: beyond the direct reach, plane wave with a receiver above the surface
-- the single-layer ray tracer (fixed n = 1 in air): numba and python backends, the C++ backend raises; focusing and
+- the single-layer ray tracer (constant n = n_air of the model in air): numba and python backends, the C++ backend raises; focusing and
   fresnel coefficients against reference values
 
 Runs as a script (all tests) or with pytest.
@@ -22,7 +22,7 @@ from NuRadioMC.utilities import medium, medium_base
 from NuRadioReco.utilities import units, constants
 
 ice = medium.greenland_3exp_timing_2025()  # multilayer model with an exponential air layer
-ice_simple = medium.greenland_simple()  # single-layer model, n = 1 in air
+ice_simple = medium.greenland_simple()  # single-layer model, constant n = ice_simple.n_air in air
 # where n(z) has kinks: layer boundaries of `ice`, incl. the surface (also the kink of `ice_simple`)
 breaks = [layer["z_min"] for layer in ice.layers]
 
@@ -87,8 +87,8 @@ def test_air_layer_from_ice_model_and_set_params():
     """`from_IceModel` gets the default exponential air layer; `_set_params` without air arguments keeps the air."""
     converted = medium_base.IceModelExpLayers.from_IceModel(medium.greenland_simple())
     n_conv = [converted.get_index_of_refraction(np.array([0, 0, z])) for z in [1e-6, 8 * units.km, 100 * units.km]]
-    testing.assert_allclose(n_conv[:2], [medium_base.N_AIR_SEA_LEVEL, 1 + (medium_base.N_AIR_SEA_LEVEL - 1) / np.e],
-                            rtol=1e-12)
+    # default air: the constant air of the single-layer model (greenland_simple: Summit)
+    testing.assert_allclose(n_conv[:2], [medium.N_AIR_SUMMIT, 1 + (medium.N_AIR_SUMMIT - 1) / np.e], rtol=1e-12)
     assert np.all(np.diff(n_conv) < 0), n_conv
 
     perturbed = medium.greenland_3exp_timing_2025()
