@@ -72,6 +72,14 @@ def _merge_with_attrs(tmp_path, inputs):
     return _read(output)
 
 
+def test_make_ids_unique():
+    # no overlap: offsets 0, also with gaps
+    assert merge_hdf5._make_ids_unique([[1, 2], [5, 9]]) == [0, 0]
+    # an overlapping file is shifted above the largest id so far ([2, 6], then [7, 8, 13, 16]); the last file lies
+    # above all of them
+    assert merge_hdf5._make_ids_unique([[0, 1, 1], [1, 5], [0, 1, 6, 9], [20]]) == [0, 1, 7, 0]
+
+
 def test_merge_shower_ids_unique(tmp_path):
     out = _merge(tmp_path, [([1, 2, 2], [0, 1, 2]), ([1, 2, 2], [0, 1, 2]), ([5], [7])])
     # the second file is shifted above the first, the third lies above both and keeps its ids

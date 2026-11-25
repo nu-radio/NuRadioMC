@@ -20,44 +20,47 @@ veff_attrs = ['Emin', 'Emax', 'volume', 'area']
 merge_history_attrs = ['merged_files', 'event_group_id_offsets', 'shower_id_offsets', 'event_group_id_starts']
 
 
-def _make_ids_unique(data, groups, filenames, key, group_keys):
+def _make_ids_unique(id_arrays):
     """
-    Shifts the ids of files that overlap the ids of previous files, in place, so that the ids are unique across files.
+    Finds the offsets that make the ids unique across files.
 
     In merge order, all ids of a file whose smallest id is not above the largest id of the previous files are shifted
     by one offset, so that its smallest id becomes that largest id + 1. Gaps and order of the ids are kept; a file whose
-    ids lie above those of all previous files (e.g. the part files of one run) keeps them. The top-level dataset
-    ``key`` and the datasets ``group_keys`` of all station groups of the file are shifted alike.
+    ids lie above those of all previous files (e.g. the part files of one run) keeps them (offset 0).
 
     Parameters
     ----------
-    data : dict
-        top-level datasets per file name
-    groups : dict
-        station groups (dict of datasets) per file name
-    filenames : list of str
-        files to process, in merge order
-    key : str
-        name of the top-level dataset holding the ids
-    group_keys : list of str
-        names of the station-group datasets holding the same ids
+    id_arrays : list of array
+        ids (e.g. ``event_group_ids``) per file, in merge order
 
     Returns
     -------
-    dict
-        offset per file name (merged id = original id + offset)
+    list of int
+        offset per file (merged id = original id + offset)
     """
-    offsets = {}
-    max_id = None
-    for f in filenames:
-        ids = data[f][key]
-        offsets[f] = 0
-        if max_id is not None and ids.min() <= max_id:
-            offsets[f] = int(max_id + 1 - ids.min())
-            for array in [ids] + [groups[f][g][k] for g in groups[f] for k in group_keys if k in groups[f][g]]:
-                array += offsets[f]
-            logger.warning(f"{key} of {f} overlap with previous files; shifted by {offsets[f]}")
-        max_id = ids.max()
+    offsets = []
+    max_id = None  # largest id of the previous files, after shifting
+    for ids in id_arrays:
+        ids = np.asarray(ids)
+        offsets.append(0)
+        if len(ids):
+            if max_id is not None and ids.min() <= max_id:
+                offsets[-1] = int(max_id + 1 - ids.min())
+            max_id = ids.max() + offsets[-1]
+    return offsets
+
+
+def _shift_file_ids(data, groups, filenames, key, group_keys):
+    """
+    Shifts, in place, the top-level dataset ``key`` and the datasets ``group_keys`` of all station groups of each file
+    by the offsets from `_make_ids_unique` (applied to ``key``); returns the offset per file name.
+    """
+    offsets = dict(zip(filenames, _make_ids_unique([data[f][key] for f in filenames])))
+    for f, offset in offsets.items():
+        if offset:
+            for array in [data[f][key]] + [groups[f][g][k] for g in groups[f] for k in group_keys if k in groups[f][g]]:
+                array += offset
+            logger.warning(f"{key} of {f} overlap with previous files; shifted by {offset}")
     return offsets
 
 
@@ -228,11 +231,11 @@ def merge2(filenames, output_filename):
     if(len(non_empty_filenames)):
         # unique event group ids: the effective volume/area calculation uses them to find multi-station coincidences
         # (shifting: see `_make_ids_unique`)
-        event_group_id_offsets = _make_ids_unique(data, groups, non_empty_filenames, 'event_group_ids',
-                                                  ['event_group_ids', 'event_group_id_per_shower'])
+        event_group_id_offsets = _shift_file_ids(data, groups, non_empty_filenames, 'event_group_ids',
+                                                 ['event_group_ids', 'event_group_id_per_shower'])
         # shower ids are unique only within the files of one event generation run (issue #292)
         if all('shower_ids' in data[f] for f in non_empty_filenames):
-            shower_id_offsets = _make_ids_unique(data, groups, non_empty_filenames, 'shower_ids', ['shower_id'])
+            shower_id_offsets = _shift_file_ids(data, groups, non_empty_filenames, 'shower_ids', ['shower_id'])
         # event ids (``event_ids``, ``event_id_per_shower``) are unique only within an event group, so the unique
         # event group ids keep them unique
 
