@@ -342,6 +342,7 @@ class readRNOGData:
         self.__n_events_per_dataset = []
         self._runs = []
         self._stations = []
+        self.get_run_info.cache_clear()
 
         if not isinstance(dirs_files, (list, np.ndarray)):
             dirs_files = [dirs_files]
@@ -353,7 +354,11 @@ class readRNOGData:
 
         # Set verbose for mattak
         self._verbose = mattak_kwargs.pop("verbose", self.logger.level <= logging.DEBUG)
-        self._mattak_kwargs = mattak_kwargs
+        self._mattak_kwargs = dict(mattak_kwargs)
+
+        # Don't find and load the voltage calibration file if calibrated waveforms aren't requested
+        if not read_calibrated_data and "voltage_calibration" not in self._mattak_kwargs.keys():
+            self._mattak_kwargs["voltage_calibration"] = False
 
         for dir_file in dirs_files:
 
@@ -405,6 +410,23 @@ class readRNOGData:
     def get_run_numbers(self):
         """ Get run numbers of the datasets which are read in """
         return np.array(self._runs)
+
+    @lru_cache(maxsize=128)
+    def get_run_info(self, run_number, station_id=None):
+        """ Get run info of a specific run number and station. If more than one station
+        is loaded, the station_id must be specified."""
+
+        if station_id is None:
+            if len(np.unique(self._stations)) > 1:
+                raise ValueError("Multiple stations found. Please specify a station_id.")
+            station_id = self._stations[0]
+
+        stations_runs = list(zip(self._stations, self._runs))
+        if (station_id, run_number) not in stations_runs:
+            raise ValueError(f"Station {station_id}, Run {run_number} not found in the datasets which are read in.")
+        idx = stations_runs.index((station_id, run_number))
+        dataset = self.__get_dataset(self._datasets_paths[idx])
+        return dataset.run_info
 
     def get_station_id(self, except_multiple_stations=False):
         """ Get station ids of the datasets which are read in
