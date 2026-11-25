@@ -65,6 +65,8 @@ bugfixes:
 - `IceModelExpLayers.from_IceModel` built the same upside-down air layer (n < 1 at the surface); it now uses the
   exponential air layer of `IceModelContinuousExpLayers` (new `medium_base.exponential_air_layer`). Calling
   `IceModelContinuousExpLayers._set_params` without air arguments keeps the model's air instead of resetting it.
+- Multilayer analytic ray tracer, air layer: travel times of rays with p within ~1e-7 of 1 were off by up to ~0.01 ns
+  (cancellation in the logarithmic closed forms as n_ice^2 - p^2 -> 0); |alpha| < 1e-6 uses cancellation-free forms.
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported

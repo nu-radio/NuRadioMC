@@ -127,15 +127,23 @@ def get_layer_index(z, z_min, z_max):
     return -1
 
 
-# alpha = n_ice^2 - beta^2 of a layer: the closed forms for alpha > ALPHA_EPS are the logarithmic ones of the
-# original implementation; alpha <= ALPHA_EPS (only in an air layer, whose n_ice is 1, for rays with beta >= 1)
-# uses `inverse_root_integral_nonpositive_alpha`.
+# alpha = n_ice^2 - beta^2 of a layer. The closed forms of the original implementation are logarithmic and need
+# alpha > 0; they lose precision as alpha -> 0 (a factor 1 / sqrt(alpha) times a difference of nearly equal logs).
+# `use_no_log_forms` selects `inverse_root_integral_no_log` instead for alpha <= ALPHA_EPS and, in layers with
+# delta_n < 0 (air, where alpha ~ 0 for rays with beta ~ 1), for |alpha| < ALPHA_SMALL.
 ALPHA_EPS = 1e-12
+ALPHA_SMALL = 1e-6
 
 
 @njit(cache = True)
-def _nonpositive_alpha_terms(z, beta, n_ice, delta_n, z0):
-    """u = exp(z / z0), n - beta and gamma = n^2 - beta^2 (clipped at 0) for the alpha <= 0 closed forms."""
+def use_no_log_forms(alpha, delta_n):
+    """Whether a layer with this alpha and delta_n uses `inverse_root_integral_no_log` (see `ALPHA_SMALL`)."""
+    return alpha <= ALPHA_EPS or (delta_n < 0 and alpha < ALPHA_SMALL)
+
+
+@njit(cache = True)
+def _no_log_terms(z, beta, n_ice, delta_n, z0):
+    """u = exp(z / z0), n - beta and gamma = n^2 - beta^2 (clipped at 0) for `inverse_root_integral_no_log`."""
     u = np.exp(z / z0)
     # n - beta without the cancellation of n ~ beta near a turning point
     n_minus_beta = (n_ice - beta) - delta_n * u
@@ -144,9 +152,47 @@ def _nonpositive_alpha_terms(z, beta, n_ice, delta_n, z0):
 
 
 @njit(cache = True)
+def _inverse_root_integral_small_alpha(u, gamma, alpha, n_ice, delta_n, z0):
+    """
+    J0 for |alpha| < ALPHA_SMALL and delta_n < 0, without the cancellation of the closed forms at alpha -> 0.
+
+    With w = 1 / u, J0 = -z0 * int_0^w dw' / sqrt(Q(w')), Q = gamma w^2 = alpha w^2 + b w + delta_n^2 and
+    b = -2 n_ice delta_n > 0. The integral is the log (alpha > 0) or arcsin (alpha < 0) form written as
+    I = X * f(sqrt(|alpha|) X), f(x) = log1p(x) / x or arctan(x) / x, with X finite at alpha = 0
+    (where I = 2 (sqrt(Q) - |delta_n|) / b).
+    """
+    w = 1.0 / u
+    root_q0 = abs(delta_n)
+    b = -2.0 * n_ice * delta_n
+    root_q = np.sqrt(gamma) * w
+    # sqrt(Q(w)) - sqrt(Q(0)) without cancellation
+    d_root = w * (alpha * w + b) / (root_q + root_q0)
+    if alpha >= 0:
+        sqrt_alpha = np.sqrt(alpha)
+        big_x = (d_root + sqrt_alpha * w) / (root_q0 * (sqrt_alpha + n_ice))
+        x = sqrt_alpha * big_x
+        factor = 1.0 - 0.5 * x if x < 1e-8 else np.log1p(x) / x
+        integral = big_x * factor
+    else:
+        sqrt_alpha = np.sqrt(-alpha)
+        num = 2.0 * (b * d_root - 2.0 * alpha * w * root_q0)
+        den = -4.0 * alpha * root_q0 * root_q + b * (2.0 * alpha * w + b)
+        if den > 0:
+            big_x = num / den
+            x = sqrt_alpha * big_x
+            factor = 1.0 - x * x / 3.0 if abs(x) < 1e-6 else np.arctan(x) / x
+            integral = big_x * factor
+        else:
+            integral = np.arctan2(sqrt_alpha * num, den) / sqrt_alpha
+    return -z0 * integral
+
+
+@njit(cache = True)
 def _inverse_root_integral(u, n_minus_beta, gamma, beta, n_ice, delta_n, z0):
-    """J0 of `inverse_root_integral_nonpositive_alpha` from the terms of `_nonpositive_alpha_terms` (u > 0)."""
+    """J0 of `inverse_root_integral_no_log` from the terms of `_no_log_terms` (u > 0)."""
     alpha = n_ice * n_ice - beta * beta
+    if delta_n < 0 and abs(alpha) < ALPHA_SMALL:
+        return _inverse_root_integral_small_alpha(u, gamma, alpha, n_ice, delta_n, z0)
     if alpha < -ALPHA_EPS:
         if delta_n < 0:
             # arcsin(x) = 2 arcsin(sqrt((1 + x) / 2)) - pi / 2, with 1 + x = (n - beta) (n_ice + beta) / (u |delta_n| beta)
@@ -161,15 +207,25 @@ def _inverse_root_integral(u, n_minus_beta, gamma, beta, n_ice, delta_n, z0):
 
 
 @njit(cache = True)
-def inverse_root_integral_nonpositive_alpha(z, beta, n_ice, delta_n, z0):
+def _value_at_infinity(beta, n_ice):
     """
-    Antiderivative J0(z) of 1 / sqrt(n(z)^2 - beta^2) for n(z) = n_ice - delta_n * exp(z / z0), alpha <= 0.
+    The antiderivatives at z = inf in an air layer (u = 0): without a turning point (alpha >= 0) the ray
+    reaches z = inf and the integrals diverge to +inf; with one (alpha < 0) z = inf is not on the ray.
+    """
+    return np.inf if n_ice * n_ice - beta * beta >= 0 else np.nan
 
-    alpha = n_ice^2 - beta^2. The logarithmic closed forms used elsewhere need alpha > 0. In an air
-    layer, whose index tends to n_ice = 1 far above the surface, alpha <= 0 holds for rays with
-    beta >= 1. These rays exist where n(z) > beta, i.e. near the surface, where n(z) > 1.
-    With u = exp(z / z0) and gamma = n^2 - beta^2 = delta_n^2 u^2 - 2 n_ice delta_n u + alpha:
 
+@njit(cache = True)
+def inverse_root_integral_no_log(z, beta, n_ice, delta_n, z0):
+    """
+    Antiderivative J0(z) of 1 / sqrt(n(z)^2 - beta^2) for n(z) = n_ice - delta_n * exp(z / z0), where the
+    logarithmic closed forms fail (see `use_no_log_forms`).
+
+    alpha = n_ice^2 - beta^2. In an air layer, whose index tends to n_ice = 1 far above the surface,
+    alpha <= 0 holds for rays with beta >= 1. These rays exist where n(z) > beta, i.e. near the surface,
+    where n(z) > 1. With u = exp(z / z0) and gamma = n^2 - beta^2 = delta_n^2 u^2 - 2 n_ice delta_n u + alpha:
+
+    - |alpha| < ALPHA_SMALL, delta_n < 0: see `_inverse_root_integral_small_alpha`
     - alpha < 0: J0 = z0 / sqrt(-alpha) * arcsin((n_ice n - beta^2) / (u |delta_n| beta))
     - alpha = 0: J0 = z0 sqrt(gamma) / (n_ice delta_n u)
 
@@ -191,18 +247,17 @@ def inverse_root_integral_nonpositive_alpha(z, beta, n_ice, delta_n, z0):
     float
         J0(z), defined up to a constant.
     """
-    u, n_minus_beta, gamma = _nonpositive_alpha_terms(z, beta, n_ice, delta_n, z0)
+    u, n_minus_beta, gamma = _no_log_terms(z, beta, n_ice, delta_n, z0)
     if u == 0.0:
-        # z = inf in an air layer: beyond the turning point, which exists for alpha < 0
-        return np.nan
+        return _value_at_infinity(beta, n_ice)
     return _inverse_root_integral(u, n_minus_beta, gamma, beta, n_ice, delta_n, z0)
 
 
 @njit(cache = True)
-def path_integrals_nonpositive_alpha(z, beta, n_ice, delta_n, z0):
+def path_integrals_no_log(z, beta, n_ice, delta_n, z0):
     """
     Antiderivatives of ds/dz = n / sqrt(n^2 - beta^2) and of the optical path n^2 / sqrt(n^2 - beta^2)
-    for alpha <= 0, see `inverse_root_integral_nonpositive_alpha`.
+    where the logarithmic closed forms fail, see `inverse_root_integral_no_log`.
 
     Returns
     -------
@@ -211,9 +266,10 @@ def path_integrals_nonpositive_alpha(z, beta, n_ice, delta_n, z0):
     optical_path : float
         Antiderivative of n ds; the travel time is its difference divided by the speed of light.
     """
-    u, n_minus_beta, gamma = _nonpositive_alpha_terms(z, beta, n_ice, delta_n, z0)
+    u, n_minus_beta, gamma = _no_log_terms(z, beta, n_ice, delta_n, z0)
     if u == 0.0:
-        return np.nan, np.nan
+        value = _value_at_infinity(beta, n_ice)
+        return value, value
     j0 = _inverse_root_integral(u, n_minus_beta, gamma, beta, n_ice, delta_n, z0)
     n = n_ice - delta_n * u
     root_gamma = np.sqrt(gamma)
@@ -272,9 +328,9 @@ def analytic_F(z, c0, n_ice, delta_n, z0):
     z0 = float(z0)
 
     c = n_ice * n_ice - 1.0 / (c0 * c0)  # alpha
-    if c <= ALPHA_EPS:
+    if use_no_log_forms(c, delta_n):
         # dy/dz = beta / sqrt(n^2 - beta^2), beta = 1 / c0
-        return float(inverse_root_integral_nonpositive_alpha(z, 1.0 / c0, n_ice, delta_n, z0) / c0)
+        return float(inverse_root_integral_no_log(z, 1.0 / c0, n_ice, delta_n, z0) / c0)
 
     b = 2.0 * n_ice
 
