@@ -42,6 +42,10 @@ def get_c0_from_log(logc0, n_ice):
     return float(get_c0_from_log_scalar(logc0, n_ice))
 
 
+# relative tolerance of the condition p = 1 / c0 <= n(z) at the end points
+P_REL_TOL = 1e-9
+
+
 def _get_logc0_start_with_air(z1, z2, layers, n_deep):
     """
     Lower end of the brentq search in log(c0) for rays that cross the air layer.
@@ -66,7 +70,7 @@ def _get_logc0_start_with_air(z1, z2, layers, n_deep):
     float
         Start value of the optimization parameter logc0.
     """
-    c0_min = (1.0 + 1e-9) / get_n_1D(max(z1, z2), layers)
+    c0_min = (1.0 + P_REL_TOL) / get_n_1D(max(z1, z2), layers)
     return np.log(max(c0_min - 1. / n_deep, 1e-12))
 
 
@@ -78,7 +82,7 @@ def _remove_unphysical_solutions(results, z1, z2, layers):
     (e.g. rays from emitters in air that "turn" in the air layer below the emitter).
     """
     n_min = min(get_n_1D(z1, layers), get_n_1D(z2, layers))
-    return [result for result in results if 1.0 / result['C0'] <= n_min * (1.0 + 1e-9)]
+    return [result for result in results if 1.0 / result['C0'] <= n_min * (1.0 + P_REL_TOL)]
 
 
 def obj_delta_y_sqr(logc0, y1, z1, y2, z2, layers, n_deep,

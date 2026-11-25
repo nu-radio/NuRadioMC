@@ -134,6 +134,33 @@ ALPHA_EPS = 1e-12
 
 
 @njit(cache = True)
+def _nonpositive_alpha_terms(z, beta, n_ice, delta_n, z0):
+    """u = exp(z / z0), n - beta and gamma = n^2 - beta^2 (clipped at 0) for the alpha <= 0 closed forms."""
+    u = np.exp(z / z0)
+    # n - beta without the cancellation of n ~ beta near a turning point
+    n_minus_beta = (n_ice - beta) - delta_n * u
+    gamma = max(n_minus_beta * (n_minus_beta + 2 * beta), 0.0)
+    return u, n_minus_beta, gamma
+
+
+@njit(cache = True)
+def _inverse_root_integral(u, n_minus_beta, gamma, beta, n_ice, delta_n, z0):
+    """J0 of `inverse_root_integral_nonpositive_alpha` from the terms of `_nonpositive_alpha_terms` (u > 0)."""
+    alpha = n_ice * n_ice - beta * beta
+    if alpha < -ALPHA_EPS:
+        if delta_n < 0:
+            # arcsin(x) = 2 arcsin(sqrt((1 + x) / 2)) - pi / 2, with 1 + x = (n - beta) (n_ice + beta) / (u |delta_n| beta)
+            # (x -> -1 at the turning point, where arcsin(x) is ill-conditioned)
+            half_1px = 0.5 * n_minus_beta * (n_ice + beta) / (u * abs(delta_n) * beta)
+            return z0 / np.sqrt(-alpha) * (2 * np.arcsin(np.sqrt(min(max(half_1px, 0.0), 1.0))) - 0.5 * np.pi)
+        n = n_ice - delta_n * u
+        arg = (n_ice * n - beta * beta) / (u * abs(delta_n) * beta)
+        return z0 / np.sqrt(-alpha) * np.arcsin(min(max(arg, -1.0), 1.0))
+
+    return z0 * np.sqrt(gamma) / (n_ice * delta_n * u)
+
+
+@njit(cache = True)
 def inverse_root_integral_nonpositive_alpha(z, beta, n_ice, delta_n, z0):
     """
     Antiderivative J0(z) of 1 / sqrt(n(z)^2 - beta^2) for n(z) = n_ice - delta_n * exp(z / z0), alpha <= 0.
@@ -164,25 +191,11 @@ def inverse_root_integral_nonpositive_alpha(z, beta, n_ice, delta_n, z0):
     float
         J0(z), defined up to a constant.
     """
-    alpha = n_ice * n_ice - beta * beta
-    u = np.exp(z / z0)
+    u, n_minus_beta, gamma = _nonpositive_alpha_terms(z, beta, n_ice, delta_n, z0)
     if u == 0.0:
         # z = inf in an air layer: beyond the turning point, which exists for alpha < 0
         return np.nan
-    # n - beta without the cancellation of n ~ beta near a turning point
-    n_minus_beta = (n_ice - beta) - delta_n * u
-    gamma = max(n_minus_beta * (n_minus_beta + 2 * beta), 0.0)
-    if alpha < -ALPHA_EPS:
-        if delta_n < 0:
-            # arcsin(x) = 2 arcsin(sqrt((1 + x) / 2)) - pi / 2, with 1 + x = (n - beta) (n_ice + beta) / (u |delta_n| beta)
-            # (x -> -1 at the turning point, where arcsin(x) is ill-conditioned)
-            half_1px = 0.5 * n_minus_beta * (n_ice + beta) / (u * abs(delta_n) * beta)
-            return z0 / np.sqrt(-alpha) * (2 * np.arcsin(np.sqrt(min(max(half_1px, 0.0), 1.0))) - 0.5 * np.pi)
-        n = n_ice - delta_n * u
-        arg = (n_ice * n - beta * beta) / (u * abs(delta_n) * beta)
-        return z0 / np.sqrt(-alpha) * np.arcsin(min(max(arg, -1.0), 1.0))
-
-    return z0 * np.sqrt(gamma) / (n_ice * delta_n * u)
+    return _inverse_root_integral(u, n_minus_beta, gamma, beta, n_ice, delta_n, z0)
 
 
 @njit(cache = True)
@@ -198,13 +211,12 @@ def path_integrals_nonpositive_alpha(z, beta, n_ice, delta_n, z0):
     optical_path : float
         Antiderivative of n ds; the travel time is its difference divided by the speed of light.
     """
-    j0 = inverse_root_integral_nonpositive_alpha(z, beta, n_ice, delta_n, z0)
-    u = np.exp(z / z0)
+    u, n_minus_beta, gamma = _nonpositive_alpha_terms(z, beta, n_ice, delta_n, z0)
     if u == 0.0:
         return np.nan, np.nan
+    j0 = _inverse_root_integral(u, n_minus_beta, gamma, beta, n_ice, delta_n, z0)
     n = n_ice - delta_n * u
-    n_minus_beta = (n_ice - beta) - delta_n * u
-    root_gamma = np.sqrt(max(n_minus_beta * (n_minus_beta + 2 * beta), 0.0))
+    root_gamma = np.sqrt(gamma)
     log_term = np.log(n + root_gamma)
     s = n_ice * j0 + z0 * log_term
     optical_path = n_ice * n_ice * j0 + z0 * (root_gamma + n_ice * log_term)
@@ -259,18 +271,12 @@ def analytic_F(z, c0, n_ice, delta_n, z0):
     delta_n = float(delta_n)
     z0 = float(z0)
 
-    if n_ice * n_ice - 1.0 / (c0 * c0) <= ALPHA_EPS:
+    c = n_ice * n_ice - 1.0 / (c0 * c0)  # alpha
+    if c <= ALPHA_EPS:
         # dy/dz = beta / sqrt(n^2 - beta^2), beta = 1 / c0
         return float(inverse_root_integral_nonpositive_alpha(z, 1.0 / c0, n_ice, delta_n, z0) / c0)
 
     b = 2.0 * n_ice
-    n = n_ice - delta_n*np.exp(z / z0)
-    c = max(abs(n_ice*n_ice - 1.0/(c0*c0)),1e-14)
-
-    # f only valid for positive c
-    if c < 0 :
-        return np.nan
-
 
     gamma = delta_n * np.exp(z / z0)
     root = max(gamma*gamma - gamma*b + c, 1e-14)
