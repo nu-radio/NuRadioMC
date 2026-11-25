@@ -51,11 +51,7 @@ merge_history_attrs = ['merged_files', 'event_group_id_offsets', 'shower_id_offs
 
 def _make_ids_unique(id_arrays):
     """
-    Finds the offsets that make the ids unique across files.
-
-    In merge order, all ids of a file whose smallest id is not above the largest id of the previous files are shifted
-    by one offset, so that its smallest id becomes that largest id + 1. Gaps and order of the ids are kept; a file whose
-    ids lie above those of all previous files (e.g. the part files of one run) keeps them (offset 0).
+    Finds the offset of the ids of each file (rule: see `merge_hdf5_files`).
 
     Parameters
     ----------
@@ -144,12 +140,7 @@ def _merge_attrs(attrs_per_file, label, must_match=(), skip=()):
 
 def _merge_trigger_names(attrs_per_file):
     """
-    Merges the ``trigger_names`` of the files by name.
-
-    A trigger that never fired in a file is missing from its ``trigger_names`` (the writer adds a trigger when it first
-    fires), so the files can have different trigger names, or the same ones in a different order. The merged names are
-    the union in order of first appearance; the per-trigger datasets (``_PER_TRIGGER_DATASETS``) of a file whose names
-    differ from it are re-indexed to the merged columns (see `_merge_datasets`).
+    Merges the ``trigger_names`` of the files by name (rule: see `merge_hdf5_files`).
 
     Parameters
     ----------
@@ -253,7 +244,7 @@ class _FileInfo:
     attrs : dict
         file attributes
     is_empty : bool
-        True if the file has no ``triggered`` dataset or no triggered entry; empty files add no rows
+        empty file (see `merge_hdf5_files`)
     datasets : dict
         (shape, dtype) per top-level dataset
     groups : dict
@@ -299,11 +290,10 @@ def _reindex_triggers(data, columns, n_triggers):
 
 def _merge_datasets(fout, infos, trigger_columns, n_triggers, skip_incomplete_stations=False):
     """
-    Second pass of `merge_hdf5_files` for the non-empty input files ``infos``: creates the merged datasets and station
-    groups in ``fout`` and copies the rows file by file, shifting overlapping ids (see `_make_ids_unique`) and
-    re-indexing the per-trigger datasets with ``trigger_columns`` (per file name, see `_merge_trigger_names`) to
-    ``n_triggers`` columns. Returns the offsets per id dataset (``event_group_ids``, ``shower_ids`` if shifted) and
-    file name. ``skip_incomplete_stations``: see `merge_hdf5_files`.
+    Second pass of `merge_hdf5_files` (rules there) for the non-empty input files ``infos``: creates the merged
+    datasets and station groups in ``fout`` and copies the rows file by file. ``trigger_columns`` and ``n_triggers``:
+    re-indexing of the per-trigger datasets (see `_merge_trigger_names`). Returns the id offsets per id dataset
+    (``event_group_ids``, ``shower_ids`` if shifted) and file name.
     """
     # unique event group ids: the effective volume/area calculation uses them to find multi-station coincidences
     id_offsets = {'event_group_ids': _make_ids_unique([info.ids['event_group_ids'] for info in infos])}
@@ -416,23 +406,30 @@ def merge_hdf5_files(filenames, output_filename, overwrite=False, skip_incomplet
     """
     Merges NuRadioMC HDF5 output files into one file.
 
-    Datasets are appended in the order of ``filenames``; ``n_events`` is the sum over all files, which the effective
-    volume calculation needs. Files without triggered events count for ``n_events`` but add no rows; if all files are
-    empty, the first file is copied.
+    Rules:
 
-    Event group ids and shower ids of a file that overlap those of the previous files (smallest id not above the
-    largest id so far) are shifted by one offset, to above all ids seen so far, in the top-level datasets and in the
-    station groups. The attributes ``merged_files``, ``event_group_id_offsets`` and ``shower_id_offsets`` list the
-    original files and their offsets (merged id = original id + offset), ``event_group_id_starts`` the smallest merged
-    event group id of each file (-1: no rows); for an input file that is itself a merged file, its entries are listed,
-    with the offsets of both merges added.
-
-    Attributes: the first file that has an attribute sets its value. ``config`` and the NuRadioMC versions must be
-    equal in all files, as must ``Emin``, ``Emax``, ``volume`` and ``area`` (else `AttributeError`); other differing
-    attributes warn. ``trigger_names`` are merged by name: a trigger that never fired in a file is missing from its
-    names, so the merged names are the union, and the per-trigger datasets (e.g. ``multiple_triggers``) of such a file
-    get False / NaN in the columns of its missing triggers. A top-level dataset missing in one of the non-empty files
-    is left out with a warning. The merged file has the station groups of all files.
+    * Rows: datasets are appended in the order of ``filenames``. Files without triggered events (no ``triggered``
+      dataset or none True) are empty: they count for ``n_events`` but add no rows. If all files are empty, the first
+      file is copied (with the summed ``n_events``).
+    * Datasets: a top-level dataset missing in one of the non-empty files is left out with a warning. The merged file
+      has the station groups of all files; within a group, see ``skip_incomplete_stations``.
+    * Ids: all event group ids (shower ids) of a file whose smallest id is not above the largest id of the previous
+      files are shifted by one offset, so that its smallest id becomes that largest id + 1, in the top-level datasets
+      and in the station groups. Gaps and order are kept; a file whose ids lie above those of all previous files
+      (e.g. the part files of one run) keeps them. Event ids are unique only within an event group and are kept.
+    * Merged files: the attributes ``merged_files`` (file names without directory), ``event_group_id_offsets`` and
+      ``shower_id_offsets`` list the input files in merge order, including empty ones (offset 0), and their offsets
+      (merged id = original id + offset); ``event_group_id_starts`` the smallest merged event group id of each file
+      (-1: no rows). An input file that is itself a merged file is replaced by its entries, with the offsets (and the
+      starts) shifted by those of this merge, so that they refer to the original files.
+    * Attributes (file and station groups): the first file that has an attribute sets its value, differing values of
+      later files warn. ``config`` and the NuRadioMC versions must be equal in all files, as must ``Emin``, ``Emax``,
+      ``volume`` and ``area`` (else `AttributeError`). ``n_events`` is the sum over all files, which the effective
+      volume calculation needs; ``start_event_id`` is not compared.
+    * ``trigger_names`` are merged by name: the writer adds a trigger only once it fires, so a trigger that never
+      fired in a file is missing from its names. The merged names are the union in order of first appearance; the
+      per-trigger datasets (e.g. ``multiple_triggers``) of a file with other names are re-indexed to the merged
+      columns, with False / NaN for its missing triggers.
 
     The merge is written to ``output_filename + '.tmp'``, which is renamed to ``output_filename`` when done.
     The first pass reads all attributes and the ids, the second copies one dataset of one file at a time (instead of
@@ -582,12 +579,11 @@ def main(argv=None):
                 p.map(_merge_job, input_args)
 
     else:
-        output_filename = args.files[0]
-        if os.path.exists(output_filename) and not args.overwrite:
-            logger.error(f'file {output_filename} already exists, skipping')
-        else:
-            merge_hdf5_files(args.files[1:], output_filename, overwrite=args.overwrite,
+        try:
+            merge_hdf5_files(args.files[1:], args.files[0], overwrite=args.overwrite,
                              skip_incomplete_stations=args.skip_incomplete_stations)
+        except FileExistsError as e:
+            logger.error(f'{e}, skipping')
 
 
 if __name__ == "__main__":
