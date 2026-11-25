@@ -94,18 +94,18 @@ def get_n_air(site):
     with the exponential atmosphere of `medium_base.exponential_air_layer`:
     n = 1 + (N_AIR_SEA_LEVEL - 1) * exp(-elevation / AIR_SCALE_HEIGHT_DEFAULT). This ignores the site temperature,
     so it underestimates n - 1 at cold sites (Summit: 1.81e-4 instead of the measured 2.14e-4).
-    Sites without a known elevation get the sea-level value.
+    Sites without a known elevation (also an empty or missing site name, None) get the sea-level value.
 
     Parameters
     ----------
-    site: str
+    site: str or None
         Site name (case insensitive), e.g. from ``Detector.get_site``
 
     Returns
     -------
     n_air: float
     """
-    site = site.lower()
+    site = (site or "").lower()
     if site in SITE_N_AIR:
         return SITE_N_AIR[site]
 
@@ -633,13 +633,20 @@ def get_station_ice_model(det, station_id, ice_model=None):
     Returns
     -------
     ice_model: `NuRadioMC.utilities.medium_base.IceModel` or None
-        None for sites without ice (`AIR_SITES`). Models resolved by name are shared between calls;
-        do not modify them.
+        None for sites without ice (`AIR_SITES`). Shared between calls when resolved by name (see Warnings).
 
     Raises
     ------
     ValueError
-        If no model is given and the site has no default (e.g. "simulation" or an unknown site)
+        If no model is given and the site has no default (e.g. "simulation", an empty or unknown site)
+
+    Warnings
+    --------
+    **Do not modify the returned model.** Models resolved by name (a string ``ice_model`` or the site default)
+    are cached: every call returns the same object, shared by all modules and stations in the process. Changing
+    it (e.g. ``_set_params``, ``add_reflective_bottom``, setting attributes) silently changes the refractive
+    index used everywhere afterwards. For a modified model, create your own (`get_ice_model`) and pass it
+    as ``ice_model``.
     """
     if isinstance(ice_model, str):
         return _get_cached_ice_model(ice_model)
@@ -654,7 +661,7 @@ def get_station_ice_model(det, station_id, ice_model=None):
         if det_ice_model is not None:
             return det_ice_model
 
-    site = det.get_site(station_id).lower()
+    site = (det.get_site(station_id) or "").lower()
     if site in AIR_SITES:
         return None
     if site not in SITE_ICE_MODELS:

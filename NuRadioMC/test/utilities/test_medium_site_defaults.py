@@ -44,7 +44,7 @@ def test_site_defaults():
     for site in ["lofar", "LOFAR", "auger", "ska"]:
         assert medium.get_station_ice_model(SiteDetector(site), 1) is None, site
 
-    for site in ["simulation", "", "unknown_site"]:
+    for site in ["simulation", "", None, "unknown_site"]:
         try:
             medium.get_station_ice_model(SiteDetector(site), 1)
         except ValueError:
@@ -77,8 +77,9 @@ def test_n_air():
         expected = 1 + (medium_base.N_AIR_SEA_LEVEL - 1) * np.exp(-elevation * units.m / medium_base.AIR_SCALE_HEIGHT_DEFAULT)
         np.testing.assert_allclose(medium.get_n_air(site), expected, rtol=1e-12, err_msg=site)
     np.testing.assert_allclose(medium.get_n_air("auger") - 1, 2.224e-4, rtol=1e-3)
-    # unknown elevation: sea level
-    assert medium.get_n_air("simulation") == medium_base.N_AIR_SEA_LEVEL
+    # unknown elevation or no site name: sea level
+    for site in ["simulation", "", None]:
+        assert medium.get_n_air(site) == medium_base.N_AIR_SEA_LEVEL, site
 
 
 def test_refractive_index():
