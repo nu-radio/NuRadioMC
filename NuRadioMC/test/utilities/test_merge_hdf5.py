@@ -543,6 +543,25 @@ def test_find_part_files(tmp_path, caplog):
     assert existing in [x["output_filename"] for x in merge_hdf5.find_part_files(str(tmp_path), skip_existing=False)]
 
 
+def test_find_part_files_same_name_in_two_folders(tmp_path, caplog):
+    # the same name in two subfolders maps to one output file: warned about, the groups are returned as before
+    parts = _write_part_tree(str(tmp_path))
+    duplicate = os.path.join(str(tmp_path), "1e19", "a.hdf5.part0000")
+    _write_file(duplicate, [5], [5])
+    with caplog.at_level(logging.WARNING, logger="NuRadioMC.HDF5-merger"):
+        found = merge_hdf5.find_part_files(str(tmp_path))
+    assert "a.hdf5" in caplog.text and os.path.join(str(tmp_path), "1e18") in caplog.text \
+        and os.path.join(str(tmp_path), "1e19") in caplog.text, caplog.text
+    output = os.path.join(str(tmp_path), "a.hdf5")
+    assert [x["filenames"] for x in found if x["output_filename"] == output] == [parts[output], [duplicate]]
+    # no warning without duplicates
+    caplog.clear()
+    os.remove(duplicate)
+    with caplog.at_level(logging.WARNING, logger="NuRadioMC.HDF5-merger"):
+        merge_hdf5.find_part_files(str(tmp_path))
+    assert "subfolders" not in caplog.text, caplog.text
+
+
 @pytest.fixture
 def restore_loglevel():
     """ `merge_hdf5.main` sets the level of the merger's logger """

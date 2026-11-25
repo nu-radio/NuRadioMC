@@ -227,7 +227,8 @@ def find_part_files(root_directory, skip_existing=True):
     Groups the files ``root_directory/<subfolder>/<name>.hdf5.partNNNN`` by ``<name>.hdf5``.
 
     Files of at most 1000 bytes (e.g. truncated by a failed job) are left out with a warning; their events are then
-    missing from ``n_events`` of the merged file.
+    missing from ``n_events`` of the merged file. A name in several subfolders gives one entry per subfolder, all
+    with the same output file, and a warning.
 
     Parameters
     ----------
@@ -244,10 +245,17 @@ def find_part_files(root_directory, skip_existing=True):
     """
     # strip the .partNNNN suffix
     filenames = np.unique([os.path.splitext(f)[0] for f in glob.glob(f"{root_directory}/*/*.hdf5.part*")])
+    filenames = [f for f in filenames if os.path.splitext(f)[1] == '.hdf5']
+    folders_per_name = {}
+    for filename in filenames:
+        folder, name = os.path.split(filename)
+        folders_per_name.setdefault(name, []).append(folder)
+    for name, folders in folders_per_name.items():
+        if len(folders) > 1:
+            logger.warning(f"the part files of {name} are in several subfolders ({', '.join(sorted(folders))}), "
+                           f"which all map to the same output file {os.path.join(root_directory, name)}")
     input_args = []
     for filename in sorted(filenames):
-        if os.path.splitext(filename)[1] != '.hdf5':
-            continue
         folder, name = os.path.split(filename)
         output_filename = os.path.join(os.path.dirname(folder), name)  # remove subfolder from filename
         if skip_existing and os.path.exists(output_filename):
