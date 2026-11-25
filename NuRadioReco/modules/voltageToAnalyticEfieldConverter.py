@@ -12,6 +12,7 @@ from NuRadioReco.detector import antennapattern
 from NuRadioReco.utilities import geometryUtilities as geo_utl
 from NuRadioReco.utilities import units, fft, trace_utilities, signal_processing
 from NuRadioReco.utilities import analytic_pulse as pulse
+from NuRadioMC.utilities import medium
 from NuRadioReco.modules.voltageToEfieldConverter import get_array_of_channels
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import electricFieldParameters as efp
@@ -255,16 +256,23 @@ class voltageToAnalyticEfieldConverter:
     def __init__(self):
         self.__counter = 0
         self.antenna_provider = None
+        self.__ice_model = None
         self.begin()
 
-    def begin(self):
+    def begin(self, ice_model=None):
         """
         begin method. This function is executed before the event loop.
 
         The antenna pattern provider is initialized here.
+
+        Parameters
+        ----------
+        ice_model: str or `NuRadioMC.utilities.medium_base.IceModel`, optional
+            Ice model for the signal propagation speed between the antennas.
+            Default: from the detector or the site (see `NuRadioMC.utilities.medium.get_station_ice_model`)
         """
         self.antenna_provider = antennapattern.AntennaPatternProvider()
-        pass
+        self.__ice_model = ice_model
 
     @register_run()
     def run(self, evt, station, det, debug=False, debug_plotpath=None,
@@ -328,7 +336,7 @@ class voltageToAnalyticEfieldConverter:
 
         times, efield_antenna_factor, V, V_timedomain = get_array_of_channels(
             station, use_channels, det, zenith, azimuth, self.antenna_provider,
-            time_domain=True, efield_position=efield_position)
+            time_domain=True, efield_position=efield_position, ice_model=self.__ice_model)
 
         sampling_rate = station.get_channel(use_channels[0]).get_sampling_rate()
         n_samples_time = V_timedomain.shape[1]
@@ -650,7 +658,11 @@ class voltageToAnalyticEfieldConverter:
         average_trace_start_time = np.average(channel_trace_start_times)
         for i_trace, v_trace in enumerate(voltages_from_efield):
             channel = station.get_channel(use_channels[i_trace])
-            time_shift = geo_utl.get_time_delay_from_direction(zenith, azimuth, det.get_relative_position(station.get_id(), use_channels[i_trace])) - (channel.get_trace_start_time() - average_trace_start_time)
+            antenna_position = det.get_relative_position(station.get_id(), use_channels[i_trace])
+            # as in voltageToEfieldConverter.get_array_of_channels: air for signals from above, else n at the antenna
+            z = antenna_position[2] if zenith > 0.5 * np.pi else 1 * units.m
+            refractive_index = medium.get_station_refractive_index(det, station.get_id(), z, self.__ice_model)
+            time_shift = geo_utl.get_time_delay_from_direction(zenith, azimuth, antenna_position, n=refractive_index) - (channel.get_trace_start_time() - average_trace_start_time)
             voltage_trace = np.roll(np.copy(v_trace), int(time_shift * electric_field.get_sampling_rate()))
             correlation += signal.correlate(voltage_trace, channel.get_trace())
         toffset = (np.arange(0, correlation.shape[0]) - channel.get_trace().shape[0]) / electric_field.get_sampling_rate()
