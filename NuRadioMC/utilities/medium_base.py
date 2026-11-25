@@ -1,4 +1,4 @@
-from NuRadioReco.utilities import units
+from NuRadioReco.utilities import units, constants
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays
 
 from scipy import interpolate, integrate, linalg
@@ -846,8 +846,8 @@ if radiopropa_is_imported:
 
 # Default air above the ice: US standard atmosphere at sea level. The Greenland models in `medium` use the
 # air at Summit Station instead (`medium.N_AIR_SUMMIT`, `medium.AIR_SCALE_HEIGHT_SUMMIT`).
-N_AIR_SEA_LEVEL = 1.00027
-AIR_SCALE_HEIGHT_DEFAULT = 8 * units.km
+N_AIR_SEA_LEVEL = constants.n_air_sea_level
+AIR_SCALE_HEIGHT_DEFAULT = constants.air_refractivity_scale_height
 
 
 def exponential_air_layer(n_air_surface, air_scale_height, z_surface=0.0):

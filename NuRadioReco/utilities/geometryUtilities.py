@@ -6,6 +6,7 @@ direction and to simulate reflection and refraction at boundaries between differ
 """
 
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.constants import n_air_sea_level
 from numpy.lib import scimath as SM
 from scipy import constants
 from scipy.spatial.transform import Rotation
@@ -14,7 +15,7 @@ import logging
 logger = logging.getLogger('NuRadioReco.geometryUtilities')
 SPEED_OF_LIGHT = constants.c * units.m / units.s
 
-def get_time_delay_from_direction(zenith, azimuth, positions, n=1.000293):
+def get_time_delay_from_direction(zenith, azimuth, positions, n=n_air_sea_level):
     """
     Calculate the time delay between given positions for an arrival direction
 
@@ -27,8 +28,8 @@ def get_time_delay_from_direction(zenith, azimuth, positions, n=1.000293):
         Azimuth angle in convention East = 0, counter-clock-wise
     positions: array[N x 3]
         Positions on ground
-    n: float (default: 1.000293)
-        Index of reflection of propagation medium. By default, air is assumed
+    n: float (default: `NuRadioReco.utilities.constants.n_air_sea_level`)
+        Index of refraction of propagation medium. By default, air at sea level is assumed
 
     Returns
     -------
@@ -352,7 +353,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith, ice
     return zenith_antenna, t_theta, t_phi
 
 
-def analytic_plane_wave_fit(dt, pos, n_index=1.000293):
+def analytic_plane_wave_fit(dt, pos, n_index=n_air_sea_level):
     """Analytic plane wave fit
 
     Given three time delays ``dt`` and three positions
@@ -371,7 +372,7 @@ def analytic_plane_wave_fit(dt, pos, n_index=1.000293):
         The 3D positions of the three observers.
         The first axis corresponds to the three observers,
         the second axis to their x, y and z coordinates.
-    n_index : float, default 1.
+    n_index : float, default `NuRadioReco.utilities.constants.n_air_sea_level`
         The index of refraction
 
     Returns
