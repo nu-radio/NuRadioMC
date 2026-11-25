@@ -15,6 +15,10 @@ str_type_attrs = ['trigger_names', 'NuRadioMC_EvtGen_version', 'NuRadioMC_EvtGen
 veff_attrs = ['Emin', 'Emax', 'volume', 'area']
 
 
+# attributes recording the files merged into a file and their id offsets (see `_make_ids_unique`)
+merge_history_attrs = ['merged_files', 'event_group_id_offsets', 'shower_id_offsets']
+
+
 def _make_ids_unique(data, groups, filenames, key, group_keys):
     """
     Shifts the ids of files that overlap the ids of previous files, in place, so that the ids are unique across files.
@@ -54,6 +58,16 @@ def _make_ids_unique(data, groups, filenames, key, group_keys):
             logger.warning(f"{key} of {f} overlap with previous files; shifted by {offsets[f]}")
         max_id = ids.max()
     return offsets
+
+
+def _merge_history(fin, filename):
+    """
+    Files merged into the open file ``fin`` (named ``filename``) and their id offsets, as in `merge_history_attrs`:
+    ``fin`` itself with offsets 0 if it is not the output of a merge.
+    """
+    if 'merged_files' in fin.attrs:
+        return [list(fin.attrs[key]) for key in merge_history_attrs]
+    return [[os.path.basename(filename)], [0], [0]]
 
 
 def _attrs_equal(a, b):
@@ -118,8 +132,11 @@ def merge2(filenames, output_filename):
     attrs = OrderedDict()
     groups = OrderedDict()
     group_attrs = OrderedDict()
+    history = OrderedDict()
     non_empty_filenames = []
     n_events_total = 0
+    event_group_id_offsets = {}
+    shower_id_offsets = {}
 
     for f in filenames:
         logger.info("adding file {}".format(f))
@@ -134,6 +151,7 @@ def merge2(filenames, output_filename):
             non_empty_filenames.append(f)
             logger.debug(f"file {f} contains {np.sum(np.array(fin['triggered']))} triggered events.")
 
+        history[f] = _merge_history(fin, f)
         data[f] = {}
         groups[f] = {}
 
@@ -160,6 +178,8 @@ def merge2(filenames, output_filename):
                 data[f][key] = fin[key][...]
 
         for key in fin.attrs:
+            if key in merge_history_attrs:  # combined per file below
+                continue
             if(key not in attrs):
                 attrs[key] = fin.attrs[key]
             else:
@@ -193,10 +213,11 @@ def merge2(filenames, output_filename):
     if(len(non_empty_filenames)):
         # unique event group ids: the effective volume/area calculation uses them to find multi-station coincidences
         # (shifting: see `_make_ids_unique`)
-        _make_ids_unique(data, groups, non_empty_filenames, 'event_group_ids', ['event_group_ids', 'event_group_id_per_shower'])
+        event_group_id_offsets = _make_ids_unique(data, groups, non_empty_filenames, 'event_group_ids',
+                                                  ['event_group_ids', 'event_group_id_per_shower'])
         # shower ids are unique only within the files of one event generation run (issue #292)
         if all('shower_ids' in data[f] for f in non_empty_filenames):
-            _make_ids_unique(data, groups, non_empty_filenames, 'shower_ids', ['shower_id'])
+            shower_id_offsets = _make_ids_unique(data, groups, non_empty_filenames, 'shower_ids', ['shower_id'])
         # event ids (``event_ids``, ``event_id_per_shower``) are unique only within an event group, so the unique
         # event group ids keep them unique
 
@@ -272,7 +293,7 @@ def merge2(filenames, output_filename):
         for key in fin.attrs:
             if(key == "n_events"):
                 fout.attrs[key] = n_events_total
-            else:
+            elif key not in merge_history_attrs:
                 fout.attrs[key] = fin.attrs[key]
         for key in fin:
             if isinstance(fin[key], h5py._hl.group.Group):
@@ -286,6 +307,16 @@ def merge2(filenames, output_filename):
                 fout.create_dataset(key, fin[key].shape, dtype=fin[key].dtype,
                                     compression='gzip')[...] = fin[key]
 
+    # the original files and their offsets; the offsets of a file merged before add up
+    merged_files, egid_offsets, sid_offsets = [], [], []
+    for f in filenames:
+        names, egid_offsets_f, sid_offsets_f = history[f]
+        merged_files += names
+        egid_offsets += [x + event_group_id_offsets.get(f, 0) for x in egid_offsets_f]
+        sid_offsets += [x + shower_id_offsets.get(f, 0) for x in sid_offsets_f]
+    fout.attrs['merged_files'] = merged_files
+    fout.attrs['event_group_id_offsets'] = np.array(egid_offsets, dtype=np.int64)
+    fout.attrs['shower_id_offsets'] = np.array(sid_offsets, dtype=np.int64)
     fout.close()
 
 

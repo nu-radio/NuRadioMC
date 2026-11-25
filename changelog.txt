@@ -55,8 +55,9 @@ bugfixes:
   generated files kept their overlapping shower ids. Instead of renaming single overlapping ids, all event group ids
   (shower ids) of a file that overlap those of the previous files are shifted by one offset, also in the station
   datasets `event_group_ids`, `event_group_id_per_shower` (before: not renamed) and `shower_id`; an overlap of only
-  event group id 0 is now detected as well.
-  Note: shifted ids in the merged file no longer match the SimShower ids in .nur files or the generator input.
+  event group id 0 is now detected as well. The merged file stores the merged files and their offsets in the
+  attributes `merged_files`, `event_group_id_offsets` and `shower_id_offsets`, to recover the original ids
+  (e.g. the SimShower ids in .nur files).
 - The station dataset `event_id_per_shower` of the NuRadioMC HDF5 output holds the event id of the event each shower
   (or emitter) belongs to, as documented; before, it held the shower ids.
 - `merge_hdf5.py <directory>` merges the `*.hdf5.partNNNN` files again (merged nothing since v3.0.0; file discovery is now

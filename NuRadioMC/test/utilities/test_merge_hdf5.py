@@ -1,7 +1,7 @@
 """
 Test of ``NuRadioMC.utilities.merge_hdf5.merge2``: merging files whose event group ids and shower ids overlap
 (e.g. independently generated input files) must give unique ids that stay consistent between the top level and
-the station groups (issue #292).
+the station groups (issue #292), and store the per-file id offsets.
 """
 import os
 import subprocess
@@ -43,7 +43,8 @@ DATASETS = ["event_group_ids", "shower_ids", "station_101/event_group_ids", "sta
 
 def _merge(inputs):
     """
-    Writes one file ``in<i>.hdf5`` per (event_group_ids, shower_ids) pair, merges them and returns the merged datasets.
+    Writes one file ``in<i>.hdf5`` per (event_group_ids, shower_ids) pair, merges them and returns the merged datasets
+    and, under ``"attrs"``, the file attributes.
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         filenames = []
@@ -53,7 +54,7 @@ def _merge(inputs):
         output = os.path.join(tmpdir, "merged.hdf5")
         merge2(filenames, output)
         with h5py.File(output, "r") as f:
-            return {key: f[key][...] for key in DATASETS}
+            return dict({key: f[key][...] for key in DATASETS}, attrs=dict(f.attrs))
 
 
 def test_merge_shower_ids_unique():
@@ -86,6 +87,8 @@ def test_merge_overlapping_ids_shifted():
     out = _merge([([10, 30, 30], [5, 9, 20]), ([10, 30, 30], [5, 9, 20])])
     np.testing.assert_array_equal(out["event_group_ids"], [10, 30, 30, 31, 51, 51])
     np.testing.assert_array_equal(out["shower_ids"], [5, 9, 20, 21, 25, 36])
+    np.testing.assert_array_equal(out["attrs"]["event_group_id_offsets"], [0, 21])
+    np.testing.assert_array_equal(out["attrs"]["shower_id_offsets"], [0, 16])
 
 
 def test_merge_non_overlapping_ids_kept():
@@ -93,6 +96,23 @@ def test_merge_non_overlapping_ids_kept():
     out = _merge([([1, 2], [1, 2]), ([5, 6], [3, 4]), ([7], [9])])
     np.testing.assert_array_equal(out["event_group_ids"], [1, 2, 5, 6, 7])
     np.testing.assert_array_equal(out["shower_ids"], [1, 2, 3, 4, 9])
+    np.testing.assert_array_equal(out["attrs"]["event_group_id_offsets"], [0, 0, 0])
+    np.testing.assert_array_equal(out["attrs"]["shower_id_offsets"], [0, 0, 0])
+
+
+def test_merge_offsets_recover_original_ids():
+    inputs = [([3, 4, 4], [0, 1, 2]), ([0, 1], [0, 5]), ([20], [6]), ([2, 2], [1, 3])]
+    out = _merge(inputs)
+    attrs = out["attrs"]
+    assert list(attrs["merged_files"]) == [f"in{i}.hdf5" for i in range(len(inputs))], attrs["merged_files"]
+    i = 0
+    for (egids, sids), egid_offset, sid_offset in zip(inputs, attrs["event_group_id_offsets"],
+                                                      attrs["shower_id_offsets"]):
+        n = len(sids)
+        np.testing.assert_array_equal(out["event_group_ids"][i:i + n] - egid_offset, egids)
+        np.testing.assert_array_equal(out["shower_ids"][i:i + n] - sid_offset, sids)
+        i += n
+    assert len(np.unique(out["shower_ids"])) == len(out["shower_ids"]), out["shower_ids"]
 
 
 def test_merge_station_ids_consistent():
@@ -117,6 +137,28 @@ def test_merge_untriggered_file_adds_no_rows():
             np.testing.assert_array_equal(f["station_101/shower_id"], [1, 2, 3])
             np.testing.assert_array_equal(f["station_101/event_group_ids"], [1, 2])
             assert f.attrs["n_events"] == 2 + 2, f.attrs["n_events"]
+            # the untriggered file is listed, with offsets 0
+            assert list(f.attrs["merged_files"]) == ["triggered.hdf5", "untriggered.hdf5"], f.attrs["merged_files"]
+            np.testing.assert_array_equal(f.attrs["event_group_id_offsets"], [0, 0])
+            np.testing.assert_array_equal(f.attrs["shower_id_offsets"], [0, 0])
+
+
+def test_merge_merged_files():
+    # merging merged files lists the original files, with the offsets of both merges added
+    with tempfile.TemporaryDirectory() as tmpdir:
+        inputs = {"a": ([1, 2], [1, 2]), "b": ([1, 2], [1, 2]), "c": ([0], [0]), "d": ([0], [0])}
+        for name, (egids, sids) in inputs.items():
+            _write_file(os.path.join(tmpdir, f"{name}.hdf5"), egids, sids)
+        merge2([os.path.join(tmpdir, x) for x in ["a.hdf5", "b.hdf5"]], os.path.join(tmpdir, "ab.hdf5"))
+        merge2([os.path.join(tmpdir, x) for x in ["c.hdf5", "d.hdf5"]], os.path.join(tmpdir, "cd.hdf5"))
+        output = os.path.join(tmpdir, "merged.hdf5")
+        merge2([os.path.join(tmpdir, x) for x in ["ab.hdf5", "cd.hdf5"]], output)
+        with h5py.File(output, "r") as f:
+            assert list(f.attrs["merged_files"]) == ["a.hdf5", "b.hdf5", "c.hdf5", "d.hdf5"], f.attrs["merged_files"]
+            # ab: 1, 2, 3, 4; cd: 0, 1 shifted by 5
+            np.testing.assert_array_equal(f["event_group_ids"][...], [1, 2, 3, 4, 5, 6])
+            np.testing.assert_array_equal(f.attrs["event_group_id_offsets"], [0, 2, 5, 6])
+            np.testing.assert_array_equal(f.attrs["shower_id_offsets"], [0, 2, 5, 6])
 
 
 def _merge_attrs(attrs, station_attrs=None):
@@ -237,8 +279,10 @@ if __name__ == "__main__":
     test_merge_event_group_id_zero_unique()
     test_merge_overlapping_ids_shifted()
     test_merge_non_overlapping_ids_kept()
+    test_merge_offsets_recover_original_ids()
     test_merge_station_ids_consistent()
     test_merge_untriggered_file_adds_no_rows()
+    test_merge_merged_files()
     test_merge_trigger_names_differ()
     test_merge_station_attrs()
     test_merge_file_attrs()
