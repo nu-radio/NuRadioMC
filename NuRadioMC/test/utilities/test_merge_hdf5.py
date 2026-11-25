@@ -141,6 +141,7 @@ def test_merge_untriggered_file_adds_no_rows():
             assert list(f.attrs["merged_files"]) == ["triggered.hdf5", "untriggered.hdf5"], f.attrs["merged_files"]
             np.testing.assert_array_equal(f.attrs["event_group_id_offsets"], [0, 0])
             np.testing.assert_array_equal(f.attrs["shower_id_offsets"], [0, 0])
+            np.testing.assert_array_equal(f.attrs["event_group_id_starts"], [1, -1])
 
 
 def test_merge_merged_files():
@@ -159,6 +160,52 @@ def test_merge_merged_files():
             np.testing.assert_array_equal(f["event_group_ids"][...], [1, 2, 3, 4, 5, 6])
             np.testing.assert_array_equal(f.attrs["event_group_id_offsets"], [0, 2, 5, 6])
             np.testing.assert_array_equal(f.attrs["shower_id_offsets"], [0, 2, 5, 6])
+            np.testing.assert_array_equal(f.attrs["event_group_id_starts"], [1, 3, 5, 6])
+
+
+def _file_index(event_group_ids, starts):
+    """ Index (in ``merged_files``) of the file of each merged event group id, as documented in HDF5_structure.rst. """
+    with_rows = np.flatnonzero(starts >= 0)
+    return with_rows[np.searchsorted(starts[with_rows], event_group_ids, side="right") - 1]
+
+
+def test_merge_event_group_id_starts():
+    # the file of a row follows from its event group id; files without rows have start -1
+    inputs = [([3, 4, 4], [0, 1, 2]), ([7, 8], [3, 4]), ([0, 1], [0, 5]), ([20], [6])]
+    with tempfile.TemporaryDirectory() as tmpdir:
+        filenames = [os.path.join(tmpdir, f"in{i}.hdf5") for i in range(len(inputs))]
+        for i, (f, (egids, sids)) in enumerate(zip(filenames, inputs)):
+            _write_file(f, egids, sids, triggered=i != 1)
+        output = os.path.join(tmpdir, "merged.hdf5")
+        merge2(filenames, output)
+        with h5py.File(output, "r") as f:
+            egids, sids = f["event_group_ids"][...], f["shower_ids"][...]
+            station_egids = f["station_101/event_group_ids"][...]
+            attrs = dict(f.attrs)
+    # in1 has no triggered events; in2 is shifted by 5 (to 5, 6); in3 keeps its ids
+    np.testing.assert_array_equal(attrs["event_group_id_starts"], [3, -1, 5, 20])
+    index = _file_index(egids, attrs["event_group_id_starts"])
+    np.testing.assert_array_equal(index, [0, 0, 0, 2, 2, 3])
+    np.testing.assert_array_equal(egids - attrs["event_group_id_offsets"][index], [3, 4, 4, 0, 1, 20])
+    np.testing.assert_array_equal(sids - attrs["shower_id_offsets"][index], [0, 1, 2, 0, 5, 6])
+    # station groups too
+    np.testing.assert_array_equal(_file_index(station_egids, attrs["event_group_id_starts"]), [0, 0, 2, 2, 3])
+
+
+def test_merge_incomplete_merge_history():
+    # a merged file without event_group_id_starts (merged before it existed) is listed as one file
+    with tempfile.TemporaryDirectory() as tmpdir:
+        for name, egids in [("a", [1, 2]), ("b", [1, 2]), ("c", [0])]:
+            _write_file(os.path.join(tmpdir, f"{name}.hdf5"), egids, egids)
+        merge2([os.path.join(tmpdir, "a.hdf5"), os.path.join(tmpdir, "b.hdf5")], os.path.join(tmpdir, "ab.hdf5"))
+        with h5py.File(os.path.join(tmpdir, "ab.hdf5"), "a") as f:
+            del f.attrs["event_group_id_starts"]
+        output = os.path.join(tmpdir, "merged.hdf5")
+        merge2([os.path.join(tmpdir, "ab.hdf5"), os.path.join(tmpdir, "c.hdf5")], output)
+        with h5py.File(output, "r") as f:
+            assert list(f.attrs["merged_files"]) == ["ab.hdf5", "c.hdf5"], f.attrs["merged_files"]
+            np.testing.assert_array_equal(f.attrs["event_group_id_offsets"], [0, 5])
+            np.testing.assert_array_equal(f.attrs["event_group_id_starts"], [1, 5])
 
 
 def test_merge_duplicate_path():
@@ -176,6 +223,7 @@ def test_merge_duplicate_path():
             assert list(twice.attrs["merged_files"]) == ["a.hdf5"], twice.attrs["merged_files"]
             np.testing.assert_array_equal(twice.attrs["event_group_id_offsets"], [0])
             np.testing.assert_array_equal(twice.attrs["shower_id_offsets"], [0])
+            np.testing.assert_array_equal(twice.attrs["event_group_id_starts"], [1])
 
 
 def _merge_attrs(attrs, station_attrs=None):
@@ -300,6 +348,8 @@ if __name__ == "__main__":
     test_merge_station_ids_consistent()
     test_merge_untriggered_file_adds_no_rows()
     test_merge_merged_files()
+    test_merge_event_group_id_starts()
+    test_merge_incomplete_merge_history()
     test_merge_duplicate_path()
     test_merge_trigger_names_differ()
     test_merge_station_attrs()

@@ -15,8 +15,9 @@ str_type_attrs = ['trigger_names', 'NuRadioMC_EvtGen_version', 'NuRadioMC_EvtGen
 veff_attrs = ['Emin', 'Emax', 'volume', 'area']
 
 
-# attributes recording the files merged into a file and their id offsets (see `_make_ids_unique`)
-merge_history_attrs = ['merged_files', 'event_group_id_offsets', 'shower_id_offsets']
+# attributes recording the files merged into a file, their id offsets (see `_make_ids_unique`) and the smallest
+# merged event group id of each file (-1: no rows)
+merge_history_attrs = ['merged_files', 'event_group_id_offsets', 'shower_id_offsets', 'event_group_id_starts']
 
 
 def _make_ids_unique(data, groups, filenames, key, group_keys):
@@ -60,14 +61,18 @@ def _make_ids_unique(data, groups, filenames, key, group_keys):
     return offsets
 
 
-def _merge_history(fin, filename):
+def _merge_history(fin, filename, is_empty):
     """
-    Files merged into the open file ``fin`` (named ``filename``) and their id offsets, as in `merge_history_attrs`:
-    ``fin`` itself with offsets 0 if it is not the output of a merge.
+    Files merged into the open file ``fin`` (named ``filename``, without triggered events if ``is_empty``), as in
+    `merge_history_attrs`, relative to the ids of ``fin``: ``fin`` itself with offsets 0 if it is not the output of a
+    merge.
     """
     if 'merged_files' in fin.attrs:
-        return [list(fin.attrs[key]) for key in merge_history_attrs]
-    return [[os.path.basename(filename)], [0], [0]]
+        if all(key in fin.attrs for key in merge_history_attrs):
+            return [list(fin.attrs[key]) for key in merge_history_attrs]
+        logger.warning(f"{filename} lacks some of the attributes {merge_history_attrs}, listing it as one file")
+    start = -1 if is_empty else int(np.min(fin['event_group_ids']))
+    return [[os.path.basename(filename)], [0], [0], [start]]
 
 
 def _attrs_equal(a, b):
@@ -158,7 +163,7 @@ def merge2(filenames, output_filename):
             non_empty_filenames.append(f)
             logger.debug(f"file {f} contains {np.sum(np.array(fin['triggered']))} triggered events.")
 
-        history[f] = _merge_history(fin, f)
+        history[f] = _merge_history(fin, f, is_empty=f not in non_empty_filenames)
         data[f] = {}
         groups[f] = {}
 
@@ -314,16 +319,19 @@ def merge2(filenames, output_filename):
                 fout.create_dataset(key, fin[key].shape, dtype=fin[key].dtype,
                                     compression='gzip')[...] = fin[key]
 
-    # the original files and their offsets; the offsets of a file merged before add up
-    merged_files, egid_offsets, sid_offsets = [], [], []
+    # the original files, their offsets and starts; the offsets of a file merged before add up
+    merged_files, egid_offsets, sid_offsets, egid_starts = [], [], [], []
     for f in filenames:
-        names, egid_offsets_f, sid_offsets_f = history[f]
+        names, egid_offsets_f, sid_offsets_f, egid_starts_f = history[f]
+        egid_offset = event_group_id_offsets.get(f, 0)
         merged_files += names
-        egid_offsets += [x + event_group_id_offsets.get(f, 0) for x in egid_offsets_f]
+        egid_offsets += [x + egid_offset for x in egid_offsets_f]
         sid_offsets += [x + shower_id_offsets.get(f, 0) for x in sid_offsets_f]
+        egid_starts += [x + egid_offset if x >= 0 else -1 for x in egid_starts_f]
     fout.attrs['merged_files'] = merged_files
     fout.attrs['event_group_id_offsets'] = np.array(egid_offsets, dtype=np.int64)
     fout.attrs['shower_id_offsets'] = np.array(sid_offsets, dtype=np.int64)
+    fout.attrs['event_group_id_starts'] = np.array(egid_starts, dtype=np.int64)
     fout.close()
 
 

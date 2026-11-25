@@ -38,12 +38,27 @@ see :ref:`here <NuRadioMC/pages/Manuals/running_on_a_cluster:4. Merge individual
     keep their ids. The shift applies to ``event_group_ids``, ``shower_ids`` and the station datasets
     ``event_group_ids``, ``event_group_id_per_shower`` and ``shower_id``; event ids are unique only within an event
     group and are kept.
+    A file given more than once (also via another path) is merged once.
     The merged file lists the input files in merge order in the attribute ``merged_files`` (file names without
-    directory) and their offsets in ``event_group_id_offsets`` and ``shower_id_offsets``; files without triggered
-    events are listed with offset 0. The original id of a row from the ``i``-th file is the merged id minus the
-    ``i``-th offset, e.g. to match a shower to the ``SimShower`` ids in that file's ``.nur`` files or to its event
-    generator input file. If an input file is itself a merged file, its entries replace it in the lists, and the
-    offsets of both merges add up, so that the offsets always refer to the original files.
+    directory), their offsets in ``event_group_id_offsets`` and ``shower_id_offsets``, and in
+    ``event_group_id_starts`` the smallest merged event group id of each file's rows (-1 for a file without triggered
+    events, which adds no rows and has offsets 0). As the merged ids of each file lie above those of all previous
+    files, the file of a row follows from its event group id, and its original ids are the merged ids minus that
+    file's offsets, e.g. to match a shower to the ``SimShower`` ids in that file's ``.nur`` files or to its event
+    generator input file:
+
+    .. code-block:: python
+
+        starts = f.attrs["event_group_id_starts"]
+        with_rows = np.flatnonzero(starts >= 0)
+        i = with_rows[np.searchsorted(starts[with_rows], f["event_group_ids"][...], side="right") - 1]
+        files = f.attrs["merged_files"][i]  # original file of each row
+        shower_ids = f["shower_ids"][...] - f.attrs["shower_id_offsets"][i]
+        event_group_ids = f["event_group_ids"][...] - f.attrs["event_group_id_offsets"][i]
+
+    The same works for the station datasets with their ``event_group_ids`` or ``event_group_id_per_shower``. If an
+    input file is itself a merged file, its entries replace it in the lists and the offsets of both merges add up, so
+    that the attributes always refer to the original files.
 
 What's behind the HDF5 files
 ----------------------------
@@ -99,7 +114,7 @@ The top-level attributes can be accessed using ``f.attrs``. These contain:
         ``deposited`` |
         ``detector`` | The (json-format) detector description used for the simulation
         ``dt`` | The time resolution, i.e. the inverse of the sampling rate used for the simulation. This is not necessarily the same as the sampling rate of the simulated channels!
-        ``merged_files`` ``event_group_id_offsets`` ``shower_id_offsets`` | (Only in merged files) The merged files and the offsets added to their event group ids and shower ids, see the note on merging above
+        ``merged_files`` ``event_group_id_offsets`` ``shower_id_offsets`` ``event_group_id_starts`` | (Only in merged files) The merged files, the offsets added to their event group ids and shower ids, and the smallest merged event group id of each file's rows (-1: no rows), see the note on merging above
 
 
 The station-level attributes can be accessed using ``f[station_<station_id>].attrs``. The first two attributes ``Vrms`` and ``bandwidth`` also exist on the top-level and refer to the corresponding to the first station/channel pair.
