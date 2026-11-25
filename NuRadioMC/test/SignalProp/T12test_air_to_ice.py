@@ -83,6 +83,11 @@ for distance, height, z_rx in [(100, 10, -97), (1000, 100, -97), (30, 1, -20), (
     print(f"air to ice: p = {p:.7f}, d = {distance:6.0f} m, h = {height:6.0f} m, z = {z_rx:4.0f} m: t = {t:.4f} ns, "
           f"quadrature {t_ref:.4f} ns")
 
+# beyond the horizontal reach of the direct ray (9252 m) only rays that turn in the air reach the receiver: not supported
+r.set_start_and_end_point(np.array([13880., 0, 1]), np.array([0., 0, -97]))
+r.find_solutions()
+assert r.get_number_of_solutions() == 0, r.get_number_of_solutions()
+
 # emitter in air straight above the receiver: one solution (vertical ray)
 r.set_start_and_end_point(np.array([0., 0, 100]), np.array([0., 0, -50]))
 r.find_solutions()

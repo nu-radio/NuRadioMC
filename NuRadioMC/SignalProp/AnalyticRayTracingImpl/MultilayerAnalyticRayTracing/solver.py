@@ -2,7 +2,7 @@ import numpy as np
 from scipy import optimize
 from operator import itemgetter
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_delta_y, get_n_1D, get_c0_from_theta, get_skim_angle, determine_solution_type
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_delta_y, get_n_1D, get_c0_from_theta, get_skim_angle, determine_solution_type, get_turning_point
 
 
 
@@ -85,6 +85,27 @@ def _remove_unphysical_solutions(results, z1, z2, layers):
     """
     n_min = min(get_n_1D(z1, layers), get_n_1D(z2, layers))
     return [result for result in results if 1.0 / result['C0'] <= n_min * (1.0 + P_REL_TOL)]
+
+
+def _remove_rays_turning_in_air(results, y1, z1, y2, z2, layers, downgoing, with_air, dropped):
+    """
+    Drop solutions whose ray turns in the air above the upper end point (an emitter in air).
+
+    In air n falls with height, so rays bend down: an emitter in air beyond the horizontal reach of the
+    direct ray can be reached by a ray that rises, turns where n = p and comes back down. The root search
+    finds these rays (`get_delta_y`), but travel time, path length and the other ray properties are only
+    computed for direct paths, so they are not supported (nor is the curvature of the atmosphere, which
+    matters at these distances). Dropped solutions are appended to ``dropped`` if it is a list.
+    """
+    kept = []
+    for result in results:
+        y_turn, z_turn = get_turning_point(result['C0'], y1, z1, layers, result['C1'], downgoing, with_air)
+        if z2 > 0 and np.isfinite(z_turn) and z_turn > z2 and y_turn < y2:
+            if dropped is not None:
+                dropped.append(result)
+        else:
+            kept.append(result)
+    return kept
 
 
 def _keep_one_air_solution(results):
@@ -196,7 +217,7 @@ def obj_delta_y(logc0, y1, z1, y2, z2, layers, n_deep,
     return dy
 
 
-def find_solutions(x1, x2, layers,tol=1e-12):
+def find_solutions(x1, x2, layers,tol=1e-12, dropped=None):
     """
     Find all valid ray tracing solutions between two points. Stable solutions over layer boundary with non-smooth n(z).
 
@@ -219,6 +240,9 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
     tol : float, optional
         Root-finding tolerance.
+
+    dropped : list, optional
+        If given, solutions of rays that turn in the air are appended to it (see `_remove_rays_turning_in_air`).
 
     Returns
     -------
@@ -463,11 +487,12 @@ def find_solutions(x1, x2, layers,tol=1e-12):
     results = _remove_unphysical_solutions(results, z1, z2, layers)
 
     if with_air:
+        results = _remove_rays_turning_in_air(results, y1, z1, y2, z2, layers, downgoing, with_air, dropped)
         return _keep_one_air_solution(results)
 
     return sorted(results, key=itemgetter('type', 'C0'))
 
-def find_solutions_bulk(x1, x2, layers,tol=1e-12):
+def find_solutions_bulk(x1, x2, layers,tol=1e-12, dropped=None):
     """
     Find all valid ray tracing solutions between two points. Optimized for points below ice with z1 close to z2.
 
@@ -487,6 +512,9 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
     tol : float, optional
         Root-finding tolerance.
+
+    dropped : list, optional
+        If given, solutions of rays that turn in the air are appended to it (see `_remove_rays_turning_in_air`).
 
     Returns
     -------
@@ -738,6 +766,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
     results = _remove_unphysical_solutions(results, z1, z2, layers)
 
     if with_air:
+        results = _remove_rays_turning_in_air(results, y1, z1, y2, z2, layers, downgoing, with_air, dropped)
         return _keep_one_air_solution(results)
 
     return sorted(results, key=itemgetter('type', 'C0'))

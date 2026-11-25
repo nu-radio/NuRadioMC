@@ -237,7 +237,12 @@ class multi_layer_ray_tracing_2D():
         return solution_type
 
     def find_solutions(self, x1, x2, plot=False, *_, **__):
+        """
+        Find the ray tracing solutions between x1 and x2 ((y, z) coordinates).
 
+        Rays that turn in the air (from an emitter in air beyond the horizontal reach of the direct ray)
+        are not supported: their solutions are dropped with a warning.
+        """
 
         dx = abs(x2[0] - x1[0])
         dz = abs(x2[1] - x1[1])
@@ -251,10 +256,16 @@ class multi_layer_ray_tracing_2D():
             solver_chain = [find_solutions, find_solutions_bulk]
 
         solutions = []
+        dropped = []
         for solver in solver_chain:
-            solutions = solver(x1, x2, self._layers_arr)
+            solutions = solver(x1, x2, self._layers_arr, dropped=dropped)
             if solutions:
                 break
+
+        if not solutions and dropped:
+            self._logger.warning(
+                "find_solutions | x1=%s x2=%s: only rays that turn in the air reach the receiver; these are not "
+                "supported (beyond the horizontal reach of the direct ray), returning no solution", x1, x2)
 
         self._logger.info(
             "find_solutions | x1=%s x2=%s solutions=%s",
