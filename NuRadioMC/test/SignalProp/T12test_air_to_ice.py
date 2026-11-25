@@ -1,5 +1,6 @@
 """
-Air-to-ice propagation with the analytic ray tracers, compared with numerical quadrature.
+Air-to-ice propagation with the analytic ray tracers, compared with numerical integration
+(scipy.integrate.quad) of the ray equations.
 
 - the air layer of `IceModelContinuousExpLayers` and of `IceModelExpLayers.from_IceModel`
 - plane-wave time differences, incl. a vertical plane wave (zenith 0)
@@ -21,16 +22,62 @@ from NuRadioReco.utilities import units, constants
 
 ice = medium.greenland_3exp_timing_2025()
 breaks = [layer["z_min"] for layer in ice.layers]
+ice_simple = medium.greenland_simple()  # single-layer model (single-layer ray tracer: n = 1 in air)
 
 
+# refractive index profiles
 def n(z):
     return ice.get_index_of_refraction(np.array([0, 0, z]))
 
 
+def n_simple(z):
+    return ice_simple.n_ice - ice_simple.delta_n * np.exp(z / ice_simple.z_0)
+
+
+# integrands of a ray with ray parameter p (p = n sin(theta), constant along the ray) in a profile n(z), per dz
+def horizontal_integrand(p, n_of_z):
+    """dy/dz = tan(theta) = p / sqrt(n^2 - p^2): integrated, the horizontal distance."""
+    return lambda z: p / np.sqrt(n_of_z(z)**2 - p**2)
+
+
+def optical_path_integrand(p, n_of_z):
+    """n ds/dz = n^2 / sqrt(n^2 - p^2): integrated and divided by c, the travel time."""
+    return lambda z: n_of_z(z)**2 / np.sqrt(n_of_z(z)**2 - p**2)
+
+
+def plane_wave_integrand(p, n_of_z):
+    """n cos(theta) = sqrt(n^2 - p^2): integrated between two depths and divided by c, the plane-wave delay."""
+    return lambda z: np.sqrt(n_of_z(z)**2 - p**2)
+
+
+# numerical integration
 def integrate(f, z1, z2):
-    """int_z1^z2 f dz for z1 < z2, split at the layer boundaries of `ice`."""
+    """int_z1^z2 f dz for z1 < z2 in `ice`, split at its layer boundaries."""
     points = [b for b in breaks if z1 < b < z2]
     return quad(f, z1, z2, points=points, limit=500, epsabs=1e-12, epsrel=1e-12)[0]
+
+
+def integrate_simple(f, z):
+    """int_z^0 f dz for z < 0 in `ice_simple` (the part of the path in the ice)."""
+    return quad(f, z, 0, limit=500, epsabs=1e-12, epsrel=1e-12)[0]
+
+
+# reference solutions: p from the horizontal distance, then the travel time
+def reference_air_to_ice(distance, height, z_rx):
+    """p and travel time of the direct ray from (distance, height) in air to (0, z_rx) in `ice`."""
+    p = brentq(lambda p: integrate(horizontal_integrand(p, n), z_rx, height) - distance,
+               1e-6, n(height) * (1 - 1e-14), xtol=1e-16, rtol=8.9e-16)
+    return p, integrate(optical_path_integrand(p, n), z_rx, height) / constants.c
+
+
+def reference_single_layer(distance, height, z_rx):
+    """p and travel time of the direct ray in `ice_simple`; the air part (n = 1) is a straight line."""
+    def reach(p):
+        return integrate_simple(horizontal_integrand(p, n_simple), z_rx) + height * p / np.sqrt(1 - p**2)
+
+    p = brentq(lambda p: reach(p) - distance, 1e-9, 1 - 1e-15, xtol=1e-16, rtol=1e-15)
+    t = (integrate_simple(optical_path_integrand(p, n_simple), z_rx) + height / np.sqrt(1 - p**2)) / constants.c
+    return p, t
 
 
 def test_air_layer():
@@ -62,7 +109,7 @@ def test_plane_wave():
         r.set_start_and_end_point(np.array([0, 0, z_low]), np.array([0, 0, z_high]))
         for zenith in np.array([0, 1e-6, 1, 30, 60, 89, 90]) * units.deg:
             p = medium.N_AIR_SUMMIT * np.sin(zenith)
-            dt_ref = integrate(lambda z: np.sqrt(n(z)**2 - p**2), z_low, z_high) / constants.c
+            dt_ref = integrate(plane_wave_integrand(p, n), z_low, z_high) / constants.c
             testing.assert_allclose(r.get_time_difference_plane_wave(zenith, 0), dt_ref, atol=1e-4 * units.ns,
                                     err_msg=f"plane wave, zenith {zenith / units.deg} deg, numba {compile_numba}")
 
@@ -82,13 +129,11 @@ AIR_TO_ICE_GEOMETRIES = [(100, 10, -97), (1000, 100, -97), (30, 1, -20), (3000, 
 
 
 def test_air_to_ice():
-    """Multilayer ray tracer: p from the horizontal distance by quadrature, then the travel time by quadrature."""
+    """Multilayer ray tracer against `reference_air_to_ice`."""
     r = ray.ray_tracing(ice, compile_numba=True)
     for distance, height, z_rx in AIR_TO_ICE_GEOMETRIES:
         distance, height, z_rx = distance * units.m, height * units.m, z_rx * units.m
-        horizontal = lambda p: integrate(lambda z: p / np.sqrt(n(z)**2 - p**2), z_rx, height)
-        p = brentq(lambda p: horizontal(p) - distance, 1e-6, n(height) * (1 - 1e-14), xtol=1e-16, rtol=8.9e-16)
-        t_ref = integrate(lambda z: n(z)**2 / np.sqrt(n(z)**2 - p**2), z_rx, height) / constants.c
+        p, t_ref = reference_air_to_ice(distance, height, z_rx)
 
         r.set_start_and_end_point(np.array([distance, 0, height]), np.array([0, 0, z_rx]))
         r.find_solutions()
@@ -115,32 +160,15 @@ def test_vertical_air_path():
     testing.assert_allclose(r.get_travel_time(0), integrate(n, -50, 100) / constants.c, atol=1e-3 * units.ns)
 
 
-ice_simple = medium.greenland_simple()
-
-
-def n_simple(z):
-    return ice_simple.n_ice - ice_simple.delta_n * np.exp(z / ice_simple.z_0)
-
-
-def integrate_simple(f, z):
-    """int_z^0 f dz (the ice part; in air n = 1)."""
-    return quad(f, z, 0, limit=500, epsabs=1e-12, epsrel=1e-12)[0]
-
-
 def test_single_layer_air_to_ice():
-    """Single-layer ray tracer, numba and python backends, both directions; n = 1 in air."""
-    def reach(p, height, z_rx):
-        return integrate_simple(lambda z: p / np.sqrt(n_simple(z)**2 - p**2), z_rx) + height * p / np.sqrt(1 - p**2)
-
+    """Single-layer ray tracer, numba and python backends, both directions, against `reference_single_layer`."""
     geometries = [(100, 10, -97), (1000, 100, -97), (30, 1, -20), (3000, 1000, -20), (1271.4, 10, -97),
                   (2392, 10, -40), (5000, 1, -97), (5000, 100, -20), (13880, 1, -97)]
     for compile_numba in [True, False]:
         r = ray.ray_tracing(ice_simple, use_cpp=False, compile_numba=compile_numba)
         for distance, height, z_rx in geometries:
             distance, height, z_rx = distance * units.m, height * units.m, z_rx * units.m
-            p = brentq(lambda p: reach(p, height, z_rx) - distance, 1e-9, 1 - 1e-15, xtol=1e-16, rtol=1e-15)
-            t_ref = (integrate_simple(lambda z: n_simple(z)**2 / np.sqrt(n_simple(z)**2 - p**2), z_rx)
-                     + height / np.sqrt(1 - p**2)) / constants.c
+            _, t_ref = reference_single_layer(distance, height, z_rx)
             for start, end in [([distance, 0, height], [0, 0, z_rx]), ([0, 0, z_rx], [distance, 0, height])]:
                 r.set_start_and_end_point(np.array(start), np.array(end))
                 r.find_solutions()
