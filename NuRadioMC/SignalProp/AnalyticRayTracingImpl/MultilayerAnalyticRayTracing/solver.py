@@ -52,7 +52,9 @@ def _get_logc0_start_with_air(z1, z2, layers, n_deep):
 
     A ray reaches a depth z only where n(z) >= p = 1 / c0. In air, n falls with height, so the
     highest end point of the path limits the ray parameter: c0 >= 1 / n(max(z1, z2)). The search
-    starts just above that value. Rays with p > 1 exist there, as n > 1 near the surface.
+    starts at that value (the ray leaves the upper end point horizontally; the closed forms hold
+    there), as the horizontal reach grows steeply for p -> n. Rays with p > 1 exist there, as n > 1
+    near the surface.
 
     Parameters
     ----------
@@ -70,7 +72,7 @@ def _get_logc0_start_with_air(z1, z2, layers, n_deep):
     float
         Start value of the optimization parameter logc0.
     """
-    c0_min = (1.0 + P_REL_TOL) / get_n_1D(max(z1, z2), layers)
+    c0_min = 1.0 / get_n_1D(max(z1, z2), layers)
     return np.log(max(c0_min - 1. / n_deep, 1e-12))
 
 
@@ -83,6 +85,27 @@ def _remove_unphysical_solutions(results, z1, z2, layers):
     """
     n_min = min(get_n_1D(z1, layers), get_n_1D(z2, layers))
     return [result for result in results if 1.0 / result['C0'] <= n_min * (1.0 + P_REL_TOL)]
+
+
+def _keep_one_air_solution(results):
+    """
+    For paths through air, keep only the solution with the largest C0 (smallest ray parameter p = 1 / C0).
+
+    A path through air has one direct ray; several roots are the same ray found from different start
+    values (e.g. a vertical ray, p ~ 0, whose C0 values differ by orders of magnitude).
+    """
+    if not results:
+        return results
+    return [max(results, key=itemgetter('C0'))]
+
+
+def _brentq_xtol(with_air):
+    """
+    Absolute tolerance in log(c0) of the brentq searches. For paths through air the horizontal reach grows
+    steeply as p approaches n at the upper end point (a change of 1e-12 in p moves the ray by meters), so
+    these searches converge to machine precision.
+    """
+    return 1e-15 if with_air else 2e-12
 
 
 def obj_delta_y_sqr(logc0, y1, z1, y2, z2, layers, n_deep,
@@ -371,7 +394,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
 
-        result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
+        result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), xtol=_brentq_xtol(with_air))
 
         if not np.any(np.isclose(result2, logc0s, rtol=0, atol=logc0_tol)):
             c_0 = get_c0_from_log(result2,n_deep)
@@ -416,7 +439,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
             )
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
-        result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
+        result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air), xtol=_brentq_xtol(with_air))
 
 
         if not np.any(np.isclose(result3, logc0s, rtol=0, atol=logc0_tol)):
@@ -439,10 +462,8 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
     results = _remove_unphysical_solutions(results, z1, z2, layers)
 
-    if with_air and results:
-        # Keep only the solution with the largest C0 (smallest ray parameter p = 1 / C0)
-        results = max(results, key=lambda x: x['C0'])
-        return [results]
+    if with_air:
+        return _keep_one_air_solution(results)
 
     return sorted(results, key=itemgetter('type', 'C0'))
 
@@ -650,7 +671,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
 
-        result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
+        result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air), xtol=_brentq_xtol(with_air))
 
         if not np.any(np.isclose(result2, logc0s, rtol=0, atol=logc0_tol)):
             c_0 = get_c0_from_log(result2,n_deep)
@@ -695,7 +716,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
             )
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
-        result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
+        result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air), xtol=_brentq_xtol(with_air))
 
 
         if not np.any(np.isclose(result3, logc0s, rtol=0, atol=logc0_tol)):
@@ -715,5 +736,8 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
                             'flag' : 4})
 
     results = _remove_unphysical_solutions(results, z1, z2, layers)
+
+    if with_air:
+        return _keep_one_air_solution(results)
 
     return sorted(results, key=itemgetter('type', 'C0'))
