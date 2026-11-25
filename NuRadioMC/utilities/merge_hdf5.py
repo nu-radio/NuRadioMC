@@ -495,8 +495,11 @@ def merge_hdf5_files(filenames, output_filename, overwrite=False):
         # no chunk cache: a chunk that several files fill is then compressed and written per file, which grows
         # the output slightly (+0.1 % for 80 files of 1.4 MB, more for small files), but the cache made the memory
         # use grow with the number of files (measured: 80 files, peak RSS 835 MB with the default 1 MiB per
-        # dataset, 430 MB without)
-        with h5py.File(tmp_filename, 'w', rdcc_nbytes=0) as fout:
+        # dataset, 430 MB without).
+        # HDF5 keeps attributes in the object header, limited to 64 kB per attribute in the default (earliest) file
+        # format: the merge history attributes (one entry per original file) would fail beyond about 4000 files. The
+        # 1.8 file format (readable by HDF5 >= 1.8) stores large attributes outside the header.
+        with h5py.File(tmp_filename, 'w', rdcc_nbytes=0, libver=('v108', 'latest')) as fout:
             id_offsets = {}
             if non_empty:
                 n_triggers = 0 if trigger_names is None else len(trigger_names)

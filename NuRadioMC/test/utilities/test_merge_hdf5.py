@@ -226,6 +226,25 @@ def test_merge_incomplete_merge_history(tmp_path):
     np.testing.assert_array_equal(attrs["event_group_id_starts"], [1, 5])
 
 
+def test_merge_long_merge_history(tmp_path):
+    # more original files than fit into an attribute of the default HDF5 file format (64 kB, about 4000 file names)
+    n = 5000
+    filenames = [str(tmp_path / f"{name}.hdf5") for name in ["merged", "new"]]
+    # a merged file of n original files (written like merge_hdf5_files does, else its own attributes would not fit)
+    _write_file(filenames[0], [1, 2], [1, 2], libver=("v108", "latest"), attrs={
+        "merged_files": [f"part{i:05d}.hdf5" for i in range(n)],
+        "event_group_id_offsets": np.zeros(n, dtype=np.int64),
+        "shower_id_offsets": np.zeros(n, dtype=np.int64),
+        "event_group_id_starts": np.full(n, -1, dtype=np.int64)})
+    _write_file(filenames[1], [3], [3])
+    output = str(tmp_path / "out.hdf5")
+    merge_hdf5_files(filenames, output)
+    attrs = _read(output)[1]
+    assert len(attrs["merged_files"]) == n + 1, len(attrs["merged_files"])
+    assert attrs["merged_files"][-1] == "new.hdf5", attrs["merged_files"][-1]
+    assert len(attrs["event_group_id_starts"]) == n + 1
+
+
 def test_merge_duplicate_path(tmp_path, caplog):
     # a file given more than once (also via another path or a symbolic link) is merged once, with a warning
     a = str(tmp_path / "a.hdf5")
