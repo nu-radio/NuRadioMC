@@ -35,14 +35,11 @@ def get_vertical_travel_time(z, layers):
         Travel time from the receiver to the surface.
     """
     z_min, z_max, n_ice, delta_n, z0 = layers
-    optical_path = 0.0
-    for i in range(len(z_min)):
-        lo = max(z_min[i], z)
-        hi = min(z_max[i], 0.0)
-        if hi > lo:
-            optical_path += n_ice[i] * (hi - lo) - delta_n[i] * z0[i] * (np.exp(hi / z0[i]) - np.exp(lo / z0[i]))
-
-    return optical_path / constants.c
+    # part of each layer between z and the surface (empty where hi <= lo)
+    lo = np.maximum(z_min, z)
+    hi = np.minimum(z_max, 0.0)
+    optical_path = n_ice * (hi - lo) - delta_n * z0 * (np.exp(hi / z0) - np.exp(lo / z0))
+    return np.sum(np.where(hi > lo, optical_path, 0.0)) / constants.c
 
 
 @njit(cache=True)
