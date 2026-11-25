@@ -95,12 +95,14 @@ class ShowerSimulator:
         self.station_id = station_id
         self.reference_channel = reference_channel
 
-        # Initialize the relavant detector, simulation config, ice model, and propagator:
-        self.det = detector.Detector(json_filename=detectorfile) if det is None else det
+        # Initialize simulation config
         self.config = sim.get_config(config_file)
-        self.ice = medium.get_ice_model(self.config['propagation']['ice_model'])
+
+        # Initialize detector and propagator
+        det = detector.Detector(json_filename=detectorfile) if det is None else det
         prop_module = propagation.get_propagation_module(self.config['propagation']['module'])
-        self.propagator = prop_module(self.ice, detector=self.det, config=self.config)
+        self.propagator = prop_module(det.get_ice_model(station_id), detector=det, config=self.config)
+        self.set_detector(det)
 
         if use_channels is not None:
             self.channel_ids = use_channels
@@ -128,6 +130,16 @@ class ShowerSimulator:
         else:
             self.channels_are_similar = False
 
+    def set_detector(self, det):
+        self.det = det
+        try:
+            # Update ice model if it comes with the detector
+            self.ice = self.det.get_ice_model(self.station_id)
+            self.propagator.set_medium(self.ice)
+            logger.status("Using ice model attached to detector")
+        except Exception as e:
+            raise e
+            pass
 
     def simulate_showers(self, showers, trace_start_times=None):
         """
@@ -161,15 +173,19 @@ class ShowerSimulator:
         # Calculate trace start times if not provided:
         if trace_start_times is None:
             start_point = showers[0][shp.vertex]
-            end_point = self.det.get_relative_position(self.station_id, self.reference_channel)
+            end_point = (
+                self.det.get_relative_position(self.station_id, self.reference_channel)
+                + self.det.get_absolute_position(self.station_id)
+            )
             self.propagator.set_start_and_end_point(start_point, end_point)
             self.propagator.find_solutions()
+
             if self.propagator.get_number_of_solutions() > 0:
                 reference_travel_time = self.propagator.get_travel_time(0)
-
                 reference_cable_delay = self.det.get_cable_delay(self.station_id, self.reference_channel)
-
-                trace_start_times = np.repeat(reference_travel_time + reference_cable_delay - self.pre_pulse_time, len(self.channel_ids))
+                trace_start_times = np.repeat(
+                    reference_travel_time + reference_cable_delay - self.pre_pulse_time, len(self.channel_ids)
+                )
             else:
                 logger.error("No ray-tracing solutions found for reference channel. It may be in the shadow zone.")
                 raise RuntimeError("No ray-tracing solutions found for reference channel. It may be in the shadow zone.")
@@ -186,9 +202,9 @@ class ShowerSimulator:
             if len(sim_station.get_electric_fields()) != 0:
                 sim.apply_det_response_sim(sim_station, self.det, self.config, self.detector_simulation_filter_amp)
 
-            # Add cable delays:
-            if self.add_cable_delay:
-                channelAddCableDelay.run(evt, sim_station, self.det, mode="add")
+            # Remove cable delays (they were already included in the apply_det_response_sim):
+            if not self.add_cable_delay:
+                channelAddCableDelay.run(evt, sim_station, self.det, mode="subtract")
 
             # Make empty channel and add sim channels to it:
             readout_channel = NuRadioReco.framework.channel.Channel(channel_id)
@@ -377,18 +393,29 @@ class ShowerSimulator:
         shower[shp.zenith] = zenith
         shower[shp.azimuth] = azimuth
         shower[shp.energy] = energy
-        shower[shp.vertex] = hp.spherical_to_cartesian(vertex_theta_rel, vertex_phi_rel) * vertex_r_rel + self.det.get_relative_position(self.station_id, self.reference_channel)
+        shower[shp.vertex] = (
+            hp.spherical_to_cartesian(vertex_theta_rel, vertex_phi_rel) * vertex_r_rel
+            + self.det.get_relative_position(self.station_id, self.reference_channel)
+            + self.det.get_absolute_position(self.station_id)
+        )
         shower[shp.type] = type
 
         # Run ray-tracer to get travel time for reference antenna:
-        self.propagator.set_start_and_end_point(self.det.get_relative_position(self.station_id, self.reference_channel), shower[shp.vertex])
+        reference_channel_position = (
+            self.det.get_relative_position(self.station_id, self.reference_channel)
+            + self.det.get_absolute_position(self.station_id)
+        )
+        self.propagator.set_start_and_end_point(shower[shp.vertex], reference_channel_position)
         self.propagator.find_solutions()
 
         if self.propagator.get_number_of_solutions() > 0:
             reference_travel_time = self.propagator.get_travel_time(0)
             reference_cable_delay = self.det.get_cable_delay(self.station_id, self.reference_channel) if self.add_cable_delay else 0
 
-            shower[shp.vertex_time] = trace_start_times[self.channel_ids.index(self.reference_channel)] + pulse_time - reference_cable_delay - reference_travel_time
+            shower[shp.vertex_time] = (
+                trace_start_times[self.channel_ids.index(self.reference_channel)]
+                + pulse_time - reference_cable_delay - reference_travel_time
+            )
             shower[shp.charge_excess_profile_id] = charge_excess_profile_id
 
             station, traces, _ = self.simulate_showers([shower], trace_start_times)

@@ -15,6 +15,7 @@ import NuRadioReco.modules.channelLengthAdjuster
 from NuRadioReco.modules.likelihood_reconstruction import likelihood_calculator
 from NuRadioReco.modules.likelihood_reconstruction.shower_simulator import ShowerSimulator
 from radiotools import helper as hp
+from NuRadioReco.detector.RNO_G.rnog_detector_unc import UncertaintyAwareDetector
 
 efieldToVoltageConverter = NuRadioReco.modules.efieldToVoltageConverter.efieldToVoltageConverter()
 efieldToVoltageConverter.begin(pre_pulse_time=200*units.ns, post_pulse_time=200*units.ns, caching=False)
@@ -25,7 +26,6 @@ channelLengthAdjuster = NuRadioReco.modules.channelLengthAdjuster.channelLengthA
 
 import logging
 logger = logging.getLogger('NuRadioReco.neutrinoLikelihoodReconstructor')
-
 
 class neutrinoLikelihoodReconstructor:
     """
@@ -62,7 +62,8 @@ class neutrinoLikelihoodReconstructor:
             n_grid_matched_filter = 200,
             overwrite_speedup_options = True,
             use_chi2 = False,
-            debug = False
+            debug = False,
+            additional_fixed_parameters = None,
             ):
         """
 
@@ -112,6 +113,13 @@ class neutrinoLikelihoodReconstructor:
             use_chi2: bool, optional
                 Whether to use chi2 minimization instead of likelihood. Mostly used for debugging and method comparison.
 
+            additional_fixed_parameters: list[int] or int, optional
+                List of additional parameters to fix during the fit. The parameters are indexed as follows:
+                0: energy, 1: zenith, 2: azimuth, 3: vertex_r_rel, 4: vertex_theta_rel, 5: vertex_phi_rel, 6: pulse_time
+                If a single integer is provided, it will be converted to a list with one element.
+                This is, e.g., usefult to fix the neutrino zenith and azimuth angles for an externally performed profile
+                likelihood scan by setting additional_fixed_parameters = [1, 2].
+
             debug: bool, optional
                 Extra plots and printouts for debugging
         """
@@ -124,6 +132,7 @@ class neutrinoLikelihoodReconstructor:
         self.debug = debug
         self.config_file = config_file
         self.overwrite_speedup_options = overwrite_speedup_options
+        self.additional_fixed_parameters = additional_fixed_parameters
 
         self.signal_search_width = signal_search_width
         self.delta_t = 1 / self.sampling_rate
@@ -159,13 +168,15 @@ class neutrinoLikelihoodReconstructor:
         evt,
         station,
         det,
-        parameters_initial,
+        signal_parameters_initial,
         charge_excess_profile_id = 0,
         use_channels = None,
         reference_channel = 0,
         two_step_optimization = True,
         full_output = True,
-        bounds = None
+        bounds = None,
+        likelihood_scan = False,
+        with_det_uncertainty = True
         ):
         """
         Run the likelihood reconstruction to fit a hadronic shower signal model to the traces in the station object.
@@ -181,7 +192,7 @@ class neutrinoLikelihoodReconstructor:
             The station object containing the channels with the data traces.
         det : NuRadioReco.framework.detector.Detector
             The detector description.
-        parameters_initial : np.ndarray
+        signal_parameters_initial : np.ndarray
             Initial guess of the parameters for the reconstruction. The array should contain seven values in the
             order ``[energy, zenith, azimuth, vertex_r_rel, vertex_theta_rel, vertex_phi_rel, pulse_time]``.
             The first three describe the shower energy and direction, the next three describe the shower vertex
@@ -209,6 +220,10 @@ class neutrinoLikelihoodReconstructor:
             - vertex_theta_rel: 90 to 180 deg
             - vertex_phi_rel: -360 to 360 deg
             - pulse_time: initial guess +/- self.signal_search_width
+        likelihood_scan : bool, optional
+            If ``True``, a likelihood scan (not profiled) is performed for each parameter after the fit and the plots
+            are saved to the current working directory. This is useful for debugging, checking the fit quality, and
+            the stability of the signal model.
 
         Returns
         -------
@@ -239,6 +254,19 @@ class neutrinoLikelihoodReconstructor:
             Only returned if `full_output` enabled
         """
 
+        if with_det_uncertainty:
+            if not isinstance(det, UncertaintyAwareDetector):
+                raise RuntimeError("Error: you need an UncertaintyAwareDetector if you want to propagate detector uncertainties")
+
+            num_nuis = det.get_num_nuisances()
+            nuis_initial = np.zeros(num_nuis)
+            det.set_nuisance_values(nuis_initial)
+        else:
+            nuis_initial = []
+            num_nuis = 0
+
+        parameters_initial = np.concat([signal_parameters_initial, nuis_initial])
+
         if use_channels is None:
             use_channels = station.get_channel_ids()
 
@@ -246,9 +274,7 @@ class neutrinoLikelihoodReconstructor:
 
         traces = []
         trace_start_times = []
-        for channel in station.iter_channels():
-            if channel.get_id() not in use_channels:
-                continue
+        for channel in station.iter_channels(use_channels=use_channels):
             traces.append(channel.get_trace())
             trace_start_times.append(channel.get_trace_start_time())
         traces = np.array(traces)
@@ -257,12 +283,12 @@ class neutrinoLikelihoodReconstructor:
         assert traces.shape[-1] == self.n_samples, "Number of samples in traces does not match n_samples in begin()"
         assert channel.get_sampling_rate() == self.sampling_rate, "Sampling rate of channel does not match sampling rate in begin()"
 
-        # Define signal function:
+        # Define signal function with initial detector geometry
         signal_model = ShowerSimulator(
             station_id = station.get_id(),
             config_file = self.config_file,
             detector_simulation_filter_amp = self.detector_simulation_filter_amp,
-            det = det,
+            det = det.as_detector() if with_det_uncertainty else det,
             reference_channel = reference_channel,
             evt_time = station.get_station_time(),
             use_channels = use_channels,
@@ -274,7 +300,16 @@ class neutrinoLikelihoodReconstructor:
             signal_model.config['speedup']['min_efield_amplitude'] = 0
             signal_model.config['speedup']['distance_cut'] = False
 
-        def signal_model_wrapper(parameters):
+        def signal_model_wrapper(parameters, num_signal_parameters = 7):
+
+            if with_det_uncertainty:
+                nuis_values = parameters[num_signal_parameters:]
+                assert len(nuis_values) == num_nuis
+                print("setting the following nuisance parameters")
+                print(nuis_values)
+                det.set_nuisance_values(nuis_values)
+                signal_model.set_detector(det.as_detector())
+
             signal_station, signal_traces = signal_model.simulate_single_shower_forward_folding(
                 energy = parameters[0],
                 zenith = parameters[1],
@@ -321,7 +356,7 @@ class neutrinoLikelihoodReconstructor:
             plt.tight_layout()
             plt.savefig("debug_neutrinoLikelihoodReconstructor_spectra.png")
 
-        minus_two_llh_initial, minus_two_llh_fit, parameters_fit, uncertainties_fit = self._reconstruct_signal(traces, signal_model_wrapper, parameters_initial, two_step_optimization=two_step_optimization, bounds=bounds)
+        minus_two_llh_initial, minus_two_llh_fit, parameters_fit, uncertainties_fit = self._reconstruct_signal(traces, signal_model_wrapper, signal_parameters_initial, nuis_parameters_initial = nuis_initial, two_step_optimization=two_step_optimization, bounds=bounds, likelihood_scan=likelihood_scan)
 
         signal_fit = signal_model_wrapper(parameters_fit)
 
@@ -353,7 +388,11 @@ class neutrinoLikelihoodReconstructor:
         rec_vertex_xyz = rec_vertex_xyz_rel + det.get_relative_position(station.get_id(), 0)
         signal_model.propagator.set_start_and_end_point(rec_vertex_xyz, det.get_relative_position(station.get_id(), reference_channel))
         signal_model.propagator.find_solutions()
-        travel_time = signal_model.propagator.get_travel_time(0)
+        if signal_model.propagator.get_number_of_solutions() > 0:
+            travel_time = signal_model.propagator.get_travel_time(0)
+        else:
+            logger.warning("Ray-tracer failed to find a solution for the reconstructed vertex position. Setting travel time to 0.")
+            travel_time = 0
         rec_vertex_time = parameters_fit[6] + trace_start_times[reference_index] - det.get_cable_delay(station.get_id(), reference_index) - travel_time
 
         # Convert fit uncertainties to shower parameter uncertainties:
@@ -384,8 +423,9 @@ class neutrinoLikelihoodReconstructor:
         station.set_parameter(stnp.ccnc, "nc")
 
         # Calculate goodness of fit:
-        n_dof_fit = self.likelihood_calculator.get_dof() - 7
-        p_value_fit = 1 - scp.stats.chi2.cdf(minus_two_llh_fit, n_dof_fit)
+        n_parameters_fit = len(parameters_fit)
+        n_parameters_fit -= len(np.atleast_1d(self.additional_fixed_parameters)) if self.additional_fixed_parameters is not None else 0
+        p_value_fit = self.likelihood_calculator.calculate_goodness_of_fit(minus_two_llh_fit, n_parameters_fit)
 
         if full_output:
             return parameters_fit, uncertainties_fit, signal_fit, minus_two_llh_initial, minus_two_llh_fit, p_value_fit
@@ -394,7 +434,6 @@ class neutrinoLikelihoodReconstructor:
         """
         Calculate the objective function for the first minimization.
         """
-
         if not self.use_chi2:
             self.matched_filter.set_template(signal)
             t_best, x_best = self.matched_filter.matched_filter_search(time_shift_array=self.delta_t_array_matched_filter)
@@ -444,12 +483,14 @@ class neutrinoLikelihoodReconstructor:
         return chi2
 
 
-    def _reconstruct_signal(self, data, signal_function, parameters_initial, two_step_optimization=True, bounds=None):
+    def _reconstruct_signal(self, data, signal_function, signal_parameters_initial, nuis_parameters_initial = [], 
+                            two_step_optimization=True, bounds=None, likelihood_scan=False):
         """
         Reconstruct the signal from the given data and the provided signal model using the initial guess of the signal parameters.
         """
 
-        normalization = np.array([units.EeV, units.rad, units.rad, units.km, units.deg, units.deg, units.ns])
+        normalization = np.array([units.PeV, units.deg, units.deg, units.m, units.deg, units.deg, units.ns] \
+                + [1.0] * len(nuis_parameters_initial))
 
         if bounds is None:
             bounds = np.array([(1 * units.PeV, 100 * units.EeV),
@@ -458,19 +499,38 @@ class neutrinoLikelihoodReconstructor:
                                 (20 * units.m, 5 * units.km),
                                 (0 * units.deg, 180 * units.deg),
                                 (-360 * units.deg, 360 * units.deg),
-                                (parameters_initial[6] - self.signal_search_width * units.ns, parameters_initial[6] + self.signal_search_width)])
+                                (signal_parameters_initial[6] - self.signal_search_width * units.ns, 
+                                 signal_parameters_initial[6] + self.signal_search_width)] + 
+                                [(-5.0, 5.0)] * len(nuis_parameters_initial)
+                              )
+
+        parameters_initial = np.concat([signal_parameters_initial, nuis_parameters_initial])
 
         minus_two_llh_initial = self._function_to_minimize_llh(data, signal_function(parameters_initial))
 
+        def _llh_nuis_constraint(params):
+            nuis = params[len(signal_parameters_initial):]
+            constraint = np.sum(np.square(nuis))
+            print(f"constraint = {constraint}")
+            return constraint
+
         # Matched filter optimization to get close to the global minimum and good initial parameters for the likelihood fit:
         if two_step_optimization:
+
+            # Fix energy and time (and additional parameters if specified) since they are profiled over in the matched filter optimization:
+            fixed_parameters = [True, False, False, False, False, False, True] + [True] * len(nuis_parameters_initial) 
+            if self.additional_fixed_parameters is not None:
+                for i_param in np.atleast_1d(self.additional_fixed_parameters):
+                    fixed_parameters[i_param] = True
+
             minimizer_mf = minimization.Minimizer(
                 signal_function = signal_function,
                 objective_function = self._function_to_minimize_mf,
                 parameters_initial = parameters_initial,
                 parameters_bounds = bounds,
                 normalization = normalization,
-                fixed = [True, False, False, False, False, False, True],
+                fixed = fixed_parameters,
+                aux_objective_function = _llh_nuis_constraint,
                 debug = self.debug
             )
             m_mf = minimizer_mf.run_minimization(data=data, method="minuit")
@@ -484,24 +544,42 @@ class neutrinoLikelihoodReconstructor:
             t_guess = parameters_initial[6] + t_shift
 
             # Fit energy:
-            parameters_initial_amplitude = np.array([params_fit_mf[0], params_fit_mf[1], params_fit_mf[2], params_fit_mf[3], params_fit_mf[4], params_fit_mf[5], t_guess])
+            signal_parameters_initial_amplitude = np.array([params_fit_mf[0], params_fit_mf[1], params_fit_mf[2], params_fit_mf[3], params_fit_mf[4], params_fit_mf[5], t_guess])
+            parameters_initial_amplitude = np.concat([signal_parameters_initial_amplitude, nuis_parameters_initial])
             minimizer_amplitude = minimization.Minimizer(
                 signal_function = signal_function,
                 objective_function = self._function_to_minimize_llh,
                 parameters_initial = parameters_initial_amplitude,
                 parameters_bounds = bounds,
                 normalization = normalization,
-                fixed = [False, True, True, True, True, True, True],
+                fixed = [False, True, True, True, True, True, True] + [True] * len(nuis_parameters_initial),
+                aux_objective_function = _llh_nuis_constraint,
                 debug=self.debug
             )
             m_amplitude = minimizer_amplitude.run_minimization(data=data, method="minuit")
             energy_guess = minimizer_amplitude.parameters[0]
 
-            parameters_initial_llh = np.array([energy_guess, params_fit_mf[1], params_fit_mf[2], params_fit_mf[3], params_fit_mf[4], params_fit_mf[5], t_guess])
+            # Set the initial parameters for the likelihood fit:
+            signal_parameters_initial_llh = np.array([energy_guess, params_fit_mf[1], params_fit_mf[2], params_fit_mf[3], params_fit_mf[4], params_fit_mf[5], t_guess])
 
         elif not two_step_optimization:
-            parameters_initial_llh = np.copy(parameters_initial)
+            signal_parameters_initial_llh = np.copy(signal_parameters_initial)
 
+        # All parameters are free in the likelihood fit, except specified parameters to fix:
+        fixed_parameters = [False, False, False, False, False, False, False] + [False] * len(nuis_parameters_initial)
+        if self.additional_fixed_parameters is not None:
+            for i_param in np.atleast_1d(self.additional_fixed_parameters):
+                fixed_parameters[i_param] = True
+
+        parameters_initial_llh = np.concat([signal_parameters_initial_llh, nuis_parameters_initial])
+
+        print(parameters_initial_llh)
+        print(bounds)
+        print(fixed_parameters)
+
+        print(len(parameters_initial_llh))
+        print(len(bounds))
+        print(len(fixed_parameters))
 
         minimizer_llh = minimization.Minimizer(
             signal_function = signal_function,
@@ -509,7 +587,8 @@ class neutrinoLikelihoodReconstructor:
             parameters_initial = parameters_initial_llh,
             parameters_bounds = bounds,
             normalization = normalization,
-            fixed = [False, False, False, False, False, False, False],
+            fixed = fixed_parameters,
+            aux_objective_function = _llh_nuis_constraint,
             debug = self.debug
         )
         m = minimizer_llh.run_minimization(data=data, method="minuit")
@@ -518,12 +597,81 @@ class neutrinoLikelihoodReconstructor:
         minus_two_llh_fit = minimizer_llh.result
 
         # Estimate 1st-order uncertainties using the Fisher information matrix:
-        dx = np.array([1e-6, 1e-6, 1e-6, 1e-4, 1e-6, 1e-6, 1e-4])
+        dx = np.array([1e-6, 1e-6, 1e-6, 1e-4, 1e-6, 1e-6, 1e-4] + [1e-6] * len(nuis_parameters_initial))
         def signal_function_scaled(params_scaled):
             params = params_scaled * normalization
             return signal_function(params)
         fisher_information_matrix_fit = self.likelihood_calculator.calculate_fisher_information_matrix(signal_function_scaled, params_fit / normalization, dx)
         f_i_fit = np.linalg.pinv(fisher_information_matrix_fit)
         uncertainties_fit = np.sqrt(np.diag(f_i_fit)) * normalization
+
+        # likelihood scan:
+        if likelihood_scan:
+            print("Likelihood scan:")
+            parameter_keys = ["energy", "zenith", "azimuth", "vertex_r_rel", "vertex_theta_rel", "vertex_phi_rel", "pulse_time"]
+            n_grid = 50
+            for i_param in range(len(params_fit)):
+                print("i_param:", i_param)
+                x_min = np.min([params_fit[i_param], parameters_initial[i_param], parameters_initial_llh[i_param]])
+                x_max = np.max([params_fit[i_param], parameters_initial[i_param], parameters_initial_llh[i_param]])
+                delta_x = abs(params_fit[i_param] - parameters_initial[i_param])
+                grid_x = np.linspace(x_min - 0.2 * delta_x, x_max + 0.2 * delta_x, n_grid)
+                minus_two_llh_scan = minimizer_llh.parameter_scan_1D(
+                    parameter_index = i_param,
+                    parameter_values = grid_x,
+                    parameters_start = params_fit,
+                    data = data,
+                    profile = False,
+                    method = "minuit",
+                    plot = False,
+                )
+                plt.figure(figsize=[4.2,3.2])
+                plt.plot(grid_x, minus_two_llh_scan - minus_two_llh_fit, "b-", label="Parameter scan")
+                plt.axhline(1, linestyle=":", color="C0", label=r"$1\sigma$")
+                plt.axhline(4, linestyle=":", color="C1", label=r"$2\sigma$")
+                plt.axhline(9, linestyle=":", color="C2", label=r"$3\sigma$")
+                plt.axvline(x=parameters_initial[i_param], color="r", ls="--", label="Initial")
+                plt.axvline(x=parameters_initial_llh[i_param], color="g", ls="-.", label="Initial LLH")
+                plt.axvline(x=params_fit[i_param], color="y", linestyle="--", label="Best-fit")
+                plt.legend()
+                plt.xlabel(f"{parameter_keys[i_param]} [au]")
+                plt.ylabel(r"$-2 \Delta LLH$")
+                plt.title("Likelihood parameter scan (not profiled)")
+                plt.tight_layout()
+                plt.savefig(f"llh_scan_{i_param}.png")
+                plt.close()
+
+            # Scan 2D likelihood for zenith and azimuth around fitted values:
+            print("2D scan:")
+            n_grid = 11
+            grid_x = np.linspace(params_fit[2] - 3*uncertainties_fit[2], params_fit[2] + 3*uncertainties_fit[2], n_grid)
+            grid_y = np.linspace(params_fit[1] - 3*uncertainties_fit[1], params_fit[1] + 3*uncertainties_fit[1], n_grid)
+            minus_two_llh_scan = minimizer_llh.parameter_scan_2D(
+                parameter_index_x = 2,
+                parameter_index_y = 1,
+                parameter_values_x = grid_x,
+                parameter_values_y = grid_y,
+                parameters_start = params_fit,
+                data = data,
+                profile = False,
+                method = "minuit",
+                plot = False,
+            )
+            plt.figure(figsize=[4.2,3.2])
+            plt.pcolormesh(grid_x / units.deg, grid_y / units.deg, minus_two_llh_scan.T - minus_two_llh_fit, cmap="Blues_r")
+            plt.colorbar(label=r"$-2 \Delta LLH$")
+            axis = plt.axis()
+            plt.plot(parameters_initial[2] / units.deg, parameters_initial[1] / units.deg, "ro", label="Initial")
+            plt.plot(params_fit_mf[2] / units.deg, params_fit_mf[1] / units.deg, "g+", label="MF fit")
+            plt.plot(params_fit[2] / units.deg, params_fit[1] / units.deg, "y.", label="LLH fit")
+            plt.axis(axis)
+            plt.contour(grid_x / units.deg, grid_y / units.deg, minus_two_llh_scan.T - minus_two_llh_fit, levels=[1.15*2, 3.09*2, 5.91*2])
+            plt.xlabel("Azimuth [deg]")
+            plt.ylabel("Zenith [deg]")
+            plt.title("Likelihood parameter scan (not profiled)")
+            plt.legend()
+            plt.tight_layout()
+            plt.savefig(f"llh_scan_2D_zenith_azimuth.png")
+            plt.close()
 
         return minus_two_llh_initial, minus_two_llh_fit, params_fit, uncertainties_fit
