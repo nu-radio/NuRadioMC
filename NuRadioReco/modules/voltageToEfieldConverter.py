@@ -18,9 +18,14 @@ logger = logging.getLogger('NuRadioReco.voltageToEfieldConverter')
 
 
 def _get_ray_traced_travel_time(propagator, source_position, receiver_position, zenith, azimuth,
-                                label="receiver", warn=True, max_angle_deviation=3 * units.deg):
-    """ Ray-trace from ``source_position`` to ``receiver_position`` (both absolute) and return the travel time
-    of the solution whose arrival direction is closest to (zenith, azimuth). """
+                                label="receiver", arrival_rank=None, max_angle_deviation=3 * units.deg, warn=True):
+    """ Ray-trace from ``source_position`` to ``receiver_position`` (both absolute) and return
+    the travel time and the arrival rank (0 = first arriving) of the selected solution.
+
+    If ``arrival_rank`` is None, the solution whose arrival direction is closest to (zenith, azimuth)
+    is selected. Otherwise the solution with that arrival rank is used, which keeps the same ray
+    family across nearby receivers even if its solution type changes (e.g. direct -> refracted).
+    """
     propagator.set_start_and_end_point(source_position, receiver_position)
     propagator.find_solutions()
     n_solutions = propagator.get_number_of_solutions()
@@ -29,19 +34,26 @@ def _get_ray_traced_travel_time(propagator, source_position, receiver_position, 
             f"No propagation solution found for {label}. Please check the geometry. "
             f"Source: {source_position}, receiver: {receiver_position}.")
 
+    solution_order = np.argsort([propagator.get_travel_time(iS) for iS in range(n_solutions)])
     receive_vector_provided = hp.spherical_to_cartesian(zenith, azimuth)
-    space_angle_differences = [hp.get_angle(receive_vector_provided, propagator.get_receive_vector(iS))
-                               for iS in range(n_solutions)]
-    solution_index = int(np.argmin(space_angle_differences))
+    space_angle_differences = np.array([hp.get_angle(receive_vector_provided, propagator.get_receive_vector(iS))
+                       for iS in solution_order])
 
-    if warn and space_angle_differences[solution_index] > max_angle_deviation:
+    if arrival_rank is None:
+        arrival_rank = int(np.argmin(space_angle_differences))
+    elif arrival_rank >= n_solutions:
+        raise ValueError(
+            f"{label}: only {n_solutions} propagation solution(s), but solution number {arrival_rank + 1} "
+            "(in order of arrival) was selected at the efield position. The receivers are probably at "
+            "the edge of the shadow zone.")
+
+    if warn and space_angle_differences[arrival_rank] > max_angle_deviation:
         logger.warning(
-            f"{label}: the closest ray-traced arrival direction deviates by "
-            f"{space_angle_differences[solution_index] / units.deg:.1f} deg from the provided direction "
-            f"(zenith {zenith / units.deg:.1f} deg, azimuth {azimuth / units.deg:.1f} deg). "
-            f"Please check the geometry and the provided angles.")
+            f"{label}: the selected ray arrives {space_angle_differences[arrival_rank] / units.deg:.1f} deg away from the provided "
+            f"direction (zenith {zenith / units.deg:.1f} deg, azimuth {azimuth / units.deg:.1f} deg). "
+            "Please check the geometry and the provided angles.")
 
-    return propagator.get_travel_time(solution_index)
+    return propagator.get_travel_time(solution_order[arrival_rank]), arrival_rank
 
 
 def _get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_pattern_provider,
@@ -160,8 +172,8 @@ def _get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_
     if time_delay_mode == "ray_tracing":
         # reference travel time from the source to the efield position (absolute positions)
         station_position = det.get_absolute_position(station_id)
-        efield_travel_time = _get_ray_traced_travel_time(
-            propagator, source_position, station_position + efield_position, zenith, azimuth,
+        efield_travel_time, arrival_rank = _get_ray_traced_travel_time(
+            propagator, source_position, station_position + efield_position, zenith, azimuth, arrival_rank=None,
             label="efield position")
 
     for iCh, channel in enumerate(station.iter_channels(use_channels)):
@@ -175,9 +187,9 @@ def _get_array_of_channels(station, use_channels, det, zenith, azimuth, antenna_
 
         elif time_delay_mode == "ray_tracing":
             antenna_position = station_position + det.get_relative_position(station_id, channel_id)
-            travel_time = _get_ray_traced_travel_time(
+            travel_time, _ = _get_ray_traced_travel_time(
                 propagator, source_position, antenna_position, zenith, azimuth,
-                label=f"Channel {channel_id}", warn=False)
+                label=f"Channel {channel_id}", warn=True, arrival_rank=arrival_rank)
             time_shift = -(travel_time - efield_travel_time)
 
         elif time_delay_mode == "plane_wave":
