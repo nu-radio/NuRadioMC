@@ -58,7 +58,8 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   voltageToEfieldConverter, efieldToVoltageConverter, beamFormingDirectionFitter, templateDirectionFitter,
   efieldTimeDirectionFitter (new `ice_model` argument in `begin`), channel/efieldGalacticNoiseAdder and
   `geometryUtilities.fresnel_factors_and_signal_zenith` / `signal_processing.get_efield_antenna_factor` (new `ice_model`
-  argument) use them. This changes outputs: e.g. surface n at Summit 1.3 -> 1.272, n at -100 m 1.3 -> 1.743.
+  argument) use them. This changes outputs: e.g. surface n at Summit 1.3 -> 1.272, n at -100 m 1.3 -> 1.743,
+  n in air 1.000293 -> `medium_base.N_AIR_SEA_LEVEL` = 1.00027 (Summit: `medium.N_AIR_SUMMIT`).
   beamFormingDirectionFitter uses its `n_index` argument (was ignored, n = 1.353 was hard-coded).
 bugfixes:
 - `ray_tracing.get_time_difference_plane_wave` no longer raises a ZeroDivisionError for a vertical plane wave (zenith 0).

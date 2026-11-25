@@ -535,19 +535,15 @@ SITE_ICE_MODELS = {
 AIR_SITES = ('lofar', 'auger', 'ska')
 
 #: Refractive index of air at the surface per site, used above the surface by ice models without an air layer.
-#: Sites not listed use `N_AIR_DEFAULT`.
+#: Sites not listed use `medium_base.N_AIR_SEA_LEVEL`.
 SITE_N_AIR = {
     'summit': N_AIR_SUMMIT,
     'greenland': N_AIR_SUMMIT,
 }
 
-#: Refractive index of air at sea level (standard atmosphere, 15 C, 1013 hPa).
-N_AIR_DEFAULT = 1.000293
-
-
 def get_n_air(site):
     """
-    Returns the refractive index of air at the surface of a site (`SITE_N_AIR`, else `N_AIR_DEFAULT`).
+    Returns the refractive index of air at the surface of a site (`SITE_N_AIR`, else `medium_base.N_AIR_SEA_LEVEL`).
 
     Parameters
     ----------
@@ -558,7 +554,7 @@ def get_n_air(site):
     -------
     n_air: float
     """
-    return SITE_N_AIR.get(site.lower(), N_AIR_DEFAULT)
+    return SITE_N_AIR.get(site.lower(), medium_base.N_AIR_SEA_LEVEL)
 
 
 @functools.lru_cache(maxsize=None)

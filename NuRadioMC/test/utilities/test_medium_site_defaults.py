@@ -73,7 +73,7 @@ def test_n_air():
     assert medium.get_n_air("summit") == medium.N_AIR_SUMMIT
     assert medium.get_n_air("Greenland") == medium.N_AIR_SUMMIT
     for site in ["southpole", "mooresbay", "lofar", "auger", "ska", "anything"]:
-        assert medium.get_n_air(site) == medium.N_AIR_DEFAULT, site
+        assert medium.get_n_air(site) == medium_base.N_AIR_SEA_LEVEL, site
 
 
 def test_refractive_index():
@@ -86,7 +86,7 @@ def test_refractive_index():
     # above the surface, model without air layer (returns n = 1 itself): site air value
     southpole = medium.southpole_2015()
     assert n_model(southpole, 1 * units.m) == 1
-    assert medium.get_refractive_index(1 * units.m, southpole, "southpole") == medium.N_AIR_DEFAULT
+    assert medium.get_refractive_index(1 * units.m, southpole, "southpole") == medium_base.N_AIR_SEA_LEVEL
     assert medium.get_refractive_index(1 * units.m, medium.greenland_simple(), "summit") == medium.N_AIR_SUMMIT
 
     # above the surface, model with air layer: the air layer
@@ -107,11 +107,11 @@ def test_refractive_index():
         if layer.get("region") == "air":
             del layer["region"]
     placeholder = medium_base.IceModelExpLayers(layers)
-    assert medium.get_refractive_index(1 * units.m, placeholder, "southpole") == medium.N_AIR_DEFAULT
+    assert medium.get_refractive_index(1 * units.m, placeholder, "southpole") == medium_base.N_AIR_SEA_LEVEL
 
     # no ice (air-only site): air value everywhere
     for z in np.array([10, -0.01, -2]) * units.m:
-        assert medium.get_refractive_index(z, None, "lofar") == medium.N_AIR_DEFAULT, z
+        assert medium.get_refractive_index(z, None, "lofar") == medium_base.N_AIR_SEA_LEVEL, z
 
 
 def test_station_refractive_index():
@@ -121,7 +121,7 @@ def test_station_refractive_index():
             medium.get_refractive_index(z, greenland, "summit"), z
 
     # site without default: air value above the surface, error below
-    assert medium.get_station_refractive_index(SiteDetector("simulation"), 1, 1 * units.m) == medium.N_AIR_DEFAULT
+    assert medium.get_station_refractive_index(SiteDetector("simulation"), 1, 1 * units.m) == medium_base.N_AIR_SEA_LEVEL
     try:
         medium.get_station_refractive_index(SiteDetector("simulation"), 1, -1 * units.m)
     except ValueError:
