@@ -499,7 +499,8 @@ class thermalNoiseGeneratorPhasedArray():
         if self.max_amp > self.threshold:
             tmp = np.argwhere(sliding_windows > self.threshold)
             triggered_step, triggered_beam, triggered_bin = tmp[0]
-            triggered_bin *= (self.window + triggered_step * steps_per_window)
+            # start bin of the window: windows with offset `triggered_step` start at
+            triggered_bin = triggered_bin * self.window + triggered_step * self.step
             if(self.debug):
                 # check in which beam the trigger condition was fulfilled
                 sliding_windows = np.concatenate(sliding_windows, axis=1)
