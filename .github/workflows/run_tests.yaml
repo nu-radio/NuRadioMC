@@ -136,6 +136,11 @@ jobs:
       run: |
         NuRadioReco/test/trigger_tests/run_trigger_test.sh
 
+    - name: "Test high/low and majority logic trigger functions"
+      if: always()
+      run: |
+        python NuRadioReco/test/trigger_tests/test_highLowThreshold.py
+
     - name: Upload coverage data
       if: always()
       uses: ./.github/actions/upload-coverage-data
