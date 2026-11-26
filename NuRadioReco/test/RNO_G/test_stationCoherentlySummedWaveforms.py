@@ -72,7 +72,7 @@ def test_fixed_reference():
 
 def test_lag_channels_do_not_change_sum():
     reference = run()
-    for template in ["sum", "reference"]:
+    for template in ["sum", "ref_channel"]:
         result = run(dict(lag_channel_ids=LAG_IDS, lag_template=template))
         for key in ["coherent_snr", "coherent_impulsivity", "coherent_entropy", "coherent_kurtosis"]:
             assert result[key] == reference[key], key

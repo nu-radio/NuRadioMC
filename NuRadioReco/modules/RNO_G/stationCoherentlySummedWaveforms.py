@@ -74,7 +74,7 @@ class stationCoherentlySummedWaveforms:
 
         lag_template: str (default: "sum")
             Template onto which the channels of ``lag_channel_ids`` are correlated: "sum" (the coherently-summed
-            waveform, aligned with the reference channel) or "reference" (the reference channel).
+            waveform, aligned with the reference channel) or "ref_channel" (the trace of the reference channel).
 
         time_lag_ref_ch_id: int or None (default: None)
             Fixed channel to which the stored time lags (``coherent_time_lags``, T_fix - T_i) and
@@ -82,8 +82,8 @@ class stationCoherentlySummedWaveforms:
             of ``channel_ids``. None: the reference channel of the coherent sum (``ref_selection`` of ``run``,
             which must then be a channel id).
         """
-        if lag_template not in ("sum", "reference"):
-            raise ValueError(f"lag_template must be 'sum' or 'reference', not {lag_template!r}.")
+        if lag_template not in ("sum", "ref_channel"):
+            raise ValueError(f"lag_template must be 'sum' or 'ref_channel', not {lag_template!r}.")
 
         self.__coincidence_window_size = coincidence_window_size
         self.__pad_length = pad_length
