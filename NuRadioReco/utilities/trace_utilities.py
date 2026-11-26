@@ -639,11 +639,13 @@ def get_coherent_lags(trace_set, ref_trace, use_envelope = False, lag_range = No
         (processed) reference trace within ``ref_window`` and the overlapping part of the shifted
         (not rolled) trace.
     """
-    # Normalize: subtract mean, divide by std (z-score)
+    # Normalize: subtract mean, divide by std (z-score); a constant trace becomes zero (correlation 0)
     def process(trace):
         if use_envelope:
             trace = get_hilbert_envelope(trace)
-        return (trace - np.mean(trace, axis=-1, keepdims=True)) / np.std(trace, axis=-1, keepdims=True)
+        centered = trace - np.mean(trace, axis=-1, keepdims=True)
+        std = np.std(trace, axis=-1, keepdims=True)
+        return np.divide(centered, std, out=np.zeros_like(centered, dtype=float), where=std > 0)
 
     n_ref = len(ref_trace)
     ref_processed = process(ref_trace)

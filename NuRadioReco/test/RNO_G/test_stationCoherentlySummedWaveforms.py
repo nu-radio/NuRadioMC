@@ -26,7 +26,8 @@ LAG_IDS = [20, 21, 22, 23]
 TOL = 1.5 / SAMPLING_RATE  # one sample plus rounding of the signal time
 
 
-def make_event(seed=1):
+def make_event(seed=1, constant={}):
+    """ constant: {channel id: value} of channels with a constant trace (no signal read out) """
     rng = np.random.default_rng(seed)
     times = np.arange(N_SAMPLES) / SAMPLING_RATE
     evt = Event(0, 0)
@@ -35,13 +36,16 @@ def make_event(seed=1):
     for ch_id, (t0, amp) in SIGNALS.items():
         pulse = amp * np.exp(-0.5 * ((times - t0) / 2) ** 2) * np.sin(2 * np.pi * 0.25 * (times - t0))
         channel = Channel(ch_id)
-        channel.set_trace(pulse + rng.normal(0, 0.05, N_SAMPLES), SAMPLING_RATE)
+        trace = pulse + rng.normal(0, 0.05, N_SAMPLES)
+        if ch_id in constant:
+            trace = np.full(N_SAMPLES, constant[ch_id], dtype=float)
+        channel.set_trace(trace, SAMPLING_RATE)
         station.add_channel(channel)
     return evt, station
 
 
-def run(begin_kwargs={}, run_kwargs={}):
-    evt, station = make_event()
+def run(begin_kwargs={}, run_kwargs={}, constant={}):
+    evt, station = make_event(constant=constant)
     module = stationCoherentlySummedWaveforms()
     module.begin(channel_ids=SUM_IDS, **{"time_lag_ref_ch_id": 0, **begin_kwargs})
     module.run(evt, station, None, use_envelope=False, **run_kwargs)
@@ -125,6 +129,24 @@ def test_deprecated_ref_ch_id():
     with pytest.warns(DeprecationWarning):
         result = run(dict(time_lag_ref_ch_id=None), dict(ref_ch_id=1))
     assert result == expected
+
+
+def test_constant_channels():
+    # Channels 20 and 23 read 0, channel 21 a constant: NaN lag and correlation, the rest unchanged
+    expected = run(dict(lag_channel_ids=LAG_IDS))
+    for run_kwargs in [{}, dict(ref_selection="max_snr")]:
+        result = run(dict(lag_channel_ids=LAG_IDS), run_kwargs, constant={20: 0, 21: 255, 23: 0})
+        for ch_id in [20, 21, 23]:
+            assert np.isnan(result["coherent_time_lags"][ch_id]) and np.isnan(result["coherent_correlations"][ch_id])
+        check_lags(result, SUM_IDS + [22])
+        assert result["coherent_snr"] == run({}, run_kwargs)["coherent_snr"]
+    assert result["coherent_time_lags"][22] == pytest.approx(expected["coherent_time_lags"][22], abs=1 / SAMPLING_RATE)
+
+    # Constant fixed channel (the reference of the sum here): no lag is defined
+    result = run(dict(lag_channel_ids=LAG_IDS), constant={0: 0})
+    assert result["coherent_time_lags"][0] == 0
+    assert all(np.isnan(lag) for ch_id, lag in result["coherent_time_lags"].items() if ch_id != 0)
+    assert all(np.isnan(corr) for corr in result["coherent_correlations"].values())
 
 
 if __name__ == "__main__":

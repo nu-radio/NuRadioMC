@@ -94,6 +94,8 @@ class stationCoherentlySummedWaveforms:
         self.__lag_channel_ids = [ch_id for ch_id in (lag_channel_ids or []) if ch_id not in channel_ids]
         self.__lag_template = lag_template
         self.__time_lag_ref_ch_id = time_lag_ref_ch_id
+        # Channels with a constant trace already logged (once per channel)
+        self.__logged_constant = set()
 
     def __get_snr(self, channel):
         """
@@ -115,6 +117,10 @@ class stationCoherentlySummedWaveforms:
     def run(self, evt, station, det, ref_selection=0, use_envelope=True, ref_ch_id=None):
         """
         Calculate the SNR of the coherently-summed waveform and add to the station object.
+
+        A channel with a constant trace (e.g. not read out) has no defined lag: its time lag and
+        correlation are NaN; if the reference channel or ``time_lag_ref_ch_id`` is constant, those of all
+        channels are. The coherent sum is calculated unchanged.
 
         Parameters
         ----------
@@ -243,6 +249,20 @@ class stationCoherentlySummedWaveforms:
         time_lags[fix_id] = 0.
         coherent_correlations = {ch.get_id(): float(corr) for ch, corr in
                                  zip(channels + lag_channels, np.concatenate([correlations, lag_correlations]))}
+
+        # Constant traces: no lag (the correlation finds an arbitrary edge of the lag array)
+        constant = {ch.get_id() for ch in sum_channels + lag_channels if np.ptp(ch.get_trace()) == 0}
+        for ch_id in sorted(constant - self.__logged_constant):
+            logger.warning(f"Channel {ch_id} has a constant trace: its time lag and correlation are NaN "
+                           f"(logged once per channel).")
+        self.__logged_constant |= constant
+        if ref_ch.get_id() in constant or fix_id in constant:
+            constant = set(time_lags) | set(coherent_correlations)
+        for ch_id in constant:
+            if ch_id != fix_id:
+                time_lags[ch_id] = np.nan
+            if ch_id in coherent_correlations:
+                coherent_correlations[ch_id] = np.nan
         rms = trace_utilities.get_split_trace_noise_RMS(sum_trace, segments=4, lowest=2)
         snr = trace_utilities.get_signal_to_noise_ratio(sum_trace, rms, window_size=coincidence_window_size_bins_ref)
         impulsivity = trace_utilities.get_impulsivity(sum_trace)
