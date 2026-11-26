@@ -21,7 +21,7 @@ Pattern: a run script simulates with fixed seeds, a validate script compares the
 When one fails after an intended physics change:
 
 1. Quantify the change: before/after numbers for the affected quantities (Veff, trigger rate, amplitudes). They go into the PR description.
-2. Regenerate the reference the way that test provides: look in its scripts for a create option (e.g. `NuRadioReco/test/trigger_tests/compare_to_reference.py --create_reference`); otherwise rerun the run script and replace the reference file with its output.
+2. Regenerate the reference the way that test provides: look in its scripts for a create option (e.g. `NuRadioReco/test/trigger_tests/compare_to_reference.py --create_reference`, `NuRadioMC/test/SingleEvents/test_build.sh --create_reference`); otherwise rerun the run script and replace the reference file with its output.
 3. Commit the new reference separately, with the justification in the message. Keep tolerances unchanged unless the PR argues for the new value.
 
 A failing reference test after a change meant to keep physics output identical (refactor, speed-up) is a bug in the change.
