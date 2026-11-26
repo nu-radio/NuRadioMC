@@ -2,13 +2,13 @@ import functools
 import json
 import numpy as np
 import os
-from numpy.random import Generator, Philox
 
 import NuRadioReco.detector.antennapattern
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.sim_station
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.utilities import units, signal_processing
+from NuRadioReco.utilities.coding_helper import get_rng
 
 from NuRadioMC.utilities import medium
 
@@ -88,9 +88,8 @@ class channelIceThermalNoiseAdder:
         ice_model : str or IceModel object, default: "greenland_poly5"
             Ice model (name of a class in `NuRadioMC.utilities.medium` or an instance) which provides
             the index of refraction at the antenna depth, needed to convert temperatures to electric fields.
-        seed : {None, int, array_like[ints], SeedSequence}, optional
-            The seed that is passed on to the `numpy.random.Philox` bitgenerator used for random
-            number generation.
+        seed : int or None (default: None)
+            Seed for the random generator (see `NuRadioReco.utilities.coding_helper.get_rng`)
         """
         self.temperature_files = eff_temperature_files
         self.channel_depth_matching_error = channel_depth_matching_error
@@ -98,7 +97,6 @@ class channelIceThermalNoiseAdder:
         if isinstance(ice_model, str):
             ice_model = medium.get_ice_model(ice_model)
         self.ice_model = ice_model
-        self.__random_generator = Generator(Philox(seed))
 
         self.eff_temperature_depths = []
         self.eff_temperature = []
@@ -116,6 +114,7 @@ class channelIceThermalNoiseAdder:
         self.nr_theta_bins = len(self.thetas)
 
         self.debug = debug
+        self.__rng = get_rng(seed)
         if self.debug:
             nr_phi_bins = 32
         # These are bin edges: 360 deg (= 0 deg) is not counted twice since run() iterates over
@@ -214,8 +213,8 @@ class channelIceThermalNoiseAdder:
                         phases = np.zeros(len(efield_amplitude))
                         polarizations = np.zeros(len(efield_amplitude))
                     else:
-                        phases = self.__random_generator.uniform(0, 2 * np.pi, len(efield_amplitude))
-                        polarizations = self.__random_generator.uniform(0, 2 * np.pi, len(efield_amplitude))
+                        phases = self.__rng.uniform(0, 2 * np.pi, len(efield_amplitude))
+                        polarizations = self.__rng.uniform(0, 2 * np.pi, len(efield_amplitude))
 
                     noise_spectrum[1][passband_filter] = np.exp(1j * phases) * efield_amplitude
                     noise_spectrum[2][passband_filter] = np.exp(1j * phases) * efield_amplitude

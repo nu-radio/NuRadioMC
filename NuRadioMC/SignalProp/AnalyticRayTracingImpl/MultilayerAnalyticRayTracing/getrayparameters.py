@@ -5,13 +5,15 @@ from scipy import integrate
 from NuRadioMC.SignalProp.propagation import solution_types_revert
 from NuRadioMC.utilities import attenuation
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba import njit
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl._maybenumba import njit
 
 from NuRadioReco.utilities import units,  constants
 
 from math import sqrt, log
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_turning_point, get_layer_index, build_y_field, get_n_1D, determine_solution_type
+from .corefunctions import \
+    layers_to_arrays, compute_offsets, get_turning_point, \
+    get_layer_index, build_y_field, get_n_1D, determine_solution_type
 
 NumbaList = list # fallback for get_path_segments function
 
@@ -546,8 +548,7 @@ def get_reflection_angle(c0, x1, x2, layers):
     Compute the surface reflection angle of a ray solution.
 
     For surface-reflected solutions, the incidence angle is evaluated
-    just below the surface (z ≈ 0) and the reflection angle is defined
-    as twice the incidence angle. This corresponds to the angle between
+    just below the surface (z ≈ 0). This corresponds to the angle between
     the incoming and reflected ray directions for specular reflection
     at a horizontal interface.
 
@@ -573,7 +574,7 @@ def get_reflection_angle(c0, x1, x2, layers):
 
     Notes
     -----
-    The solution type is determined using :func:`determine_solution_type`.
+    The solution type is determined using :func:`.corefunctions.determine_solution_type`.
     The incidence angle is evaluated at z = -1e-12 to avoid numerical
     issues at the surface boundary.
     """
@@ -594,7 +595,7 @@ def get_reflection_angle(c0, x1, x2, layers):
         y1, z1, y2, z2, c0, layers, downgoing, with_air
     )
 
-    if solution_type != REFLECTED:
+    if solution_type != REFLECTED and not with_air:
         return None
 
     # evaluate just below surface
@@ -602,7 +603,7 @@ def get_reflection_angle(c0, x1, x2, layers):
 
     incidence_angle = get_launch_angle(c0, x_surface, x2, layers)
 
-    return 2.0 * incidence_angle
+    return incidence_angle
 
 @njit(cache=True)
 def get_travel_time_analytic(c0, x1, x2, layers):
