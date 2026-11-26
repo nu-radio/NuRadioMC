@@ -11,18 +11,144 @@ import math
 logger = logging.getLogger("NuRadioMC.HDF5-merger")
 
 str_type_attrs = ['trigger_names', 'NuRadioMC_EvtGen_version', 'NuRadioMC_EvtGen_version_hash', 'NuRadioMC_version', 'NuRadioMC_version_hash', 'config']
+# attributes the effective volume/area calculation reads from the merged file: they must agree between files
+veff_attrs = ['Emin', 'Emax', 'volume', 'area']
+
+
+# attributes recording the files merged into a file, their id offsets (see `_make_ids_unique`) and the smallest
+# merged event group id of each file (-1: no rows)
+merge_history_attrs = ['merged_files', 'event_group_id_offsets', 'shower_id_offsets', 'event_group_id_starts']
+
+
+def _make_ids_unique(data, groups, filenames, key, group_keys):
+    """
+    Shifts the ids of files that overlap the ids of previous files, in place, so that the ids are unique across files.
+
+    In merge order, all ids of a file whose smallest id is not above the largest id of the previous files are shifted
+    by one offset, so that its smallest id becomes that largest id + 1. Gaps and order of the ids are kept; a file whose
+    ids lie above those of all previous files (e.g. the part files of one run) keeps them. The top-level dataset
+    ``key`` and the datasets ``group_keys`` of all station groups of the file are shifted alike.
+
+    Parameters
+    ----------
+    data : dict
+        top-level datasets per file name
+    groups : dict
+        station groups (dict of datasets) per file name
+    filenames : list of str
+        files to process, in merge order
+    key : str
+        name of the top-level dataset holding the ids
+    group_keys : list of str
+        names of the station-group datasets holding the same ids
+
+    Returns
+    -------
+    dict
+        offset per file name (merged id = original id + offset)
+    """
+    offsets = {}
+    max_id = None
+    for f in filenames:
+        ids = data[f][key]
+        offsets[f] = 0
+        if max_id is not None and ids.min() <= max_id:
+            offsets[f] = int(max_id + 1 - ids.min())
+            for array in [ids] + [groups[f][g][k] for g in groups[f] for k in group_keys if k in groups[f][g]]:
+                array += offsets[f]
+            logger.warning(f"{key} of {f} overlap with previous files; shifted by {offsets[f]}")
+        max_id = ids.max()
+    return offsets
+
+
+def _merge_history(fin, filename, is_empty):
+    """
+    Files merged into the open file ``fin`` (named ``filename``, without triggered events if ``is_empty``), as in
+    `merge_history_attrs`, relative to the ids of ``fin``: ``fin`` itself with offsets 0 if it is not the output of a
+    merge.
+    """
+    if 'merged_files' in fin.attrs:
+        if all(key in fin.attrs for key in merge_history_attrs):
+            return [list(fin.attrs[key]) for key in merge_history_attrs]
+        logger.warning(f"{filename} lacks some of the attributes {merge_history_attrs}, listing it as one file")
+    start = -1 if is_empty else int(np.min(fin['event_group_ids']))
+    return [[os.path.basename(filename)], [0], [0], [start]]
+
+
+def _attrs_equal(a, b):
+    """ Compares two attribute values: numbers with `numpy.allclose` (NaNs equal), anything else (e.g. strings) exactly. """
+    a, b = np.asarray(a), np.asarray(b)
+    if a.shape != b.shape:
+        return False
+    if np.issubdtype(a.dtype, np.number) and np.issubdtype(b.dtype, np.number):
+        return np.allclose(a, b, equal_nan=True)
+    return np.array_equal(a, b)
+
+
+def find_part_files(root_directory):
+    """
+    Groups the files ``root_directory/<subfolder>/<name>.hdf5.part*`` by ``<name>.hdf5``.
+
+    Files of at most 1000 bytes are skipped, as are groups whose output file already exists.
+
+    Parameters
+    ----------
+    root_directory : str
+        directory containing one subfolder (e.g. per energy) with the part files
+
+    Returns
+    -------
+    list of dict
+        per output file ``root_directory/<name>.hdf5``, the keyword arguments of `merge2`
+        (``filenames``: sorted part files, ``output_filename``)
+    """
+    # strip the .partNNNN suffix
+    filenames = np.unique([os.path.splitext(f)[0] for f in glob.glob(f"{root_directory}/*/*.hdf5.part*")])
+    input_args = []
+    for filename in sorted(filenames):
+        if(os.path.splitext(filename)[1] == '.hdf5'):
+            d = os.path.split(filename)
+            a, b = os.path.split(d[0])
+            output_filename = os.path.join(a, d[1])  # remove subfolder from filename
+            if(os.path.exists(output_filename)):
+                logger.error('file {} already exists, skipping'.format(output_filename))
+            else:
+                input_files = np.array(sorted(glob.glob(filename + '.part*')))
+                mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=bool)
+                if(np.sum(~mask)):
+                    logger.warning("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
+                input_args.append({'filenames': input_files[mask], 'output_filename': output_filename})
+    return input_args
+
+
+def _parse_loglevel(value):
+    """ Command line log level: a level name (case-insensitive) or number. """
+    if value.isdigit():
+        return int(value)
+    level = logging.getLevelName(value.upper())
+    if not isinstance(level, int):
+        raise argparse.ArgumentTypeError(f"unknown log level {value}")
+    return level
 
 
 def merge2(filenames, output_filename):
+    unique_filenames = {}  # real path -> first file name with it
+    for f in filenames:
+        if os.path.realpath(f) in unique_filenames:
+            logger.warning(f"{f} is the same file as {unique_filenames[os.path.realpath(f)]}, merging it once")
+        else:
+            unique_filenames[os.path.realpath(f)] = f
+    filenames = list(unique_filenames.values())
     logger.warning(f"merging {len(filenames)} files into {os.path.basename(output_filename)}")
     data = OrderedDict()
     attrs = OrderedDict()
     groups = OrderedDict()
     group_attrs = OrderedDict()
-    n_data = {}
-    n_groups = {}
+    history = OrderedDict()
     non_empty_filenames = []
     n_events_total = 0
+    event_group_id_offsets = {}
+    shower_id_offsets = {}
 
     for f in filenames:
         logger.info("adding file {}".format(f))
@@ -37,53 +163,54 @@ def merge2(filenames, output_filename):
             non_empty_filenames.append(f)
             logger.debug(f"file {f} contains {np.sum(np.array(fin['triggered']))} triggered events.")
 
+        history[f] = _merge_history(fin, f, is_empty=f not in non_empty_filenames)
         data[f] = {}
         groups[f] = {}
 
         for key in fin:
             if isinstance(fin[key], h5py._hl.group.Group):  # loop through station groups
                 groups[f][key] = {}
-                if(key not in n_groups):
-                    n_groups[key] = {}
                 for key2 in fin[key]:
                     groups[f][key][key2] = fin[key][key2][...]
-                    if(key2 not in n_groups[key]):
-                        n_groups[key][key2] = 0
-                    n_groups[key][key2] += len(groups[f][key][key2])
                 if(key not in group_attrs):
                     group_attrs[key] = {}
                     for key2 in fin[key].attrs:
                         group_attrs[key][key2] = fin[key].attrs[key2]
                 else:
                     for key2 in fin[key].attrs:
-                        if(not np.allclose(group_attrs[key][key2], fin[key].attrs[key2])):
+                        if key2 not in group_attrs[key]:
+                            logger.warning(f"attribute {key2} of group {key} is missing in previous files, using the value of {f}")
+                            group_attrs[key][key2] = fin[key].attrs[key2]
+                        elif not _attrs_equal(group_attrs[key][key2], fin[key].attrs[key2]):
                             logger.warning(
                                 f"attribute {key2} of group {key} of file {filenames[0]} and {f} are different "
                                 f"({group_attrs[key][key2]} vs. {fin[key].attrs[key2]}. Using attribute value of "
                                 "first file, but you have been warned!")
             else:
                 data[f][key] = fin[key][...]
-                if(key not in n_data):
-                    n_data[key] = 0
-                n_data[key] += len(data[f][key])
 
         for key in fin.attrs:
+            if key in merge_history_attrs:  # combined per file below
+                continue
             if(key not in attrs):
                 attrs[key] = fin.attrs[key]
             else:
                 if(key not in str_type_attrs):
-                    if(not np.allclose(np.nan_to_num(attrs[key]), np.nan_to_num(fin.attrs[key]))):
+                    if not _attrs_equal(attrs[key], fin.attrs[key]):
                         if(key == "n_events"):
                             logger.warning(f"number of events in file {filenames[0]} and {f} are different ({attrs[key]} vs. "
                             f"{fin.attrs[key]}. We keep track of the total number of events, but in case the simulation was "
                             "performed with different settings per file (e.g. different zenith angle bins), the averaging might be effected.")
                         elif(key == "start_event_id"):
                             continue
+                        elif key in veff_attrs:
+                            raise AttributeError(f"attribute {key} of file {filenames[0]} and {f} are different "
+                                                 f"({attrs[key]} vs. {fin.attrs[key]}), the merged effective volume would be wrong")
                         else:
                             logger.warning(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. "
                             f"{fin.attrs[key]}. Using attribute value of first file, but you have been warned!")
                 else:
-                    if(len(attrs[key]) != len(fin.attrs[key]) or np.all(attrs[key] != fin.attrs[key])):
+                    if not np.array_equal(attrs[key], fin.attrs[key]):
                         logger.error(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. ")
                         raise AttributeError(f"attribute {key} of file {filenames[0]} and {f} are different ({attrs[key]} vs. {fin.attrs[key]}. ")
 
@@ -94,48 +221,20 @@ def merge2(filenames, output_filename):
 
     # create data sets
     logger.info("creating data sets")
-    fout = h5py.File(output_filename, 'w')
+    # HDF5 keeps attributes in the object header, limited to 64 kB per attribute in the default (earliest) file format:
+    # the merge history attributes (one entry per original file) would fail beyond about 4000 files. The 1.8 file
+    # format (readable by HDF5 >= 1.8) stores large attributes outside the header.
+    fout = h5py.File(output_filename, 'w', libver=('v108', 'latest'))
     if(len(non_empty_filenames)):
-        # check event group ids for uniqueness (this is important because effective volume/area calculation uses the event
-        # group id to determine if a multi station coincidence exists
-        # to start, get the 'event_group_ids' for the first file name only
-        # then, loop over all the other files (iF-th file) in the set, and check to see if there
-        # is any overlap (intersection) between the iF-th file and the first file
-        # if so, then identify what the overlap is, and increment the id number in the iF-th file by 1
-        # so that it again becomes unique; then use a np mask to replace the overlapping
-        # number with the new unique number in the iF-th file
-        # then, append the now totally unique list of id's from the iF-th file
-        # to the list from the first file, and so on
-        unique_uegids = np.unique(data[non_empty_filenames[0]]['event_group_ids'])
-        for iF, f in enumerate(non_empty_filenames):
-            if(iF == 0):
-                continue
-            current_uegids = np.unique(data[f]['event_group_ids'])
-            intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
-            if(np.sum(intersect)):
-                current_egids = data[f]['event_group_ids']
-                new_egid = max(unique_uegids.max(), current_uegids.max()) + 1
-                for gid in intersect:
-                    mask = gid == current_egids  # there can be multiple entries per unique event group id, we need to change all of them to the new id
-                    current_egids[mask] = new_egid
-                    # also change the event_group_id arrays of the station groups
-                    if f in non_empty_filenames:
-                        for key in groups[f]:  # loop through all groups
-                            if 'event_group_ids' in groups[f][key]:
-                                g_egids = groups[f][key]['event_group_ids']
-                                mask_g = gid == g_egids
-                                if(np.sum(mask_g)):  # station might not have this event group id, so skip stations where this egid is not present
-                                    g_egids[mask_g] = new_egid
-                    new_egid += 1
-
-                logger.warning(f"event group ids are not unique per file, current file is {f}, new unique ids have been generated.")
-                logger.debug(f"non-unique event ids: {intersect}")
-            current_uegids = np.unique(data[f]['event_group_ids'])  # get the updated list of unique event group ids. Now there should be no intersection with the ids of the previous files
-            # test again for uniqueness
-            intersect = np.intersect1d(unique_uegids, current_uegids, assume_unique=True)
-            if(np.sum(intersect)):
-                raise IndexError(f"event group ids are not unique per file, current file is {f}")
-            unique_uegids = np.append(unique_uegids, current_uegids)
+        # unique event group ids: the effective volume/area calculation uses them to find multi-station coincidences
+        # (shifting: see `_make_ids_unique`)
+        event_group_id_offsets = _make_ids_unique(data, groups, non_empty_filenames, 'event_group_ids',
+                                                  ['event_group_ids', 'event_group_id_per_shower'])
+        # shower ids are unique only within the files of one event generation run (issue #292)
+        if all('shower_ids' in data[f] for f in non_empty_filenames):
+            shower_id_offsets = _make_ids_unique(data, groups, non_empty_filenames, 'shower_ids', ['shower_id'])
+        # event ids (``event_ids``, ``event_id_per_shower``) are unique only within an event group, so the unique
+        # event group ids keep them unique
 
         keys = data[non_empty_filenames[0]]
         for key in keys:
@@ -149,7 +248,7 @@ def merge2(filenames, output_filename):
                 logger.warning(f"not all files have the key {key}. This key will not be present in the merged file.")
                 continue
             shape = list(data[non_empty_filenames[0]][key].shape)
-            shape[0] = n_data[key]
+            shape[0] = sum(len(data[f][key]) for f in non_empty_filenames)  # skipped files add no rows
 
             tmp = np.zeros(shape, dtype=data[non_empty_filenames[0]][key].dtype)
 
@@ -181,7 +280,7 @@ def merge2(filenames, output_filename):
             g = fout.create_group(key)
             for key2 in list_of_keys:  # loop through all datasets of this group
                 shape = list_of_shapes[key2]
-                shape[0] = n_groups[key][key2]
+                shape[0] = sum(len(groups[f][key][key2]) for f in non_empty_filenames if key2 in groups[f][key])
 
                 tmp = np.zeros(shape, dtype=list_of_dtypes[key2])
                 i = 0
@@ -209,7 +308,7 @@ def merge2(filenames, output_filename):
         for key in fin.attrs:
             if(key == "n_events"):
                 fout.attrs[key] = n_events_total
-            else:
+            elif key not in merge_history_attrs:
                 fout.attrs[key] = fin.attrs[key]
         for key in fin:
             if isinstance(fin[key], h5py._hl.group.Group):
@@ -223,6 +322,19 @@ def merge2(filenames, output_filename):
                 fout.create_dataset(key, fin[key].shape, dtype=fin[key].dtype,
                                     compression='gzip')[...] = fin[key]
 
+    # the original files, their offsets and starts; the offsets of a file merged before add up
+    merged_files, egid_offsets, sid_offsets, egid_starts = [], [], [], []
+    for f in filenames:
+        names, egid_offsets_f, sid_offsets_f, egid_starts_f = history[f]
+        egid_offset = event_group_id_offsets.get(f, 0)
+        merged_files += names
+        egid_offsets += [x + egid_offset for x in egid_offsets_f]
+        sid_offsets += [x + shower_id_offsets.get(f, 0) for x in sid_offsets_f]
+        egid_starts += [x + egid_offset if x >= 0 else -1 for x in egid_starts_f]
+    fout.attrs['merged_files'] = merged_files
+    fout.attrs['event_group_id_offsets'] = np.array(egid_offsets, dtype=np.int64)
+    fout.attrs['shower_id_offsets'] = np.array(sid_offsets, dtype=np.int64)
+    fout.attrs['event_group_id_starts'] = np.array(egid_starts, dtype=np.int64)
     fout.close()
 
 
@@ -241,34 +353,20 @@ if __name__ == "__main__":
     """
     parser = argparse.ArgumentParser(description='Merge hdf5 files')
     parser.add_argument('files', nargs='+', help='input file or files')
-    parser.add_argument('--loglevel', metavar='level', help='loglevel set to either DEBUG, INFO, or WARNING')
+    parser.add_argument('--loglevel', metavar='level', type=_parse_loglevel,
+                        help='loglevel set to either DEBUG, INFO, or WARNING (or another level name or number)')
     parser.add_argument('--cores', default=1, type=int, help='number of cores to use')
     args = parser.parse_args()
 
     if args.loglevel is not None:
-        log_val = eval(f'logging.{args.loglevel}')
-        logger.setLevel(log_val)
+        logger.setLevel(args.loglevel)
 
     if len(args.files) == 1:
         root_directory = args.files[0]
         if not os.path.isdir(root_directory):
             sys.exit(f"{root_directory} is not a directory.")
 
-        filenames = np.unique(glob.glob(f"{root_directory}/*/*.hdf5.part*"))
-        input_args = []
-        for filename in sorted(filenames):
-            if(os.path.splitext(filename)[1] == '.hdf5'):
-                d = os.path.split(filename)
-                a, b = os.path.split(d[0])
-                output_filename = os.path.join(a, d[1])  # remove subfolder from filename
-                if(os.path.exists(output_filename)):
-                    logger.error('file {} already exists, skipping'.format(output_filename))
-                else:
-                    input_files = np.array(sorted(glob.glob(filename + '.part*')))
-                    mask = np.array([os.path.getsize(x) > 1000 for x in input_files], dtype=bool)
-                    if(np.sum(~mask)):
-                        logger.warning("{:d} files were deselected because their filesize was to small".format(np.sum(~mask)))
-                    input_args.append({'filenames': input_files[mask], 'output_filename': output_filename})
+        input_args = find_part_files(root_directory)
 
         if(args.cores == 1):
             for i in range(len(input_args)):
@@ -276,12 +374,9 @@ if __name__ == "__main__":
         else:
             from multiprocessing import Pool
             logger.warning(f"running {len(input_args)} job on {args.cores} cores")
-
-            def tmp(kwargs):
-                merge2(**kwargs)
-
+            # merge2 is picklable as a module-level function (a local one fails under the "spawn" start method)
             with Pool(args.cores) as p:
-                p.map(tmp, input_args)
+                p.starmap(merge2, [(x['filenames'], x['output_filename']) for x in input_args])
 
     else:
         output_filename = args.files[0]

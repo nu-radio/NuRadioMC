@@ -30,6 +30,36 @@ If you have many HDF5 files, for example because you ran a simulation paralleliz
 NuRadioMC contains a convenience function to correctly merge these files -
 see :ref:`here <NuRadioMC/pages/Manuals/running_on_a_cluster:4. Merge individual hdf5 output files>` for instructions.
 
+.. note::
+    Merging keeps event group ids and shower ids unique: going through the files in merge order, all ids of a file whose
+    smallest id is not above the largest id of the previous files are shifted by one offset, so that its smallest id
+    becomes that largest id + 1 (gaps and order are kept); the ids of each file then lie above those of all previous
+    files. Files whose ids lie above those of all previous files already, such as the part files of one simulation,
+    keep their ids. The shift applies to ``event_group_ids``, ``shower_ids`` and the station datasets
+    ``event_group_ids``, ``event_group_id_per_shower`` and ``shower_id``; event ids are unique only within an event
+    group and are kept.
+    A file given more than once (also via another path) is merged once.
+    The merged file lists the input files in merge order in the attribute ``merged_files`` (file names without
+    directory), their offsets in ``event_group_id_offsets`` and ``shower_id_offsets``, and in
+    ``event_group_id_starts`` the smallest merged event group id of each file's rows (-1 for a file without triggered
+    events, which adds no rows and has offsets 0). As the merged ids of each file lie above those of all previous
+    files, the file of a row follows from its event group id, and its original ids are the merged ids minus that
+    file's offsets, e.g. to match a shower to the ``SimShower`` ids in that file's ``.nur`` files or to its event
+    generator input file:
+
+    .. code-block:: python
+
+        starts = f.attrs["event_group_id_starts"]
+        with_rows = np.flatnonzero(starts >= 0)
+        i = with_rows[np.searchsorted(starts[with_rows], f["event_group_ids"][...], side="right") - 1]
+        files = f.attrs["merged_files"][i]  # original file of each row
+        shower_ids = f["shower_ids"][...] - f.attrs["shower_id_offsets"][i]
+        event_group_ids = f["event_group_ids"][...] - f.attrs["event_group_id_offsets"][i]
+
+    The same works for the station datasets with their ``event_group_ids`` or ``event_group_id_per_shower``. If an
+    input file is itself a merged file, its entries replace it in the lists and the offsets of both merges add up, so
+    that the attributes always refer to the original files.
+
 What's behind the HDF5 files
 ----------------------------
 The hdf5 file is created in NuRadioMC/simulation/simulation.py A list of vertices with different arrival direction
@@ -84,6 +114,7 @@ The top-level attributes can be accessed using ``f.attrs``. These contain:
         ``deposited`` |
         ``detector`` | The (json-format) detector description used for the simulation
         ``dt`` | The time resolution, i.e. the inverse of the sampling rate used for the simulation. This is not necessarily the same as the sampling rate of the simulated channels!
+        ``merged_files`` ``event_group_id_offsets`` ``shower_id_offsets`` ``event_group_id_starts`` | (Only in merged files) The merged files, the offsets added to their event group ids and shower ids, and the smallest merged event group id of each file's rows (-1: no rows), see the note on merging above
 
 
 The station-level attributes can be accessed using ``f[station_<station_id>].attrs``. The first two attributes ``Vrms`` and ``bandwidth`` also exist on the top-level and refer to the corresponding to the first station/channel pair.
@@ -157,7 +188,7 @@ station triggered, with which amplitude, etc. The same approach works for ``show
         ``event_group_ids`` | (``m_events``) | The event group ids of the triggered events in the selected station
         ``event_group_id_per_shower`` | (``m_showers``) | The event group id of every shower that triggered the selected station
         ``event_ids`` | (``m_events``) | The event ids of each event that triggered in that station for every event group id. These are unique only within each separate event group, and start from 0.
-        ``event_id_per_shower`` | (``m_showers``) | The event ids of each event that triggered in that station. This one is for every shower
+        ``event_id_per_shower`` | (``m_showers``) | The event id (see ``event_ids``) of every shower that triggered the selected station. If a shower contributes to several triggered events, the id of the first of these events
         ``shower_id`` | (``m_showers``) | The Shower ids of showers that triggered the selected station
         ``max_amp_shower_and_ray`` | (``m_showers``, ``n_channels``, ``n_ray_tracing_solutions``) | Maximum amplitude per shower, channel and ray tracing solution.
         ``maximum_amplitudes`` | (``m_events``, ``n_channels``) | Maximum amplitude per event and channel
