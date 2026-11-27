@@ -6,7 +6,7 @@ How to get started
     :backlinks: none
 
 New to NuRadioMC? This page provides some links to interactive ``.ipynb`` notebooks that should help you get started to run your first neutrino simulation,
-and familiarize yourself with the :doc:`.nur data format </NuRadioReco/pages/event_structure>` used by NuRadioMC.
+and familiarize yourself with the :doc:`event data format </NuRadioReco/pages/event_structure>` used by NuRadioMC.
 It also has some links to further documentation and examples.
 
 Should you still have questions / issues after running through these, feel free to contact the developers via `github <https://github.com/nu-radio/NuRadioMC/issues>`_ or slack.
@@ -38,12 +38,12 @@ This example can be found at ``NuRadioMC/examples/Interactive/W01-simulate-neutr
 It is based on the examples at ``NuRadioMC/examples/01_Veff_simulation`` and ``NuRadioMC/examples/07_RNO_G_simulation``.
 Additional information about running a simulation can be found :doc:`here</NuRadioMC/pages/Manuals/veff_tutorial>`.
 
-Reading a ``.nur`` file
------------------------
-`Interactive notebook example showing how to read a .nur file <https://github.com/nu-radio/NuRadioMC/tree/develop/NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb>`_
+Reading an event file
+---------------------
+`Interactive notebook example showing how to read an event file <https://github.com/nu-radio/NuRadioMC/tree/develop/NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb>`_
 
 This example can be found at ``NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb``.
-It shows how to navigate the quantities stored in :doc:`NuRadio's custom data structure </NuRadioReco/pages/event_structure>`, the `.nur` file.
+It shows how to navigate the quantities stored in :doc:`NuRadio's custom data structure </NuRadioReco/pages/event_structure>`, stored in parquet files.
 An extensive description of the NuRadio data structure can be found :doc:`here </NuRadioReco/pages/event_structure>`.
 
 Running a simple analysis with NuRadioReco

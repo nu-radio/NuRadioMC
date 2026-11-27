@@ -31,9 +31,9 @@ eventReader = NuRadioReco.modules.io.eventReader.eventReader()
 channelSignalReconstructor = NuRadioReco.modules.channelSignalReconstructor.channelSignalReconstructor()
 
 # Name outputfile
-output_filename = "Simple_reconstruction_results.nur"
+output_filename = "Simple_reconstruction_results.parquet"
 eventReader.begin(args.inputfilename)
-eventWriter.begin(output_filename, max_file_size=1000)
+eventWriter.begin(output_filename, max_file_size=1000, overwrite=True)
 
 i_events_saved = 0
 for iE, event in enumerate(eventReader.run()):

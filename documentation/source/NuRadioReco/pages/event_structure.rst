@@ -3,19 +3,20 @@ Data Structure
 
 .. Note::
 
-  This page explains the structure of NuRadioReco ``.nur`` files, which contain event-level data
+  This page explains the structure of NuRadioReco events and their files (parquet), which contain event-level data
   from simulation or reconstruction. For more information on the simpler ``.hdf5`` files produced
   in a ``NuRadioMC`` simulation, see the page on :doc:`HDF5 structure </NuRadioMC/pages/HDF5_structure>`.
 
-.nur Files and How to Use Them
+Event Files and How to Use Them
 ----------------------------------
 
 Philosophy and Basic Structure
 __________________________________
-NuRadioReco comes with its own input and output format, called *.nur*. With
+NuRadioReco stores complete events (parameters, traces, simulated quantities) in
+`parquet <https://parquet.apache.org/>`_ files. With
 the obvious exception of reading in data from other file formats, like
 *CoREAS* or the *SnowShovel* format of the *ARIANNA* experiment, every
-processing step in an event reconstruction is done in this format. The big
+processing step in an event reconstruction works on this event structure. The big
 advantage this provides, is that at any point the process can be interrupted
 and the current state of the event data can be saved. This makes it easy to
 split a reconstruction into several steps and to check the state of the data
@@ -37,76 +38,65 @@ station's channels would work like this:
   for channel in station.iter_channels():
     trace = channel.get_trace()
 
-Reading and Writing .nur Files
+Reading and Writing Event Files
 ________________________________
 
-Reading and writing *.nur* files is done by dedicated IO modules.
-Writing events is done by the eventWriter module. To save disk space it offers
-the option to not store channel and electric field traces, in case only
-the higher-level parameters are needed. It is also possible to :ref:`write the
-detector description onto a *.nur* file <NuRadioReco/pages/detector/detector:Writing the detector>`.
+Writing events is done by the :mod:`eventWriter <NuRadioReco.modules.io.eventWriter>` module. It writes the
+station file ``<name>.parquet`` (one row per event and station) and the event file ``<name>_event.parquet``
+(one row per event). To save disk space it offers the option to not store channel and electric field traces,
+in case only the higher-level parameters are needed. The detector description is not stored.
+The files are written to temporary files and moved into place by ``end`` (or ``close``), so the output may
+replace the files that were read; existing files are only replaced with ``overwrite=True``.
 
 .. code-block:: Python
 
   import NuRadioReco.modules.io.eventWriter
 
   event_writer = NuRadioReco.modules.io.eventWriter.eventWriter()
-  event_writer.begin('output_filename.nur')
-  event_writer.run(event, mode='full')
+  event_writer.begin('output_filename', overwrite=True)  # writes output_filename.parquet + output_filename_event.parquet
+  event_writer.run(event)
+  event_writer.end()
 
-To read *.nur* files, two different modules can be used: :class:`NuRadioRecoio <NuRadioReco.modules.io.NuRadioRecoio>` is a
-general-purpose reader that provides different ways to access events e.g. by
-ID or by event number. The :class:`eventReader <NuRadioReco.modules.io.eventReader>` is a more streamlined wrapper around
-:class:`NuRadioRecoio <NuRadioReco.modules.io.NuRadioRecoio>` that provides an iterator over all events. Both modules provide
-as way to :ref:`read the detector description from a *.nur* file <NuRadioReco/pages/detector/detector:Reading the detector>`.
+The :mod:`eventReader <NuRadioReco.modules.io.eventReader>` iterates over the events of one or several files,
+optionally selecting stations and runs:
 
 .. code-block:: Python
 
-  import NuRadioReco.modules.io.NuRadioRecoio
-  nuradioreco_io = NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio(['path/to/file', '/path/to/other/file'])
-  # get event with run number 0 and event ID 5
-  event_1 = nuradioreco_io.get_event([0,5])
-  # get second event in files (counting starts at 0)
-  event_2 = nuradioreco.io.get_event_i(1)
-  # iterate over all events
-  for event in nuradioreco_io.get_event():
-    station = event.get_station(42)
-
   import NuRadioReco.modules.io.eventReader
   event_reader = NuRadioReco.modules.io.eventReader.eventReader()
-  event_reader.begin(['path/to/file', 'path/to/other/file'])
+  event_reader.begin(['path/to/file.parquet', 'path/to/other/file.parquet'])
   # iterate over events
   for event in event_reader.run():
     station = event.get_station(42)
 
-Additionally, *.nur* files store higher-level parameters in their headers, which
-makes them easily accessible for all events in a file. For example, if one wanted
-to make a histogram of the zenith angles in a given file, it would work like this:
+Every parameter is a column in the files, so it can be read for all events without building the events,
+e.g. with :class:`AnalysisReader <NuRadioReco.utilities.analysis_reader.AnalysisReader>` (polars) or any other
+parquet library. For example, to make a histogram of the zenith angles in a given file:
 
 .. code-block:: Python
 
   import matplotlib.pyplot as plt
-  from NuRadioReco.framework.parameters import stationParameters as stnp
   from NuRadioReco.utilities import units
-  import NuRadioReco.modules.io.NuRadioRecoio
-  nuradioreco_io = NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio(['path/to/file'])
-  header = nuradioreco_io.get_header()
-  station_id = 42
-  zeniths = header[station_id][stnp.zenith]
-  plt.hist(zeniths/units.deg)
+  from NuRadioReco.utilities.analysis_reader import AnalysisReader
+  header = AnalysisReader('path/to/file.parquet', stations=[42]).read()
+  zeniths = header['stationParameters.zenith'].to_numpy()
+  plt.hist(zeniths / units.deg)
   plt.show()
 
-The way that writing and reading *.nur* files is handled internally is that
-every class in the framework has a ``serialize`` function that writes all
-information stored in the object into a `pickle <https://docs.python.org/3/library/pickle.html>`_ object
-and a ``deserialize`` function that writes the data from such a *pickle* into
-a class object. To write an event to disk, each object calls the ``serialize``
-function on its child objects, stores the *pickles* they return and then
-serializes itself. The resulting *pickle* can then be written to disk. To read
-a *.nur* file the same is done in reverse, with each object calling the ``deserialize``
-function on its children. Thanks to this implementation, it is easy to extend
-the framework, since all that has to be done is to define ``serialize`` and
-``deserialize`` functions and adjust the ones of the parent object.
+The command line tool ``nuradio-analyse`` shows the content of the files (``nuradio-analyse --help``).
+The file layout and the rules for new parameters are described in :doc:`Event Files (parquet) </NuRadioReco/pages/parquet_format>`.
+
+The ``.nur`` format
+________________________________
+
+Older versions of NuRadioReco wrote *.nur* files, in which every object of the event was
+`pickled <https://docs.python.org/3/library/pickle.html>`_. They can no longer be written. The
+:mod:`eventReader <NuRadioReco.modules.io.eventReader>` still reads them (deprecated, via
+:mod:`eventReaderNur <NuRadioReco.modules.io.eventReaderNur>`), as does
+:class:`NuRadioRecoio <NuRadioReco.modules.io.NuRadioRecoio>`, which also provides access to single events by
+ID or event number and to a detector description stored in the file
+(see :ref:`Reading the detector <NuRadioReco/pages/detector/detector:Reading the detector>`).
+Convert them with ``nuradio-analyse convert <files>``.
 
 .. _label_parameter_storage:
 

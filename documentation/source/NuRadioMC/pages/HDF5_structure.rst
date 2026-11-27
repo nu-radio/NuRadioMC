@@ -2,11 +2,11 @@ HDF5 output structure
 =====================
 
 .. Note::
-    The output of a NuRadioMC simulation is saved in the HDF5 file format, as well as (optionally) in ``.nur`` files.
+    The output of a NuRadioMC simulation is saved in the HDF5 file format, as well as (optionally) in parquet event files.
     The HDF5 files contain mostly high-level output parameters in a standard, table-like structure.
     It does not include the simulated voltage traces. For more advanced analyses (e.g. reconstruction),
-    you probably need to use the ``.nur`` files.
-    The data structure of ``.nur`` files is explained :doc:`here </NuRadioReco/pages/event_structure>`.
+    you probably need to use the event files.
+    The data structure of the event files is explained :doc:`here </NuRadioReco/pages/event_structure>`.
 
 .. Note::
     This page outlines the structure of the HDF5 files v3.0. Find the structure of :doc:`v2.2 here </NuRadioMC/pages/HDF5_structures_history/HDF5_v2.2>`.
@@ -141,7 +141,7 @@ some parameters are per shower. See https://doi.org/10.22323/1.395.1231 for a de
 ``m_events`` and ``m_showers`` refer to the number of events and showers that triggered the station. NOTE: The simple table
 structure of hdf5 files can not capture the complex relation between events and showers in all cases. Some fields can be ambiguous
 (e.g. `trigger_times` that only lists the last trigger that a shower generated).
-For more advanced analyses, please use the ``*.nur`` files.
+For more advanced analyses, please use the event (parquet) files.
 The ``event_group_id`` is the same as in the global dictionary. Therefore you can check for one event with
 an ``event_group_id`` which stations contain the same ``event_group_id`` and retrieve the information, which
 station triggered, with which amplitude, etc. The same approach works for ``shower_id``.

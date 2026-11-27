@@ -4,6 +4,7 @@ import glob
 import helper_cr_eff as hcr
 import json
 import NuRadioReco.modules.io.eventReader as eventReader
+from NuRadioReco.detector.detector import Detector
 from NuRadioReco.framework.parameters import stationParameters as stnp
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.utilities import units
@@ -17,10 +18,21 @@ parser = argparse.ArgumentParser(description='Nurfile analyser')
 parser.add_argument('--directory', type=str, nargs='?',
                     default='output_air_shower_reco/',
                     help='path were results from air shower analysis are stored')
+
+parser.add_argument(
+    '--det_file',
+    type=str,
+    nargs='?',
+    default='../../detector/RNO_G/RNO_cr_array.json',
+    help='json detector file used for the simulation (the event files store no detector)',
+)
+
 parser.add_argument('--condition', type=str, nargs='?', default='',
                     help='string which should be in dict name')
+
 parser.add_argument('--energy_binning', type=list, nargs='?',
                     default=[16.5, 20, 8], help='energy bins as log() with start, stop, number of bins (np.logspace)')
+
 parser.add_argument('--zenith_binning', type=list, nargs='?',
                     default=[0, 100, 10], help='zenith bins in deg with start, stop, step (np.arange)')
 
@@ -46,7 +58,8 @@ logger.info(f"Use zenith bins {zenith_bins/units.deg} deg")
 
 nur_file_list = []  # get non corrupted input files with specified passband
 i = 0
-for nur_file in glob.glob('{}*.nur'.format(args.directory)):
+
+for nur_file in glob.glob('{}*.parquet'.format(args.directory)):
     if os.path.isfile(nur_file) and str(args.condition) in nur_file:
         i += 1
         if os.path.getsize(nur_file) > 0:
@@ -65,13 +78,15 @@ trigger_in_station = []  # name of trigger
 num = 0
 
 evtReader = eventReader.eventReader()
-evtReader.begin(filename=nur_file, read_detector=True)
-det = evtReader.get_detector()
+evtReader.begin(filename=nur_file)
+det = Detector(json_filename=args.det_file, antenna_by_depth=False)
 default_station = det.get_station_ids()[0]
+
 for evt in evtReader.run():  # loop over all events, one event is one station
     num += 1
     event_id = evt.get_id()
     events.append(evt)
+    det.update(evt.get_station().get_station_time())
     det_position = det.get_absolute_position(station_id=default_station)
     sta = evt.get_station(station_id=default_station)
     sim_station = sta.get_sim_station()

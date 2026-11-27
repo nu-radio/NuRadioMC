@@ -5,7 +5,7 @@ import NuRadioReco.modules.io.coreas.readCoREASStation
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.channelGenericNoiseAdder
-#import NuRadioReco.modules.channelGalacticNoiseAdder
+# import NuRadioReco.modules.channelGalacticNoiseAdder
 import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.eventTypeIdentifier
@@ -21,9 +21,9 @@ logger.setLevel(logging.INFO)
 """
 This script is an example of how to run the air shower reconstruction with a detector containing only a single station with multiple antennas. 
 
-The input file needs to be a CoREAS hdf5 file. The output is a .nur file with the reconstructed event.
+The input file needs to be a CoREAS hdf5 file. The output is a parquet file with the reconstructed event.
 The input file is read in with readCoREASStation module, which creates simulated events for each CoREAS observer.
-The other modules used are necessary to simulate the detector response, add noise, trigger the event, and write the event to a .nur file.
+The other modules used are necessary to simulate the detector response, add noise, trigger the event, and write the event to a parquet file.
 Please refer to the modules for more details.
 
 Input parameters (all with a default provided)
@@ -38,7 +38,7 @@ input_file: str
 
 Output
 ---------------------
-The output is a .nur file with the reconstructed event.
+The output is a parquet file with the reconstructed event.
 
 """
 
@@ -96,9 +96,9 @@ electricFieldResampler.begin()
 channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelResampler.begin()
 
-# module to write the event to a .nur file
+# module to write the event to a parquet file
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-eventWriter.begin('cr_single_station.nur')
+eventWriter.begin('cr_single_station.parquet', overwrite=True)
 
 for evt in readCoREASStation.run(detector=det):
     for sta in evt.get_stations():
@@ -108,7 +108,7 @@ for evt in readCoREASStation.run(detector=det):
 
         channelGenericNoiseAdder.run(evt, sta, det, amplitude=1.091242302378349e-05, min_freq=80*units.MHz, max_freq=800*units.MHz, type='rayleigh')
 
-        #channelGalacticNoiseAdder.run(evt, sta, det)
+        # channelGalacticNoiseAdder.run(evt, sta, det)
 
         hardwareResponseIncorporator.run(evt, sta, det, sim_to_data=True)
 
@@ -124,10 +124,6 @@ for evt in readCoREASStation.run(detector=det):
 
         electricFieldResampler.run(evt, sta, det, sampling_rate=3.2)
 
-    eventWriter.run(evt, det=det, mode={
-                'Channels': True,
-                'ElectricFields': True,
-                'SimChannels': True,
-                'SimElectricFields': True
-            })
+    eventWriter.run(evt, mode={'Channels': True, 'ElectricFields': True, 'SimChannels': True, 'SimElectricFields': True})
+
 eventWriter.close()

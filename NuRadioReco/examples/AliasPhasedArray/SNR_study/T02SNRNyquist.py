@@ -12,7 +12,7 @@ The phased array configuration is the same used for the RNO example.
 The usage of this file is:
 
 python T02SNRNyquist.py input_neutrino_file.hdf5 phased_array_file.json
-config.yaml output_NuRadioMC_file.hdf5 output_SNR_file.json output_NuRadioReco_file.nur(optional)
+config.yaml output_NuRadioMC_file.hdf5 output_SNR_file.json output_NuRadioReco_file.parquet(optional)
 
 The Nyquist zone and the upsampling factors can be passed as arguments. The
 following configurations are the most interesting:

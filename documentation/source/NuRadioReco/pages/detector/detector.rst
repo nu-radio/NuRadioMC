@@ -203,54 +203,29 @@ description.
 
 Detector Description in Event Files
 -----------------------------------
-To make it easier to keep track of which detector description was used in the reconstruction
-of a given event file, it is possible to store the detector description in an
-event file and read it along with the events.
-
-Writing the Detector
-____________________
-To write a detector description into an event file, the detector description
-is passed to the ``run`` method of the ``EventWriter`` module. In order to
-keep the file size small, only information about channels and stations that
-are used in the saved events are written into the event file.
-
-.. code-block:: python
-
-  import NuRadioReco.modules.io.eventReader
-  import NuradioReco.modules.io.eventWriter
-  import NuRadioReco.detector.detector
-  import astropy.time
-
-  det = NuRadioReco.detector.detector.Detector(source='json', json_filename='path/to/json/file')
-  detector_time = astropy.time.Time('2018-01-01 20:00:00')
-  det.update(detector_time)
-
-  event_reader = NuRadioReco.modules.io.eventReader.EventReader()
-  event_reader.begin(['path/to/file'])
-
-  event_writer = NuRadioReco.modules.io.eventWriter()
-  event_writer.begin('output_filename.nur')
-  for event in event_reader.run():
-    event_writer.run(event, det=det)
+The parquet event files written by the ``eventWriter`` module do not store the detector description: keep
+track of the detector (e.g. the JSON file or the database time) used for a file yourself.
+Passing a detector to ``eventWriter.run`` is deprecated and has no effect.
 
 Reading the Detector
 ____________________
-To access the detector description in an event file, the ``EventReader`` and
-``NuRadioRecoio`` modules provide the ``get_detector`` method, which always
-returns the detector for the last file from which an event was requested. If
+*.nur* files written by older versions of NuRadioReco can contain a detector description.
+To access it, the ``eventReader`` (for *.nur* files) and ``NuRadioRecoio`` modules provide the ``get_detector``
+method, which always returns the detector for the last file from which an event was requested. If
 the detector in the file is a ``GenericDetector``, its ``set_event`` method
 will also be called automatically in case there are event-specific changes to
 the detector.
 
 In order to use this feature, the parameters ``parse_detector`` and ``read_detector``
 have to be set to ``True`` for  constructors of the ``NuRadioRecoio`` and
-``EventReader`` modules, respectively.
+``eventReader`` modules, respectively. Converting a *.nur* file to parquet (``nuradio-analyse convert``) drops
+the detector description.
 
 .. code-block:: python
 
   import NuRadioReco.modules.io.eventReader
-  event_reader = NuRadioReco.modules.io.eventReader.EventReader()
-  event_reader.begin(['path/to/file'], read_detector=True)
+  event_reader = NuRadioReco.modules.io.eventReader.eventReader()
+  event_reader.begin(['path/to/file.nur'], read_detector=True)
   for event in event_reader.run():
     det = event_reader.get_detector()
 

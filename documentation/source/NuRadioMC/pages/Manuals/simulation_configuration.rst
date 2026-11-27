@@ -17,7 +17,7 @@ Every steering file should have a class that inherits from the simulation class,
 This class must at least define the methods ``_detector_simulation_filter_amp`` and ``_detector_simulation_trigger``, which
 define the detector signal chain response (filters, amplifiers) and the trigger(s), respectively.
 
-To create a simulation instance, we need a NuRadioMC neutrino input file, a detector description JSON file, a YAML file with various configuration settings, the output file name, and optionally the output NuRadioReco file name (nur file).
+To create a simulation instance, we need a NuRadioMC neutrino input file, a detector description JSON file, a YAML file with various configuration settings, the output file name, and optionally the output NuRadioReco event file name (parquet).
 
 The following code shows how to run a simulation by creating an instance of mySimulation, who is a child class of simulation, and then run it.
 
@@ -42,12 +42,12 @@ The following code shows how to run a simulation by creating an instance of mySi
             inputfilename="input.hdf5",
             outputfilename="output.hdf5",
             detectorfile="RNO_G/RNO_single_station.json",
-            outputfilenameNuRadioReco="output.nur",
+            outputfilenameNuRadioReco="output.parquet",
             config_file='config.yaml',
             trigger_channels=[0,1,2,3])
 
         # run the simulation: this will produce the output files 'output.hdf5'
-        # and 'output.nur' containing the triggering events
+        # and 'output.parquet' + 'output_event.parquet' containing the triggering events
         sim.run()
 
 
@@ -68,7 +68,7 @@ When the simulation child object is initialised, the detector description in the
            and downsampled to the detector sampling frequency
 
     #. Finally, some properties for all triggering events are stored in an output :doc:`HDF5 file </NuRadioMC/pages/HDF5_structure>`,
-       and (optionally) the full events are stored in a :doc:`.nur file </NuRadioReco/pages/event_structure>`.
+       and (optionally) the full events are stored in :doc:`parquet event files </NuRadioReco/pages/event_structure>`.
 
 
 An example of a steering file, complete with detector description, can be found in `examples/06_webinar/W02RunSimulation.py <https://github.com/nu-radio/NuRadioMC/blob/master/NuRadioMC/examples/06_webinar/W02RunSimulation.py>`__.
@@ -384,13 +384,13 @@ The following steering file teaches what the principal constituents of a detecto
             Otherwise, the arguments need to be specified as follows:
 
             python W02RunSimulation.py --inputfilename input.hdf5 --detectordescription detector.json
-            --config config.yaml --outputfilename out.hdf5 --outputfilenameNuRadioReco out.nur
+            --config config.yaml --outputfilename out.hdf5 --outputfilenameNuRadioReco out.parquet
 
-            The last argument is optional, only needed if the user wants a nur file. nur files
+            The last argument is optional, only needed if the user wants an event file. Event files
             contain lots of information on triggering events, so they're a great tool for
             reconstruction (see NuRadioReco documentation and Christoph's webinar). However,
             because of their massive amount of information, they can be really heavy. So, when
-            running NuRadioMC with millions of events, most of the time nur files should not
+            running NuRadioMC with millions of events, most of the time event files should not
             be created.
 
             Be sure to read the comments in the config.yaml file and also the file
@@ -483,7 +483,7 @@ The following steering file teaches what the principal constituents of a detecto
             - The input file name, with the neutrino events
             - The output file name
             - The name of detector description file
-            - The name of the output nur file (can be None if we don't want nur files)
+            - The name of the output event file (parquet; can be None if we don't want event files)
             - The name of the config file
 
             We have also used here two optional arguments, which are default_detector_station

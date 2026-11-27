@@ -1,12 +1,12 @@
 """
 This script is an example of how to run the air shower reconstruction with a detector containing an array of stations, each with multiple antennas.
 
-The input file needs to be a CoREAS hdf5 file where the coreas observers follow a star shape pattern. The output is a .nur file with the reconstructed event.
+The input file needs to be a CoREAS hdf5 file where the coreas observers follow a star shape pattern. The output is a parquet file with the reconstructed event.
 The input file is read in with readCoREASDetector module, which creates simulated events with all stations in the detector description,
 the electric field is interpolated to the positions of the antennas. The core position of the shower can be set to a list of positions, 
 see readCoREASDetector.run() for more details.
 
-The other modules used are necessary to simulate the detector response, add noise, trigger the event, and write the event to a .nur file.
+The other modules used are necessary to simulate the detector response, add noise, trigger the event, and write the event to a parquet file.
 Please refer to the modules for more details.
 
 Input parameters (all with a default provided)
@@ -21,9 +21,10 @@ det_file: str
 
 Output
 ---------------------
-The output is a .nur file with the reconstructed event.
+The output is a parquet file with the reconstructed event.
 
 """
+
 from NuRadioReco.utilities import units
 import astropy.time
 from NuRadioReco.detector.detector import Detector
@@ -31,7 +32,7 @@ import NuRadioReco.modules.io.coreas.readCoREASDetector
 import NuRadioReco.modules.efieldToVoltageConverter
 import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
 import NuRadioReco.modules.channelGenericNoiseAdder
-#import NuRadioReco.modules.channelGalacticNoiseAdder_fast
+# import NuRadioReco.modules.channelGalacticNoiseAdder_fast
 import NuRadioReco.modules.trigger.highLowThreshold
 import NuRadioReco.modules.channelBandPassFilter
 import NuRadioReco.modules.eventTypeIdentifier
@@ -55,7 +56,7 @@ if __name__ == "__main__":
     det = Detector(json_filename=args.det_file, antenna_by_depth=False)
     det.update(astropy.time.Time('2025-1-1'))
 
-    #core_positions = NuRadioReco.modules.io.coreas.readCoREASDetector.get_random_core_positions()
+    # core_positions = NuRadioReco.modules.io.coreas.readCoREASDetector.get_random_core_positions()
 
     # module to read the CoREAS file and convert it to NuRadioReco event for an array of detector stations.
     readCoREASDetector = NuRadioReco.modules.io.coreas.readCoREASDetector.readCoREASDetector()
@@ -79,8 +80,8 @@ if __name__ == "__main__":
     channelGenericNoiseAdder.begin()
 
     # module to add galactic noise to the channels
-    #channelGalacticNoiseAdder = NuRadioReco.modules.channelGalacticNoiseAdder_fast.channelGalacticNoiseAdder()
-    #channelGalacticNoiseAdder.begin(skymodel='gsm2016', n_side=4, freq_range=np.array([0.07, 0.81]))
+    # channelGalacticNoiseAdder = NuRadioReco.modules.channelGalacticNoiseAdder_fast.channelGalacticNoiseAdder()
+    # channelGalacticNoiseAdder.begin(skymodel='gsm2016', n_side=4, freq_range=np.array([0.07, 0.81]))
 
     # module to simulate the trigger
     triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
@@ -98,9 +99,9 @@ if __name__ == "__main__":
     channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
     channelResampler.begin()
 
-    # module to write the events to a .nur file
+    # module to write the events to a parquet file
     eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-    eventWriter.begin(f'cr_reco_array.nur')
+    eventWriter.begin('cr_reco_array.parquet', overwrite=True)
 
     for idx, evt in enumerate(readCoREASDetector.run(det, NuRadioReco.modules.io.coreas.readCoREASDetector.get_random_core_positions(-300, 0, 1600, 1800, 3))):
 
@@ -112,7 +113,7 @@ if __name__ == "__main__":
             channelGenericNoiseAdder.run(
                 evt, sta, det, amplitude=1.091242302378349e-05,
                 min_freq=80*units.MHz, max_freq=800*units.MHz, type='rayleigh')
-            #channelGalacticNoiseAdder.run(evt, sta, det, passband=[0.08, 0.8])
+            # channelGalacticNoiseAdder.run(evt, sta, det, passband=[0.08, 0.8])
 
             hardwareResponseIncorporator.run(evt, sta, det, sim_to_data=True)
 
@@ -128,12 +129,8 @@ if __name__ == "__main__":
 
             electricFieldResampler.run(evt, sta, det, sampling_rate=3.2)
 
-            eventWriter.run(evt, det=det, mode={
-                        'Channels': True,
-                        'ElectricFields': True,
-                        'SimChannels': True,
-                        'SimElectricFields': True
-                    })
+            eventWriter.run(
+                evt, mode={'Channels': True, 'ElectricFields': True, 'SimChannels': True, 'SimElectricFields': True}
+            )
 
     eventWriter.close()
-
