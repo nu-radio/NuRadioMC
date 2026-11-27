@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Compare the C0 parameter of the analytic ray tracing solutions for random source positions
-with a reference, for several ice models. Use ``--create-reference`` to regenerate the references.
+with a reference, for several ice models. Use ``--create-reference`` to regenerate the references
+and ``--python`` to run the Python instead of the C++ backend of the ray tracer.
 """
 import argparse
 import json
@@ -26,7 +27,7 @@ sites = {
 }
 
 
-def calculate_C0s(site):
+def calculate_C0s(site, use_cpp):
     site_options = sites[site]
 
     np.random.seed(10)  # set seed to have reproducible results
@@ -42,7 +43,7 @@ def calculate_C0s(site):
 
     C0s = np.zeros((n_events, site_options['n_solutions']))
     ice_model = site_options['ice_model']
-    r = ray.ray_tracing(ice_model, **site_options['rt_kwargs'])
+    r = ray.ray_tracing(ice_model, use_cpp=use_cpp, **site_options['rt_kwargs'])
     for iX, x in enumerate(points):
         r.set_start_and_end_point(x, x_receiver)
         r.find_solutions()
@@ -54,12 +55,13 @@ def calculate_C0s(site):
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--site', choices=list(sites), nargs='+', default=list(sites))
 parser.add_argument('--create-reference', action='store_true', help='overwrite the reference files')
+parser.add_argument('--python', action='store_true', help='use the Python instead of the C++ backend')
 args = parser.parse_args()
 
 path = os.path.dirname(os.path.abspath(__file__))
 for site in args.site:
     reference_file = os.path.join(path, sites[site]['reference_file'])
-    C0s = calculate_C0s(site)
+    C0s = calculate_C0s(site, use_cpp=not args.python)
     if args.create_reference:
         with open(reference_file, 'w') as fout:
             json.dump(C0s.tolist(), fout)

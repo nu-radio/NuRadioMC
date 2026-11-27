@@ -51,6 +51,10 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
 
 bugfixes:
+- The Python backend of the single-layer analytic ray tracer missed most bottom-reflected rays that start downwards
+  (`reflection_case == 2`, e.g. Moore's Bay with `n_reflections > 0`): the objective function shifted the start point
+  in place, so the root finder saw a moving start point. Now it finds the same solutions as the C++ backend (#986).
+  CI runs the Moore's Bay ray tracing tests also with the Python backend and compares both backends (T12).
 - The trigger times of the phased array triggers (`beamformedPowerIntegrationTrigger`, `phasedArrayTrigger`,
   `digitalBeamformedEnvelopeTrigger`) were shifted by the smallest phased channel id in ns (a minimum over the
   channel ids instead of the delays). No effect for phased arrays that include channel 0 (e.g. RNO-G channels 0-3).

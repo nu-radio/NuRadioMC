@@ -492,6 +492,8 @@ def _get_delta_y(C_0, x1, x2, n_ice, b, delta_n, z_0, medium_reflection, C0range
     # 2) the rays start decreasing -> we need to find the position left of the start point that
     #    has rising rays that go through the point x1
     if reflection > 0 and reflection_case == 2:
+        # copy x1: the root finders pass the same array to every call of this function
+        x1 = np.copy(x1)
         y_turn = _get_y_turn(C_0_first, x1, n_ice, b, delta_n, z_0)
         dy = y_turn - x1[0]
         x1[0] = x1[0] - 2.0 * dy
