@@ -78,3 +78,9 @@ omit = [
     "*/tests/*",
     "*/examples/*",
 ]
+
+[tool.black]
+# Applied only to changed lines by the black-changed-lines pre-commit hook
+line-length = 127
+skip-string-normalization = true  # legacy code mixes quote styles
+target-version = ["py38"]

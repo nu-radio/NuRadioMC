@@ -43,6 +43,8 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   The `AntennaPattern.VEL`, `AntennaPattern.VEL_theta` and `AntennaPattern.VEL_phi` attributes are deprecated, the cube is
   stored in `AntennaPattern._vel`.
 - Added `impulsiveSignalReconstructor` module to reconstruct 'generic' impulsive signals
+- pre-commit formats the changed lines of Python files with black and warns about flake8 violations on them;
+  CI reports the latter as warnings (non-blocking). See the contributing guide.
 - New module `NuRadioMC.utilities.neutrino_fluxes` with neutrino flux models (IceCube fits, cosmogenic models of van Vliet,
   Heinze and TA, source populations, AGN, GRB afterglows, blazars) as all-flavour dN/dE. The event generator uses it for its
   GZK spectra instead of importing them from an example script.
