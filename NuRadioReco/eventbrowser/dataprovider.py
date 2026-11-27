@@ -26,7 +26,7 @@ class DataProvider(object):
     __lock = threading.Lock()
 
     def __init__(self, filetype='auto', max_user_instances=6):
-        """ "
+        """
         Interface to .nur, .parquet or .root file IO for the eventbrowser
 
         Parameters
@@ -34,10 +34,10 @@ class DataProvider(object):
         filetype: 'auto' | 'nur' | 'parquet' | 'root'
             Which IO module to use:
 
-            * 'nur': The standard `NuRadioRecoio` module for reading `.nur` files
+            * 'nur': The standard `~NuRadioReco.modules.io.NuRadioRecoio.NuRadioRecoio` module for reading ``.nur`` files
             * 'root': Read RNO-G root files with the
               :mod:`NuRadioReco.modules.io.RNO_G.readRNOGDataMattak` module (requires
-              `mattak` to be installed from https://github.com/RNO-G/mattak)
+              ``mattak`` to be installed from https://github.com/RNO-G/mattak)
             * 'parquet': Read the parquet files of
               :mod:`NuRadioReco.modules.io.eventWriter` with
               :class:`NuRadioReco.eventbrowser.parquet_file_handler.ParquetFileHandler`
