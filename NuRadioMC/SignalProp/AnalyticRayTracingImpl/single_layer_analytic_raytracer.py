@@ -1656,6 +1656,10 @@ class ray_tracing_2D():
 
         returns an array of the C_0 paramters of the solutions (the array might be empty)
 
+        Raises
+        ------
+        NotImplementedError
+            With the C++ backend, if x2 is above the surface: it does not support paths through air.
         """
 
         if(reflection > 0 and self.medium.reflection is None):
@@ -1663,6 +1667,12 @@ class ray_tracing_2D():
             raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested, but ice model does not specify a reflective layer".format(reflection))
 
         if(self.use_cpp):
+            if x2[1] > 0:
+                raise NotImplementedError(
+                    f"The C++ backend of the single-layer analytic ray tracer does not support paths with an end point "
+                    f"in air (z > 0; here (y, z) = {x1} -> {x2}). Use the numba/python backend "
+                    f"(ray_tracing(..., use_cpp=False)), or a layered ice model with an air layer "
+                    f"(e.g. IceModelContinuousExpLayers) for the multilayer ray tracer.")
             tmp_reflection = copy.copy(self.medium.reflection)
             if(tmp_reflection is None):
                 tmp_reflection = 100  # this parameter will never be used but is required to be an into to be able to pass it to the C++ module, so set it to a positive number, i.e., a reflective layer above the ice

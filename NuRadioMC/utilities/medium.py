@@ -469,6 +469,18 @@ class greenland_firn_layered(medium_base.IceModelExpLayers):
             layers=layers
         )
 
+# Air above Summit Station, Greenland (3216 m a.s.l.), for the Greenland models with an air layer:
+# n(z) = 1 + 2.14e-4 * exp(-z / 9 km), z above the snow surface.
+# Refractivity N = (n - 1) * 1e6 = 77.6 P / T + 3.732e5 e / T^2 (ITU-R P.453; P, e in hPa, T in K), evaluated on the
+# NOAA GML Summit hourly meteorology 2008-2026 (https://gml.noaa.gov/aftp/data/meteorology/in-situ/sum/), April to
+# October (the RNO-G data-taking season): mean P = 672.6 hPa, T(2 m) = -21.0 C, water-vapour term 6.8 (from the
+# relative humidity) -> N = 213.9 (5-95%: 205.6-223.5; monthly means 212-217).
+# Scale height of the air density for the mean T and a lapse rate of 6.5 K/km: T / (g / R_d - 6.5 K/km) = 9.1 km
+# (isothermal: 7.4 km). The US standard atmosphere at sea level would give n - 1 = 2.7e-4.
+N_AIR_SUMMIT = 1 + 2.14e-4
+AIR_SCALE_HEIGHT_SUMMIT = 9 * units.km
+
+
 class greenland_3exp_density(medium_base.IceModelContinuousExpLayers):
     """
     (3+1) layer refractive index model. Three layer model in ice plus one air layer.
@@ -483,7 +495,9 @@ class greenland_3exp_density(medium_base.IceModelContinuousExpLayers):
             nN = 1.778,
             delta_nN = 1.120,
             ls = [28.606, 73.728, 8.848],
-            zs = [-80.5, -14.9]
+            zs = [-80.5, -14.9],
+            n_air_surface = N_AIR_SUMMIT,
+            air_scale_height = AIR_SCALE_HEIGHT_SUMMIT
         )
 
 class greenland_3exp_timing_2025(medium_base.IceModelContinuousExpLayers):
@@ -501,5 +515,7 @@ class greenland_3exp_timing_2025(medium_base.IceModelContinuousExpLayers):
             nN = 1.778,
             delta_nN = 1.0659,
             ls = [29.3437, 62.2818, 15.88],
-            zs = [-80.5, -14.9]
+            zs = [-80.5, -14.9],
+            n_air_surface = N_AIR_SUMMIT,
+            air_scale_height = AIR_SCALE_HEIGHT_SUMMIT
         )

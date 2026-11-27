@@ -2,7 +2,7 @@ import numpy as np
 from scipy import optimize
 from operator import itemgetter
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_delta_y, get_n_1D, get_c0_from_theta, get_skim_angle, determine_solution_type
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import layers_to_arrays, compute_offsets, get_delta_y, get_n_1D, get_c0_from_theta, get_skim_angle, determine_solution_type, get_turning_point
 
 
 
@@ -40,6 +40,94 @@ def get_c0_from_log(logc0, n_ice):
         logc0 = logc0[0]
 
     return float(get_c0_from_log_scalar(logc0, n_ice))
+
+
+# relative tolerance of the condition p = 1 / c0 <= n(z) at the end points
+P_REL_TOL = 1e-9
+
+
+def _get_logc0_start_with_air(z1, z2, layers, n_deep):
+    """
+    Lower end of the brentq search in log(c0) for rays that cross the air layer.
+
+    A ray reaches a depth z only where n(z) >= p = 1 / c0. In air, n falls with height, so the
+    highest end point of the path limits the ray parameter: c0 >= 1 / n(max(z1, z2)). The search
+    starts at that value (the ray leaves the upper end point horizontally; the closed forms hold
+    there), as the horizontal reach grows steeply for p -> n. Rays with p > 1 exist there, as n > 1
+    near the surface.
+
+    Parameters
+    ----------
+    z1, z2 : float
+        Depths of the end points.
+
+    layers : tuple of ndarray
+        Layer parameter arrays.
+
+    n_deep : float
+        Refractive index of deep ice.
+
+    Returns
+    -------
+    float
+        Start value of the optimization parameter logc0.
+    """
+    c0_min = 1.0 / get_n_1D(max(z1, z2), layers)
+    return np.log(max(c0_min - 1. / n_deep, 1e-12))
+
+
+def _remove_unphysical_solutions(results, z1, z2, layers):
+    """
+    Drop solutions with a ray parameter p = 1 / C0 above n at one of the end points.
+
+    No real ray passes a depth where n(z) < p. The root finding can still converge to such c0
+    (e.g. rays from emitters in air that "turn" in the air layer below the emitter).
+    """
+    n_min = min(get_n_1D(z1, layers), get_n_1D(z2, layers))
+    return [result for result in results if 1.0 / result['C0'] <= n_min * (1.0 + P_REL_TOL)]
+
+
+def _remove_rays_turning_in_air(results, y1, z1, y2, z2, layers, downgoing, with_air, dropped):
+    """
+    Drop solutions whose ray turns in the air above the upper end point (an emitter in air).
+
+    In air n falls with height, so rays bend down: an emitter in air beyond the horizontal reach of the
+    direct ray can be reached by a ray that rises, turns where n = p and comes back down. The root search
+    finds these rays (`get_delta_y`), but travel time, path length and the other ray properties are only
+    computed for direct paths, so they are not supported (nor is the curvature of the atmosphere, which
+    matters at these distances). Dropped solutions are appended to ``dropped`` if it is a list.
+    """
+    kept = []
+    for result in results:
+        y_turn, z_turn = get_turning_point(result['C0'], y1, z1, layers, result['C1'], downgoing, with_air)
+        if z2 > 0 and np.isfinite(z_turn) and z_turn > z2 and y_turn < y2:
+            if dropped is not None:
+                dropped.append(result)
+        else:
+            kept.append(result)
+    return kept
+
+
+def _keep_one_air_solution(results):
+    """
+    For paths through air, keep only the solution with the largest C0 (smallest ray parameter p = 1 / C0).
+
+    A path through air has one direct ray; several roots are the same ray found from different start
+    values (e.g. a vertical ray, p ~ 0, whose C0 values differ by orders of magnitude).
+    """
+    if not results:
+        return results
+    return [max(results, key=itemgetter('C0'))]
+
+
+def _brentq_xtol(with_air):
+    """
+    Absolute tolerance in log(c0) of the brentq searches. For paths through air the horizontal reach grows
+    steeply as p approaches n at the upper end point (a change of 1e-12 in p moves the ray by meters), so
+    these searches converge to machine precision.
+    """
+    return 1e-15 if with_air else 2e-12
+
 
 def obj_delta_y_sqr(logc0, y1, z1, y2, z2, layers, n_deep,
                     downgoing, with_air):
@@ -129,7 +217,7 @@ def obj_delta_y(logc0, y1, z1, y2, z2, layers, n_deep,
     return dy
 
 
-def find_solutions(x1, x2, layers,tol=1e-12):
+def find_solutions(x1, x2, layers, tol=1e-12, dropped=None):
     """
     Find all valid ray tracing solutions between two points. Stable solutions over layer boundary with non-smooth n(z).
 
@@ -152,6 +240,9 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
     tol : float, optional
         Root-finding tolerance.
+
+    dropped : list, optional
+        If given, solutions of rays that turn in the air are appended to it (see ``_remove_rays_turning_in_air``).
 
     Returns
     -------
@@ -299,8 +390,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
     logc0_start = result_x + logc0_offset
 
     if with_air:
-        c0cross_min = 1.0
-        logc0_start = np.log(max(c0cross_min - 1./n_deep, 1e-12))
+        logc0_start = _get_logc0_start_with_air(z1, z2, layers, n_deep)
 
     logc0_stop = 100.0
 
@@ -328,7 +418,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
 
-        result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
+        result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1, z1, y2, z2, layers, n_deep, downgoing, with_air), xtol=_brentq_xtol(with_air))
 
         if not np.any(np.isclose(result2, logc0s, rtol=0, atol=logc0_tol)):
             c_0 = get_c0_from_log(result2,n_deep)
@@ -373,7 +463,7 @@ def find_solutions(x1, x2, layers,tol=1e-12):
             )
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
-        result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
+        result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1, z1, y2, z2, layers, n_deep, downgoing, with_air), xtol=_brentq_xtol(with_air))
 
 
         if not np.any(np.isclose(result3, logc0s, rtol=0, atol=logc0_tol)):
@@ -394,14 +484,15 @@ def find_solutions(x1, x2, layers,tol=1e-12):
 
     
 
+    results = _remove_unphysical_solutions(results, z1, z2, layers)
+
     if with_air:
-        # Keep only the solution with the smallest C0
-        results = max(results, key=lambda x: x['C0'])
-        return [results]
+        results = _remove_rays_turning_in_air(results, y1, z1, y2, z2, layers, downgoing, with_air, dropped)
+        return _keep_one_air_solution(results)
 
     return sorted(results, key=itemgetter('type', 'C0'))
 
-def find_solutions_bulk(x1, x2, layers,tol=1e-12):
+def find_solutions_bulk(x1, x2, layers, tol=1e-12, dropped=None):
     """
     Find all valid ray tracing solutions between two points. Optimized for points below ice with z1 close to z2.
 
@@ -421,6 +512,9 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
     tol : float, optional
         Root-finding tolerance.
+
+    dropped : list, optional
+        If given, solutions of rays that turn in the air are appended to it (see ``_remove_rays_turning_in_air``).
 
     Returns
     -------
@@ -585,8 +679,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
     logc0_start = result_x + logc0_offset
 
     if with_air:
-        c0cross_min = 1.0
-        logc0_start = np.log(max(c0cross_min - 1./n_deep, 1e-12))
+        logc0_start = _get_logc0_start_with_air(z1, z2, layers, n_deep)
 
     logc0_stop = 100.0
 
@@ -606,7 +699,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
 
-        result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2,layers, n_deep,downgoing,with_air))
+        result2 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1, z1, y2, z2, layers, n_deep, downgoing, with_air), xtol=_brentq_xtol(with_air))
 
         if not np.any(np.isclose(result2, logc0s, rtol=0, atol=logc0_tol)):
             c_0 = get_c0_from_log(result2,n_deep)
@@ -651,7 +744,7 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
             )
 
     if(np.sign(delta_start) != np.sign(delta_stop)):
-        result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1,z1,y2,z2, layers, n_deep,downgoing,with_air))
+        result3 = optimize.brentq(obj_delta_y, logc0_start, logc0_stop, args=(y1, z1, y2, z2, layers, n_deep, downgoing, with_air), xtol=_brentq_xtol(with_air))
 
 
         if not np.any(np.isclose(result3, logc0s, rtol=0, atol=logc0_tol)):
@@ -669,5 +762,11 @@ def find_solutions_bulk(x1, x2, layers,tol=1e-12):
                             'D' : result3,
                             'x1': x1,
                             'flag' : 4})
+
+    results = _remove_unphysical_solutions(results, z1, z2, layers)
+
+    if with_air:
+        results = _remove_rays_turning_in_air(results, y1, z1, y2, z2, layers, downgoing, with_air, dropped)
+        return _keep_one_air_solution(results)
 
     return sorted(results, key=itemgetter('type', 'C0'))
