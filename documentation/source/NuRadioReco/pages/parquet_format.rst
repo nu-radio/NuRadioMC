@@ -158,6 +158,19 @@ kind (struct of lists). For example, ``channelParameters.SNR[i]`` belongs to cha
     - ``sim_emitter.id``, ``sim_emitter.station_ids``
     - ``sim_emitter.emitterParameters.<name>``
 
+The id columns identify an object as the framework does:
+
+- **channel**: its channel id. ``channel.group_id`` is null where the group id equals the channel id (the default).
+- **trigger channel**: entry ``i`` is the trigger channel of channel ``channel_ids[i]`` (null where a channel has
+  none; the whole column is null if no channel has one).
+- **sim channel**: the triple (channel id, shower id, ray tracing solution id).
+- **electric field** (and sim electric field): no id of its own; it is described by the channels it belongs to, its
+  shower id and its ray tracing solution id.
+- **trigger**: its name (the key of ``station.get_trigger(name)``). The station column ``trigger`` holds the name of
+  the earliest fired trigger.
+
+Ids are int64 (see Developer rules below).
+
 Naming: parameter columns are ``[<kind>.]<enum class>.<member>``, other attributes ``<kind>.<attribute>``. Every kind
 has the columns ``<kind>.parameter_types`` (names of its parameter enums), ``<kind>.covariances`` and
 ``<kind>.none_parameters`` (see below). The attributes of the event itself have no prefix in the event file
