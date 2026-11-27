@@ -12,6 +12,7 @@ class direct_ray_tracing(ray_tracing_base):
     """
     Raytracing module for direct ray (straight line) propagation.
     """
+    supports_bottom_reflections = False
 
     def find_solutions(self):
         results = []
