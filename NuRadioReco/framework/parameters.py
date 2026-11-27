@@ -203,7 +203,10 @@ class channelParameters(TypedEnum):
     zenith = 1, float  #: zenith angle of the incoming signal direction
     azimuth = 2, float  #: azimuth angle of the incoming signal direction
     maximum_amplitude = 4, float  #: the maximum ampliude of the magnitude of the trace
-    SNR = 5, Dict[str, float]  #: a dictionary with the following signal-to-noise ratio definitions:
+    SNR = (
+        5,
+        OneOf(value=float, definitions=Dict[str, float]),
+    )  #: a single SNR (e.g. LOFAR) or a dictionary with the following signal-to-noise ratio definitions:
     # 'integrated_power':
     # Difference of the sum of the squared amplitudes in the signal window and in the noise window
     # SNR = sum_sig(V_i^2) - sum_noise(V_i^2)
@@ -278,7 +281,10 @@ class electricFieldParameters(TypedEnum):
         3,
         float,
     )  #: expected polarization based on shower geometry. Defined analogous to polarization_angle
-    signal_energy_fluence = 4, float  #: Energy/area in the radio signal
+    signal_energy_fluence = (
+        4,
+        OneOf(value=float, per_polarization=np.ndarray, per_passband=Dict[str, float]),
+    )  #: Energy/area in the radio signal (also per polarization (r, theta, phi), or per passband "<min>-<max>" in MHz)
     cr_spectrum_slope = (
         5,
         float,
