@@ -20,7 +20,7 @@ Read the parquet files written by `NuRadioReco.modules.io.eventWriter` as tables
   ``nuradio-analyse convert <.nur files> [--output-dir DIR]`` (see `NuRadioReco.modules.io.nur_to_parquet`)
 * Needs polars >= 2 (``pip install nuradiomc[analysis]``). It returns parquet maps as ``pl.Map`` (polars < 2
   returned them as ``list[struct{key, value}]``), e.g.
-  ``pl.col("channelParameters.SNR").list.eval(pl.element().map.get("peak_amplitude"))``.
+  ``pl.col("channelParameters.SNR").list.eval(pl.element().struct.field("definitions").map.get("peak_amplitude"))``.
 """
 
 import logging
@@ -540,7 +540,9 @@ def _histogram_values(reader, kind, column, channels=None, key=None):
     (and ``channel_id`` for channel parameters).
 
     Lists are flattened. Channel parameters are lists aligned with the channel ids: `channels` selects channel ids.
-    Maps (e.g. ``channelParameters.SNR``) need the `key` to histogram.
+    Maps need the `key` to histogram, structs a field name as `key`. Structs of a
+    `NuRadioReco.framework.parameters.OneOf` parameter (e.g. ``channelParameters.SNR``: a single value or a map per
+    definition) take the map alternative with `key`, else the numeric one.
     """
     table = reader.tables()[kind]
     schema = table.collect_schema()
@@ -569,6 +571,22 @@ def _histogram_values(reader, kind, column, channels=None, key=None):
 
     while isinstance(dtype, pl.List):
         frame, dtype = frame.explode("value", empty_as_null=False), dtype.inner
+
+    if isinstance(dtype, pl.Struct):
+        # A struct field (`key` is a field name), else for a `OneOf` parameter (one field per alternative, e.g.
+        # SNR as single value or per definition) the map alternative (with `key`) or the scalar one (without)
+        fields = {field.name: field.dtype for field in dtype.fields}
+        if key in fields:
+            chosen, key = [key], None
+        elif key is not None:
+            chosen = [field for field, field_type in fields.items() if isinstance(field_type, pl.Map)]
+        else:
+            chosen = [field for field, field_type in fields.items() if field_type.is_numeric()]
+        if len(chosen) != 1:
+            raise ValueError(f"{name} is a struct, choose one of its fields with --key: {list(fields)}")
+
+        frame = frame.with_columns(pl.col("value").struct.field(chosen[0]).alias("value"))
+        dtype = fields[chosen[0]]
 
     if isinstance(dtype, pl.Map):  # the value of one key (maps without it give null)
         if key is None:

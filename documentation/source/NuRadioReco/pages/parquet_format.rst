@@ -68,7 +68,7 @@ level columns have the prefix ``event.``. It needs polars >= 2 (``pip install -e
   snr = (
       df.select("run", "event_id", "channel_ids", "channelParameters.SNR")
       .explode("channel_ids", "channelParameters.SNR")  # one row per channel
-      .with_columns(pl.col("channelParameters.SNR").map.get("peak_amplitude").alias("snr"))
+      .with_columns(pl.col("channelParameters.SNR").struct.field("definitions").map.get("peak_amplitude").alias("snr"))
   )
   energies = df["event.generatorAttributes.Emin"].to_numpy()
 
