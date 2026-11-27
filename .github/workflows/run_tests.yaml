@@ -99,6 +99,11 @@ jobs:
         # numba's jit decorator becomes a no-op, i.e., ARZ runs its python implementation
         NUMBA_DISABLE_JIT=1 NuRadioMC/test/SingleEvents/validate_ARZ.sh
 
+    - name: "Reuse of electric fields for channels at identical positions"
+      if: always()
+      run: |
+        python NuRadioMC/test/SingleEvents/T06validate_efield_reuse.py
+
     - name: Upload coverage data
       if: always()
       uses: ./.github/actions/upload-coverage-data
