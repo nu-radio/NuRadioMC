@@ -84,7 +84,7 @@ def test_write_read(tmp_path):
     assert {b"nuradio_version", b"nuradio_commit"} <= set(metadata)
 
     assert df.schema["stationParameters.viewing_angles"] == pl.Map(pl.Int64, pl.Map(pl.Int64, pl.Float64))
-    assert df["channelParameters.SNR"][0].map.get("peak_amplitude").to_list() == [3.0, None, 3.0]
+    assert df["channelParameters.SNR"][0].struct.field("definitions").map.get("peak_amplitude").to_list() == [3.0, None, 3.0]
     table = pq.read_table(tmp_path / "out.parquet")  # pyarrow: maps as lists of (key, value)
     assert table["stationParameters.viewing_angles"][0].as_py() == [(0, [(1, 0.5)])]
     assert table["stationParameters.flagged_channels"][0].as_py() == [(2, ["a", "b"])]
