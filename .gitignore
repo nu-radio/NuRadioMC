@@ -21,6 +21,9 @@
 *.npy
 *.root
 
+# lock files of downloads (NuRadioReco/utilities/dataservers.py)
+*.lock
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -28,6 +31,9 @@ __pycache__/
 
 # C extensions
 *.so
+
+# Proposal tables
+*.dat
 
 # Distribution / packaging
 .Python

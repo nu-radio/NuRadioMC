@@ -7,7 +7,7 @@ from NuRadioReco.utilities import units, constants
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.corefunctions import compute_offsets, evaluate_y, get_n_1D
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.MultilayerAnalyticRayTracing.getrayparameters import get_travel_time_analytic
 
-from NuRadioMC.SignalProp.AnalyticRayTracingImpl.maybenumba import njit
+from NuRadioMC.SignalProp.AnalyticRayTracingImpl._maybenumba import njit
 
 
 @njit(cache=True)
@@ -69,7 +69,7 @@ def get_inice_quantities(pos, theta_air, layers):
     return horizontal_offset, travel_time
 
 @njit(cache=True)
-def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, layers, azimuth_convention = 'nuradio'):
+def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, layers):
     """
     Compute the relative arrival time of a plane wave between two receivers.
 
@@ -82,7 +82,7 @@ def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, laye
        ice surface.
 
     The in-ice propagation is evaluated analytically using the multilayer
-    ray tracer.
+    ray tracer. The nuradio angle convention is used: 0deg east, 90deg north, 180 deg west, 270deg south
 
     Parameters
     ----------
@@ -128,19 +128,11 @@ def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, laye
     """
 
     # horizontal propagation direction of incoming signal, projected onto surface
-    if azimuth_convention == 'nuradio':
-        src_hvec = np.array([
-            np.cos(phi_air),
-            np.sin(phi_air)
-        ])
-    elif azimuth_convention == 'astropy':
-        src_hvec = np.array([
-            np.sin(phi_air),
-            np.cos(phi_air)
-        ])
-    else:
-        raise ValueError(f"Azimuth convention '{azimuth_convention}' is not defined. Use 'nuradio' or 'astropy'!")
 
+    src_hvec = np.array([
+        np.cos(phi_air),
+        np.sin(phi_air)
+    ])
 
     n_air = get_n_1D(0.0001, layers)
 
@@ -158,9 +150,6 @@ def get_time_difference_plane_wave_analytic(pos1, pos2, theta_air, phi_air, laye
     # actual surface intersection points
     P1 = R1 + r1 * src_hvec
     P2 = R2 + r2 * src_hvec
-
-    #print(f"P1: {P1}")
-    #print(f"P2: {P2}")
 
     # vector connecting both surface intersection points
     dP = P2 - P1

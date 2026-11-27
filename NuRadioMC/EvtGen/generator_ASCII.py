@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import numpy as np
 from NuRadioReco.utilities import units
+from NuRadioReco.utilities.coding_helper import get_rng
 
 # define simulation volume
 xmin = -3 * units.km
@@ -39,17 +40,23 @@ HEADER = """VERSION=0.2
 
 def generate_eventlist(filename, n_events, Emin, Emax,
                        start_event_id=1,
-                       flavor=[12, -12, 14, -14, 16, -16]):
+                       flavor=[12, -12, 14, -14, 16, -16], seed=None):
+    """
+    Writes a random event list in the ASCII format described in ``HEADER``.
+
+    The argument ``seed`` (None or int) seeds the random generator (see `NuRadioReco.utilities.coding_helper.get_rng`).
+    """
+    rng = get_rng(seed)
     n_events = int(n_events)
     event_ids = np.arange(n_events) + start_event_id
 
     # generate neutrino flavors randomly
-    flavors = np.array([flavor[i] for i in np.random.randint(0, high=len(flavor), size=n_events)])
+    flavors = np.array([flavor[i] for i in rng.integers(0, high=len(flavor), size=n_events)])
     # generate energies randomly
-    energies = 10 ** np.random.uniform(np.log10(Emin), np.log10(Emax), n_events)
+    energies = 10 ** rng.uniform(np.log10(Emin), np.log10(Emax), n_events)
 
     # generate charged/neutral current randomly (ported from ShelfMC)
-    rnd = np.random.uniform(0., 1., n_events)
+    rnd = rng.uniform(0., 1., n_events)
     ccncs = np.ones(n_events, dtype='S2')
     for i, r in enumerate(rnd):
         if(r <= 0.7064):
@@ -58,19 +65,19 @@ def generate_eventlist(filename, n_events, Emin, Emax,
             ccncs[i] = 'nc'
 
     # generate neutrino vertices randomly
-    xx = np.random.uniform(xmin, xmax, n_events)
-    yy = np.random.uniform(ymin, ymax, n_events)
-    zz = np.random.uniform(fiducial_zmin, fiducial_zmax, n_events)
+    xx = rng.uniform(xmin, xmax, n_events)
+    yy = rng.uniform(ymin, ymax, n_events)
+    zz = rng.uniform(fiducial_zmin, fiducial_zmax, n_events)
 
     # generate neutrino direction randomly
-    azimuths = np.random.uniform(0, 360 * units.deg, n_events)
-    u = np.random.uniform(-1, 1, n_events)
+    azimuths = rng.uniform(0, 360 * units.deg, n_events)
+    u = rng.uniform(-1, 1, n_events)
     zeniths = np.arccos(u)  # generates distribution that is uniform in cos(theta)
 
     # generate inelasticity (ported from ShelfMC)
     R1 = 0.36787944
     R2 = 0.63212056
-    inelasticity = (-np.log(R1 + np.random.uniform(0., 1., n_events) * R2)) ** 2.5
+    inelasticity = (-np.log(R1 + rng.uniform(0., 1., n_events) * R2)) ** 2.5
 
     with open(filename, 'w') as fout:
         fout.write(HEADER)

@@ -2,7 +2,7 @@ import numpy as np
 from numpy import testing
 from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.SignalProp.AnalyticRayTracingImpl.single_layer_analytic_raytracer import cpp_available
-from NuRadioMC.utilities import medium
+from NuRadioMC.utilities import medium, medium_base
 from NuRadioReco.utilities import units
 
 # Geometry from PR #1192: the duplicate-solution check in find_solutions used to drop the second solution
@@ -14,8 +14,12 @@ C0s_ref = [1.284546, 4.175292]
 configs = {
     "single layer, python": (medium.southpole_2015(), dict(use_cpp=False, compile_numba=False)),
     "single layer, numba": (medium.southpole_2015(), dict(use_cpp=False, compile_numba=True)),
-    "multilayer, python": (medium.southpole_2015_layered(), dict(use_cpp=False, compile_numba=False)),
-    "multilayer, numba": (medium.southpole_2015_layered(), dict(use_cpp=False, compile_numba=True)),
+    "multilayer, python": (
+        medium_base.IceModelExpLayers.from_IceModel(medium.southpole_2015()),
+        dict(use_cpp=False, compile_numba=False)),
+    "multilayer, numba": (
+        medium_base.IceModelExpLayers.from_IceModel(medium.southpole_2015()),
+        dict(use_cpp=False, compile_numba=True)),
 }
 if cpp_available:
     configs["single layer, C++"] = (medium.southpole_2015(), dict(use_cpp=True))

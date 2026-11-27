@@ -40,11 +40,15 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
+    - name: Store current OS version in env
+      shell: bash
+      run: echo "OS_VERSION=$(lsb_release -rs)" >> $GITHUB_ENV
+
     - name: Set up Python and install dependencies
       uses: ./.github/actions/setup-python-env
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}-v3
+        cache-key: ${{ runner.os }}-${{ env.OS_version }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}-v3
         restore-only: false
 
     - name: Lint with flake8 (important)
@@ -262,6 +266,21 @@ jobs:
       run: |
         python NuRadioReco/test/utilities/test_trace_utilities.py
 
+    - name: "Test neutrino flux models"
+      if: always()
+      run: |
+        python NuRadioMC/test/utilities/test_neutrino_fluxes.py
+
+    - name: "Test limit plot"
+      if: always()
+      run: |
+        python NuRadioMC/test/examples/test_limit_plot.py
+
+    - name: "Test coding helpers"
+      if: always()
+      run: |
+        python NuRadioReco/test/utilities/test_coding_helper.py
+
     - name: "Test light utilities import without heavy dependencies"
       if: always()
       run: |
@@ -332,6 +351,8 @@ jobs:
         jupyter execute NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_lofar_data.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_RNOG_data.ipynb
+        rm -v NuRadioMC/examples/Interactive/{1e19_n1e3.hdf5,1e19_n1e3_output.hdf5,1e19_n1e3_output.nur}
+        rm -v NuRadioReco/examples/Interactive/92380604.nur NuRadioReco/examples/Interactive/*_92380604.png
 
     - name: "Simulation examples"
       if: always()

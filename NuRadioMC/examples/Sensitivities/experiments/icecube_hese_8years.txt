@@ -1,0 +1,15 @@
+# Source: IceCube HESE flux 8 years 
+# Data type: Measurement 
+# Column values:
+# Log10 Energy [GeV]
+# Log10 Flux [GeV cm^-2 s^-1 sr^-1]
+# Log10 Flux error down 
+# Log10 Flux error up
+
+4.78516  -7.63256  0.223256  0.167442
+5.10938  -7.66977  0.139535  0.102326
+5.42969  -8.36744  0.930233  0.297674
+5.75391  -8.51628  0.200000  0
+6.07813  -8.38605  0.604651  0.288372
+6.39844  -8.35814  0.455814  0.334884
+6.72266  -9.00000  0.200000  0
