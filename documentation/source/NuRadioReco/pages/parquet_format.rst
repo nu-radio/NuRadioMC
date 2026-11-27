@@ -50,11 +50,47 @@ Reading the traces dominates the time. Without them, and only for some stations 
 
 Events without a selected station are skipped. Files whose row group statistics exclude the selection are not read.
 
-Converting ``.nur`` files
-_________________________
+Column analyses with polars
+___________________________
 
-:func:`convert_nur <NuRadioReco.modules.io.nur_to_parquet.convert_nur>` converts ``.nur`` files to parquet (one
-output per input file; a detector stored in the ``.nur`` file is not converted).
+Every parameter is a column, so quantities of many events are read without building ``Event`` objects (and without
+NuRadio, with any parquet library).
+:class:`AnalysisReader <NuRadioReco.utilities.analysis_reader.AnalysisReader>` finds the files, selects stations
+and runs, and returns a `polars <https://pola.rs>`_ ``DataFrame`` with one row per event and station; the event
+level columns have the prefix ``event.``. It needs polars >= 2 (``pip install -e .[analysis]``).
+
+.. code-block:: Python
+
+  import polars as pl
+  from NuRadioReco.utilities.analysis_reader import AnalysisReader
+
+  df = AnalysisReader("processed.parquet", stations=[101]).read()
+  snr = (
+      df.select("run", "event_id", "channel_ids", "channelParameters.SNR")
+      .explode("channel_ids", "channelParameters.SNR")  # one row per channel
+      .with_columns(pl.col("channelParameters.SNR").map.get("peak_amplitude").alias("snr"))
+  )
+  energies = df["event.generatorAttributes.Emin"].to_numpy()
+
+Traces are only read on request (``AnalysisReader(..., traces=True)``). See also
+``NuRadioReco/examples/parquet_io_example.py``.
+
+Command line
+____________
+
+``nuradio-analyse`` (installed with NuRadioMC; also ``python -m NuRadioReco.utilities.analysis_reader``) inspects
+and converts files (``nuradio-analyse <command> --help``):
+
+.. code-block:: bash
+
+  nuradio-analyse columns processed.parquet                         # columns with data
+  nuradio-analyse columns processed.parquet --class stationParameters --stats
+  nuradio-analyse columns processed.parquet --triggers              # events per (first) trigger
+  nuradio-analyse hist SNR processed.parquet --key peak_amplitude --channels 0 1 -o snr.png
+  nuradio-analyse convert old/*.nur --output-dir new/               # .nur -> parquet
+
+``convert`` writes one output per input (``--output NAME`` merges them) and does not convert a detector stored in
+the ``.nur`` file. From python: :func:`convert_nur <NuRadioReco.modules.io.nur_to_parquet.convert_nur>`.
 
 ``.nur`` files
 ______________
@@ -162,7 +198,7 @@ Naming: parameter columns are ``[<kind>.]<enum class>.<member>``, other attribut
 has the columns ``<kind>.parameter_types`` (names of its parameter enums), ``<kind>.covariances`` and
 ``<kind>.none_parameters`` (see below). The attributes of the event itself have no prefix in the event file
 (``modules``, ``parameter_types``, ``covariances``, ``none_parameters``); like all event columns, they get the prefix
-``event.`` in the station rows (single file layout), e.g. ``event.modules``. Further station columns: ``station_time_jd1/_jd2/_scale`` (and
+``event.`` in the station rows (single file layout, ``AnalysisReader``), e.g. ``event.modules``. Further station columns: ``station_time_jd1/_jd2/_scale`` (and
 ``sim_station.station_time_*``), ``trigger`` (name of the earliest fired trigger, null if none fired),
 ``station.modules``, ``station.particle_type``, ``station.triggered``, ``station.reference_reconstruction``,
 ``sim_station.magnetic_field_vector``, ``sim_station.simulation_weight``, ``<kind>.group_id`` of channels.
@@ -179,7 +215,7 @@ channels (one list of samples per channel) and ``list<list<list<double>>>`` for 
 with ``<kind>.sampling_rate`` and ``<kind>.trace_start_time`` per object (relative to the station time). Trace
 lengths may differ between objects. An object without stored trace has a null entry. Trace columns are neither
 dictionary encoded nor have statistics. Read them with pyarrow (``pyarrow.parquet.read_table``); polars' native
-reader is much slower for nested float lists.
+reader is much slower for nested float lists (``AnalysisReader`` does this for you).
 
 Parameter types
 _______________
@@ -260,7 +296,7 @@ Key-value pairs in the parquet footer (``pyarrow.parquet.read_schema(file).metad
   * - ``comment``
     - free text (``eventWriter.begin(comment=...)``)
   * - further keys
-    - ``eventWriter.begin(metadata=...)``; ``convert_nur`` adds ``source_files`` and ``nur_file_version``
+    - ``eventWriter.begin(metadata=...)``; ``nuradio-analyse convert`` adds ``source_files`` and ``nur_file_version``
 
 Not stored: the detector description, the hybrid detector object of hybrid showers, triggers of sim stations.
 
