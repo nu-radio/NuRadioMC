@@ -78,6 +78,8 @@ bugfixes:
 - The AntennaPatternProvider buffer is no longer emptied every time the (singleton) provider is instantiated. Antenna models
   were reloaded from disk whenever another module created its own provider.
 - Antenna responses for directions outside the tabulated range return one value per frequency instead of a single value.
+- `geometryUtilities.fresnel_factors_and_signal_zenith` raised a TypeError for antennas above the surface and signals
+  from below (wrong keyword names in the call to `get_fresnel_angle`, since v3.0.0).
 - Fix bug in the readRNOGDataMattak where the trigger dependend readout delays were applied with the
   the wrong sign to the trace_start_time
 - Limit plot for source populations (`diffuse=False`): the energy axis was left in GeV and the plot was empty.

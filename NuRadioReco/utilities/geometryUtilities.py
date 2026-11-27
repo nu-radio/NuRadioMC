@@ -335,7 +335,7 @@ def fresnel_factors_and_signal_zenith(detector, station, channel_id, zenith):
 
     elif position[2] > 0 and zenith > 0.5 * np.pi:
         # now the signal is coming from below, do we have an antenna above the surface?
-        zenith_antenna = get_fresnel_angle(zenith, n2=1., n1=n_ice)
+        zenith_antenna = get_fresnel_angle(zenith, n_2=1., n_1=n_ice)
 
     if zenith_antenna is None:
         logger.warning(
