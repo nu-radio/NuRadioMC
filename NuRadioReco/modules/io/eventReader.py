@@ -397,8 +397,9 @@ def _is_nur(path):
 
 class eventReader:
     """
-    Reads the parquet files of `eventWriter` and returns complete `Event` objects (see the module documentation).
-    ``.nur`` files are read with `eventReaderNur` (deprecated).
+    Reads the parquet files of `eventWriter` and returns complete `~NuRadioReco.framework.event.Event` objects
+    (see the module documentation). ``.nur`` files are read with
+    `~NuRadioReco.modules.io.eventReaderNur.eventReaderNur` (deprecated).
 
     Call `begin`, iterate over `run`, and finally `close` (or `end`, which is also called at exit).
     """
@@ -434,8 +435,8 @@ class eventReader:
         filename : str or list of str
             Directories (searched recursively), files or glob patterns (see `parquet_utilities.find_files`).
             Event files are also found next to the selected station files.
-            ``.nur`` files (deprecated) are read with `eventReaderNur` (with ``read_detector`` and ``log_level``);
-            they can not be mixed with parquet files.
+            ``.nur`` files (deprecated) are read with `~NuRadioReco.modules.io.eventReaderNur.eventReaderNur`
+            (with ``read_detector`` and ``log_level``); they can not be mixed with parquet files.
         read_detector : bool, default=False
             Only for ``.nur`` files: parse the detector description stored in the files (see `get_detector`).
             Parquet files store no detector.
@@ -591,7 +592,9 @@ class eventReader:
 
     @register_run()
     def run(self):
-        """Generator of the `Event` objects, in file order (see the module documentation)."""
+        """
+        Generator of the `~NuRadioReco.framework.event.Event` objects, in file order (see the module documentation).
+        """
         if self.__nur is not None:
             return self.__nur.run()
 
@@ -626,7 +629,7 @@ class eventReader:
 
     def get_event_i(self, number, cache_size=4):
         """
-        Random access: the `Event` with index `number` (order of `run`).
+        Random access: the `~NuRadioReco.framework.event.Event` with index `number` (order of `run`).
 
         Decodes only the rows of this event; the arrow tables of the last `cache_size` row groups are kept,
         so neighbouring events are read without decoding their row groups again.
@@ -686,8 +689,9 @@ class eventReader:
         """
         Overview of all events without reading the traces.
 
-        Parquet: the station rows joined with the event columns as `polars.DataFrame` (one row per event and
-        station, see `analysis_reader.AnalysisReader`; needs polars). ``.nur``: the header dict of `eventReaderNur`.
+        Parquet: the station rows joined with the event columns as ``polars.DataFrame`` (one row per event and
+        station, see `NuRadioReco.utilities.analysis_reader.AnalysisReader`; needs polars).
+        ``.nur``: the header dict of `~NuRadioReco.modules.io.eventReaderNur.eventReaderNur`.
         """
         if self.__nur is not None:
             return self.__nur.get_header()
@@ -697,7 +701,10 @@ class eventReader:
         ).read()
 
     def get_detector(self):
-        """The detector stored in ``.nur`` files (see `eventReaderNur.get_detector`). Parquet files: None."""
+        """
+        The detector stored in ``.nur`` files (see
+        `~NuRadioReco.modules.io.eventReaderNur.eventReaderNur.get_detector`). Parquet files: None.
+        """
         if self.__nur is not None:
             return self.__nur.get_detector()
 
