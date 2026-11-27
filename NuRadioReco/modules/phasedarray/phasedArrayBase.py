@@ -333,7 +333,6 @@ class PhasedArrayBase():
         logger.debug("trigger channels: {}".format(traces.keys()))
         return traces, final_sampling_frequency
 
-
     def hilbert_envelope(self, coh_sum, adc_output='voltage', ideal_transformer=False, hilbert_n_taps=31, hilbert_coeff_gain=1):
 
         if ideal_transformer:
@@ -523,7 +522,11 @@ class PhasedArrayBase():
                     for channel_id in beam_rolls[iTrace]}
 
                 triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(sig_trace > threshold)))
-                trigger_times[iTrace] = np.abs(np.min(list(trigger_delays[iTrace]))) + triggered_bins * bin_step * time_step + channel_trace_start_time
+                trigger_times[iTrace] = (
+                    np.abs(np.min(list(trigger_delays[iTrace])))
+                    + triggered_bins * bin_step * time_step
+                    + channel_trace_start_time
+                )
 
                 logger.debug(
                     "Station has triggered, at bins {}\n".format(triggered_bins) +

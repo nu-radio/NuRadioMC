@@ -166,13 +166,13 @@ class PhasedEnvelopeTriggerSimulator(PhasedArrayBase):
             trigger_channels=triggered_channels,
             phasing_angles=phasing_angles,
             trigger_delays=trigger_delays,
-            maximum_amps=maximum_amps
+            maximum_amps=maximum_amps,
         )
 
         trigger.set_triggered(is_triggered)
 
         if is_triggered:
-            #trigger_time(s)= time(s) from start of trace + start time of trace with respect to moment of first interaction
+            # trigger_time(s)= time(s) from start of trace + start time of trace with respect to moment of first interaction
             # = trigger time from moment of first interaction; time offset to interaction time (channel_trace_start_time)
             # already recognized in self.phased_trigger
             trigger.set_trigger_time(trigger_time)

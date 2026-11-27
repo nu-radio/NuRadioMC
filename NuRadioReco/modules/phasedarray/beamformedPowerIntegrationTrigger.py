@@ -173,7 +173,7 @@ class BeamformedPowerIntegrationTrigger(PhasedArrayBase):
         trigger.set_triggered(is_triggered)
 
         if is_triggered:
-            #trigger_time(s)= time(s) from start of trace + start time of trace with
+            # trigger_time(s)= time(s) from start of trace + start time of trace with
             # respect to moment of first interaction = trigger time from moment of first
             # interaction; time offset to interaction time (channel_trace_start_time)
             # already recognized in self.phased_trigger
