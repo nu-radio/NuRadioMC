@@ -261,7 +261,7 @@ nitpick_ignore_regex = [
     ("py:class", "nifty5.*"),
     ("py:obj",".*__call__"), # not sure why this method is listed sometimes - it shouldn't be?
     # return values in the docstrings of dict methods, inherited by the TypedDict classes in parameters.py
-    ("py:class", r"None\.  (Remove all items from D|Update D from dict/iterable E and F)\."),
+    ("py:class", r"None\.  (Remove all items from D|Update D from (dict|mapping)/iterable E and F)\."),
     ("py:class", r"a shallow copy of D"),
     ("py:class", r"(a set-like object|an object) providing a view on D's (items|keys|values)"),
 ]
