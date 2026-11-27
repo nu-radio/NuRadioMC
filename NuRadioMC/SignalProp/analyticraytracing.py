@@ -100,6 +100,18 @@ class ray_tracing(ray_tracing_base):
         self.__logger = logging.getLogger('NuRadioMC.ray_tracing')
         self.__logger.setLevel(log_level)
 
+        if isinstance(medium, IceModelExpLayers):
+            # the value from the config takes precedence (see ``ray_tracing_base._set_arguments``)
+            requested_reflections = n_reflections
+            if config is not None and 'n_reflections' in config.get('propagation', {}):
+                requested_reflections = config['propagation']['n_reflections']
+
+            if requested_reflections:
+                msg = ("The multilayer analytic ray tracer (ice model of type 'IceModelExpLayers') does not support "
+                       f"reflections off a reflective bottom layer, but n_reflections = {requested_reflections} was requested.")
+                self.__logger.error(msg)
+                raise NotImplementedError(msg)
+
         if not isinstance(medium, (IceModelSimple, IceModelExpLayers)):
             self.__logger.error(
                 "The analytic raytracer can only handle ice models of the type 'IceModelSimple' "

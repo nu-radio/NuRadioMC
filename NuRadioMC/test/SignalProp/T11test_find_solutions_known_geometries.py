@@ -32,4 +32,14 @@ for name, (ice, kwargs) in configs.items():
     testing.assert_allclose(C0s, C0s_ref, rtol=1e-5, err_msg=name)
     print(f"{name}: {np.round(C0s, 6)}")
 
+# The multilayer ray tracer does not support bottom reflections and has to say so
+ice_multilayer = medium_base.IceModelExpLayers.from_IceModel(medium.southpole_2015())
+for kwargs in [dict(n_reflections=1), dict(config={'propagation': {'n_reflections': 1}})]:
+    try:
+        ray.ray_tracing(ice_multilayer, **kwargs)
+    except NotImplementedError:
+        print(f"multilayer with {kwargs}: raises NotImplementedError")
+    else:
+        raise AssertionError(f"multilayer ray tracer accepted bottom reflections ({kwargs})")
+
 print('T11test_find_solutions_known_geometries passed without issues')
