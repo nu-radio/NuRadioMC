@@ -7,7 +7,7 @@ are clearer. The signals are then rescaled to have the appropriate SNR and
 the phased trigger is run to decide whether the event is selected.
 
 python T02RunSNR.py input_neutrino_file.hdf5 proposalcompact_50m_1.5GHz.json
-config.yaml output_NuRadioMC_file.hdf5 output_SNR_file.hdf5 output_NuRadioReco_file.nur(optional)
+config.yaml output_NuRadioMC_file.hdf5 output_SNR_file.hdf5 output_NuRadioReco_file.parquet(optional)
 
 The output_SNR_file.hdf5 contains the information on the SNR curves stored in
 hdf5 format. The fields in this file are:
@@ -21,6 +21,7 @@ bandpass filter and so on.
 
 WARNING: this file needs NuRadioMC to be run.
 """
+
 from __future__ import absolute_import, division, print_function
 
 import argparse

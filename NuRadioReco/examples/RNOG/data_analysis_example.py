@@ -90,9 +90,8 @@ if __name__ == "__main__":
             signal_amplitude = channel[chp.maximum_amplitude_envelope]
             signal_time = channel[chp.signal_time]
 
-            #print(f"Channel {channel.get_id()}: SNR={SNR:.1f}, signal amplitude={signal_amplitude / units.mV:.2f}mV, "
-                  #f"signal time={signal_time / units.ns:.2f}ns")
-
+            # print(f"Channel {channel.get_id()}: SNR={SNR:.1f}, signal amplitude={signal_amplitude / units.mV:.2f}mV, "
+            # f"signal time={signal_time / units.ns:.2f}ns")
 
         # the following code is just an example of how to access the channel waveforms and plot them
         # we do it only for high-SNR events
@@ -111,7 +110,6 @@ if __name__ == "__main__":
             fig.savefig(f'channel_traces_{idx}.png')
             plt.close(fig)
 
-
         # Apply the Hit Filter
         is_passed_HF = stationHitFilter.run(evt, station, det)
 
@@ -119,26 +117,23 @@ if __name__ == "__main__":
         # this will save disk space and make the data processing faster. The preprocessing applied a 600MHz low-pass filter, so we can downsample to 2GHz without losing information
         channelResampler.run(evt, station, det, sampling_rate=2 * units.GHz)
 
-
         # it is advisable to only save the full waveform information for events that pass certain analysis cuts
         # this will save disk space and make the data processing faster
         # Here, we save events that passed the Hit Filter and exclude forced trigger events and RADIANT trigger events
-        # Write event - the RNO-G detector class is not stored within the nur files.
+        # Write event - the RNO-G detector class is not stored in the event files.
         if is_passed_HF and stationHitFilter.is_wanted_trigger_type():
             # save full waveform information
-            #print("saving full waveform information")
-            eventWriter.run(evt, det=None, mode={'Channels':True, "ElectricFields":True})
+            # print("saving full waveform information")
+            eventWriter.run(evt, mode={'Channels': True, "ElectricFields": True})
         else:
             # only save meta information but no traces to save disk space
-            #print("saving only meta information")
-            eventWriter.run(evt, det=None, mode={'Channels':False, "ElectricFields":False})
-
+            # print("saving only meta information")
+            eventWriter.run(evt, mode={'Channels': False, "ElectricFields": False})
 
         logger.debug("Time for event: %f", time.time() - t0)
         t_total += time.time() - t0
 
     eventWriter.close()
-
 
     logger.status(
         f"\nProcessed {idx + 1} events:"

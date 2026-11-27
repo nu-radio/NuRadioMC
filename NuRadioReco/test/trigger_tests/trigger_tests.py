@@ -16,9 +16,9 @@ det = NuRadioReco.detector.detector.Detector(json_filename='NuRadioReco/test/tri
                                              antenna_by_depth=False)
 det.update(datetime.datetime(2018, 10, 1))
 event_reader = NuRadioReco.modules.io.eventReader.eventReader()
-event_reader.begin('NuRadioReco/test/trigger_tests/trigger_test_input.nur')
+event_reader.begin('NuRadioReco/test/trigger_tests/trigger_test_input.parquet')
 event_writer = NuRadioReco.modules.io.eventWriter.eventWriter()
-event_writer.begin('NuRadioReco/test/trigger_tests/trigger_test_output.nur')
+event_writer.begin('NuRadioReco/test/trigger_tests/trigger_test_output.parquet', overwrite=True)
 
 high_low_trigger = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
 multi_high_low_trigger = NuRadioReco.modules.trigger.multiHighLowThreshold.triggerSimulator()

@@ -6,7 +6,7 @@ a detector file and a configuration file, included in this folder. To run
 the code, type:
 
 python T02RunPhasedRNO.py input_neutrino_file.hdf5 4antennas_100m_1.5GHz.json
-config_RNO.yaml output_NuRadioMC_file.hdf5 output_NuRadioReco_file.nur
+config_RNO.yaml output_NuRadioMC_file.hdf5 output_NuRadioReco_file.parquet
 
 The antenna positions can be changed in the detector position. The config file
 defines de bandwidth for the noise RMS calculation. The properties of the phased

@@ -5,7 +5,7 @@ The `readCoREAS` module yields an event with a single station (id 0) whose SimSt
 CoREAS observers as electric fields. This example uses the `event_builder_auger` helper defined
 below to convert that into an Auger-style event (one Station per observer) and to populate a
 `GenericDetector` on the fly, before running the efield-to-voltage conversion and writing the
-result to a `.nur` file.
+result to a parquet file.
 
 The `event_builder_auger` function is also imported and reused by the
 `RIT_sim_air_shower_reconstruction.py` example. Write your own event_builder to replicate a
@@ -112,9 +112,9 @@ if __name__ == '__main__':
                         default=['example_data/example_event.h5'],
                         help='path to NuRadioMC simulation result')
 
-    parser.add_argument('-o', '--output_filename', type=str, nargs='?',
-                        default='Full_CoREAS_shower.nur',
-                        help='output file name')
+    parser.add_argument(
+        '-o', '--output_filename', type=str, nargs='?', default='Full_CoREAS_shower.parquet', help='output file name'
+    )
 
     parser.add_argument('--detectordescription', type=str, nargs='?',
                         default='../examples/example_data/dual_polerized_antenna_station.json',
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     efieldToVoltageConverter.begin()
     eventTypeIdentifier = NuRadioReco.modules.eventTypeIdentifier.eventTypeIdentifier()
     eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-    eventWriter.begin(args.output_filename)
+    eventWriter.begin(args.output_filename, overwrite=True)
 
     for coreas_event in readCoREAS.run():
         event = event_builder_auger(coreas_event, det)
@@ -141,7 +141,8 @@ if __name__ == '__main__':
         for station in event.get_stations():
             eventTypeIdentifier.run(event, station, 'forced', 'cosmic_ray')
             efieldToVoltageConverter.run(event, station, det)
-        eventWriter.run(event, det)
+
+        eventWriter.run(event)
 
     eventWriter.close()
     print("Finished processing, {} events".format(eventWriter.get_n_events()))

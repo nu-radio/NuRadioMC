@@ -343,7 +343,6 @@ if __name__ == "__main__":
             for idx, trigger_channel in enumerate(deep_trigger_channels):
                 self._Vrms_per_trigger_channel[station.get_id()][trigger_channel] = vrms_after_gain[idx]
 
-
     ABS_PATH_HERE = str(os.path.dirname(os.path.realpath(__file__)))
     def_data_dir = os.path.join(ABS_PATH_HERE, "data")
     default_config_path = os.path.join(ABS_PATH_HERE, "../07_RNO_G_simulation/RNO_config.yaml")
@@ -453,7 +452,7 @@ if __name__ == "__main__":
             logger.info(f"Only simulate events {args.event_list} from input file")
 
     if args.nur_output:
-        nur_output_filename = output_filename.replace(".hdf5", ".nur")
+        nur_output_filename = output_filename.replace(".hdf5", ".parquet")
     else:
         nur_output_filename = None
 

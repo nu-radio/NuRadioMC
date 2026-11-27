@@ -1,11 +1,12 @@
 """
 Script that benchmarks the speed of the NuRadioMC IO modules
 
-First creates a sample .nur file using the NuRadioMC/test/Veff
+First creates a sample parquet file using the NuRadioMC/test/Veff
 example script. Then writes and reads this file n times and reports
 the time per event.
 
 """
+
 from NuRadioReco.modules.io import eventReader, eventWriter
 import subprocess
 import time
@@ -19,8 +20,8 @@ if __name__ == '__main__':
     argparser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     argparser.add_argument(
-        '--file', type=str, default=None,
-        help='Specify a custom .nur file to use for the benchmark')
+        '--file', type=str, default=None, help='Specify a custom event file (parquet or .nur) to use for the benchmark'
+    )
     argparser.add_argument(
         '--n', type=int, default=100,
         help='Number of read/write iterations to perform. Default n=100')
@@ -33,16 +34,23 @@ if __name__ == '__main__':
             cleanup_list += [
                 os.path.join(example_path, '1e18_full.hdf5'),
                 os.path.join(example_path, 'output.hdf5'),
-                os.path.join(example_path, 'output.nur')
+                os.path.join(example_path, 'output.parquet'),
+                os.path.join(example_path, 'output_event.parquet'),
             ]
 
             subprocess.run(['python3', os.path.join(example_path, 'T01generate_event_list.py')])
-            subprocess.run([
-                'python3', os.path.join(example_path, 'T02RunSimulation.py'),
-                '1e18_full.hdf5',
-                '../dipole_100m.json', '../config.yaml',
-                'output.hdf5', 'output.nur'])
-            nur_path = os.path.join(example_path, 'output.nur')
+            subprocess.run(
+                [
+                    'python3',
+                    os.path.join(example_path, 'T02RunSimulation.py'),
+                    '1e18_full.hdf5',
+                    '../dipole_100m.json',
+                    '../config.yaml',
+                    'output.hdf5',
+                    'output.parquet',
+                ]
+            )
+            nur_path = os.path.join(example_path, 'output.parquet')
         else:
             nur_path = args.file
 
@@ -54,7 +62,8 @@ if __name__ == '__main__':
         elif args.n * filesize > 2e9:
             logger.error(
                 f'Number of trials for chosen file {nur_path} will use more than 2 GB of disk space. '
-                'Please reduce number of trials or use a smaller .nur file.')
+                'Please reduce number of trials or use a smaller file.'
+            )
             exit(2)
 
         reader = eventReader.eventReader()
@@ -68,8 +77,8 @@ if __name__ == '__main__':
             raise ValueError(f"Found 0 events in nur file {nur_path}, exiting benchmark...")
 
         os.mkdir('test-output')
-        output_files = [os.path.join('test-output', f'test-output-{j:04d}.nur') for j in range(args.n)]
-        cleanup_list += output_files
+        output_files = [os.path.join('test-output', f'test-output-{j:04d}.parquet') for j in range(args.n)]
+        cleanup_list += output_files + [f.replace('.parquet', '_event.parquet') for f in output_files]
 
         logger.warning("Starting write benchmark...")
         t0 = time.time()

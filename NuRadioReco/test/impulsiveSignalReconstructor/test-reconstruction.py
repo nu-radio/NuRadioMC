@@ -36,7 +36,9 @@ if __name__ == "__main__":
     parser.add_argument(
         '--method', default='stft', type=str,
         help="Which method to use for the impulsive signal reconstruction. Options are 'stft', 'xcorr', or 'simple_threshold'")
-    parser.add_argument('--output', type=str, default='', help="Store output in .nur file (if not provided, no output is saved).")
+    parser.add_argument(
+        '--output', type=str, default='', help="Store output in a parquet file (if not provided, no output is saved)."
+    )
 
     args = parser.parse_args()
 
@@ -94,5 +96,3 @@ if __name__ == "__main__":
 
     if args.output:
         writer.end()
-
-
