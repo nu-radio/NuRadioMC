@@ -121,7 +121,7 @@ class ElementTypeError(TypeError):
 
 def to_arrow_value(value, arrow_type, _element=False):
     """
-    Convert a parameter value to a python object which `pyarrow` accepts for `arrow_type`.
+    Convert a parameter value to a python object which ``pyarrow`` accepts for `arrow_type`.
 
     Raises a ValueError if a dict has keys which are not fields of a struct `arrow_type` (they would be lost)
     or if a value for an integer type is a float with a fractional part (pyarrow would truncate it silently),
@@ -172,6 +172,24 @@ def to_arrow_value(value, arrow_type, _element=False):
     return _to_python(value)
 
 
+def to_numpy_dtype(arrow_type):
+    """
+    The numpy dtype of a numeric or boolean arrow type, else ``object``.
+
+    Unlike ``pyarrow.DataType.to_pandas_dtype``, it does not need pandas.
+    """
+    if pa.types.is_integer(arrow_type):
+        return np.dtype(f"{'int' if pa.types.is_signed_integer(arrow_type) else 'uint'}{arrow_type.bit_width}")
+
+    if pa.types.is_floating(arrow_type):
+        return np.dtype(f"float{arrow_type.bit_width}")
+
+    if pa.types.is_boolean(arrow_type):
+        return np.dtype(bool)
+
+    return np.dtype(object)
+
+
 def _to_int(value, arrow_type):
     """``value`` as python int (a float only if it is a whole number), ValueError if outside ``arrow_type``."""
     if isinstance(value, (float, np.floating)):
@@ -184,7 +202,7 @@ def _to_int(value, arrow_type):
         value = int(value)
     value = _to_python(value)
     if isinstance(value, int):
-        info = np.iinfo(arrow_type.to_pandas_dtype())
+        info = np.iinfo(to_numpy_dtype(arrow_type))
         if not info.min <= value <= info.max:
             raise ValueError(f"{value!r} is outside the range of {arrow_type}")
 
