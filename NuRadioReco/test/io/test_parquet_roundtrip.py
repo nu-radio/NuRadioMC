@@ -480,7 +480,10 @@ def _synthetic_events():
             channel = _trace_channel(channel_id, rng, group_id=channel_id // 2)
             if channel_id == 3:
                 channel[chp.SNR] = None
+            if channel_id == 0:
+                channel[chp.SNR] = 4.5  # scalar alternative of the `OneOf` type (LOFAR)
             if channel_id == 1:
+                channel[chp.SNR] = {"peak_amplitude": 3.0, "integrated_power": 7.0}
                 channel.set_trigger_channel(_trace_channel(channel_id, rng))
             station.add_channel(channel)
 
@@ -490,9 +493,12 @@ def _synthetic_events():
         efield.set_trace(rng.normal(size=(3, 16)), 2.4 * units.GHz, trace_start_time=5.0)
         efield[efp.zenith] = 0.3
         efield.set_parameter_error(efp.zenith, 0.03)
+        efield[efp.signal_energy_fluence] = np.array([0.0, 10.0, 20.0])  # per polarization
         efield.set_parameter_error(efp.signal_energy_fluence, np.array([0.0, 1.0, 2.0]))  # array valued error
         station.add_electric_field(efield)
-        station.add_electric_field(ElectricField([3]))  # no trace
+        efield_no_trace = ElectricField([3])
+        efield_no_trace[efp.signal_energy_fluence] = {"80-300": 5.0}  # per passband
+        station.add_electric_field(efield_no_trace)  # no trace
 
         if station_id == 11:
             sim_station = SimStation(station_id)
