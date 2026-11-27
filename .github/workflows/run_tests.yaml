@@ -245,6 +245,11 @@ jobs:
       run: |
         python NuRadioReco/test/voltageToEfieldConverter/test-unfolding.py
 
+    - name: "Test channel ids of voltageToEfieldConverterPerChannel"
+      if: always()
+      run: |
+        python NuRadioReco/test/voltageToEfieldConverter/test_per_channel_channel_ids.py
+
     - name: "Test impulsiveSignalReconstructor"
       if: always()
       run: |
