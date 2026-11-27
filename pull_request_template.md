@@ -6,6 +6,8 @@ Before opening, check (https://nu-radio.github.io/NuRadioMC/Introduction/pages/c
 Once approved, wait at least 24 hours after the last change before merging, so others can still comment.
 -->
 
+<!-- Length follows complexity and risk. A small, low-risk PR stays lean: TL;DR, one evidence line, the compatibility lines; drop Summary if the TL;DR says it all. A complex or critical PR explains more and bolds (or starts with ❗) the few sentences a reviewer must not miss, at most three. -->
+
 ## TL;DR
 
 <!-- Fragments fine. Blast radius: the verdict of the backwards compatibility section below, or "none". -->
