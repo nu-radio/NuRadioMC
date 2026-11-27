@@ -128,7 +128,7 @@
 | NuRadioReco/framework/sim\_emitter.py                                                                    |        6 |        0 |    100% |           |
 | NuRadioReco/framework/sim\_station.py                                                                    |      108 |       36 |     67% |35, 48, 52, 55, 58, 61, 80, 83, 98-103, 109-114, 120-125, 139-141, 147-149, 179, 181, 184, 189 |
 | NuRadioReco/framework/station.py                                                                         |      145 |       56 |     61% |152-159, 181-183, 202, 205, 225, 230-234, 237, 240-249, 253-265, 293, 342-381 |
-| NuRadioReco/framework/trigger.py                                                                         |      176 |       56 |     68% |14, 23-32, 169-171, 179, 183, 200, 216, 235, 253-254, 272-275, 293-304, 385-392, 426-431, 560-566, 641-646 |
+| NuRadioReco/framework/trigger.py                                                                         |      176 |       54 |     69% |14, 23-32, 170, 179, 183, 200, 216, 235, 253-254, 272-275, 293-304, 385-392, 426-431, 560-566, 641-646 |
 | NuRadioReco/modules/ARA/\_\_init\_\_.py                                                                  |        0 |        0 |    100% |           |
 | NuRadioReco/modules/ARA/hardwareResponseIncorporator.py                                                  |       37 |        5 |     86% | 61-64, 91 |
 | NuRadioReco/modules/ARA/triggerSimulator.py                                                              |       78 |       65 |     17% |19-24, 46-49, 91-160, 163-166 |
@@ -239,7 +239,7 @@
 | NuRadioReco/modules/phasedarray/\_deprecated/triggerSimulator.py                                         |        9 |        3 |     67% |     13-17 |
 | NuRadioReco/modules/phasedarray/beamformedPowerIntegrationTrigger.py                                     |       25 |        5 |     80% |131-133, 183, 188 |
 | NuRadioReco/modules/phasedarray/digitalBeamformedEnvelopeTrigger.py                                      |       25 |       15 |     40% |   127-188 |
-| NuRadioReco/modules/phasedarray/phasedArrayBase.py                                                       |      171 |       36 |     79% |92, 109, 152, 181, 210-211, 255, 269, 306, 315-316, 319, 327, 339-368, 489, 507-512 |
+| NuRadioReco/modules/phasedarray/phasedArrayBase.py                                                       |      171 |       34 |     80% |94, 111, 154, 183, 212-213, 257, 271, 308, 321, 329, 341-370, 491, 509-514 |
 | NuRadioReco/modules/phasedarray/phasedArrayTrigger.py                                                    |       27 |       16 |     41% |108-165, 168 |
 | NuRadioReco/modules/sphericalWaveFitter.py                                                               |      132 |      114 |     14% |19, 23-24, 29-169, 173 |
 | NuRadioReco/modules/templateDirectionFitter.py                                                           |       79 |       64 |     19% |19, 22, 43-115, 118 |
@@ -284,7 +284,7 @@
 | NuRadioReco/utilities/trace\_utilities.py                                                                |      272 |      190 |     30% |40-42, 49-51, 57-59, 66-68, 75-77, 84-86, 133, 136-141, 149-150, 154-190, 193, 230-285, 321-345, 401-423, 499-506, 637-659, 726-729, 753-763, 793-862 |
 | NuRadioReco/utilities/units.py                                                                           |      166 |        0 |    100% |           |
 | NuRadioReco/utilities/version.py                                                                         |       27 |        5 |     81% |16, 25-27, 47 |
-| **TOTAL**                                                                                                | **32393** | **20305** | **37%** |           |
+| **TOTAL**                                                                                                | **32393** | **20301** | **37%** |           |
 
 
 ## Setup coverage badge
