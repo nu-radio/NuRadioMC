@@ -8,6 +8,7 @@ import inspect
 import logging
 import os
 import pickle
+import sys
 from NuRadioReco.utilities.logging import LOGGING_STATUS
 
 logger = logging.getLogger('NuRadioReco.module')
@@ -276,6 +277,23 @@ def print_timing_summary(min_percent=None):
     logger.log(LOGGING_STATUS, "Module timing\n" + "\n".join("  " + line for line in lines))
 
 
+_exiting = False  # set when `end_all_modules` runs at exit
+
+
+def exiting_after_exception():
+    """
+    True while the modules are ended at exit (`end_all_modules`) after the program stopped with an uncaught
+    exception (incl. ``KeyboardInterrupt``). Lets e.g. the `eventWriter` keep an existing output untouched.
+    """
+    return _exiting and (getattr(sys, "last_exc", None) or getattr(sys, "last_value", None)) is not None
+
+
+def _end_all_modules_at_exit():
+    global _exiting
+    _exiting = True
+    end_all_modules()
+
+
 def _print_timing_summary_at_exit():
     if ENABLE_TIMING:
         print_timing_summary()
@@ -283,4 +301,4 @@ def _print_timing_summary_at_exit():
 
 # atexit runs in reverse order of registration: modules are ended first, then the timing summary is printed
 atexit.register(_print_timing_summary_at_exit)
-atexit.register(end_all_modules)
+atexit.register(_end_all_modules_at_exit)

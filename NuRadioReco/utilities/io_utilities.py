@@ -7,6 +7,8 @@ for faster, numpy 2 cross-compatible pickled numpy arrays. This mostly happens
 
 """
 
+import base64
+import json
 import pickle
 import copyreg
 import numpy as np
@@ -194,3 +196,131 @@ def _time_object_to_astropy(time_object):
 
     logger.error(f"Time object not recognized: {time_object}")
     raise ValueError(f"Time object not recognized: {time_object}")
+
+
+# Tagged JSON: a lossless JSON representation of the (nested) python values NuRadio stores outside of
+# the typed parameters, e.g. the keyword arguments of the registered modules. Values JSON can not express
+# are stored as dict ``{"__type__": <tag>, ...}``; anything not covered falls back to ``repr`` (with a warning).
+_JSON_TAG = "__type__"
+
+
+def _to_json(obj):
+    """
+    Serialize `obj` to a JSON string which `_from_json` turns back into an equal object.
+
+    Kept as is: str, int, float (incl. nan / inf, non-standard JSON), bool, None, lists and dicts with str keys.
+    Tagged: tuple, dict with non-str keys (or a ``"__type__"`` key), complex, bytes, numpy arrays,
+    `astropy.time.Time` and the parameter enums of `NuRadioReco.framework.parameters`.
+    numpy scalars become the equivalent python scalars (as in `_NurPickler`). Other objects are stored as
+    their ``repr`` string (with a warning), i.e., they are not restored.
+
+    Parameters
+    ----------
+    obj: object
+        The object to serialize
+
+    Returns
+    -------
+    str
+        The JSON string
+    """
+    return json.dumps(_json_encode(obj))
+
+
+def _from_json(string):
+    """
+    Restore an object serialized with `_to_json`.
+
+    Parameters
+    ----------
+    string: str
+        The JSON string
+
+    Returns
+    -------
+    object
+        The restored object
+    """
+    return json.loads(string, object_hook=_json_decode)
+
+
+def _json_encode(obj):
+    """`obj` as structure of JSON types (see `_to_json`)."""
+    if obj is None or (isinstance(obj, (str, bool, int, float)) and not isinstance(obj, np.generic)):
+        return obj
+
+    if isinstance(obj, np.generic):
+        return _json_encode(obj.item())  # numpy scalar -> python scalar (np.float32 is upcast)
+
+    if isinstance(obj, list):
+        return [_json_encode(value) for value in obj]
+
+    if isinstance(obj, tuple):
+        return {_JSON_TAG: "tuple", "items": [_json_encode(value) for value in obj]}
+
+    if isinstance(obj, dict):
+        if all(isinstance(key, str) for key in obj) and _JSON_TAG not in obj:
+            return {key: _json_encode(value) for key, value in obj.items()}
+
+        return {_JSON_TAG: "dict", "items": [[_json_encode(key), _json_encode(value)] for key, value in obj.items()]}
+
+    if isinstance(obj, complex):
+        return {_JSON_TAG: "complex", "real": obj.real, "imag": obj.imag}
+
+    if isinstance(obj, bytes):
+        return {_JSON_TAG: "bytes", "data": base64.b64encode(obj).decode("ascii")}
+
+    if isinstance(obj, np.ndarray) and obj.dtype.kind in "biufcUO":
+        return {
+            _JSON_TAG: "ndarray",
+            "dtype": obj.dtype.str,
+            "shape": list(obj.shape),
+            "data": [_json_encode(value) for value in obj.ravel().tolist()],
+        }
+
+    if isinstance(obj, astropy.time.Time) and obj.isscalar:
+        return {_JSON_TAG: "Time", **_astropy_to_dict(obj)}
+
+    from NuRadioReco.framework import parameters  # not at the top: avoids an import cycle
+
+    if isinstance(obj, parameters.TypedEnum) and getattr(parameters, type(obj).__name__, None) is type(obj):
+        return {_JSON_TAG: "enum", "class": type(obj).__name__, "name": obj.name}
+
+    logger.warning(f"Can not store an object of type {type(obj)} in JSON, storing its repr instead: {obj!r}")
+
+    return repr(obj)
+
+
+def _json_decode(dct):
+    """`json.loads` object hook: restores the tagged dicts written by `_json_encode`."""
+    tag = dct.get(_JSON_TAG)
+    if tag is None:
+        return dct
+
+    if tag == "tuple":
+        return tuple(dct["items"])
+    if tag == "dict":
+        return {key: value for key, value in dct["items"]}
+    if tag == "complex":
+        return complex(dct["real"], dct["imag"])
+    if tag == "bytes":
+        return base64.b64decode(dct["data"])
+    if tag == "ndarray":
+        dtype = np.dtype(dct["dtype"])
+        if dtype.kind != "O":
+            return np.array(dct["data"], dtype=dtype).reshape(dct["shape"])
+
+        array = np.empty(len(dct["data"]), dtype=dtype)
+
+        for i, value in enumerate(dct["data"]):  # element-wise: keeps object elements (e.g. lists) unchanged
+            array[i] = value
+
+        return array.reshape(dct["shape"])
+    if tag == "Time":
+        return _time_object_to_astropy({key: value for key, value in dct.items() if key != _JSON_TAG})
+    if tag == "enum":
+        from NuRadioReco.framework import parameters
+
+        return getattr(parameters, dct["class"])[dct["name"]]
+
+    raise ValueError(f"Unknown JSON tag {tag!r} in {dct}")
