@@ -217,7 +217,10 @@ class Trigger(ParameterStorage):
         self.set_jitter_params(sample_block_size, gaussian_jitter)
 
     def set_parameter(self, key, value):
-        """Set a parameter; integers are stored as float where its type declares a float (see `_as_float`)."""
+        """
+        Set a parameter; integers are stored as float where its type declares a float
+        (also as values of a dict or in a `NuRadioReco.framework.parameters.OneOf`).
+        """
         super().set_parameter(key, _as_float(value, key.dtype))
 
     def set_primary(self, primary_trigger=True):
