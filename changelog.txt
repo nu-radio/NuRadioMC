@@ -47,10 +47,10 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   `trigger[triggerParameters.threshold]`; only name and type remain attributes. Constructors and getters/setters are
   unchanged; `.nur` files written before are read into the new parameters. API changes: the keys of
   `get_trigger_settings()` follow the parameter names (`triggered`, `trigger_time`, `triggered_channels` unchanged; the
-  old keys `primary_trigger`, `order`, `primary_angles`, `Vbias`, `primary_channels`, `trigger_channels` still work,
-  deprecated); the private attributes (`_threshold`, ...) are gone. `.nur` files written with this version are not read
-  correctly by older NuRadioReco versions: their triggers come back with default values (e.g. not triggered), without an
-  error.
+  old keys `primary_trigger`, `order`, `primary_angles`, `Vbias`, `primary_channels`, `trigger_channels`, `step_side`
+  still work, deprecated); the private attributes (`_threshold`, ...) are gone. `.nur` files written with this version
+  are not read correctly by older NuRadioReco versions: their triggers come back with default values (e.g. not
+  triggered), without an error.
 - New module `NuRadioMC.utilities.neutrino_fluxes` with neutrino flux models (IceCube fits, cosmogenic models of van Vliet,
   Heinze and TA, source populations, AGN, GRB afterglows, blazars) as all-flavour dN/dE. The event generator uses it for its
   GZK spectra instead of importing them from an example script.

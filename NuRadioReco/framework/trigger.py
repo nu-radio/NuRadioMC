@@ -103,6 +103,7 @@ _DEPRECATED_SETTINGS_KEYS = {
     'Vbias': 'bias_voltage',
     'primary_channels': 'channels',
     'trigger_channels': 'channels',
+    'step_side': 'step_size',  # typo in NuRadioReco before 3.2
 }
 
 
@@ -110,7 +111,8 @@ class _TriggerSettings(dict):
     """
     The dict returned by `Trigger.get_trigger_settings`. The keys used before the triggerParameters were
     introduced (`_DEPRECATED_SETTINGS_KEYS`) still work with ``[]`` and ``get``, with a ``DeprecationWarning``;
-    they are not listed by ``keys()`` / ``in``.
+    they are not listed by ``keys()`` / ``in``. An old key works for every trigger type that has the new key, also for
+    types that did not have the old one.
     """
 
     def _deprecated(self, key, stacklevel):
@@ -399,7 +401,8 @@ class Trigger(ParameterStorage):
         (pickled ``__dict__``) onto the parameters. Values are taken as stored (no type conversion).
         Attributes without a parameter are dropped with a warning (once per trigger type and attribute).
         """
-        if self._trigger_type == 'int_power' and isinstance(data.get('_channels'), (int, np.integer)):
+        if self._trigger_type == 'int_power' and isinstance(data.get('_channels'), (int, float, np.number)) \
+                and not isinstance(data.get('_channels'), (bool, np.bool_)):
             # powerIntegration before NuRadioReco 3.2 passed (channels, number_of_coincidences) by position into
             # (channel_coincidence_window, channels): undo the swap. Its coincidence window was not stored.
             data = dict(data)
@@ -409,8 +412,9 @@ class Trigger(ParameterStorage):
             if (self._trigger_type, '_channels') not in _warned_legacy_attributes:
                 _warned_legacy_attributes.add((self._trigger_type, '_channels'))
                 logger.warning(
-                    "Trigger of type 'int_power' from an old file stores the number of coincidences as its channels "
-                    "(bug in powerIntegration before NuRadioReco 3.2): corrected, the coincidence window is unknown (None).")
+                    "Trigger of type 'int_power' from an old file stores the number of coincidences as its "
+                    "channels (bug in powerIntegration before NuRadioReco 3.2): corrected, the coincidence window "
+                    "is unknown (None).")
 
         for key, value in data.items():
             if key in ('_name', '_trigger_type') or key in _LEGACY_DUPLICATES:
@@ -420,7 +424,8 @@ class Trigger(ParameterStorage):
             elif key == '_coinc_window' and (value is None or isinstance(value, (int, float, np.number))):
                 self[trp.coinc_window] = value
             else:
-                # e.g. `_coinc_window` holding the channel list (bug in powerIntegration before NuRadioReco 3.2)
+                # e.g. `_coinc_window` holding the channel list in an int_power trigger whose `_channels` is not
+                # a number (the swap above does not apply)
                 if (self._trigger_type, key) not in _warned_legacy_attributes:
                     _warned_legacy_attributes.add((self._trigger_type, key))
                     logger.warning(

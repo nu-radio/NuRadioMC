@@ -40,10 +40,13 @@ CLASS_PARAMETERS = {
                          trp.high_low_window, trp.coinc_window, trp.number_of_coincidences],
     trg.IntegratedPowerTrigger: [trp.threshold, trp.coinc_window, trp.number_of_coincidences,
                                  trp.power_mean, trp.power_std, trp.integration_window],
-    trg.EnvelopeTrigger: [trp.passband, trp.filter_order, trp.threshold, trp.number_of_coincidences, trp.coinc_window],
-    trg.RNOGSurfaceTrigger: [trp.threshold, trp.number_of_coincidences, trp.coinc_window, trp.temperature, trp.bias_voltage],
+    trg.EnvelopeTrigger: [trp.passband, trp.filter_order, trp.threshold, trp.number_of_coincidences,
+                          trp.coinc_window],
+    trg.RNOGSurfaceTrigger: [trp.threshold, trp.number_of_coincidences, trp.coinc_window, trp.temperature,
+                             trp.bias_voltage],
     trg.SimplePhasedTrigger: [trp.phasing_angles, trp.secondary_channels, trp.secondary_angles, trp.threshold,
-                              trp.trigger_delays, trp.sec_trigger_delays, trp.window_size, trp.step_size, trp.maximum_amps],
+                              trp.trigger_delays, trp.sec_trigger_delays, trp.window_size, trp.step_size,
+                              trp.maximum_amps],
     trg.DigitalEnvelopePhasedTrigger: [trp.phasing_angles, trp.threshold, trp.trigger_delays, trp.maximum_amps],
     trg.EnvelopePhasedTrigger: [trp.phasing_angles, trp.threshold_factor, trp.power_mean, trp.power_std,
                                 trp.trigger_delays, trp.output_passband],
@@ -236,22 +239,21 @@ def test_legacy_files():
             _assert_identical(trigger, trg.deserialize([trigger.serialize()])[trigger.get_name()])
 
 
-
 def test_legacy_int_power_swapped_arguments():
-    """ powerIntegration before NuRadioReco 3.2 stored (channels, number_of_coincidences) as (coinc_window, channels). """
+    """ powerIntegration before 3.2 stored (channels, number_of_coincidences) as (coinc_window, channels). """
     legacy = {"_name": "int_power", "_trigger_type": "int_power", "_channels": 2, "_coinc_window": [0, 1],
               "_number_of_coincidences": 1, "_threshold": 0.3, "_triggered": True}
-    for coinc_window, channels in (([0, 1], [0, 1]), (None, None)):
-        legacy["_coinc_window"] = coinc_window
+    for coinc_window, channels, number in (([0, 1], [0, 1], 2), (None, None, 2), ([0, 1], [0, 1], 2.0)):
+        legacy["_coinc_window"], legacy["_channels"] = coinc_window, number
         t = trg.deserialize([pickle.dumps(legacy)])["int_power"]
-        assert t[trp.number_of_coincidences] == 2 and t[trp.channels] == channels
+        assert t[trp.number_of_coincidences] == number and t[trp.channels] == channels
         assert t[trp.coinc_window] is None and t.has_triggered()
 
 
 def test_deprecated_settings_keys():
     settings = _example_triggers()[6].get_trigger_settings()  # SimplePhasedTrigger
     for old, new in [("primary_trigger", "primary"), ("primary_angles", "phasing_angles"),
-                     ("primary_channels", "channels")]:
+                     ("primary_channels", "channels"), ("step_side", "step_size")]:
         assert old not in settings
         with warnings.catch_warnings(record=True) as caught:
             warnings.simplefilter("always")
