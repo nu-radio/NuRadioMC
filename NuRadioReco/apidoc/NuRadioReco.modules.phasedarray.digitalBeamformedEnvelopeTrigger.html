@@ -824,7 +824,9 @@ if None, all channels are taken</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><dl class="simple">
-<dt>beam_rolls: array of dicts of keys=antenna and content=delay</dt><dd></dd>
+<dt>beam_rolls: list of dicts</dt><dd><p>One dict per phasing angle, mapping channel id to its delay in samples (int, “roll”).
+The delays of each beam are shifted so that the smallest one is 0, i.e. all rolls are non-negative.</p>
+</dd>
 </dl>
 </dd>
 </dl>
