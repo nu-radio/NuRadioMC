@@ -846,6 +846,51 @@ class Detector():
         return np.array(self.__buffered_stations[station_id]["station_position"]["position"])
 
     @_check_detector_time
+    def get_ice_model(self, station_id):
+        """
+        Returns the ice model attached to a specific station.
+
+        The ice model is not part of the detector description stored in the database, it has
+        to be attached explicitly, see ``ModDetector.set_ice_model``. The object is constructed
+        from the stored description on every call, i.e. a new instance is returned each time
+        this function is called.
+
+        Parameters
+        ----------
+        station_id: int
+            The station id
+
+        Returns
+        -------
+        ice_model: `NuRadioMC.utilities.medium_base.IceModel`
+            Ice model object described by the description attached to this station
+
+        Notes
+        -----
+        Only calibrated detector descriptions (shipped as JSON files) carry an ice model; descriptions
+        queried from the database do not, and a `KeyError` is raised in that case.
+
+        A model attached to a database-queried description is dropped once the station description is
+        re-queried (e.g. by `update` when the detector time enters a new period) and has to be attached
+        again (``ModDetector.set_ice_model``); imported descriptions are never re-queried.
+
+        See Also
+        --------
+        NuRadioMC.utilities.medium.get_ice_model
+        """
+
+        if _keys_not_in_dict(self.__buffered_stations, [station_id, "ice_model"]):
+            raise KeyError(
+                    f"\"ice_model\" not in buffer for station {station_id}. Is there an ice model attached to this station?")
+
+        model_spec = self.__buffered_stations[station_id]["ice_model"]
+
+        import importlib
+        module = importlib.import_module("NuRadioMC.utilities.medium_base")
+        class_ = getattr(module, model_spec["type"])
+        return class_(**model_spec["args"])
+
+    @_check_detector_time
     def get_relative_position(self, station_id, channel_id):
         """
         Get the relative position of a specific channel/antenna with respect to the station center
@@ -1275,7 +1320,6 @@ class Detector():
         channel_info = self.__get_channel(
             station_id, channel_id, with_signal_chain=True)
         return channel_info['ant_type']
-
 
     def get_number_of_samples(self, station_id, channel_id=None):
         """ Get number of samples for recorded waveforms
