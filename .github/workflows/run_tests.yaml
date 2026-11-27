@@ -40,11 +40,15 @@ jobs:
     steps:
     - uses: actions/checkout@v6
 
+    - name: Store current OS version in env
+      shell: bash
+      run: echo "OS_VERSION=$(lsb_release -rs)" >> $GITHUB_ENV
+
     - name: Set up Python and install dependencies
       uses: ./.github/actions/setup-python-env
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        cache-key: ${{ runner.os }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}-v3
+        cache-key: ${{ runner.os }}-${{ env.OS_version }}-env-${{ env.PYTHON_VERSION }}-${{ hashFiles('setup.py', 'pyproject.toml') }}-v3
         restore-only: false
 
     - name: Lint with flake8 (important)
