@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for NuRadioReco/modules/RNO_G/hardwareResponseIncorporator.py: 51%</title>
+    <title>Coverage for NuRadioReco/modules/RNO_G/hardwareResponseIncorporator.py: 58%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_c827f16f.png">
     <link rel="stylesheet" href="style_cb_4667309f.css" type="text/css">
     <script src="coverage_html_cb_54cfdca1.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>NuRadioReco<span class="sep">/</span>modules<span class="sep">/</span>RNO_G<span class="sep">/</span>hardwareResponseIncorporator.py</b>:
-            <span class="pc_cov">51%</span>
+            <span class="pc_cov">58%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">124 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">63<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">61<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">72<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">52<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_d09c39d71c086edb_stationCoherentlySummedWaveforms_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.17.5">coverage.py v7.17.5</a>,
-            created at 2026-11-27 13:05 +0000
+            created at 2026-11-27 14:40 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -210,7 +210,7 @@
     <p class="run"><span class="n"><a id="t128" href="#t128">128</a></span><span class="t">        <span class="nam">signal_chain_response</span> <span class="op">=</span> <span class="nam">amp_response</span> <span class="op">*</span> <span class="nam">cable_response</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t129" href="#t129">129</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t130" href="#t130">130</a></span><span class="t">        <span class="key">if</span> <span class="nam">sim_to_data</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t131" href="#t131">131</a></span><span class="t">            <span class="key">return</span> <span class="nam">signal_chain_response</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t131" href="#t131">131</a></span><span class="t">            <span class="key">return</span> <span class="nam">signal_chain_response</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t132" href="#t132">132</a></span><span class="t">        <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t133" href="#t133">133</a></span><span class="t">            <span class="key">return</span> <span class="num">1.</span> <span class="op">/</span> <span class="nam">signal_chain_response</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t134" href="#t134">134</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -282,31 +282,31 @@
     <p class="run"><span class="n"><a id="t200" href="#t200">200</a></span><span class="t">            <span class="key">if</span> <span class="op">(</span><span class="nam">self</span><span class="op">.</span><span class="nam">trigger_channels</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span> <span class="key">and</span>&nbsp;</span><span class="r"></span></p>
     <p class="run run2"><span class="n"><a id="t201" href="#t201">201</a></span><span class="t">                <span class="nam">channel</span><span class="op">.</span><span class="nam">get_id</span><span class="op">(</span><span class="op">)</span> <span class="key">in</span> <span class="nam">self</span><span class="op">.</span><span class="nam">trigger_channels</span> <span class="key">and</span>&nbsp;</span><span class="r"></span></p>
     <p class="run run2"><span class="n"><a id="t202" href="#t202">202</a></span><span class="t">                <span class="nam">isinstance</span><span class="op">(</span><span class="nam">station</span><span class="op">,</span> <span class="nam">NuRadioReco</span><span class="op">.</span><span class="nam">framework</span><span class="op">.</span><span class="nam">station</span><span class="op">.</span><span class="nam">Station</span><span class="op">)</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t203" href="#t203">203</a></span><span class="t">                <span class="str">&quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t204" href="#t204">204</a></span><span class="t"><span class="str">                Create a copy of the channel and apply the readout and trigger channel response respectively.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t205" href="#t205">205</a></span><span class="t"><span class="str">                We do this here under the assumption that up to this point no difference between the two channels</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t206" href="#t206">206</a></span><span class="t"><span class="str">                had to be made. This is acutally not strictly true. The cable delay is already added in the</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t207" href="#t207">207</a></span><span class="t"><span class="str">                efieldToVoltageConverter module. I.e., the assumption is made that the cable delay is no different</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t208" href="#t208">208</a></span><span class="t"><span class="str">                between the two. While this might be true/a good approximation for the moment it is not given that</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t209" href="#t209">209</a></span><span class="t"><span class="str">                this holds for the future. You have been warned!</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t210" href="#t210">210</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t211" href="#t211">211</a></span><span class="t"><span class="str">                See Also: https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/event_structure.html#channel for a bit more context.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t212" href="#t212">212</a></span><span class="t"><span class="str">                &quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t213" href="#t213">213</a></span><span class="t">                <span class="nam">trig_filter</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">get_filter</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t214" href="#t214">214</a></span><span class="t">                    <span class="nam">frequencies</span><span class="op">,</span> <span class="nam">station</span><span class="op">.</span><span class="nam">get_id</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="nam">channel</span><span class="op">.</span><span class="nam">get_id</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="nam">det</span><span class="op">,</span> <span class="nam">temp</span><span class="op">,</span> <span class="nam">sim_to_data</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t215" href="#t215">215</a></span><span class="t">                    <span class="nam">phase_only</span><span class="op">,</span> <span class="nam">mode</span><span class="op">,</span> <span class="nam">mingainlin</span><span class="op">,</span> <span class="nam">is_trigger</span><span class="op">=</span><span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t203" href="#t203">203</a></span><span class="t">                <span class="str">&quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t204" href="#t204">204</a></span><span class="t"><span class="str">                Create a copy of the channel and apply the readout and trigger channel response respectively.</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t205" href="#t205">205</a></span><span class="t"><span class="str">                We do this here under the assumption that up to this point no difference between the two channels</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t206" href="#t206">206</a></span><span class="t"><span class="str">                had to be made. This is acutally not strictly true. The cable delay is already added in the</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t207" href="#t207">207</a></span><span class="t"><span class="str">                efieldToVoltageConverter module. I.e., the assumption is made that the cable delay is no different</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t208" href="#t208">208</a></span><span class="t"><span class="str">                between the two. While this might be true/a good approximation for the moment it is not given that</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t209" href="#t209">209</a></span><span class="t"><span class="str">                this holds for the future. You have been warned!</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t210" href="#t210">210</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t211" href="#t211">211</a></span><span class="t"><span class="str">                See Also: https://nu-radio.github.io/NuRadioMC/NuRadioReco/pages/event_structure.html#channel for a bit more context.</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t212" href="#t212">212</a></span><span class="t"><span class="str">                &quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t213" href="#t213">213</a></span><span class="t">                <span class="nam">trig_filter</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">get_filter</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t214" href="#t214">214</a></span><span class="t">                    <span class="nam">frequencies</span><span class="op">,</span> <span class="nam">station</span><span class="op">.</span><span class="nam">get_id</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="nam">channel</span><span class="op">.</span><span class="nam">get_id</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="nam">det</span><span class="op">,</span> <span class="nam">temp</span><span class="op">,</span> <span class="nam">sim_to_data</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t215" href="#t215">215</a></span><span class="t">                    <span class="nam">phase_only</span><span class="op">,</span> <span class="nam">mode</span><span class="op">,</span> <span class="nam">mingainlin</span><span class="op">,</span> <span class="nam">is_trigger</span><span class="op">=</span><span class="key">True</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t216" href="#t216">216</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t217" href="#t217">217</a></span><span class="t">                <span class="nam">trig_trace_fft</span> <span class="op">=</span> <span class="nam">trace_fft</span> <span class="op">*</span> <span class="nam">trig_filter</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t217" href="#t217">217</a></span><span class="t">                <span class="nam">trig_trace_fft</span> <span class="op">=</span> <span class="nam">trace_fft</span> <span class="op">*</span> <span class="nam">trig_filter</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t218" href="#t218">218</a></span><span class="t">                <span class="com"># zero first bins to avoid DC offset</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t219" href="#t219">219</a></span><span class="t">                <span class="nam">trig_trace_fft</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">=</span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t219" href="#t219">219</a></span><span class="t">                <span class="nam">trig_trace_fft</span><span class="op">[</span><span class="num">0</span><span class="op">]</span> <span class="op">=</span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t220" href="#t220">220</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t221" href="#t221">221</a></span><span class="t">                <span class="com"># Add trigger channel</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t222" href="#t222">222</a></span><span class="t">                <span class="nam">trig_channel</span> <span class="op">=</span> <span class="nam">copy</span><span class="op">.</span><span class="nam">deepcopy</span><span class="op">(</span><span class="nam">channel</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t223" href="#t223">223</a></span><span class="t">                <span class="nam">trig_channel</span><span class="op">.</span><span class="nam">set_frequency_spectrum</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t224" href="#t224">224</a></span><span class="t">                    <span class="nam">trig_trace_fft</span><span class="op">,</span> <span class="nam">channel</span><span class="op">.</span><span class="nam">get_sampling_rate</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t222" href="#t222">222</a></span><span class="t">                <span class="nam">trig_channel</span> <span class="op">=</span> <span class="nam">copy</span><span class="op">.</span><span class="nam">deepcopy</span><span class="op">(</span><span class="nam">channel</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t223" href="#t223">223</a></span><span class="t">                <span class="nam">trig_channel</span><span class="op">.</span><span class="nam">set_frequency_spectrum</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t224" href="#t224">224</a></span><span class="t">                    <span class="nam">trig_trace_fft</span><span class="op">,</span> <span class="nam">channel</span><span class="op">.</span><span class="nam">get_sampling_rate</span><span class="op">(</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t225" href="#t225">225</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t226" href="#t226">226</a></span><span class="t">                <span class="nam">channel</span><span class="op">.</span><span class="nam">set_trigger_channel</span><span class="op">(</span><span class="nam">trig_channel</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t227" href="#t227">227</a></span><span class="t">                <span class="nam">has_trigger_channels</span> <span class="op">=</span> <span class="key">True</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t226" href="#t226">226</a></span><span class="t">                <span class="nam">channel</span><span class="op">.</span><span class="nam">set_trigger_channel</span><span class="op">(</span><span class="nam">trig_channel</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t227" href="#t227">227</a></span><span class="t">                <span class="nam">has_trigger_channels</span> <span class="op">=</span> <span class="key">True</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t228" href="#t228">228</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t229" href="#t229">229</a></span><span class="t">            <span class="nam">trace_fft</span> <span class="op">*=</span> <span class="nam">filter</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t230" href="#t230">230</a></span><span class="t">            <span class="com"># zero first bins to avoid DC offset</span>&nbsp;</span><span class="r"></span></p>
@@ -419,7 +419,7 @@
             <a class="nav" href="z_d09c39d71c086edb_stationCoherentlySummedWaveforms_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.17.5">coverage.py v7.17.5</a>,
-            created at 2026-11-27 13:05 +0000
+            created at 2026-11-27 14:40 +0000
         </p>
     </div>
 </footer>

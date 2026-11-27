@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for NuRadioReco/modules/LOFAR/beamforming_utilities.py: 38%</title>
+    <title>Coverage for NuRadioReco/modules/LOFAR/beamforming_utilities.py: 90%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_c827f16f.png">
     <link rel="stylesheet" href="style_cb_4667309f.css" type="text/css">
     <script src="coverage_html_cb_54cfdca1.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>NuRadioReco<span class="sep">/</span>modules<span class="sep">/</span>LOFAR<span class="sep">/</span>beamforming_utilities.py</b>:
-            <span class="pc_cov">38%</span>
+            <span class="pc_cov">90%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">21 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">8<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">13<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">19<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">2<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_1af62f05e3f7a7f4_hardwareResponseIncorporator_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.17.5">coverage.py v7.17.5</a>,
-            created at 2026-11-27 13:05 +0000
+            created at 2026-11-27 14:40 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -117,9 +117,9 @@
     <p class="pln"><span class="n"><a id="t35" href="#t35">35</a></span><span class="t"><span class="str">    -----</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t36" href="#t36">36</a></span><span class="t"><span class="str">    Adapted from PyCrTools hBeamformBlock</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t37" href="#t37">37</a></span><span class="t"><span class="str">    &quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t38" href="#t38">38</a></span><span class="t">    <span class="nam">delays</span> <span class="op">=</span> <span class="nam">geometric_delay_far_field</span><span class="op">(</span><span class="nam">positions</span><span class="op">,</span> <span class="nam">direction</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t38" href="#t38">38</a></span><span class="t">    <span class="nam">delays</span> <span class="op">=</span> <span class="nam">geometric_delay_far_field</span><span class="op">(</span><span class="nam">positions</span><span class="op">,</span> <span class="nam">direction</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t39" href="#t39">39</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t40" href="#t40">40</a></span><span class="t">    <span class="key">return</span> <span class="nam">beamformer</span><span class="op">(</span><span class="nam">fft_data</span><span class="op">,</span> <span class="nam">frequencies</span><span class="op">,</span> <span class="nam">delays</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t40" href="#t40">40</a></span><span class="t">    <span class="key">return</span> <span class="nam">beamformer</span><span class="op">(</span><span class="nam">fft_data</span><span class="op">,</span> <span class="nam">frequencies</span><span class="op">,</span> <span class="nam">delays</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t41" href="#t41">41</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t42" href="#t42">42</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t43" href="#t43">43</a></span><span class="t"><span class="key">def</span> <span class="nam">beamformer</span><span class="op">(</span><span class="nam">fft_data</span><span class="op">,</span> <span class="nam">frequencies</span><span class="op">,</span> <span class="nam">delays</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -141,13 +141,13 @@
     <p class="pln"><span class="n"><a id="t59" href="#t59">59</a></span><span class="t"><span class="str">    beamformed : np.ndarray</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t60" href="#t60">60</a></span><span class="t"><span class="str">        The beamformed (ie summed) frequency spectrum</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t61" href="#t61">61</a></span><span class="t"><span class="str">    &quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t62" href="#t62">62</a></span><span class="t">    <span class="nam">real</span> <span class="op">=</span> <span class="num">1.0</span> <span class="op">*</span> <span class="nam">np</span><span class="op">.</span><span class="nam">cos</span><span class="op">(</span><span class="num">2</span> <span class="op">*</span> <span class="nam">np</span><span class="op">.</span><span class="nam">pi</span> <span class="op">*</span> <span class="nam">frequencies</span><span class="op">[</span><span class="nam">np</span><span class="op">.</span><span class="nam">newaxis</span><span class="op">,</span> <span class="op">:</span><span class="op">]</span> <span class="op">*</span> <span class="nam">delays</span><span class="op">[</span><span class="op">:</span><span class="op">,</span> <span class="nam">np</span><span class="op">.</span><span class="nam">newaxis</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t63" href="#t63">63</a></span><span class="t">    <span class="nam">imag</span> <span class="op">=</span> <span class="num">1.0</span> <span class="op">*</span> <span class="nam">np</span><span class="op">.</span><span class="nam">sin</span><span class="op">(</span><span class="num">2</span> <span class="op">*</span> <span class="nam">np</span><span class="op">.</span><span class="nam">pi</span> <span class="op">*</span> <span class="nam">frequencies</span><span class="op">[</span><span class="nam">np</span><span class="op">.</span><span class="nam">newaxis</span><span class="op">,</span> <span class="op">:</span><span class="op">]</span> <span class="op">*</span> <span class="nam">delays</span><span class="op">[</span><span class="op">:</span><span class="op">,</span> <span class="nam">np</span><span class="op">.</span><span class="nam">newaxis</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t62" href="#t62">62</a></span><span class="t">    <span class="nam">real</span> <span class="op">=</span> <span class="num">1.0</span> <span class="op">*</span> <span class="nam">np</span><span class="op">.</span><span class="nam">cos</span><span class="op">(</span><span class="num">2</span> <span class="op">*</span> <span class="nam">np</span><span class="op">.</span><span class="nam">pi</span> <span class="op">*</span> <span class="nam">frequencies</span><span class="op">[</span><span class="nam">np</span><span class="op">.</span><span class="nam">newaxis</span><span class="op">,</span> <span class="op">:</span><span class="op">]</span> <span class="op">*</span> <span class="nam">delays</span><span class="op">[</span><span class="op">:</span><span class="op">,</span> <span class="nam">np</span><span class="op">.</span><span class="nam">newaxis</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t63" href="#t63">63</a></span><span class="t">    <span class="nam">imag</span> <span class="op">=</span> <span class="num">1.0</span> <span class="op">*</span> <span class="nam">np</span><span class="op">.</span><span class="nam">sin</span><span class="op">(</span><span class="num">2</span> <span class="op">*</span> <span class="nam">np</span><span class="op">.</span><span class="nam">pi</span> <span class="op">*</span> <span class="nam">frequencies</span><span class="op">[</span><span class="nam">np</span><span class="op">.</span><span class="nam">newaxis</span><span class="op">,</span> <span class="op">:</span><span class="op">]</span> <span class="op">*</span> <span class="nam">delays</span><span class="op">[</span><span class="op">:</span><span class="op">,</span> <span class="nam">np</span><span class="op">.</span><span class="nam">newaxis</span><span class="op">]</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t64" href="#t64">64</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t65" href="#t65">65</a></span><span class="t">    <span class="nam">de</span> <span class="op">=</span> <span class="nam">real</span> <span class="op">+</span> <span class="num">1j</span> <span class="op">*</span> <span class="nam">imag</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t">    <span class="nam">output</span> <span class="op">=</span> <span class="nam">fft_data</span> <span class="op">*</span> <span class="nam">de</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t65" href="#t65">65</a></span><span class="t">    <span class="nam">de</span> <span class="op">=</span> <span class="nam">real</span> <span class="op">+</span> <span class="num">1j</span> <span class="op">*</span> <span class="nam">imag</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t">    <span class="nam">output</span> <span class="op">=</span> <span class="nam">fft_data</span> <span class="op">*</span> <span class="nam">de</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t67" href="#t67">67</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t68" href="#t68">68</a></span><span class="t">    <span class="key">return</span> <span class="nam">np</span><span class="op">.</span><span class="nam">sum</span><span class="op">(</span><span class="nam">output</span><span class="op">,</span> <span class="nam">axis</span><span class="op">=</span><span class="num">0</span><span class="op">)</span>  <span class="com"># sum all the antennas together to beamform</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t68" href="#t68">68</a></span><span class="t">    <span class="key">return</span> <span class="nam">np</span><span class="op">.</span><span class="nam">sum</span><span class="op">(</span><span class="nam">output</span><span class="op">,</span> <span class="nam">axis</span><span class="op">=</span><span class="num">0</span><span class="op">)</span>  <span class="com"># sum all the antennas together to beamform</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t69" href="#t69">69</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t70" href="#t70">70</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t71" href="#t71">71</a></span><span class="t"><span class="key">def</span> <span class="nam">geometric_delays_near_field</span><span class="op">(</span><span class="nam">ant_pos</span><span class="op">,</span> <span class="nam">sky</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -187,12 +187,12 @@
     <p class="pln"><span class="n"><a id="t105" href="#t105">105</a></span><span class="t"><span class="str">    direction : array_like</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t106" href="#t106">106</a></span><span class="t"><span class="str">        The arrival direction, in cartesian coordinates</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t107" href="#t107">107</a></span><span class="t"><span class="str">    &quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t108" href="#t108">108</a></span><span class="t">    <span class="nam">direction_normalised</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">asarray</span><span class="op">(</span><span class="nam">direction</span><span class="op">)</span> <span class="op">/</span> <span class="nam">np</span><span class="op">.</span><span class="nam">linalg</span><span class="op">.</span><span class="nam">norm</span><span class="op">(</span><span class="nam">direction</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t108" href="#t108">108</a></span><span class="t">    <span class="nam">direction_normalised</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">asarray</span><span class="op">(</span><span class="nam">direction</span><span class="op">)</span> <span class="op">/</span> <span class="nam">np</span><span class="op">.</span><span class="nam">linalg</span><span class="op">.</span><span class="nam">norm</span><span class="op">(</span><span class="nam">direction</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t109" href="#t109">109</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t110" href="#t110">110</a></span><span class="t">    <span class="nam">delays</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">dot</span><span class="op">(</span><span class="nam">ant_positions</span><span class="op">,</span> <span class="nam">direction_normalised</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t111" href="#t111">111</a></span><span class="t">    <span class="nam">delays</span> <span class="op">/=</span> <span class="op">-</span><span class="num">1</span> <span class="op">*</span> <span class="nam">lightspeed</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t110" href="#t110">110</a></span><span class="t">    <span class="nam">delays</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">dot</span><span class="op">(</span><span class="nam">ant_positions</span><span class="op">,</span> <span class="nam">direction_normalised</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t111" href="#t111">111</a></span><span class="t">    <span class="nam">delays</span> <span class="op">/=</span> <span class="op">-</span><span class="num">1</span> <span class="op">*</span> <span class="nam">lightspeed</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t112" href="#t112">112</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t113" href="#t113">113</a></span><span class="t">    <span class="key">return</span> <span class="nam">delays</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t113" href="#t113">113</a></span><span class="t">    <span class="key">return</span> <span class="nam">delays</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -202,7 +202,7 @@
             <a class="nav" href="z_1af62f05e3f7a7f4_hardwareResponseIncorporator_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.17.5">coverage.py v7.17.5</a>,
-            created at 2026-11-27 13:05 +0000
+            created at 2026-11-27 14:40 +0000
         </p>
     </div>
 </footer>

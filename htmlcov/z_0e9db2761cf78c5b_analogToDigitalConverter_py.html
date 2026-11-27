@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for NuRadioReco/modules/analogToDigitalConverter.py: 61%</title>
+    <title>Coverage for NuRadioReco/modules/analogToDigitalConverter.py: 71%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_c827f16f.png">
     <link rel="stylesheet" href="style_cb_4667309f.css" type="text/css">
     <script src="coverage_html_cb_54cfdca1.js" defer></script>
@@ -12,7 +12,7 @@
     <div class="content">
         <h1>
             <span class="text">Coverage for </span><b>NuRadioReco<span class="sep">/</span>modules<span class="sep">/</span>analogToDigitalConverter.py</b>:
-            <span class="pc_cov">61%</span>
+            <span class="pc_cov">71%</span>
         </h1>
         <aside id="help_panel_wrapper">
             <input id="help_panel_state" type="checkbox">
@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">117 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">71<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">46<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">83<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">34<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_23725fafd2dd14e3_module_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.17.5">coverage.py v7.17.5</a>,
-            created at 2026-11-27 13:05 +0000
+            created at 2026-11-27 14:40 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -145,8 +145,8 @@
     <p class="pln"><span class="n"><a id="t63" href="#t63">63</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t64" href="#t64">64</a></span><span class="t">    <span class="key">if</span> <span class="nam">output</span> <span class="op">==</span> <span class="str">&#x27;voltage&#x27;</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t65" href="#t65">65</a></span><span class="t">        <span class="nam">digital_trace</span> <span class="op">=</span> <span class="nam">lsb_voltage</span> <span class="op">*</span> <span class="nam">digital_trace</span><span class="op">.</span><span class="nam">astype</span><span class="op">(</span><span class="nam">float</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t">    <span class="key">elif</span> <span class="nam">output</span> <span class="op">==</span> <span class="str">&#x27;counts&#x27;</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t67" href="#t67">67</a></span><span class="t">        <span class="key">pass</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t">    <span class="key">elif</span> <span class="nam">output</span> <span class="op">==</span> <span class="str">&#x27;counts&#x27;</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t67" href="#t67">67</a></span><span class="t">        <span class="key">pass</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t68" href="#t68">68</a></span><span class="t">    <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t69" href="#t69">69</a></span><span class="t">        <span class="key">raise</span> <span class="nam">ValueError</span><span class="op">(</span><span class="str">&quot;The ADC output format is unknown. Please choose &#x27;voltage&#x27; or &#x27;counts&#x27;&quot;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t70" href="#t70">70</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -430,13 +430,13 @@
     <p class="pln"><span class="n"><a id="t348" href="#t348">348</a></span><span class="t">            <span class="com"># Upsampling to 5 GHz before downsampling using interpolation.</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t349" href="#t349">349</a></span><span class="t">            <span class="com"># We cannot downsample with a Fourier method because we want to keep</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t350" href="#t350">350</a></span><span class="t">            <span class="com"># frequencies in higher Nyquist zones to correctly simulate aliasing.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t351" href="#t351">351</a></span><span class="t">            <span class="nam">upsampling_frequency</span> <span class="op">=</span> <span class="num">5.0</span> <span class="op">*</span> <span class="nam">units</span><span class="op">.</span><span class="nam">GHz</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t352" href="#t352">352</a></span><span class="t">            <span class="key">if</span> <span class="nam">upsampling_frequency</span> <span class="op">&gt;</span> <span class="nam">sampling_frequency</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t351" href="#t351">351</a></span><span class="t">            <span class="nam">upsampling_frequency</span> <span class="op">=</span> <span class="num">5.0</span> <span class="op">*</span> <span class="nam">units</span><span class="op">.</span><span class="nam">GHz</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t352" href="#t352">352</a></span><span class="t">            <span class="key">if</span> <span class="nam">upsampling_frequency</span> <span class="op">&gt;</span> <span class="nam">sampling_frequency</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t353" href="#t353">353</a></span><span class="t">                <span class="nam">channel</span><span class="op">.</span><span class="nam">resample</span><span class="op">(</span><span class="nam">upsampling_frequency</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t354" href="#t354">354</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t355" href="#t355">355</a></span><span class="t">            <span class="com"># Downsampling to ADC frequency using linear interpolation to keep aliasing effects</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t356" href="#t356">356</a></span><span class="t">            <span class="nam">trace</span> <span class="op">=</span> <span class="nam">downsampling_linear_interpolation</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t357" href="#t357">357</a></span><span class="t">                <span class="nam">channel</span><span class="op">.</span><span class="nam">get_trace</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="nam">channel</span><span class="op">.</span><span class="nam">get_sampling_rate</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="nam">adc_sampling_frequency</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t356" href="#t356">356</a></span><span class="t">            <span class="nam">trace</span> <span class="op">=</span> <span class="nam">downsampling_linear_interpolation</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t357" href="#t357">357</a></span><span class="t">                <span class="nam">channel</span><span class="op">.</span><span class="nam">get_trace</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="nam">channel</span><span class="op">.</span><span class="nam">get_sampling_rate</span><span class="op">(</span><span class="op">)</span><span class="op">,</span> <span class="nam">adc_sampling_frequency</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t358" href="#t358">358</a></span><span class="t">        <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t359" href="#t359">359</a></span><span class="t">            <span class="nam">trace</span> <span class="op">=</span> <span class="nam">channel</span><span class="op">.</span><span class="nam">get_trace</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t360" href="#t360">360</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -445,7 +445,7 @@
     <p class="pln"><span class="n"><a id="t363" href="#t363">363</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t364" href="#t364">364</a></span><span class="t">        <span class="com"># Ensuring trace has an even number of samples</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t365" href="#t365">365</a></span><span class="t">        <span class="key">if</span> <span class="nam">len</span><span class="op">(</span><span class="nam">digital_trace</span><span class="op">)</span> <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">1</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t366" href="#t366">366</a></span><span class="t">            <span class="nam">digital_trace</span> <span class="op">=</span> <span class="nam">digital_trace</span><span class="op">[</span><span class="op">:</span><span class="op">-</span><span class="num">1</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t366" href="#t366">366</a></span><span class="t">            <span class="nam">digital_trace</span> <span class="op">=</span> <span class="nam">digital_trace</span><span class="op">[</span><span class="op">:</span><span class="op">-</span><span class="num">1</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t367" href="#t367">367</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t368" href="#t368">368</a></span><span class="t">        <span class="key">if</span> <span class="nam">return_sampling_frequency</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t369" href="#t369">369</a></span><span class="t">            <span class="key">return</span> <span class="nam">digital_trace</span><span class="op">,</span> <span class="nam">adc_sampling_frequency</span>&nbsp;</span><span class="r"></span></p>
@@ -526,19 +526,19 @@
     <p class="pln"><span class="n"><a id="t444" href="#t444">444</a></span><span class="t"><span class="str">        The downsampled trace</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t445" href="#t445">445</a></span><span class="t"><span class="str">    &quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t446" href="#t446">446</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t447" href="#t447">447</a></span><span class="t">    <span class="key">if</span> <span class="nam">new_sampling_rate</span> <span class="op">&gt;=</span> <span class="nam">sampling_rate</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t447" href="#t447">447</a></span><span class="t">    <span class="key">if</span> <span class="nam">new_sampling_rate</span> <span class="op">&gt;=</span> <span class="nam">sampling_rate</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t448" href="#t448">448</a></span><span class="t">        <span class="key">raise</span> <span class="nam">ValueError</span><span class="op">(</span><span class="str">&#x27;The new sampling rate must be lower than the original one&#x27;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t449" href="#t449">449</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t450" href="#t450">450</a></span><span class="t">    <span class="nam">n_samples</span> <span class="op">=</span> <span class="nam">int</span><span class="op">(</span><span class="op">(</span><span class="nam">new_sampling_rate</span> <span class="op">/</span> <span class="nam">sampling_rate</span><span class="op">)</span> <span class="op">*</span> <span class="nam">len</span><span class="op">(</span><span class="nam">trace</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t451" href="#t451">451</a></span><span class="t">    <span class="nam">times</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">arange</span><span class="op">(</span><span class="nam">len</span><span class="op">(</span><span class="nam">trace</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="nam">sampling_rate</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t452" href="#t452">452</a></span><span class="t">    <span class="nam">times_downsampled</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">arange</span><span class="op">(</span><span class="nam">n_samples</span><span class="op">)</span> <span class="op">/</span> <span class="nam">new_sampling_rate</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t450" href="#t450">450</a></span><span class="t">    <span class="nam">n_samples</span> <span class="op">=</span> <span class="nam">int</span><span class="op">(</span><span class="op">(</span><span class="nam">new_sampling_rate</span> <span class="op">/</span> <span class="nam">sampling_rate</span><span class="op">)</span> <span class="op">*</span> <span class="nam">len</span><span class="op">(</span><span class="nam">trace</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t451" href="#t451">451</a></span><span class="t">    <span class="nam">times</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">arange</span><span class="op">(</span><span class="nam">len</span><span class="op">(</span><span class="nam">trace</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="nam">sampling_rate</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t452" href="#t452">452</a></span><span class="t">    <span class="nam">times_downsampled</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">arange</span><span class="op">(</span><span class="nam">n_samples</span><span class="op">)</span> <span class="op">/</span> <span class="nam">new_sampling_rate</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t453" href="#t453">453</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t454" href="#t454">454</a></span><span class="t">    <span class="com"># downsampled_trace = np.interp(</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t455" href="#t455">455</a></span><span class="t">    <span class="com">#   resampled_times, times, trace, left=trace[0], right=trace[-1])</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t456" href="#t456">456</a></span><span class="t">    <span class="nam">interpolate_trace</span> <span class="op">=</span> <span class="nam">scipy</span><span class="op">.</span><span class="nam">interpolate</span><span class="op">.</span><span class="nam">interp1d</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis mis2 show_mis"><span class="n"><a id="t457" href="#t457">457</a></span><span class="t">        <span class="nam">times</span><span class="op">,</span> <span class="nam">trace</span><span class="op">,</span> <span class="nam">kind</span><span class="op">=</span><span class="str">&#x27;linear&#x27;</span><span class="op">,</span> <span class="nam">fill_value</span><span class="op">=</span><span class="op">(</span><span class="nam">trace</span><span class="op">[</span><span class="num">0</span><span class="op">]</span><span class="op">,</span> <span class="nam">trace</span><span class="op">[</span><span class="op">-</span><span class="num">1</span><span class="op">]</span><span class="op">)</span><span class="op">,</span> <span class="nam">bounds_error</span><span class="op">=</span><span class="key">False</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t456" href="#t456">456</a></span><span class="t">    <span class="nam">interpolate_trace</span> <span class="op">=</span> <span class="nam">scipy</span><span class="op">.</span><span class="nam">interpolate</span><span class="op">.</span><span class="nam">interp1d</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t457" href="#t457">457</a></span><span class="t">        <span class="nam">times</span><span class="op">,</span> <span class="nam">trace</span><span class="op">,</span> <span class="nam">kind</span><span class="op">=</span><span class="str">&#x27;linear&#x27;</span><span class="op">,</span> <span class="nam">fill_value</span><span class="op">=</span><span class="op">(</span><span class="nam">trace</span><span class="op">[</span><span class="num">0</span><span class="op">]</span><span class="op">,</span> <span class="nam">trace</span><span class="op">[</span><span class="op">-</span><span class="num">1</span><span class="op">]</span><span class="op">)</span><span class="op">,</span> <span class="nam">bounds_error</span><span class="op">=</span><span class="key">False</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t458" href="#t458">458</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t459" href="#t459">459</a></span><span class="t">    <span class="key">return</span> <span class="nam">interpolate_trace</span><span class="op">(</span><span class="nam">times_downsampled</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t459" href="#t459">459</a></span><span class="t">    <span class="key">return</span> <span class="nam">interpolate_trace</span><span class="op">(</span><span class="nam">times_downsampled</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t460" href="#t460">460</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t461" href="#t461">461</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t462" href="#t462">462</a></span><span class="t"><span class="key">def</span> <span class="nam">apply_filter</span><span class="op">(</span><span class="nam">channel</span><span class="op">,</span> <span class="nam">filter</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -564,7 +564,7 @@
             <a class="nav" href="z_23725fafd2dd14e3_module_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.17.5">coverage.py v7.17.5</a>,
-            created at 2026-11-27 13:05 +0000
+            created at 2026-11-27 14:40 +0000
         </p>
     </div>
 </footer>
