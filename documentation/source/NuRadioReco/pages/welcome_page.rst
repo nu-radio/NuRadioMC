@@ -6,6 +6,7 @@ NuRadioReco Documentation
    :maxdepth: 1
 
    event_structure
+   parquet_format
    detector_tree
    times
    nur_modules

@@ -39,7 +39,8 @@ in the order of their first ``run`` call (see ``end_all_modules()`` in
 `NuRadioReco/modules/base/module.py`). Modules that hold open files, e.g. the
 ``eventReader`` and ``eventWriter``, additionally provide a ``close`` method, which their
 ``end`` calls. Call ``close`` yourself if the file has to be closed before the program
-exits, e.g. to read back a file you just wrote.
+exits, e.g. to read back a file you just wrote. If the program exits with an uncaught exception,
+the ``eventWriter`` does not replace existing files with its (incomplete) output.
 
 Timing
 ------
