@@ -100,8 +100,9 @@ class outputWriterHDF5:
 
         # first add atributes to the output file. Attributes of all events should be the same,
         # raising an error if not.
-        trigger_names = []
-        extent_array_by = 0
+        # trigger names in the order of the columns of all trigger datasets: the known ones first, new ones appended
+        trigger_names = list(self._mout_attributes.get('trigger_names', []))
+        n_known_triggers = len(trigger_names)
         for sid in event_buffer:
             for eid in event_buffer[sid]:
                 evt = event_buffer[sid][eid]
@@ -133,26 +134,20 @@ class outputWriterHDF5:
                         if trigger.get_name() not in trigger_names:
                             trigger_names.append(trigger.get_name())
                             logger.debug(f"extending data structure by trigger {trigger.get_name()} to output file")
-                            extent_array_by += 1
 
         # the available triggers are not available from the start because a certain trigger
-        # might only trigger a later event. Therefore we need to extend the array
-        # if we find a new trigger
+        # might only trigger a later event. Therefore we need to extend the rows already stored
+        # (not triggered: False, trigger time: NaN) if we find a new trigger
+        self._mout_attributes['trigger_names'] = trigger_names
+        extent_array_by = len(trigger_names) - n_known_triggers
         if extent_array_by:
-            self._mout_attributes['trigger_names'] = trigger_names
-            keys = ["multiple_triggers", "trigger_times"]
-            if keys[0] in self._mout:
-                for key in keys:
-                    for i in range(len(self._mout[key])):
+            fill_values = {"multiple_triggers": False, "trigger_times": np.nan,
+                           "multiple_triggers_per_event": False, "trigger_times_per_event": np.nan}
+            for output in [self._mout] + [self._mout_groups[station_id] for station_id in self._station_ids]:
+                for key, fill_value in fill_values.items():
+                    if key in output:
                         logger.debug(f"extending data structure by {extent_array_by} to output file for key {key}")
-                        self._mout[key][i] = self._mout[key][i] + [False] * extent_array_by
-
-            for station_id in self._station_ids:
-                sg = self._mout_groups[station_id]
-                if keys[0] in sg:
-                    for key in keys:
-                        for i in range(len(sg[key])):
-                            sg[key][i] = sg[key][i] + [False] * extent_array_by
+                        output[key] = [np.append(row, [fill_value] * extent_array_by) for row in output[key]]
 
         shower_ids = []
         for sid in event_buffer:  # loop over all stations (every station is treated independently)
@@ -230,7 +225,7 @@ class outputWriterHDF5:
                 multiple_triggers = []
                 trigger_times = []
                 for iT, tname in enumerate(self._mout_attributes['trigger_names']):
-                    if stn.has_triggered(tname):
+                    if stn.has_trigger(tname) and stn.has_triggered(tname):  # names of other event groups can be missing
                         multiple_triggers.append(True)
                         trigger_times.append(stn.get_trigger(tname).get_trigger_time())
                     else:
@@ -351,7 +346,7 @@ class outputWriterHDF5:
                     if stn.has_triggered():
                         triggered[shower_id_to_index[shower.get_id()]] = True
                         for iT, tname in enumerate(self._mout_attributes['trigger_names']):
-                            if stn.has_triggered(tname):
+                            if stn.has_trigger(tname) and stn.has_triggered(tname):
                                 multiple_triggers[shower_id_to_index[shower.get_id()], iT] = True
                                 if np.isnan(trigger_times[shower_id_to_index[shower.get_id()], iT]):
                                     trigger_times[shower_id_to_index[shower.get_id()], iT] = stn.get_trigger(tname).get_trigger_time()

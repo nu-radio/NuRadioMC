@@ -272,6 +272,11 @@ jobs:
       run: |
         python NuRadioMC/test/utilities/test_neutrino_fluxes.py
 
+    - name: "Test trigger datasets of the HDF5 output writer"
+      if: always()
+      run: |
+        python NuRadioMC/test/simulation/test_output_writer_hdf5_triggers.py
+
     - name: "Test limit plot"
       if: always()
       run: |

@@ -11,6 +11,7 @@ python3 "$DIR/T04validate_allmost_equal.py" "$DIR/1e18_output.hdf5" "$DIR/1e18_o
 python3 "$DIR/T05validate_nur_file.py" "$DIR/1e18_output.nur" "$DIR/1e18_output_reference.nur"
 python3 "$DIR/T02RunSimulation.py" "$DIR/1e18_output_reference.hdf5" "$DET" "$DIR/config_noise.yaml" "$DIR/1e18_output_noise.hdf5"
 python3 "$DIR/T04validate_allmost_equal.py" "$DIR/1e18_output_noise.hdf5" "$DIR/1e18_output_noise_reference.hdf5"
+python3 "$DIR/T06validate_multi_station.py" "$DIR/1e18_output_reference.hdf5" "$DET" "$DIR/config.yaml"
 
 # cleanup
 rm -v "$DIR"/{1e18_output_noise.hdf5,1e18_output.hdf5,1e18_output.nur}
