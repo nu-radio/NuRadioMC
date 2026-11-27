@@ -65,6 +65,9 @@ bugfixes:
   when calculating the trigger times;
   `Trigger.get_trigger_times` failed when no trigger time was set (now returns None);
   `SimplePhasedTrigger` stored the step size as `_step_side` (now `triggerParameters.step_size`, also when reading old files).
+- The trigger times of the phased array triggers (`beamformedPowerIntegrationTrigger`, `phasedArrayTrigger`,
+  `digitalBeamformedEnvelopeTrigger`) were shifted by the smallest phased channel id in ns (a minimum over the
+  channel ids instead of the delays). No effect for phased arrays that include channel 0 (e.g. RNO-G channels 0-3).
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported
