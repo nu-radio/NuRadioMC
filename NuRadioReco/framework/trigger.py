@@ -5,13 +5,16 @@ All values of a trigger except its name and type are stored as `triggerParameter
 (``trigger[triggerParameters.threshold]``); the getters / setters of the classes are wrappers around them.
 `deserialize` creates the class registered for the trigger type string.
 """
+
 import logging
 import pickle
+import typing
 import warnings
 
 import numpy as np
 
 from NuRadioReco.framework.parameter_storage import ParameterStorage
+from NuRadioReco.framework.parameters import OneOf
 from NuRadioReco.framework.parameters import triggerParameters as trp
 from NuRadioReco.utilities.io_utilities import _dumps
 from NuRadioReco.utilities import units
@@ -50,6 +53,25 @@ def deserialize(triggers_pkl):
         triggers[trigger.get_name()] = trigger
 
     return triggers
+
+
+def _as_float(value, dtype):
+    """
+    `value` with integers (not bools) converted to float where `dtype` declares a float (e.g. ``55 * units.ns``),
+    also as values of a ``dict[int, float]`` or in the matching alternative of a `OneOf`.
+    """
+    if isinstance(dtype, OneOf):
+        selected = dtype.select(value)
+        return value if selected is None else _as_float(value, selected[1])
+
+    if dtype is float and isinstance(value, (int, np.integer)) and not isinstance(value, (bool, np.bool_)):
+        return float(value)
+
+    if typing.get_origin(dtype) is dict and isinstance(value, dict):
+        value_type = typing.get_args(dtype)[1]
+        return {key: _as_float(item, value_type) for key, item in value.items()}
+
+    return value
 
 
 # Attributes of triggers in .nur files written before the triggerParameters were introduced
@@ -193,6 +215,10 @@ class Trigger(ParameterStorage):
         self.set_pre_trigger_times(pre_trigger_times)
         self[trp.primary] = False
         self.set_jitter_params(sample_block_size, gaussian_jitter)
+
+    def set_parameter(self, key, value):
+        """Set a parameter; integers are stored as float where its type declares a float (see `_as_float`)."""
+        super().set_parameter(key, _as_float(value, key.dtype))
 
     def set_primary(self, primary_trigger=True):
         """

@@ -96,11 +96,13 @@ class triggerSimulator:
 
         triggerd_bins_channels = []
         channels_that_passed_trigger = []
+
         for channel in station.iter_trigger_channels():
             channel_id = channel.get_id()
             if triggered_channels is not None and channel_id not in triggered_channels:
                 logger.debug("skipping channel {}".format(channel_id))
                 continue
+
             if channel.get_trace_start_time() != channel_trace_start_time:
                 logger.warning('Channel has a trace_start_time that differs from the other channels. The trigger simulator may not work properly')
             trace = channel.get_trace()
@@ -120,10 +122,16 @@ class triggerSimulator:
         if(has_triggered):
             for channel in station.iter_trigger_channels():
                 max_signal = max(max_signal, np.abs(channel.get_trace()[triggered_bins]).max())
+
             station.set_parameter(stnp.channels_max_amplitude, max_signal)
-        trigger = IntegratedPowerTrigger(trigger_name, threshold, coinc_window, channels=triggered_channels,
-                                         number_of_coincidences=number_concidences,
-                                         integration_window=integration_window)
+        trigger = IntegratedPowerTrigger(
+            trigger_name,
+            threshold,
+            coinc_window,
+            channels=triggered_channels,
+            number_of_coincidences=number_concidences,
+            integration_window=integration_window,
+        )
         trigger.set_triggered_channels(channels_that_passed_trigger)
         if has_triggered:
             trigger.set_triggered(True)

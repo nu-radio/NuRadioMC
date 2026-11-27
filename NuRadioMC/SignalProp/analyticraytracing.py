@@ -141,7 +141,7 @@ class ray_tracing(ray_tracing_base):
 
         # As long as we use horizontal-translational invariant raytracing/ice models (2d)
         # this should be fine. _n(0) is also used in _get_delta_y for air-ice raytracing
-        #self.n_at_surface = _n(0, self._medium.n_ice, self._medium.delta_n, self._medium.z_0)
+        # self.n_at_surface = _n(0, self._medium.n_ice, self._medium.delta_n, self._medium.z_0)
         self.n_at_surface = self._medium.get_index_of_refraction(np.array([0,0,0]))
 
         # Some consitency checks...
@@ -171,7 +171,6 @@ class ray_tracing(ray_tracing_base):
         # these (expensive) quantities if several showers/emitters are simulated at the same position
         self._cache_attenuation = {}
         self._cache_focusing = {}
-
 
     def reset_solutions(self):
         """
@@ -245,7 +244,6 @@ class ray_tracing(ray_tracing_base):
             stop point of the ray
         """
 
-
         super().set_start_and_end_point(x1, x2)
 
         dX = self._X2 - self._X1
@@ -309,7 +307,7 @@ class ray_tracing(ray_tracing_base):
         # check if not too many solutions were found (the same solution can potentially found twice because of numerical imprecision)
         if(self.get_number_of_solutions() > self.get_number_of_raytracing_solutions()):
             self.__logger.warning(f"[x1 {self._x1}, x2 {self._x2}] {self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed!")
-            #self._results = []
+            # self._results = []
 
     def get_C0(self, iS):
         """ Returns the C0 parameter of the solution
@@ -1031,7 +1029,7 @@ class ray_tracing(ray_tracing_base):
         if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
         else:
-            focusing = 1
+            focusing = 1.0
 
         output_dict = {
             'ray_tracing_C0': self.get_results()[i_solution]['C0'],
@@ -1041,6 +1039,7 @@ class ray_tracing(ray_tracing_base):
             'ray_tracing_solution_type': self.get_solution_type(i_solution),
             'focusing_factor': focusing
         }
+
         return output_dict
 
     def apply_propagation_effects(self, efield, i_solution):
@@ -1069,7 +1068,6 @@ class ray_tracing(ray_tracing_base):
         s_rate = efield.get_sampling_rate()
         spec = efield.get_frequency_spectrum()
 
-
         apply_attenuation = self._config['propagation']['attenuate_ice']
         if apply_attenuation:
             if self._max_detector_frequency is None:
@@ -1083,8 +1081,9 @@ class ray_tracing(ray_tracing_base):
         # Multiple relfections are possible if a reflective bottom layer exists.
         for fresnel_coefficients in self.get_fresnel_coefficients(i_solution):
             if fresnel_coefficients['case'] == 'reflection':
-                efield[efp.reflection_coefficient_theta] = fresnel_coefficients['theta']
-                efield[efp.reflection_coefficient_phi] = fresnel_coefficients['phi']
+                # real below the critical angle, complex above: stored as complex
+                efield[efp.reflection_coefficient_theta] = complex(fresnel_coefficients['theta'])
+                efield[efp.reflection_coefficient_phi] = complex(fresnel_coefficients['phi'])
 
             spec[1] *= fresnel_coefficients['theta']
             spec[2] *= fresnel_coefficients['phi']
@@ -1122,6 +1121,7 @@ class ray_tracing(ray_tracing_base):
                 spec = radiopropa_rays.raytracer_birefringence(launch_v, spec, s_rate) #, bire_model = bire_model --> has to be implemented
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
+
         return efield
 
     def set_config(self, config):

@@ -28,6 +28,11 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - Likelihood-based reconstruction modules, including minimization and matched filter classes. Specialized reconstruction modules for electric fields and
   in-ice neutrino showers are implemeted. See https://arxiv.org/abs/2510.21925 and documentation for details.
 - Improve time_logger functionality - yielding significant reduction in simulation time (25-40%). Smaller improvements to logging.
+- The members of the parameter enums declare the type of their values (`name = id, dtype`, `parameters.TypedEnum`;
+  dicts with fixed keys: `TypedDict` classes; values of one of several types: `parameters.OneOf`, e.g. a threshold for
+  all channels or per channel id). Triggers store integers as float where the type is float. NuRadioMC stores values of
+  the declared type: the particle weight as float, generator attributes read from HDF5 as lists, the reflection
+  coefficients as complex and the focusing factor as float.
 - The antenna response interpolation collapses the two angular axes before the frequency axis and only over the frequency
   nodes that are actually requested. Theta and phi have a single pair of bracketing nodes while every requested frequency
   has its own, so this interpolates a few hundred grid points instead of 8 per frequency bin. The frequency axis is then
