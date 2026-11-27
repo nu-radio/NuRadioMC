@@ -55,8 +55,8 @@
         </aside>
         <h2>
             <span class="text">868 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">347<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">521<span class="text"> missing</span></button>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">345<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">523<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_8f63023e2379b4c2_analyticraytracing_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.17.5">coverage.py v7.17.5</a>,
-            created at 2026-11-26 06:49 +0000
+            created at 2026-11-27 08:42 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -1337,10 +1337,10 @@
     <p class="pln"><span class="n"><a id="t1255" href="#t1255">1255</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1256" href="#t1256">1256</a></span><span class="t">                <span class="nam">n_inf_freqs</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">sum</span><span class="op">(</span><span class="nam">np</span><span class="op">.</span><span class="nam">isnan</span><span class="op">(</span><span class="nam">tmp_attenuation_factor</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1257" href="#t1257">1257</a></span><span class="t">                <span class="key">if</span> <span class="nam">n_inf_freqs</span> <span class="op">&gt;</span> <span class="num">0</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t1258" href="#t1258">1258</a></span><span class="t">                    <span class="nam">self</span><span class="op">.</span><span class="nam">__logger</span><span class="op">.</span><span class="nam">warning</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t1259" href="#t1259">1259</a></span><span class="t">                        <span class="fst">f&quot;</span><span class="fst">CPP wrapper: Attenuation calculation failed for </span><span class="op">{</span><span class="nam">n_inf_freqs</span><span class="op">}</span><span class="fst"> / </span><span class="op">{</span><span class="nam">len</span><span class="op">(</span><span class="nam">tmp_attenuation_factor</span><span class="op">)</span><span class="op">}</span><span class="fst"> frequencies, </span><span class="fst">&quot;</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run run2"><span class="n"><a id="t1260" href="#t1260">1260</a></span><span class="t">                        <span class="str">&quot;setting attenuation (factor) to 0, i.e., inf attenuation in these bins&quot;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t1261" href="#t1261">1261</a></span><span class="t">                    <span class="nam">tmp_attenuation_factor</span><span class="op">[</span><span class="nam">np</span><span class="op">.</span><span class="nam">isnan</span><span class="op">(</span><span class="nam">tmp_attenuation_factor</span><span class="op">)</span><span class="op">]</span> <span class="op">=</span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t1258" href="#t1258">1258</a></span><span class="t">                    <span class="nam">self</span><span class="op">.</span><span class="nam">__logger</span><span class="op">.</span><span class="nam">warning</span><span class="op">(</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t1259" href="#t1259">1259</a></span><span class="t">                        <span class="fst">f&quot;</span><span class="fst">CPP wrapper: Attenuation calculation failed for </span><span class="op">{</span><span class="nam">n_inf_freqs</span><span class="op">}</span><span class="fst"> / </span><span class="op">{</span><span class="nam">len</span><span class="op">(</span><span class="nam">tmp_attenuation_factor</span><span class="op">)</span><span class="op">}</span><span class="fst"> frequencies, </span><span class="fst">&quot;</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis mis2 show_mis"><span class="n"><a id="t1260" href="#t1260">1260</a></span><span class="t">                        <span class="str">&quot;setting attenuation (factor) to 0, i.e., inf attenuation in these bins&quot;</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t1261" href="#t1261">1261</a></span><span class="t">                    <span class="nam">tmp_attenuation_factor</span><span class="op">[</span><span class="nam">np</span><span class="op">.</span><span class="nam">isnan</span><span class="op">(</span><span class="nam">tmp_attenuation_factor</span><span class="op">)</span><span class="op">]</span> <span class="op">=</span> <span class="num">0</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1262" href="#t1262">1262</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1263" href="#t1263">1263</a></span><span class="t">                <span class="nam">self</span><span class="op">.</span><span class="nam">__logger</span><span class="op">.</span><span class="nam">debug</span><span class="op">(</span><span class="nam">tmp_attenuation_factor</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t1264" href="#t1264">1264</a></span><span class="t">                <span class="nam">attenuation_factor_segment</span> <span class="op">=</span> <span class="nam">np</span><span class="op">.</span><span class="nam">ones_like</span><span class="op">(</span><span class="nam">frequency</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -2260,7 +2260,7 @@
             <a class="nav" href="z_8f63023e2379b4c2_analyticraytracing_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.17.5">coverage.py v7.17.5</a>,
-            created at 2026-11-26 06:49 +0000
+            created at 2026-11-27 08:42 +0000
         </p>
     </div>
 </footer>
