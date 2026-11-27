@@ -1524,6 +1524,54 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">"station_position"</span><span class="p">][</span><span class="s2">"position"</span><span class="p">])</span></div>
 
 
+<div class="viewcode-block" id="Detector.get_ice_model">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_ice_model">[docs]</a>
+    <span class="nd">@_check_detector_time</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_ice_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Returns the ice model attached to a specific station.</span>
+
+<span class="sd">        The ice model is not part of the detector description stored in the database, it has</span>
+<span class="sd">        to be attached explicitly, see ``ModDetector.set_ice_model``. The object is constructed</span>
+<span class="sd">        from the stored description on every call, i.e. a new instance is returned each time</span>
+<span class="sd">        this function is called.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station_id: int</span>
+<span class="sd">            The station id</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ice_model: `NuRadioMC.utilities.medium_base.IceModel`</span>
+<span class="sd">            Ice model object described by the description attached to this station</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Only calibrated detector descriptions (shipped as JSON files) carry an ice model; descriptions</span>
+<span class="sd">        queried from the database do not, and a `KeyError` is raised in that case.</span>
+
+<span class="sd">        A model attached to a database-queried description is dropped once the station description is</span>
+<span class="sd">        re-queried (e.g. by `update` when the detector time enters a new period) and has to be attached</span>
+<span class="sd">        again (``ModDetector.set_ice_model``); imported descriptions are never re-queried.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        NuRadioMC.utilities.medium.get_ice_model</span>
+<span class="sd">        """</span>
+
+        <span class="k">if</span> <span class="n">_keys_not_in_dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">,</span> <span class="p">[</span><span class="n">station_id</span><span class="p">,</span> <span class="s2">"ice_model"</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="se">\"</span><span class="s2">ice_model</span><span class="se">\"</span><span class="s2"> not in buffer for station </span><span class="si">{</span><span class="n">station_id</span><span class="si">}</span><span class="s2">. Is there an ice model attached to this station?"</span><span class="p">)</span>
+
+        <span class="n">model_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">"ice_model"</span><span class="p">]</span>
+
+        <span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">"NuRadioMC.utilities.medium_base"</span><span class="p">)</span>
+        <span class="n">class_</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">model_spec</span><span class="p">[</span><span class="s2">"type"</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">class_</span><span class="p">(</span><span class="o">**</span><span class="n">model_spec</span><span class="p">[</span><span class="s2">"args"</span><span class="p">])</span></div>
+
+
 <div class="viewcode-block" id="Detector.get_relative_position">
 <a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector.html#NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_relative_position">[docs]</a>
     <span class="nd">@_check_detector_time</span>
@@ -1992,7 +2040,6 @@
         <span class="n">channel_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_channel</span><span class="p">(</span>
             <span class="n">station_id</span><span class="p">,</span> <span class="n">channel_id</span><span class="p">,</span> <span class="n">with_signal_chain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">channel_info</span><span class="p">[</span><span class="s1">'ant_type'</span><span class="p">]</span></div>
-
 
 
 <div class="viewcode-block" id="Detector.get_number_of_samples">

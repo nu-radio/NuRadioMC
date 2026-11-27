@@ -953,6 +953,38 @@
 <span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">modify_station_description</span><span class="p">(</span><span class="n">station_id</span><span class="p">,</span> <span class="p">[</span><span class="s2">"devices"</span><span class="p">,</span> <span class="n">device_id</span><span class="p">,</span> <span class="s2">"device_position"</span><span class="p">,</span> <span class="s2">"position"</span><span class="p">],</span>
                                         <span class="nb">list</span><span class="p">(</span><span class="n">value</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ModDetector.set_ice_model">
+<a class="viewcode-back" href="../../../../NuRadioReco/apidoc/NuRadioReco.detector.RNO_G.rnog_detector_mod.html#NuRadioReco.detector.RNO_G.rnog_detector_mod.ModDetector.set_ice_model">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_ice_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">station_id</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""</span>
+<span class="sd">        Attach an ice model to a station.</span>
+
+<span class="sd">        The model is stored as the description returned by the ``get_description`` method of the</span>
+<span class="sd">        ice model and is reconstructed on demand by `NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_ice_model`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        station_id: int</span>
+<span class="sd">            The station id</span>
+<span class="sd">        model: `NuRadioMC.utilities.medium_base.IceModel`</span>
+<span class="sd">            The ice model to be attached. Has to implement the ``get_description`` method.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Ice models exist only for calibrated detector descriptions (shipped as JSON files, produced with</span>
+<span class="sd">        `NuRadioReco.detector.RNO_G.rnog_detector.Detector.export`); the database does not provide them.</span>
+
+<span class="sd">        On a database-queried detector, attach the model after `update` and before `export`, since</span>
+<span class="sd">        re-querying the description drops it.</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        NuRadioReco.detector.RNO_G.rnog_detector.Detector.get_ice_model</span>
+<span class="sd">        """</span>
+        <span class="n">model_spec</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_description</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Detector__buffered_stations</span><span class="p">[</span><span class="n">station_id</span><span class="p">][</span><span class="s2">"ice_model"</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_spec</span></div>
 </div>
 
 
