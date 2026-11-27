@@ -677,10 +677,17 @@ def test_stale_files_without_overwrite(tmp_path):
 
 
 if __name__ == "__main__":
-    # Run without pytest (as in the CI): every test gets its own temporary directory
+    # Run without pytest (as in the CI): every test (and parameter set) gets its own temporary directory
     for name, test in list(globals().items()):
         if name.startswith("test_") and callable(test):
-            with tempfile.TemporaryDirectory() as directory:
-                test(pathlib.Path(directory))
+            cases = [{}]
+            for mark in getattr(test, "pytestmark", []):
+                if mark.name == "parametrize":
+                    names = [arg.strip() for arg in mark.args[0].split(",")]
+                    cases = [dict(zip(names, values if len(names) > 1 else (values,))) for values in mark.args[1]]
 
-            print(f"{name}: passed")
+            for kwargs in cases:
+                with tempfile.TemporaryDirectory() as directory:
+                    test(pathlib.Path(directory), **kwargs)
+
+            print(f"{name}: passed ({len(cases)} cases)" if len(cases) > 1 else f"{name}: passed")
