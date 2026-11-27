@@ -15,7 +15,7 @@ Before opening, the checks in the comment at the top of `pull_request_template.m
 
 ## TL;DR
 
-Three bullets, fragments fine, each within the template's sentence limit. **Goal** is what the PR is for, not how; **Done** is the change itself (new option, fixed bug, changed default); **Blast radius** condenses the backwards compatibility section (`none` when every line there is unchanged).
+Three bullets, fragments fine, each within the template's sentence limit. **Goal** is what the PR is for, not how; **Done** is the change itself (new option, fixed bug, changed default); **Blast radius** condenses the backwards compatibility section and starts with the symbol of its worst line (`✅ none` when every line there is unchanged).
 
 ## Summary
 
@@ -33,3 +33,10 @@ Does code, data or analysis outside the repo (user scripts, `.nur`/HDF5 files, d
 - **Data:** `.nur` and HDF5 output, detector JSON, YAML configs. Inputs that loaded before and now fail (or the reverse); outputs older versions can no longer read.
 - **Results:** whether unchanged code on unchanged input now gives different numbers or trigger decisions, for which settings, by how much. A silent change in results deserves the most attention: it raises no error downstream.
 - **Migration:** the concrete step for affected users (rename a call, set an option to restore the old behaviour, regenerate a file).
+
+Mark each line with the template's symbol (✅ unchanged, ➕ extended, ⚠️ breaking or changed) so the verdict reads at a glance. Every silent change (no error, wrong answer: results shift, older versions misread new files) also gets a GitHub alert below the list, stating what goes wrong, for whom, and how you checked:
+
+```markdown
+> [!WARNING]
+> NuRadioReco versions before this PR read triggers in new `.nur` files without an error but with default values (`has_triggered()` returns `False`).
+```

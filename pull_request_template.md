@@ -12,7 +12,7 @@ Once approved, wait at least 24 hours after the last change before merging, so o
 
 - **Goal:** <!-- 1 sentence -->
 - **Done:** <!-- max 2 sentences -->
-- **Blast radius:** <!-- 1 sentence: API change, changed results or data, what users must do -->
+- **Blast radius:** <!-- 1 sentence, starting with the symbol of the worst line in the backwards compatibility section: API change, changed results or data, what users must do -->
 
 ## Summary
 
@@ -27,9 +27,9 @@ Once approved, wait at least 24 hours after the last change before merging, so o
 
 ## Backwards compatibility & downstream impact
 
-<!-- Do user scripts, stored .nur/HDF5 files, detector descriptions and configs keep working and give the same answer after the merge? -->
+<!-- Do user scripts, stored .nur/HDF5 files, detector descriptions and configs keep working and give the same answer after the merge? Keep one symbol per line. A change that fails silently (no error, wrong answer: results shift, older versions misread new files) also gets a "> [!WARNING]" alert below the list. -->
 
-- **API:** unchanged / extended / breaking — 
-- **Data:** unchanged / changed — 
-- **Results:** unchanged / changed — 
+- **API:** ✅ unchanged / ➕ extended / ⚠️ breaking — 
+- **Data:** ✅ unchanged / ⚠️ changed — 
+- **Results:** ✅ unchanged / ⚠️ changed — 
 - **Migration:** <!-- what users do to adapt or keep the old behaviour; delete if nothing -->
