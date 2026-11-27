@@ -6,6 +6,7 @@ python3 T04MooresBay.py
 python3 T05unit_test_C0.py
 python3 T09_compare_raytracing_modules.py
 python3 T11test_find_solutions_known_geometries.py
+python3 test_set_medium.py
 
 cd ../../examples/SignalProp
 python3 example_3d.py
