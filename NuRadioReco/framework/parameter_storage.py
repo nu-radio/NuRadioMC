@@ -60,6 +60,17 @@ class ParameterStorage:
         """
         self._parameter_types.append(parameter_type)
 
+    def get_parameter_types(self):
+        """
+        Get the allowed parameter classes (see `add_parameter_type`).
+
+        Returns
+        -------
+        parameter_types : list of parameter classes
+            A copy of the list, in the order the classes were added.
+        """
+        return list(self._parameter_types)
+
     def __setitem__(self, key, value):
         """ Set a parameter """
         self.set_parameter(key, value)
@@ -139,6 +150,17 @@ class ParameterStorage:
         self._check_key(key2)
         return self._parameter_covariances[(key1, key2)]
 
+    def get_parameter_covariances(self):
+        """
+        Get all stored covariances (and squared errors, see `set_parameter_error`).
+
+        Returns
+        -------
+        covariances : dict
+            ``{(key1, key2): value}``, a copy. `set_parameter_covariance` stores both orders of the keys.
+        """
+        return dict(self._parameter_covariances)
+
     def has_parameter_covariance(self, key1, key2):
         """ Returns `True` if the covariance for `key1` and `key2` is present, `False` otherwise """
         self._check_key(key1)
@@ -150,9 +172,20 @@ class ParameterStorage:
         self._check_key(key)
         self._parameters.pop(key, None)
 
-    def get_parameters(self):
-        """ Get all parameters """
-        return copy.deepcopy(self._parameters)
+    def get_parameters(self, copy=True):
+        """
+        Get all parameters
+
+        Parameters
+        ----------
+        copy : bool (default: True)
+            If `True` (default), return a deep copy of the parameters. Set to `False` to get the stored
+            dictionary itself, e.g. for read-only access in performance-critical code (see `get_parameter`).
+        """
+        if copy:
+            return _deepcopy(self._parameters)
+
+        return self._parameters
 
     def serialize(self):
         parameters = {str(key): self._parameters[key] for key in self._parameters}
@@ -167,7 +200,6 @@ class ParameterStorage:
         }
 
         return data
-
 
     def deserialize(self, data):
         # for backward compatibility

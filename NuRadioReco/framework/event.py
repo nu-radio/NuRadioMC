@@ -202,6 +202,10 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
         return self.__event_time
 
+    def has_event_time(self):
+        """Returns `True` if the event time is set (see `set_event_time`), `False` otherwise."""
+        return self.__event_time is not None
+
     def get_stations(self):
         """
         Returns an iterator over all stations in the event.
@@ -548,7 +552,6 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         """
         return self.__hybrid_information
 
-
     def _register_module_event(self, instance, name, kwargs):
         """
         registers modules applied to this event
@@ -614,6 +617,49 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
                 iE += 1
                 yield self.__modules_event[iE - 1]
+
+    def get_module_registry(self, station_id=None):
+        """
+        Returns the registry of the modules run on this event (see `iter_modules`), e.g. to write it to a file.
+
+        Parameters
+        ----------
+        station_id : int, optional
+            If None (default), return the modules registered on event level, else those registered
+            for this station.
+
+        Returns
+        -------
+        modules : list of list
+            One entry per module, in the order of registration: ``[name, instance, kwargs]`` on event level,
+            ``[index, name, instance, kwargs]`` on station level, where ``index`` is the number of
+            event level modules registered before (it defines the order of `iter_modules`).
+            A copy of the registry (the entries are copied, their contents are not).
+        """
+        if station_id is None:
+            modules = self.__modules_event
+        else:
+            modules = self.__modules_station.get(station_id, [])
+
+        return [list(module) for module in modules]
+
+    def _set_module_registry(self, modules, station_id=None):
+        """
+        Replaces the registry of the modules run on this event. For readers restoring an event from a file
+        (`NuRadioReco.modules.io.eventReader`); otherwise ``register_run`` fills it.
+
+        Parameters
+        ----------
+        modules : list of list
+            The modules in the format returned by `get_module_registry`. The instances may be None.
+        station_id : int, optional
+            If None (default), set the modules registered on event level, else those registered for this station.
+        """
+        modules = [list(module) for module in modules]
+        if station_id is None:
+            self.__modules_event = modules
+        else:
+            self.__modules_station[station_id] = modules
 
     def _has_been_processed_by_module(self, module_name, station_id):
         """
@@ -805,7 +851,6 @@ class Event(NuRadioReco.framework.parameter_storage.ParameterStorage):
         if "__modules_station" in data:
             for key, value in data['__modules_station'].items():
                 self.__modules_station[key] = value
-
 
     def show(
             self, show_parameters=0, show_stations=True, show_showers=True,

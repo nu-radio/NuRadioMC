@@ -55,6 +55,23 @@ def deserialize(triggers_pkl):
     return triggers
 
 
+def create_trigger(name, trigger_type):
+    """
+    A trigger of the class registered for `trigger_type` (unknown types: `Trigger`) without any parameter set,
+    e.g. for a reader which sets the stored parameters.
+    """
+    cls = _TRIGGER_CLASSES.get(trigger_type)
+    if cls is None:
+        logger.warning(f"Unknown trigger type '{trigger_type}': read as base class `Trigger`.")
+        cls = Trigger
+
+    trigger = cls.__new__(cls)
+    Trigger.__init__(trigger, name, trigger_type=trigger_type)
+    trigger._parameters = {}
+
+    return trigger
+
+
 def _as_float(value, dtype):
     """
     `value` with integers (not bools) converted to float where `dtype` declares a float (e.g. ``55 * units.ns``),

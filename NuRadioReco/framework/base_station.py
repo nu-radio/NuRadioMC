@@ -218,6 +218,19 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
         trigger.set_triggered(triggered)
         self.set_trigger(trigger)
 
+    def set_triggered_flag(self, triggered):
+        """
+        Set the value `has_triggered()` (without trigger name) returns, without adding or changing a trigger.
+
+        Normally the flag follows from the triggers added with `set_trigger`. Use this to restore it
+        e.g. when reading a station from a file which does not store the triggers.
+
+        Parameters
+        ----------
+        triggered : bool
+        """
+        self._triggered = bool(triggered)
+
     def set_electric_fields(self, electric_fields):
         self._electric_fields = electric_fields
 
@@ -271,6 +284,18 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
             raise ValueError(msg)
 
         return self._particle_type == 'cr'
+
+    def get_particle_type(self):
+        """
+        Returns the particle type of the station (see `set_is_neutrino`, `set_is_cosmic_ray`).
+
+        Returns
+        -------
+        particle_type : str
+            'nu' (neutrino), 'cr' (cosmic ray) or '' (not set). Unlike `is_neutrino` / `is_cosmic_ray`,
+            this does not raise an error if the type is not set.
+        """
+        return self._particle_type
 
     def set_is_neutrino(self):
         """
@@ -334,7 +359,6 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
 
         self._particle_type = data['_particle_type']
 
-
     def __add__(self, x):
         """
         adds a BaseStation object to another BaseStation object
@@ -361,7 +385,6 @@ class BaseStation(NuRadioReco.framework.parameter_storage.ParameterStorage):
             self.set_parameter(key, value)
 
         return self
-
 
     ######## Deprecated functions ########
 

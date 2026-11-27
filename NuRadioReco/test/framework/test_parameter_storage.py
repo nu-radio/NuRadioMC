@@ -1,8 +1,10 @@
 """
 Tests that `ParameterStorage.get_parameter` (and the `[]` operator, which uses it
 under the hood) returns a copy of mutable parameter values, so that modifying the
-returned value does not silently corrupt the object's internal state.
+returned value does not silently corrupt the object's internal state, and that the
+getters of all parameters, parameter types and covariances return copies.
 """
+
 import numpy as np
 
 from NuRadioReco.framework.parameters import stationParameters as stnp
@@ -103,6 +105,46 @@ def test_set_parameter_after_get_modify_round_trip():
     assert efield.get_parameter(efp.max_amp_antenna) == {0: 1.5}
 
 
+def test_get_parameter_types_returns_copy():
+    station = _make_storage()
+
+    types = station.get_parameter_types()
+    assert types[0] is stnp and types == station._parameter_types
+
+    types.append(efp)
+    assert efp not in station.get_parameter_types()
+
+
+def test_get_parameter_covariances_returns_copy():
+    station = _make_storage()
+    station.set_parameter_error(stnp.zenith, 0.1)
+    station.set_parameter_covariance(stnp.zenith, stnp.azimuth, 0.5)
+
+    covariances = station.get_parameter_covariances()
+    assert covariances == {
+        (stnp.zenith, stnp.zenith): 0.1**2,
+        (stnp.zenith, stnp.azimuth): 0.5,
+        (stnp.azimuth, stnp.zenith): 0.5,
+    }
+
+    covariances.clear()
+    assert len(station.get_parameter_covariances()) == 3
+
+
+def test_get_parameters_copy():
+    station = _make_storage()
+    station.set_parameter(stnp.dirty_fft_channels, [1, 2])
+
+    copied = station.get_parameters()
+    copied[stnp.dirty_fft_channels].append(3)
+    assert station.get_parameter(stnp.dirty_fft_channels) == [1, 2]
+
+    stored = station.get_parameters(copy=False)
+    assert stored is station.get_parameters(copy=False)
+    stored[stnp.nu_energy] = 1e18
+    assert station.get_parameter(stnp.nu_energy) == 1e18
+
+
 if __name__ == "__main__":
     test_list_parameter_is_copied()
     test_dict_parameter_is_copied()
@@ -112,4 +154,7 @@ if __name__ == "__main__":
     test_scalar_parameter_returned_directly_without_copy_overhead()
     test_copy_false_returns_the_stored_object_itself()
     test_set_parameter_after_get_modify_round_trip()
+    test_get_parameter_types_returns_copy()
+    test_get_parameter_covariances_returns_copy()
+    test_get_parameters_copy()
     print("test_parameter_storage.py: all tests passed")
