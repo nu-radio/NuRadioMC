@@ -72,6 +72,9 @@ minimizers = ["iminuit", "scikit-optimize", "noisyopt"]
 analysis = ["polars"]
 ALL = ["proposal", "pygdsm", "pylfmap", "healpy", "MCEq", "crflux", "cr-pulse-interpolator", "iminuit", "scikit-optimize", "noisyopt"]
 
+[tool.poetry.scripts]
+nuradio-analyse = "NuRadioReco.utilities.analysis_reader:main"
+
 [tool.coverage.run]
 parallel = true
 relative_files = true

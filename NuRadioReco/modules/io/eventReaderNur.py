@@ -2,8 +2,7 @@
 Reads the pickle based ``.nur`` files (written by NuRadioReco up to version 3.1).
 
 Deprecated: `NuRadioReco.modules.io.eventReader` reads ``.nur`` files with this module (with a warning);
-convert them to parquet with `NuRadioReco.modules.io.nur_to_parquet.convert_nur`.
-This module will be removed in a future release.
+convert them to parquet with ``nuradio-analyse convert``. This module will be removed in a future release.
 """
 
 from NuRadioReco.modules.base.module import register_run

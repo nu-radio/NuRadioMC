@@ -2,7 +2,7 @@
 Writes complete NuRadio events (parameters, traces, simulated quantities) to parquet files.
 
 This is the default event format of NuRadioReco; the pickle based ``.nur`` writer was removed (``.nur`` files are
-still read by `NuRadioReco.modules.io.eventReader`, convert them with `NuRadioReco.modules.io.nur_to_parquet.convert_nur`).
+still read by `NuRadioReco.modules.io.eventReader`, convert them with ``nuradio-analyse convert``).
 
 Parquet is a typed, columnar and compressed table format: an analysis reads only the columns it needs
 (e.g. one reconstructed quantity of many events) without decoding the traces, and standard tools

@@ -9,7 +9,8 @@ Parameters whose type is not specific enough to define a schema (``Any``, bare `
 unknown classes) are dropped with a warning, nothing is pickled.
 
 `find_files` finds the files written by `NuRadioReco.modules.io.eventWriter` and selects them by station and run.
-It is used by `NuRadioReco.modules.io.eventReader`.
+It is shared by `NuRadioReco.modules.io.eventReader` (complete events) and
+`NuRadioReco.utilities.analysis_reader.AnalysisReader` (tables for analyses, needs polars).
 """
 
 import functools

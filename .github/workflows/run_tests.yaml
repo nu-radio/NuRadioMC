@@ -269,6 +269,8 @@ jobs:
         python NuRadioReco/test/io/test_parquet_roundtrip.py
         python NuRadioReco/test/io/test_io_utilities_json.py
         python NuRadioReco/test/io/test_nur_to_parquet.py
+        python NuRadioReco/test/io/test_analysis_reader.py
+        python NuRadioReco/examples/parquet_io_example.py
     - name: "Test trigger write / read"
       if: always()
       run: |
