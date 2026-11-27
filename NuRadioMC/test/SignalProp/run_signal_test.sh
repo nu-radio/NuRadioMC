@@ -3,9 +3,12 @@ cd NuRadioMC/test/SignalProp/
 python3 T01test_python_vs_cpp.py
 python3 T02test_analytic_D_T.py
 python3 T04MooresBay.py
+python3 T04MooresBay.py --python
 python3 T05unit_test_C0.py
+python3 T05unit_test_C0.py --python
 python3 T09_compare_raytracing_modules.py
 python3 T11test_find_solutions_known_geometries.py
+python3 T12test_compare_cpp_python.py
 
 cd ../../examples/SignalProp
 python3 example_3d.py

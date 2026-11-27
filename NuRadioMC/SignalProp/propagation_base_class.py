@@ -10,6 +10,9 @@ class ray_tracing_base:
     """
     Case class of ray tracer. All ray tracing modules need to prodide the following functions
     """
+    #: Whether the ray tracer can calculate reflections off a reflective bottom layer (``n_reflections > 0``)
+    supports_bottom_reflections = True
+
     def __init__(self, medium, attenuation_model=None, log_level=logging.NOTSET,
                  n_frequencies_integration=None, n_reflections=None, config=None,
                  detector=None, ray_tracing_2D_kwards={}, use_cpp=None):
@@ -128,11 +131,18 @@ class ray_tracing_base:
             self._attenuation_model = attenuation_model or 'SP1'
 
         if self._n_reflections:
+            if not self.supports_bottom_reflections:
+                msg = (f"{type(self).__name__} does not support reflections off a reflective bottom layer, "
+                       f"but n_reflections = {self._n_reflections} was requested.")
+                self.__logger.error(msg)
+                raise NotImplementedError(msg)
+
             if not hasattr(self._medium, "reflection") or self._medium.reflection is None:
-                self.__logger.warning(
-                    "Ray paths with bottom reflections requested but medium does "
-                    "not have any reflective layer, setting number of reflections to zero.")
-                self._n_reflections = 0
+                msg = (f"n_reflections = {self._n_reflections} was requested, but the ice model "
+                       f"({type(self._medium).__name__}) has no reflective bottom layer. Set n_reflections to 0 "
+                       "(IceModelExpLayers does not support reflective bottom layers).")
+                self.__logger.error(msg)
+                raise ValueError(msg)
 
     def reset_solutions(self):
         self._X1 = None

@@ -3,9 +3,10 @@
 """
 Unit test to compare the numerical and analytic calculation of path length and travel time for the Moore's Bay site with additional reflections off the bottom.
 
-For both calculations, the python version is used.
+Use ``--python`` to run the Python instead of the C++ backend of the ray tracer.
 """
 
+import argparse
 
 import numpy as np
 from numpy import testing
@@ -13,6 +14,10 @@ import time
 from NuRadioMC.SignalProp import analyticraytracing as ray
 from NuRadioMC.utilities import medium
 from NuRadioReco.utilities import units
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--python', action='store_true', help='use the Python instead of the C++ backend')
+args = parser.parse_args()
 
 ice = medium.mooresbay_simple()
 
@@ -41,7 +46,7 @@ d_numeric = 0
 d_analytic = 0
 t_numeric = 0
 t_analytic = 0
-r = ray.ray_tracing(ice, n_reflections=1)
+r = ray.ray_tracing(ice, n_reflections=1, use_cpp=not args.python)
 for iX, x in enumerate(points):
     r.set_start_and_end_point(x, x_receiver)
     r.find_solutions()
