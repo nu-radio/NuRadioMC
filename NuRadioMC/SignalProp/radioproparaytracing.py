@@ -116,7 +116,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
         self._source = None
         self._antenna = None
 
-
     def reset_solutions(self):
         """
         Resets the raytracing solutions back to None. This is useful to do
@@ -236,7 +235,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
     def deactivate_auto_step_size(self):
         self._auto_step = False
 
-
     def set_cut_viewing_angle(self, cut):
         """
         Set a cut on the viewing angle around the cherenkov angle. Rays with a viewing
@@ -272,7 +270,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
         except TypeError:
             self.__logger.error('NoneType: start or endpoint not initialized')
             raise TypeError('NoneType: start or endpoint not initialized')
-
 
         v = (self._X2 - self._X1)
         u = copy.deepcopy(v)
@@ -340,7 +337,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             obs2.add(boundary_above_surface)
             sim.add(obs2)
 
-            #create total scanning range from the upper and lower thetas of the bundles
+            # create total scanning range from the upper and lower thetas of the bundles
             step = self._step_zeniths[s] / units.radian
             theta_scanning_range = np.array([])
             for iL in range(len(launch_lower)):
@@ -381,8 +378,8 @@ class radiopropa_ray_tracing(ray_tracing_base):
                                 next_rays.append(secondary)
                         current_rays = next_rays
 
-            #loop over previous rays to find the upper and lower theta of each bundle of rays
-            #uses step, but because step is initialized after this loop this ios the previous step size as intented
+            # loop over previous rays to find the upper and lower theta of each bundle of rays
+            # uses step, but because step is initialized after this loop this ios the previous step size as intented
             if len(detected_rays) > 0:
                 launch_lower.clear()
                 launch_upper.clear()
@@ -401,7 +398,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
                         pass
                     launch_theta_prev = launch_theta
             else:
-                #if detected_rays is empthy, no solutions where found and the tracer is terminated
+                # if detected_rays is empthy, no solutions where found and the tracer is terminated
                 break
 
         self._rays = detected_rays
@@ -453,7 +450,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
         else:
             X1 = self._X1 * (radiopropa.meter/units.meter)
             X2 = self._X2 * (radiopropa.meter/units.meter)
-
 
         v = (self._X2 - self._X1)
         u = copy.deepcopy(v)
@@ -547,7 +543,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
             self.__logger.error('NoneType: start or endpoint not initialized')
             raise TypeError('NoneType: start or endpoint not initialized')
 
-
         v = (self._X2-self._X1)
         u = copy.deepcopy(v)
         u[2] = 0
@@ -606,11 +601,11 @@ class radiopropa_ray_tracing(ray_tracing_base):
             return delta_z(cot_theta)**2
 
         t1 = time.time()
-        #we minimize the cotangens of the zenith to reflect the same resolution in z to the different angles (vertical vs horizontal)
+        # we minimize the cotangens of the zenith to reflect the same resolution in z to the different angles (vertical vs horizontal)
         root1 = optimize.minimize(delta_z_squared,x0=cot(theta_direct),method='Nelder-Mead',options={'xatol':self.__xtol**2,'fatol':self.__ztol**2})
         t2 = time.time()
         if root1.success:# and np.sqrt(root1.fun) < 1e-2*units.meter:
-            #if root1.fun > self.__ztol**2: print(root1,'\n',20*'#')
+            # if root1.fun > self.__ztol**2: print(root1,'\n',20*'#')
             theta1 = arccot(root1.x)
             detected_theta.append(theta1)
             detected_rays.append(shoot_ray(theta1))
@@ -642,7 +637,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
         self._results = [{'reflection':0,'reflection_case':1} for ray in detected_rays]
         self.__used_method = 'minimizer'
 
-
     def set_solutions(self,raytracing_results):
         """
         Read an already calculated raytracing solution from the input array
@@ -665,7 +659,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
         self._results = results
         self._rays = rays
-
 
     def find_solutions(self):
         """
@@ -726,7 +719,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
 
             self._rays = rays_results
             self._results = results
-
 
         if(self.get_number_of_solutions() > self.get_number_of_raytracing_solutions()):
             self.__logger.error(f"{self.get_number_of_solutions()} were found but only {self.get_number_of_raytracing_solutions()} are allowed!")
@@ -989,7 +981,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
         refrac_index = self._medium.get_index_of_refraction(self._X2)
         return self.get_correction_path_length(iS) / ((constants.c * units.meter / units.second) / refrac_index)
 
-
     def get_path_length(self, iS):
         """
         calculates the path length of solution iS
@@ -1040,7 +1031,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
             travel_time += self.get_correction_travel_time(iS)
         return travel_time
 
-
     def get_frequencies_for_attenuation(self, frequency, max_detector_freq):
         """
         helper function to get the frequencies for applying attenuation
@@ -1069,7 +1059,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
             if(np.sum(~mask2)>1):
                 freqs = np.append(freqs, np.linspace(frequency[~mask2].min(), frequency[~mask2].max(), nfreqs // 2))
         return freqs
-
 
     def get_attenuation(self, iS, frequency, max_detector_freq=None):
         """
@@ -1207,20 +1196,22 @@ class radiopropa_ray_tracing(ray_tracing_base):
             attenuation = self.get_attenuation(i_solution, efield.get_frequencies(), max_freq)
             spec *= attenuation
 
-
         ## apply reflections
         zenith_reflections = np.atleast_1d(self.get_reflection_angle(i_solution))
+
         for zenith_reflection in zenith_reflections:
             if (zenith_reflection is None):
                 continue
+
             r_theta = geometryUtilities.get_fresnel_r_p(zenith_reflection,
                 n_2=self._medium.get_index_of_refraction(np.array([self._X2[0], self._X2[1], +1 * units.cm])),
                 n_1=self._medium.get_index_of_refraction(np.array([self._X2[0], self._X2[1], -1 * units.cm])))
             r_phi = geometryUtilities.get_fresnel_r_s(zenith_reflection,
                 n_2=self._medium.get_index_of_refraction(np.array([self._X2[0], self._X2[1], +1 * units.cm])),
                 n_1=self._medium.get_index_of_refraction(np.array([self._X2[0], self._X2[1], -1 * units.cm])))
-            efield[efp.reflection_coefficient_theta] = r_theta
-            efield[efp.reflection_coefficient_phi] = r_phi
+            # real below the critical angle, complex above: stored as complex
+            efield[efp.reflection_coefficient_theta] = complex(r_theta)
+            efield[efp.reflection_coefficient_phi] = complex(r_phi)
 
             spec[1] *= r_theta
             spec[2] *= r_phi
@@ -1250,6 +1241,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             spec = self.raytracer_birefringence(launch_v, spec, s_rate)
 
         efield.set_frequency_spectrum(spec, efield.get_sampling_rate())
+
         return efield
 
     def get_output_parameters(self):
@@ -1292,7 +1284,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
         if self._config['propagation']['focusing']:
             focusing = self.get_focusing(i_solution, limit=float(self._config['propagation']['focusing_limit']))
         else:
-            focusing = 1
+            focusing = 1.0
         output_dict = {
             'sphere_sizes': self._sphere_sizes,
             'launch_vector': self.get_launch_vector(i_solution),
@@ -1301,6 +1293,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
             'ray_tracing_reflection_case': self.get_results()[i_solution]['reflection_case'],
             'ray_tracing_solution_type': self.get_solution_type(i_solution)
         }
+
         return output_dict
 
     def set_config(self, config):
