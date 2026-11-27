@@ -8,6 +8,8 @@ Tests for the trigger classes stored as `triggerParameters`:
 before the triggerParameters were introduced.
 """
 import os
+import pickle
+import warnings
 
 import numpy as np
 
@@ -234,10 +236,42 @@ def test_legacy_files():
             _assert_identical(trigger, trg.deserialize([trigger.serialize()])[trigger.get_name()])
 
 
+
+def test_legacy_int_power_swapped_arguments():
+    """ powerIntegration before NuRadioReco 3.2 stored (channels, number_of_coincidences) as (coinc_window, channels). """
+    legacy = {"_name": "int_power", "_trigger_type": "int_power", "_channels": 2, "_coinc_window": [0, 1],
+              "_number_of_coincidences": 1, "_threshold": 0.3, "_triggered": True}
+    for coinc_window, channels in (([0, 1], [0, 1]), (None, None)):
+        legacy["_coinc_window"] = coinc_window
+        t = trg.deserialize([pickle.dumps(legacy)])["int_power"]
+        assert t[trp.number_of_coincidences] == 2 and t[trp.channels] == channels
+        assert t[trp.coinc_window] is None and t.has_triggered()
+
+
+def test_deprecated_settings_keys():
+    settings = _example_triggers()[6].get_trigger_settings()  # SimplePhasedTrigger
+    for old, new in [("primary_trigger", "primary"), ("primary_angles", "phasing_angles"),
+                     ("primary_channels", "channels")]:
+        assert old not in settings
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            np.testing.assert_equal(settings[old], settings[new])
+            np.testing.assert_equal(settings.get(old), settings[new])
+        assert len(caught) == 2 and all(issubclass(w.category, DeprecationWarning) for w in caught)
+    assert settings.get("Vbias", "missing") == "missing"  # alias of a parameter this trigger does not have
+    try:
+        settings["no_such_key"]
+        raise AssertionError("KeyError expected")
+    except KeyError:
+        pass
+
+
 if __name__ == "__main__":
     test_construct_and_roundtrip()
     test_registry()
     test_getters()
     test_legacy_fixture()
     test_legacy_files()
+    test_legacy_int_power_swapped_arguments()
+    test_deprecated_settings_keys()
     print("All trigger parameter tests passed.")
