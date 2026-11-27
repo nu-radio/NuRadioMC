@@ -1,25 +1,30 @@
 import numpy as np
 import NuRadioReco.modules.io.eventReader as eventReader
+from NuRadioReco.detector.detector import Detector
 from NuRadioReco.framework.parameters import showerParameters as shp
 from NuRadioReco.utilities import units
 import matplotlib.pyplot as plt
 
 """
-This script is in example how to read a .nur file. It will plot the electric field from the air shower and the voltage traces per antenna, if the station has
-triggered. The example file 'cr_single_station.nur' is created by running the sim_cr_single_station.py script.
+This script is in example how to read an event file. It will plot the electric field from the air shower and the voltage traces per antenna, if the station has
+triggered. The example file 'cr_single_station.parquet' is created by running the sim_cr_single_station.py script
+(with its default detector, loaded below: the event files store no detector).
 
-The structure of the .nur file is described in the documentation of NuRadioReco.
+The structure of the events is described in the documentation of NuRadioReco.
 """
 
 label = [r'$E_r$', r'$E_\theta$',r'$E_\phi$']
 linestyle = ['solid', 'solid', 'dashed']
 
-nur_file_list = ['cr_single_station.nur']
+nur_file_list = ['cr_single_station.parquet']
 evtReader = eventReader.eventReader()
-evtReader.begin(filename=nur_file_list, read_detector=True)
-det = evtReader.get_detector()
+evtReader.begin(filename=nur_file_list)
+det = Detector(json_filename='../../detector/RNO_G/RNO_single_station.json')
+
 for i, evt in enumerate(evtReader.run()):
     event_id = evt.get_id()
+    det.update(evt.get_station().get_station_time())
+
     for sim_shower in evt.get_sim_showers():
         corePositionX, corePositionY = sim_shower.get_parameter(shp.core)[0], sim_shower.get_parameter(shp.core)[1]
         energy = (sim_shower.get_parameter(shp.energy))

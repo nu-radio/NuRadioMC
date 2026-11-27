@@ -27,9 +27,9 @@ parser.add_argument('inputfilename', type=str, nargs='*',
                     default=['example_data/example_event.h5'],
                     help='path to NuRadioMC simulation result')
 
-parser.add_argument('-o', '--output_filename', type=str, nargs='?',
-                    default='Full_CoREAS_shower.nur',
-                    help='output file name')
+parser.add_argument(
+    '-o', '--output_filename', type=str, nargs='?', default='Full_CoREAS_shower.parquet', help='output file name'
+)
 
 parser.add_argument('--detectordescription', type=str, nargs='?',
                     default='../examples/example_data/dummy_detector.json',
@@ -60,7 +60,7 @@ electricFieldBandPassFilter = NuRadioReco.modules.electricFieldBandPassFilter.el
 electricFieldBandPassFilter.begin()
 
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-eventWriter.begin(args.output_filename)
+eventWriter.begin(args.output_filename, overwrite=True)
 
 for coreas_event in readCoREAS.run():
     event = event_builder_auger(coreas_event, det)
@@ -75,7 +75,7 @@ for coreas_event in readCoREAS.run():
     # efieldInterferometricAxisReco.run(
     #     event, det, use_MC_geometry=True, use_MC_pulses=True)
 
-    eventWriter.run(event, det)
+    eventWriter.run(event)
 
 eventWriter.close()
 print("Finished processing, {} events".format(eventWriter.get_n_events()))

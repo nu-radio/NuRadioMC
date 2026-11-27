@@ -85,8 +85,8 @@ channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelResampler.begin()
 
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-output_filename = "IFT_example_station_{}.nur".format(args.station_id)
-eventWriter.begin(output_filename)
+output_filename = "IFT_example_station_{}.parquet".format(args.station_id)
+eventWriter.begin(output_filename, overwrite=True)
 
 passband = [80. * units.MHz, 500. * units.MHz]
 sampling_rate = 5. * units.GHz
@@ -141,4 +141,4 @@ for iE, evt in enumerate(readCoREAS.run(detector=det)):
             ift_efield_reconstructor.run(evt, station, det, [0, 1, 2, 3], False, use_sim=False)
             channelResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
             electricFieldResampler.run(evt, station, det, sampling_rate=1 * units.GHz)
-            eventWriter.run(evt, det)
+            eventWriter.run(evt)
