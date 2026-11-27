@@ -64,7 +64,7 @@ class voltageToEfieldConverterPerChannel:
         sampling_rate = station.get_channel(use_channels[0]).get_sampling_rate()
 
         for iCh, channel in enumerate(station.iter_channels()):
-            efield = ef.ElectricField([iCh])
+            efield = ef.ElectricField([channel.get_id()])
             trace = channel.get_frequency_spectrum()
             mask1 = np.abs(efield_antenna_factor[iCh][0]) != 0
             mask2 = np.abs(efield_antenna_factor[iCh][1]) != 0

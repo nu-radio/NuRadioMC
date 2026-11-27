@@ -81,6 +81,8 @@ bugfixes:
 - Fix bug in the readRNOGDataMattak where the trigger dependend readout delays were applied with the
   the wrong sign to the trace_start_time
 - Limit plot for source populations (`diffuse=False`): the energy axis was left in GeV and the plot was empty.
+- `voltageToEfieldConverterPerChannel` assigned each electric field the position of its channel in the station instead of
+  the channel id, i.e. wrong channel ids when the ids do not run 0, 1, 2, ... in the order the channels were added.
 
 deprecations:
 - Remove default values for `use_channels` and `bandpass` in voltageToAnalyticEfieldConverter.py and voltageToEfieldConverter.py which were suitable for ARIANNA.
