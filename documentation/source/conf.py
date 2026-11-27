@@ -259,7 +259,11 @@ nitpick_ignore_regex = [
     ("py:class", "tinydb_serialization.Serializer"),
     ("py:class", "radiopropa.ScalarField"),
     ("py:class", "nifty5.*"),
-    ("py:obj",".*__call__") # not sure why this method is listed sometimes - it shouldn't be?
+    ("py:obj",".*__call__"), # not sure why this method is listed sometimes - it shouldn't be?
+    # return values in the docstrings of dict methods, inherited by the TypedDict classes in parameters.py
+    ("py:class", r"None\.  (Remove all items from D|Update D from dict/iterable E and F)\."),
+    ("py:class", r"a shallow copy of D"),
+    ("py:class", r"(a set-like object|an object) providing a view on D's (items|keys|values)"),
 ]
 
 # def skip_modules(app, what, name, obj, skip, options):
