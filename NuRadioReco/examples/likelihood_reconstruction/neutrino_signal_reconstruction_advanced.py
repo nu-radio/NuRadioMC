@@ -334,21 +334,21 @@ plt.figure(figsize=[10,6])
 plt.subplot(2,1,1)
 # chi2 distribution:
 hist = plt.hist(minus_two_llh_fit_array, bins=20, alpha=0.5, label="Fitted signal -2 LLH")
-n_dof_total = reco.likelihood_calculator.get_dof() - 7 # n_channels * n_samples - 7
-dist = scp.stats.chi2(n_dof_total)
+n_dof_fit = reco.likelihood_calculator.get_dof() - 7 # n_channels * n_samples - 7
+dist = scp.stats.chi2(n_dof_fit)
 x = np.linspace(0, max(minus_two_llh_fit_array)*1.2, 1000)
 y = dist.pdf(x) * len(minus_two_llh_fit_array) * (hist[1][1] - hist[1][0]) * 1.0
 #plt.hist(llh_true_array, bins=20, alpha=0.5, label="True signal")
 plt.hist(minus_two_llh_initial_array, bins=20, alpha=0.2, label="Initial parameters -2 LLH")
-plt.plot(x, y, "y-", label=rf"$\chi^2($dof$={str(n_dof_total)})$")
+plt.plot(x, y, "y-", label=rf"$\chi^2($dof$={str(n_dof_fit)})$")
 plt.xlabel("Chi2 of fit")
 plt.ylabel("Number of events")
 plt.legend()
 
 # p-value distribution:
 plt.subplot(2,1,2)
-p_values = 1 - scp.stats.chi2.cdf(minus_two_llh_fit_array, n_dof_total)
-p_values_initial = 1 - scp.stats.chi2.cdf(minus_two_llh_initial_array, n_dof_total)
+p_values = reco.likelihood_calculator.calculate_goodness_of_fit(minus_two_llh_fit_array, 7)
+p_values_initial = reco.likelihood_calculator.calculate_goodness_of_fit(minus_two_llh_initial_array, 7)
 plt.hist(p_values, bins=np.linspace(0,1,20), alpha=0.5, label="Fitted signal")
 #plt.hist(p_values_initial, bins=20, alpha=0.2, label="Initial parameters")
 plt.xlabel("Goodness-of-fit p-value")
