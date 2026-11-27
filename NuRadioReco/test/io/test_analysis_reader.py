@@ -12,6 +12,7 @@ import polars as pl
 import pyarrow.parquet as pq
 
 import NuRadioReco.framework.event
+from NuRadioReco.framework.parameters import channelParameters as chp
 from NuRadioReco.framework.parameters import eventParameters as evp
 from NuRadioReco.modules.io.eventReader import eventReader
 from NuRadioReco.modules.io.eventWriter import eventWriter
@@ -255,6 +256,24 @@ def test_single_file_layout(tmp_path):
     assert {"event.modules", "event.covariances"} <= set(single.columns)
     assert not [name for name in single.columns if name.startswith("event.event.")]
     assert single["event.modules"].str.contains("eventWriter").all()
+
+
+def test_histogram_one_of(tmp_path):
+    # SNR is a `OneOf` parameter: a single value (e.g. LOFAR) or a map per definition
+    evt, station = _make_event(1, 1)  # SNR {"peak_amplitude": 3.0} on channels 0 and 2
+    station.get_channel(1)[chp.SNR] = 4.5
+
+    writer = eventWriter()
+    writer.begin(str(tmp_path / "out"))
+    writer.run(evt, station)
+    writer.end()
+
+    reader = AnalysisReader(str(tmp_path))
+    _, frame = analysis_reader._histogram_values(reader, "station", "SNR", key="peak_amplitude")
+    assert sorted(zip(frame["channel_id"], frame["value"])) == [(0, 3.0), (2, 3.0)]
+
+    _, frame = analysis_reader._histogram_values(reader, "station", "SNR")
+    assert list(zip(frame["channel_id"], frame["value"])) == [(1, 4.5)]
 
 
 def test_cli(tmp_path):

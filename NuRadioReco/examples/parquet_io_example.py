@@ -139,7 +139,8 @@ def read_example(path):
     print("\nChannel parameters (one entry per channel):")
     print(channels.head(1).collect())
 
-    # `explode` creates one row per list entry; `map.get` returns the value of one key.
+    # `explode` creates one row per list entry. SNR is a struct with the fields `value` (a single SNR) and
+    # `definitions` (a map per SNR definition); `map.get` returns the value of one key.
     per_channel = (
         events.select("run", "event_id", "channel_ids", "channelParameters.SNR")
         .explode("channel_ids", "channelParameters.SNR", empty_as_null=True)  # one row per channel
@@ -147,7 +148,10 @@ def read_example(path):
             "run",
             "event_id",
             pl.col("channel_ids").alias("channel_id"),
-            pl.col("channelParameters.SNR").map.get("peak_amplitude").alias("SNR_peak_amplitude"),
+            pl.col("channelParameters.SNR")
+            .struct.field("definitions")
+            .map.get("peak_amplitude")
+            .alias("SNR_peak_amplitude"),
         )
     )
     print("\nOne row per channel and event:")
