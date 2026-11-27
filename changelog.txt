@@ -49,7 +49,7 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - The Sensitivities example `E2_fluxes3.py` is now `limit_plot.py` (`get_limit_figure`, `add_limit`) with a command line,
   options for the models of the RNO-G multimessenger figure and no side effects on import (no data loading, no change of
   matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
-- ARZ2019/ARZ2020: the numba implementation of the vector potential (`ARZ.get_vector_potential_numba`) is ~2.8x faster
+- ARZ2019/ARZ2020: the numba implementation of the vector potential (`ARZ.get_vector_potential_numba`) is ~2.7x faster
   (explicit loops instead of temporary arrays, skipping observer times without signal). Results agree with the previous
   implementation up to floating point rounding (~1e-15); the python implementation (used without numba) is unchanged.
 
