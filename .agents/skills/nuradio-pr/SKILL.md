@@ -13,9 +13,13 @@ Before opening, the checks in the comment at the top of `pull_request_template.m
 
 **Body:** fill in the sections of `pull_request_template.md` and drop its HTML comments. After the sections, optionally: merge order, related PRs, follow-ups. Use the terms of `GLOSSARY.md`. Every claim is something verified; anything else is left out.
 
+## TL;DR
+
+Three bullets, fragments fine, each within the template's sentence limit. **Goal** is what the PR is for, not how; **Done** is the change itself (new option, fixed bug, changed default); **Blast radius** condenses the backwards compatibility section (`none` when every line there is unchanged).
+
 ## Summary
 
-State the problem and the fix in the reader's terms: the quantity or behaviour a user sees. Add a visual only when it is clearer than the sentence, and keep it small: pseudocode for logic, a call tree for control flow, a `diff` sketch for what changes in an existing shape, a file tree for a new layout.
+The detail behind the TL;DR, without repeating it: the context, the problem and how the fix works, in the reader's terms (the quantity or behaviour a user sees). Add a visual only when it is clearer than the sentence, and keep it small: pseudocode for logic, a call tree for control flow, a `diff` sketch for what changes in an existing shape, a file tree for a new layout.
 
 ## Evidence
 

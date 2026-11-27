@@ -6,9 +6,17 @@ Before opening, check (https://nu-radio.github.io/NuRadioMC/Introduction/pages/c
 Once approved, wait at least 24 hours after the last change before merging, so others can still comment.
 -->
 
+## TL;DR
+
+<!-- Fragments fine. Blast radius: the verdict of the backwards compatibility section below, or "none". -->
+
+- **Goal:** <!-- 1 sentence -->
+- **Done:** <!-- max 2 sentences -->
+- **Blast radius:** <!-- 1 sentence: API change, changed results or data, what users must do -->
+
 ## Summary
 
-<!-- 1-3 sentences: what was wrong or missing, what changes. Link the issue if there is one. Optional: a small diagram, diff sketch or call tree. -->
+<!-- Detail beyond the TL;DR, without repeating it: context, the problem, how the fix works. Link the issue if there is one. Optional: a small diagram, diff sketch or call tree. -->
 
 ## Evidence
 
