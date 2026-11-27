@@ -1,12 +1,13 @@
 """
 Reads the parquet files of `NuRadioReco.modules.io.eventWriter` back into complete
 `NuRadioReco.framework.event.Event` objects. ``.nur`` files (deprecated) are passed on to
-`NuRadioReco.modules.io.eventReaderNur` with a warning; convert them with `NuRadioReco.modules.io.nur_to_parquet.convert_nur`.
+`NuRadioReco.modules.io.eventReaderNur` with a warning; convert them with ``nuradio-analyse convert``.
 
 The events are returned in file order (as for ``.nur`` files): the order of the event rows
 (files sorted by name, numbers numerically: ``<name>.parquet``, ``<name>_part02.parquet``, ...,
 ``<name>_part10.parquet``), that is the order in which `eventWriter` received them. This way, consecutive events
 come from consecutive row groups, each decoded once. They are read in batches of row groups to bound the memory.
+To sort by (run, event id), use `NuRadioReco.utilities.analysis_reader.AnalysisReader`.
 `get_event_i` gives random access to single events (e.g. for the eventbrowser).
 For each event, the event row (event file, or the ``event.*`` columns with ``event_file=False``) is combined
 with the rows of all selected stations of this event.
@@ -15,6 +16,7 @@ The objects are built with the constructors and public setters of the framework 
 so the events are restored as from a ``.nur`` file.
 Not restored: triggers of sim stations, the hybrid detector of hybrid showers.
 A null parameter value means "not set", parameters set to None are restored as None.
+For a column analysis without building events, use `NuRadioReco.utilities.analysis_reader.AnalysisReader`.
 """
 
 import collections
@@ -45,6 +47,7 @@ from NuRadioReco.framework.trigger import create_trigger
 from NuRadioReco.modules.base.module import register_run
 from NuRadioReco.modules.io import eventWriter as writer
 from NuRadioReco.modules.io.eventReaderNur import eventReaderNur
+from NuRadioReco.utilities import analysis_reader
 from NuRadioReco.utilities import io_utilities
 from NuRadioReco.utilities import parquet_utilities as pu
 
@@ -411,6 +414,7 @@ class eventReader:
         self.__tables = collections.OrderedDict()  # (file, row group) -> arrow table, for `get_event_i`
         self.__batch_size = None
         self.__read_time = 0.0
+        self.__selection = None  # arguments of `AnalysisReader` for `get_header`
         self.__nur = None  # `eventReaderNur` reading .nur files
 
     def begin(
@@ -468,14 +472,14 @@ class eventReader:
             if not all(is_nur):
                 raise ValueError(
                     f"eventReader: .nur and parquet files can not be read together: {entries}. "
-                    "Convert the .nur files with `nur_to_parquet.convert_nur`."
+                    "Convert the .nur files with `nuradio-analyse convert`."
                 )
             if stations is not None or runs is not None or not read_traces:
                 raise ValueError("eventReader: stations, runs and read_traces are only supported for parquet files.")
 
             warnings.warn(
                 "eventReader: the .nur format is deprecated, convert the files with "
-                "`nur_to_parquet.convert_nur` (they are read with eventReaderNur for now).",
+                "`nuradio-analyse convert` (they are read with eventReaderNur for now).",
                 FutureWarning,
                 stacklevel=2,
             )
@@ -494,6 +498,7 @@ class eventReader:
         if not found["station"] and not found["event"]:
             raise FileNotFoundError(f"No matching parquet files found for {filename}")
 
+        self.__selection = {"path": filename, "stations": stations, "runs": runs}
         self.__batch_size = batch_size
         self.__read_time = 0.0
         self.__files = [_File(path, kind, read_traces) for kind in ["event", "station"] for path in found[kind]]
@@ -679,17 +684,17 @@ class eventReader:
 
     def get_header(self):
         """
-        Overview of all events without reading the traces: the header dict of `eventReaderNur` (``.nur`` files).
+        Overview of all events without reading the traces.
 
-        Raises
-        ------
-        NotImplementedError
-            For parquet files (no header yet).
+        Parquet: the station rows joined with the event columns as `polars.DataFrame` (one row per event and
+        station, see `analysis_reader.AnalysisReader`; needs polars). ``.nur``: the header dict of `eventReaderNur`.
         """
         if self.__nur is not None:
             return self.__nur.get_header()
 
-        raise NotImplementedError("eventReader.get_header: not available for parquet files.")
+        return analysis_reader.AnalysisReader(
+            self.__selection["path"], stations=self.__selection["stations"], runs=self.__selection["runs"]
+        ).read()
 
     def get_detector(self):
         """The detector stored in ``.nur`` files (see `eventReaderNur.get_detector`). Parquet files: None."""

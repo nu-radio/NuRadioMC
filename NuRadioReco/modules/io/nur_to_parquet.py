@@ -1,7 +1,8 @@
 """
 Convert ``.nur`` files to the parquet format of `NuRadioReco.modules.io.eventWriter`.
 
-Use `convert_nur`.
+Command line: ``nuradio-analyse convert <files or glob patterns> [--output NAME] [--output-dir DIR] ...``
+(see ``nuradio-analyse convert --help``). From python: `convert_nur`.
 
 The events are read with `eventReaderNur` and written with `eventWriter`, with all typed station and channel
 parameter enums (incl. the RNO-G ones; ``ARIANNAParameters`` are untyped and not stored). A detector description
