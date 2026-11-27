@@ -10,7 +10,6 @@ from NuRadioReco.modules.RNO_G import hardwareResponseIncorporator, triggerBoard
 
 from NuRadioReco.modules.trigger import highLowThreshold
 from NuRadioReco.modules.phasedarray.beamformedPowerIntegrationTrigger import BeamformedPowerIntegrationTrigger
-from NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger import DigitalBeamformedEnvelopeTrigger
 import NuRadioReco.modules.channelGenericNoiseAdder
 
 from NuRadioMC.examples.RNO_G_trigger_simulation.simulate import phasing_angles, power_trigger_kwargs, envelope_trigger_kwargs
@@ -70,7 +69,8 @@ beamformedPowerIntegrationTrigger.begin()
 
 
 
-# digitalBeamformedEnvelopeTrigger = DigitalBeamformedEnvelopeTrigger()
+# from NuRadioReco.modules.phasedarray.digitalBeamformedEnvelopeTrigger import PhasedEnvelopeTriggerSimulator
+# digitalBeamformedEnvelopeTrigger = PhasedEnvelopeTriggerSimulator()
 # digitalBeamformedEnvelopeTrigger.begin()
 
 
