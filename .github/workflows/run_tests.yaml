@@ -267,6 +267,11 @@ jobs:
       run: |
         python NuRadioReco/test/utilities/test_trace_utilities.py
 
+    - name: "Test bandlimited noise from spectrum"
+      if: always()
+      run: |
+        python NuRadioReco/test/channelGenericNoiseAdder/test_bandlimited_noise_from_spectrum.py
+
     - name: "Test neutrino flux models"
       if: always()
       run: |

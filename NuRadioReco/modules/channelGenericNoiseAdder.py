@@ -341,7 +341,7 @@ class channelGenericNoiseAdder:
             self.logger.warning(msg)
             type = 'perfect_white'
 
-        frequencies = fft.freqs(n_samples, 1. / sampling_rate)
+        frequencies = fft.freqs(n_samples, sampling_rate)
         selection = frequencies > 0
         n_samples_freq = np.sum(selection)
 

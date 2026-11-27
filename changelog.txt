@@ -51,6 +51,9 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
 
 bugfixes:
+- `channelGenericNoiseAdder.bandlimited_noise_from_spectrum` evaluated a callable `spectrum` on a frequency grid that was
+  too small by a factor of sampling_rate**2 (regression from the deprecation of 'perfect_white' noise). Array spectra
+  were not affected.
 - The trigger times of the phased array triggers (`beamformedPowerIntegrationTrigger`, `phasedArrayTrigger`,
   `digitalBeamformedEnvelopeTrigger`) were shifted by the smallest phased channel id in ns (a minimum over the
   channel ids instead of the delays). No effect for phased arrays that include channel 0 (e.g. RNO-G channels 0-3).
