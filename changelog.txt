@@ -46,8 +46,11 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - Triggers store their values as `triggerParameters` (`Trigger` is a `ParameterStorage`), e.g.
   `trigger[triggerParameters.threshold]`; only name and type remain attributes. Constructors and getters/setters are
   unchanged; `.nur` files written before are read into the new parameters. API changes: the keys of
-  `get_trigger_settings()` follow the parameter names (`triggered`, `trigger_time`, `triggered_channels` unchanged); the
-  private attributes (`_threshold`, ...) are gone.
+  `get_trigger_settings()` follow the parameter names (`triggered`, `trigger_time`, `triggered_channels` unchanged; the
+  old keys `primary_trigger`, `order`, `primary_angles`, `Vbias`, `primary_channels`, `trigger_channels` still work,
+  deprecated); the private attributes (`_threshold`, ...) are gone. `.nur` files written with this version are not read
+  correctly by older NuRadioReco versions: their triggers come back with default values (e.g. not triggered), without an
+  error.
 - New module `NuRadioMC.utilities.neutrino_fluxes` with neutrino flux models (IceCube fits, cosmogenic models of van Vliet,
   Heinze and TA, source populations, AGN, GRB afterglows, blazars) as all-flavour dN/dE. The event generator uses it for its
   GZK spectra instead of importing them from an example script.
@@ -61,7 +64,7 @@ bugfixes:
   `digitalBeamformedEnvelopeTrigger` failed with a TypeError when creating its trigger object and, for triggered events,
   when calculating the trigger times;
   `Trigger.get_trigger_times` failed when no trigger time was set (now returns None);
-  `SimplePhasedTrigger` stored the step size as `_step_side` (now `_step_size`, also when reading old files).
+  `SimplePhasedTrigger` stored the step size as `_step_side` (now `triggerParameters.step_size`, also when reading old files).
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported
