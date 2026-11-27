@@ -2,18 +2,22 @@
 Tests for the trigger classes stored as `triggerParameters`:
 
 * every trigger class constructs and survives a serialize / deserialize cycle exactly,
-* .nur files written before the triggerParameters (pickled ``__dict__``) are read into the parameters.
+* .nur files written before the triggerParameters (pickled ``__dict__``) are read into the parameters,
+* every `triggerParameters` member declares a concrete type.
 
 ``legacy_triggers.nur`` (one trigger of every type, legacy format) was written with the trigger classes
 before the triggerParameters were introduced.
 """
+
 import os
 import pickle
+import typing
 import warnings
 
 import numpy as np
 
 from NuRadioReco.framework import trigger as trg
+from NuRadioReco.framework.parameters import OneOf
 from NuRadioReco.framework.parameters import triggerParameters as trp
 from NuRadioReco.framework.station import Station
 from NuRadioReco.modules.io.eventReader import eventReader
@@ -268,6 +272,47 @@ def test_deprecated_settings_keys():
         pass
 
 
+_SCALAR_TYPES = (bool, int, float, str, complex, np.ndarray)
+
+
+def _is_concrete(dtype):
+    """
+    True if `dtype` is a scalar type, a list/tuple/dict of concrete types or a `OneOf` of concrete types
+    (no ``Any``, no bare containers).
+    """
+    if isinstance(dtype, OneOf):
+        return len(dtype.alternatives) >= 2 and all(_is_concrete(alt) for alt in dtype.alternatives.values())
+
+    if dtype in _SCALAR_TYPES:
+        return True
+
+    origin, args = typing.get_origin(dtype), typing.get_args(dtype)
+    if origin in (list, tuple):
+        return len(args) >= 1 and _is_concrete(args[0])
+
+    if origin is dict:
+        return len(args) == 2 and all(_is_concrete(arg) for arg in args)
+
+    return False
+
+
+def test_trigger_parameters_dtypes():
+    assert not _is_concrete(typing.Any) and not _is_concrete(dict) and not _is_concrete(typing.List[typing.Any])
+
+    for member in trp:
+        assert _is_concrete(member.dtype), (member, member.dtype)
+
+
+def test_float_parameters_store_floats():
+    t = trg.SimpleThresholdTrigger("simple", {0: 1, 1: 2}, pre_trigger_times=55)
+    assert type(t[trp.pre_trigger_times]) is float
+    assert all(type(value) is float for value in t[trp.threshold].values())
+
+    t = trg.EnvelopePhasedTrigger("analog_env", 2, 1, 0, trigger_delays={0: 1, 1: 2})
+    assert all(type(value) is float for value in t[trp.trigger_delays].values())
+    assert type(t[trp.threshold_factor]) is float and t[trp.triggered] is False
+
+
 if __name__ == "__main__":
     test_construct_and_roundtrip()
     test_registry()
@@ -276,4 +321,6 @@ if __name__ == "__main__":
     test_legacy_files()
     test_legacy_int_power_swapped_arguments()
     test_deprecated_settings_keys()
+    test_trigger_parameters_dtypes()
+    test_float_parameters_store_floats()
     print("All trigger parameter tests passed.")
