@@ -41,7 +41,8 @@ The triggers of a station are stored with name, type and `triggerParameters` (``
 ``trigger.triggerParameters.threshold``, ...); the column ``trigger`` holds the name of the earliest fired trigger.
 Triggers of sim stations are not stored.
 
-The keyword arguments of the registered modules are stored as JSON (see `io_utilities._to_json`).
+The keyword arguments of the registered modules are stored as JSON
+(see ``NuRadioReco.utilities.io_utilities._to_json``).
 
 Metadata
 --------

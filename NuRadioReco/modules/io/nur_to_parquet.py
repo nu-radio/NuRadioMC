@@ -3,8 +3,9 @@ Convert ``.nur`` files to the parquet format of `NuRadioReco.modules.io.eventWri
 
 Use `convert_nur`.
 
-The events are read with `eventReaderNur` and written with `eventWriter`, with all typed station and channel
-parameter enums (incl. the RNO-G ones; ``ARIANNAParameters`` are untyped and not stored). A detector description
+The events are read with `~NuRadioReco.modules.io.eventReaderNur.eventReaderNur` and written with
+`~NuRadioReco.modules.io.eventWriter.eventWriter`, with all typed station and channel parameter enums
+(incl. the RNO-G ones; ``ARIANNAParameters`` are untyped and not stored). A detector description
 stored in a ``.nur`` file is not converted. The file metadata gets the keys ``source_files`` (JSON list of the input
 file names) and ``nur_file_version`` (JSON: input file name -> version of the ``.nur`` format).
 """
@@ -86,7 +87,7 @@ def convert_nur(
     traces : bool, default=True
         Store the traces (channels, sim channels, electric fields). If False, only parameters etc.
     event_file : bool, default=True
-        Write separate event files (see `eventWriter.begin`).
+        Write separate event files (see `NuRadioReco.modules.io.eventWriter.eventWriter.begin`).
     max_file_size : float, default=1024
         Maximum size of an output file pair in MB, larger outputs are split into parts.
     compression : str, default="snappy"

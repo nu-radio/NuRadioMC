@@ -120,7 +120,7 @@ class ElementTypeError(TypeError):
 
 def to_arrow_value(value, arrow_type, _element=False):
     """
-    Convert a parameter value to a python object which `pyarrow` accepts for `arrow_type`.
+    Convert a parameter value to a python object which ``pyarrow`` accepts for `arrow_type`.
 
     Raises a ValueError if a dict has keys which are not fields of a struct `arrow_type` (they would be lost)
     or if a value for an integer type is a float with a fractional part (pyarrow would truncate it silently),
