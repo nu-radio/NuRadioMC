@@ -48,7 +48,7 @@ class AnalysisReader:
     Reads the files written by `NuRadioReco.modules.io.eventWriter` with polars.
 
     Stations and runs are selected by filtering the rows; files whose row group statistics exclude the selection
-    are not read (see `pu.find_files`).
+    are not read (see `~NuRadioReco.utilities.parquet_utilities.find_files`).
     Each event must occur only once in the selected files (see ``check_unique``).
     Requires polars >= 2, which returns parquet maps as ``pl.Map``.
 
@@ -66,7 +66,8 @@ class AnalysisReader:
             A root directory (searched recursively for ``*.parquet``), a file or a glob pattern (``**`` allowed),
             e.g. ``"out/run1000.parquet"`` or ``"data/**/run10*.parquet"``.
             A list combines several of these, e.g. ``["out/a", "out/b/run1000*.parquet"]``.
-            The event files are also found next to the selected station files (see `pu.find_files`).
+            The event files are also found next to the selected station files
+            (see `~NuRadioReco.utilities.parquet_utilities.find_files`).
         stations : int or list of int, optional
             Station ids to read. Default: all.
         runs : int or list of int, optional
@@ -181,7 +182,7 @@ class AnalysisReader:
         Raises
         ------
         ValueError
-            If ``check_unique`` (see `__init__`) and an event occurs more than once.
+            If ``check_unique`` (see `AnalysisReader`) and an event occurs more than once.
         """
         tables = {}
 
@@ -200,7 +201,8 @@ class AnalysisReader:
         """
         The station table, left-joined with the event table if ``join_events`` (lazy).
 
-        Each station file is joined with its event file (same base name, see `pu.event_file_of`).
+        Each station file is joined with its event file (same base name, see
+        `~NuRadioReco.utilities.parquet_utilities.event_file_of`).
 
         Returns
         -------
@@ -237,7 +239,7 @@ class AnalysisReader:
         return self.__sorted(pl.concat(frames, how="diagonal"), "station")
 
     def read(self):
-        """Like `scan` but returns the collected `polars.DataFrame`."""
+        """Like `scan` but returns the collected ``polars.DataFrame``."""
         return self.scan().collect()
 
     def __sorted(self, table, kind):
