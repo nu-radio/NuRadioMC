@@ -277,8 +277,225 @@ def get_vector_potential(
 
     return vp
 
+
+def _integrate_vector_potential(X, z, profile_ce, tobs, xn, amplitude, t0_pos, freq_pos, exp_pos,
+                                t0_neg, freq_neg, exp_neg, norm):
+    """
+    Integrand of `get_vector_potential` for one observer time, integrated with the trapezoid rule.
+
+    Calculates ``np.trapezoid(-v * profile_ce * F_p / R, z)`` of `get_vector_potential` in a single
+    loop over the shower depth without temporary arrays (meant to be compiled with numba).
+
+    Parameters
+    ----------
+    X: array of floats (3)
+        observer position in the ARZ reference frame
+    z: array of floats
+        positions along the shower axis
+    profile_ce: array of floats
+        charge excess at ``z``
+    tobs: float
+        observer time
+    xn: float
+        index of refraction
+    amplitude: float
+        ``Af`` times the shower energy in TeV
+    t0_pos, freq_pos, exp_pos, t0_neg, freq_neg, exp_neg: float
+        ARZ model parameters
+    norm: float
+        normalisation of the form factor ``F_p``
+
+    Returns
+    -------
+    vp: array of floats (3)
+        the (not yet normalised) vector potential at ``tobs``
+    """
+    vp = np.zeros(3)
+    f_prev = np.zeros(3)
+    f_cur = np.zeros(3)
+    for i in range(len(z)):
+        R = (X[0] ** 2 + X[1] ** 2 + (X[2] - z[i]) ** 2) ** 0.5
+        tt = -(z[i] - (c * tobs - xn * R)) / c
+        F_p = 0.
+        if tt < 20. * units.ns and tt > -20. * units.ns:
+            att = np.abs(tt)
+            if tt > 0:
+                F_p = amplitude * (np.exp(-att / t0_pos) + (1. + freq_pos * att) ** exp_pos) * norm
+            else:
+                F_p = amplitude * (np.exp(-att / t0_neg) + (1. + freq_neg * att) ** exp_neg) * norm
+
+        u_x = X[0] / R
+        u_y = X[1] / R
+        u_z = (X[2] - z[i]) / R
+        weight = -profile_ce[i] * F_p / R
+        f_cur[0] = u_x * u_z * weight
+        f_cur[1] = u_y * u_z * weight
+        f_cur[2] = -(u_x * u_x + u_y * u_y) * weight
+        if i > 0:
+            dz = z[i] - z[i - 1]
+            for k in range(3):
+                vp[k] += 0.5 * dz * (f_prev[k] + f_cur[k])
+        for k in range(3):
+            f_prev[k] = f_cur[k]
+    return vp
+
+
+def _get_vector_potential_loops(
+        shower_energy, theta, N, dt, profile_depth, profile_ce,
+        Af, freq_pos, freq_neg, exp_pos, exp_neg, t0_pos, t0_neg,
+        shower_type="HAD", n_index=1.78, distance=1 * units.m,
+        interp_factor=1., interp_factor2=100., shift_for_xmax=False,
+        em_factor=1.):
+    """
+    Same as `get_vector_potential`, but written with explicit loops for numba.
+
+    The algorithm (time grid, refinement of the charge-excess profile around the Cherenkov time, trapezoid
+    integration) is identical to `get_vector_potential`; the results agree up to floating point rounding.
+    This implementation avoids temporary arrays and skips observer times for which no part of the shower
+    can contribute (the vector potential is zero there). It is only fast if compiled with numba, use
+    `get_vector_potential` without numba. See `get_vector_potential` for the parameters.
+    """
+    if shower_type != "HAD":
+        em_factor = 1.
+    if shower_type == "TAU":
+        raise NotImplementedError("Tau showers are not yet implemented")
+    if shower_type != "HAD" and shower_type != "EM":
+        raise NotImplementedError("Only shower types 'HAD', 'EM' or 'TAU' are implemented")
+
+    # identical to get_vector_potential
+    ttt = np.arange(0, (N + 1) * dt, dt)
+    ttt = ttt + 0.5 * dt - ttt.mean()
+    if (len(ttt) != N + 1):
+        ttt = ttt[:-1]
+    N = len(ttt)
+
+    xn = n_index
+    cher = np.arccos(1. / n_index)
+    beta = 1.
+
+    profile_dense = profile_depth
+    profile_ce_interp = profile_ce
+    if (interp_factor != 1):
+        n_pts_profile_dense = int(interp_factor * len(profile_depth))
+        profile_dense = np.linspace(min(profile_depth), max(profile_depth), n_pts_profile_dense)
+        profile_ce_interp = np.interp(profile_dense, profile_depth, profile_ce)
+    length = profile_dense / rho
+    dxmax = length[np.argmax(profile_ce_interp)]
+
+    X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta)])
+    if (shift_for_xmax):
+        X = np.array([distance * np.sin(theta), 0., distance * np.cos(theta) + dxmax])
+
+    xntot = np.sum(profile_ce_interp) * (length[1] - length[0])
+    factor = -xmu / (4. * np.pi)
+    fc = 4. * np.pi / (xmu * np.sin(cher))
+    amplitude = Af * shower_energy / units.TeV
+    norm = fc / xntot * em_factor
+
+    # The distance to the observer does not depend on time. tt (see get_vector_potential) only differs by
+    # the observer time tobs, i.e., tt = tobs + tt_base. Observer times for which tt is outside of
+    # +- 20 ns (plus a margin of 1 ns against rounding) for the full shower are skipped: the vector
+    # potential is zero there.
+    n_z = len(length)
+    R = np.empty(n_z)
+    for i in range(n_z):
+        R[i] = (X[0] ** 2 + X[1] ** 2 + (X[2] - length[i]) ** 2) ** 0.5
+    tt_base_min = np.min(-(length + xn * R) / c)
+    tt_base_max = np.max(-(length + xn * R) / c)
+    t_offset = (X[0] ** 2 + X[1] ** 2 + X[2] ** 2) ** 0.5 / c * xn
+
+    tt = np.empty(n_z)
+    vp = np.zeros((N, 3))
+    for it in range(N):
+        tobs = ttt[it] + t_offset
+        if tobs + tt_base_min > 21. * units.ns or tobs + tt_base_max < -21. * units.ns:
+            continue
+
+        any_in_window = False
+        for i in range(n_z):
+            tt[i] = -(length[i] - (beta * c * tobs - xn * R[i])) / (c * beta)
+            if tt[i] < 20. * units.ns and tt[i] > -20. * units.ns:
+                any_in_window = True
+        if not any_in_window:
+            continue
+
+        z = length
+        profile_ce_interp2 = profile_ce_interp
+        if (interp_factor2 != 1):
+            # identical to get_vector_potential: find the (one or two) intervals with -1 ns < tt < 1 ns
+            # and upsample the profile there by interp_factor2
+            n_indices = 0
+            indices = np.zeros(n_z + 1, dtype=np.int64)
+            for i in range(n_z - 1):
+                in_1 = tt[i] < 1 * units.ns and tt[i] > -1 * units.ns
+                in_2 = tt[i + 1] < 1 * units.ns and tt[i + 1] > -1 * units.ns
+                if in_1 != in_2:
+                    indices[n_indices] = i
+                    n_indices += 1
+            indices = indices[:n_indices]
+            if (n_indices != 0):
+                if (n_indices % 2 != 0):
+                    if ((tt[0] < 1 * units.ns) and (tt[0] > -1 * units.ns) and indices[0] != 0):
+                        indices = np.append(np.zeros(1, dtype=np.int64), indices)
+                    else:
+                        if (indices[-1] != (n_z - 1)):
+                            indices = np.append(indices, np.array([n_z - 1], dtype=np.int64))
+                if (len(indices) % 2 == 0):
+                    dp = profile_dense[1] - profile_dense[0]
+                    if (len(indices) == 2):
+                        i_start = indices[0]
+                        i_stop = indices[1]
+                        profile_dense2 = np.arange(
+                            profile_dense[i_start], profile_dense[i_stop], dp / interp_factor2)
+                        profile_ce_interp2 = np.interp(
+                            profile_dense2, profile_dense[i_start:i_stop], profile_ce_interp[i_start:i_stop])
+                        profile_dense2 = np.concatenate((
+                            profile_dense[:i_start], profile_dense2, profile_dense[i_stop:]))
+                        profile_ce_interp2 = np.concatenate((
+                            profile_ce_interp[:i_start], profile_ce_interp2, profile_ce_interp[i_stop:]))
+                    elif (len(indices) == 4):
+                        i_start = indices[0]
+                        i_stop = indices[1]
+                        profile_dense2 = np.arange(
+                            profile_dense[i_start], profile_dense[i_stop], dp / interp_factor2)
+                        profile_ce_interp2 = np.interp(
+                            profile_dense2, profile_dense[i_start:i_stop], profile_ce_interp[i_start:i_stop])
+
+                        i_start3 = indices[2]
+                        i_stop3 = indices[3]
+                        profile_dense3 = np.arange(
+                            profile_dense[i_start3], profile_dense[i_stop3], dp / interp_factor2)
+                        profile_ce_interp3 = np.interp(
+                            profile_dense3, profile_dense[i_start3:i_stop3], profile_ce_interp[i_start3:i_stop3])
+
+                        profile_dense2 = np.concatenate((
+                            profile_dense[:i_start], profile_dense2,
+                            profile_dense[i_stop:i_start3], profile_dense3,
+                            profile_dense[i_stop3:]))
+                        profile_ce_interp2 = np.concatenate((
+                            profile_ce_interp[:i_start],
+                            profile_ce_interp2,
+                            profile_ce_interp[i_stop:i_start3],
+                            profile_ce_interp3,
+                            profile_ce_interp[i_stop3:]))
+                    else:
+                        raise NotImplementedError("length of indices is not 2 nor 4")  # this should never happen
+
+                    z = profile_dense2 / rho
+
+        vp[it] = _integrate_vector_potential(
+            X, z, profile_ce_interp2, tobs, xn, amplitude,
+            t0_pos, freq_pos, exp_pos, t0_neg, freq_neg, exp_neg, norm)
+
+    vp *= factor
+
+    return vp
+
+
 if numba_available:
-    get_vector_potential_numba = jit(get_vector_potential, nopython=True, cache=True)
+    _integrate_vector_potential = jit(_integrate_vector_potential, nopython=True, cache=True)
+    get_vector_potential_numba = jit(_get_vector_potential_loops, nopython=True, cache=True)
+
 
 def thetaprime_to_theta(thetaprime, xmax, R_prime):
     """
