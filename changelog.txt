@@ -4,8 +4,14 @@ please update the categories "new features" and "bugfixes" before a pull request
 
 version 3.2.0-dev
 new features:
+- Added `NuRadioReco.utilities.coding_helper.get_rng` and replaced the remaining uses of numpy's global random state
+  in library code by dedicated generators. efieldToVoltageConverter, channelIceThermalNoiseAdder,
+  efieldRadioInterferometricReconstruction, beamformingDirectionFitter_LOFAR (`begin`), channelBlockOffsets and
+  utilities.noise.thermalNoiseGenerator (`__init__`) and the legacy event generators generate_unforced/generator_ASCII
+  have a new `seed` argument (default None, as before not reproducible).
 - Added AGENTS.md (imported by .claude/CLAUDE.md) describing code structure, data structure and conventions for AI coding agents
   and new developers.
+- Added agent skills in .agents/skills (.claude/skills links to it) for adding tests / updating references, writing PR descriptions and reviewing PRs.
 - Added automatic test coverage measurement to CI. Coverage is combined across all test jobs and reported as a PR
   comment and a README badge; see the "Test coverage" section of the contributing guide for details.
 - Store shower Xmax in simulated shower when simulating with ARZ Askaryan emission models.
@@ -42,6 +48,12 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   unchanged; `.nur` files written before are read into the new parameters. API changes: the keys of
   `get_trigger_settings()` follow the parameter names (`triggered`, `trigger_time`, `triggered_channels` unchanged); the
   private attributes (`_threshold`, ...) are gone.
+- New module `NuRadioMC.utilities.neutrino_fluxes` with neutrino flux models (IceCube fits, cosmogenic models of van Vliet,
+  Heinze and TA, source populations, AGN, GRB afterglows, blazars) as all-flavour dN/dE. The event generator uses it for its
+  GZK spectra instead of importing them from an example script.
+- The Sensitivities example `E2_fluxes3.py` is now `limit_plot.py` (`get_limit_figure`, `add_limit`) with a command line,
+  options for the models of the RNO-G multimessenger figure and no side effects on import (no data loading, no change of
+  matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
 
 bugfixes:
 - Fixing several trigger bugs: `.nur` files with an `EnvelopePhasedTrigger` (type 'analog_envelope_phased') could not be read;
@@ -76,6 +88,7 @@ bugfixes:
 - Antenna responses for directions outside the tabulated range return one value per frequency instead of a single value.
 - Fix bug in the readRNOGDataMattak where the trigger dependend readout delays were applied with the
   the wrong sign to the trace_start_time
+- Limit plot for source populations (`diffuse=False`): the energy axis was left in GeV and the plot was empty.
 
 deprecations:
 - Remove default values for `use_channels` and `bandpass` in voltageToAnalyticEfieldConverter.py and voltageToEfieldConverter.py which were suitable for ARIANNA.
@@ -83,6 +96,8 @@ deprecations:
 - Replaced the readCoREASShower module with the readCoREAS module. readCoREAS returns a single station (id 0) holding all
   CoREAS observers as electric fields; use an event_builder helper (see the examples) to organize the observers into
   per-observer stations. The examples read_full_CoREAS_shower.py and RIT_sim_air_shower_reconstruction.py were updated accordingly.
+- Removed `NuRadioMC.examples.Sensitivities.E2_fluxes3` (importing it raises an ImportError naming its replacements) and the
+  broken, outdated examples `E1_fluxes.py`, `E2_Gen2_Long_whitepaper.py`, `Multimessenger_Figure.py` and `makeMyLimitPlot.py`.
 
 version 3.1.1
 new features:
