@@ -36,13 +36,14 @@ class mySimulation(simulation.simulation):
                            triggered_channels=range(8))
 
 if __name__ == "__main__":
-    sim = mySimulation(inputfilename='test_input.hdf5',
-                                outputfilename='test_output.hdf5',
-                                detectorfile='test_detector.json',
-                                outputfilenameNuRadioReco='test_output.nur',
-                                config_file='test_config.yaml',
-                                #log_level=logging.WARNING,
-                                evt_time=datetime.datetime(2018, 12, 30),
-                                file_overwrite=True)
+    sim = mySimulation(
+        inputfilename='test_input.hdf5',
+        outputfilename='test_output.hdf5',
+        detectorfile='test_detector.json',
+        outputfilenameNuRadioReco='test_output.parquet',
+        config_file='test_config.yaml',
+        # log_level=logging.WARNING,
+        evt_time=datetime.datetime(2018, 12, 30),
+        file_overwrite=True,
+    )
     sim.run()
-

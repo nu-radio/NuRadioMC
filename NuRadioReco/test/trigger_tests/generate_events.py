@@ -5,8 +5,6 @@ import NuRadioReco.modules.channelResampler
 from NuRadioMC.simulation import simulation
 
 
-
-
 # initialize detector sim modules
 simpleThreshold = NuRadioReco.modules.trigger.simpleThreshold.triggerSimulator()
 
@@ -31,7 +29,8 @@ sim = mySimulation(
     inputfilename='NuRadioReco/test/trigger_tests/trigger_test_eventlist.hdf5',
     outputfilename='NuRadioReco/test/trigger_tests/trigger_test_input.hdf5',
     detectorfile='NuRadioReco/test/trigger_tests/trigger_test_detector.json',
-    outputfilenameNuRadioReco='NuRadioReco/test/trigger_tests/trigger_test_input.nur',
+    outputfilenameNuRadioReco='NuRadioReco/test/trigger_tests/trigger_test_input.parquet',
     config_file='NuRadioReco/test/trigger_tests/config.yaml',
-    file_overwrite=True)
+    file_overwrite=True,
+)
 sim.run()

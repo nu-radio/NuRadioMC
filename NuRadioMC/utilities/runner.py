@@ -48,6 +48,8 @@ class NuRadioMCRunner(object):
                 print(f"outputfile {outputfilename} for task {self.i_task} already exists", flush=True)
             elif(os.path.exists(outputfilename + ".nur")):
                 print(f"outputfile {outputfilename}.nur for task {self.i_task} already exists", flush=True)
+            elif os.path.exists(outputfilename + ".parquet"):
+                print(f"outputfile {outputfilename}.parquet for task {self.i_task} already exists", flush=True)
             else:
                 print(f"starting job {self.i_task}", flush=True)
                 n = multiprocessing.Process(name=f'worker-{self.i_task}', target=self.task, args=(self.q, self.i_task), kwargs=self.kwargs)
@@ -59,6 +61,7 @@ class NuRadioMCRunner(object):
                 break
 
         stop_processing = False
+
         while True:
             # check on all processes
             for iN, n in enumerate(self.worker):
@@ -81,6 +84,7 @@ class NuRadioMCRunner(object):
                         n.start()
                         self.worker[iN] = n
                     self.i_task += 1
+
             time.sleep(10)
             if(self.crashed_counter > self.max_crashes):
                 print(f"more than {self.max_crashes} jobs crashed. Exiting...", flush=True)
@@ -90,10 +94,12 @@ class NuRadioMCRunner(object):
                     print(f"more than {self.n_triggers_max} triggers, waiting for workers to stop \n\n\n\n\n\n", flush=True)
                 else:
                     print(f"{simulation.pretty_time_delta(time.time()-self.start_time)} passed. No more jobs will be submitted.", flush=True)
+
                 for iN, n in enumerate(self.worker):
                     if(not self.q.empty()):
                         n_trig = self.q.get()
                         self.n_triggers += n_trig
                     n.join()
                     print(f"{iN} has finished with {n_trig} events, total number of triggered events is {self.n_triggers}", flush=True)
+
                 break

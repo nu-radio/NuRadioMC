@@ -6,8 +6,9 @@ reference files (e.g. ``NuRadioMC/test/SingleEvents/T04validate_allmost_equal.py
 A validation is a list of `check` specifications passed to `validate_hdf5_files`, which runs all
 of them, reports every mismatch and raises an `AssertionError` if any failed (a script calling it
 then exits with code 1). `validate_nur_files` does the same for the traces and channel/station
-parameters of ``.nur`` files.
+parameters of event files (parquet or ``.nur``, both read with `eventReader`).
 """
+
 import h5py
 import numpy as np
 from numpy import testing
@@ -25,7 +26,7 @@ TIME_ATOL = 1e-3 * units.ns
 #: Default relative tolerance for floating point quantities.
 DEFAULT_RTOL = 1e-4
 
-#: Default relative tolerance for channel/station parameters in ``.nur`` files (e.g. from the
+#: Default relative tolerance for channel/station parameters in event files (e.g. from the
 #: ``channelSignalReconstructor``): tiny platform-dependent trace differences are amplified for
 #: low-amplitude channels (observed up to 7.5e-4).
 PARAMETER_RTOL = 1e-3
@@ -169,6 +170,7 @@ def validate_hdf5_files(file1, file2, checks, station='station_101', dump_on_fai
 
 def _read_nur_file(file):
     """
+    Reads an event file (parquet or .nur) with `eventReader`.
     Returns all channel traces (concatenated), their trace start times and a dict
     {(run, event, station, channel or None): {parameter: value}} of all station/channel parameters.
     """
@@ -177,14 +179,17 @@ def _read_nur_file(file):
     reader = eventReader()
     reader.begin(file)
     traces, start_times, parameters = [], [], {}
+
     for event in reader.run():
         for station in event.get_stations():
             key = (event.get_run_number(), event.get_id(), station.get_id())
             parameters[key + (None,)] = dict(station._parameters)
+
             for channel in station.iter_channels(sorted=True):
                 traces.append(channel.get_trace())
                 start_times.append(channel.get_trace_start_time())
                 parameters[key + (channel.get_id(),)] = dict(channel._parameters)
+
     return np.concatenate(traces), np.array(start_times), parameters
 
 
@@ -222,8 +227,8 @@ def _compare_parameter(value1, value2, rtol, name, parameter, largest_difference
 
 def validate_nur_files(file1, file2, precision=7, parameter_rtol=PARAMETER_RTOL, noise_parameter_rtol=None):
     """
-    Compare the traces, trace start times and all channel/station parameters of the ``.nur`` file
-    `file1` with the reference `file2`.
+    Compare the traces, trace start times and all channel/station parameters of the event file
+    `file1` with the reference `file2` (parquet or ``.nur``, read with `eventReader`).
 
     Prints every mismatch and the largest relative difference of each parameter, and raises an
     `AssertionError` if any check failed.
@@ -264,11 +269,13 @@ def validate_nur_files(file1, file2, precision=7, parameter_rtol=PARAMETER_RTOL,
     largest_differences = {}
     if parameters_1.keys() != parameters_2.keys():
         errors.append("Files contain different events/stations/channels")
+
     for key in [key for key in parameters_1 if key in parameters_2]:
         if parameters_1[key].keys() != parameters_2[key].keys():
             errors.append(f"{key}: parameters differ ({sorted(map(str, parameters_1[key]))} vs. "
                           f"{sorted(map(str, parameters_2[key]))})")
             continue
+
         for parameter in parameters_1[key]:
             noise_sensitive = parameter.name in NOISE_SENSITIVE_PARAMETERS
             errors += _compare_parameter(
@@ -278,6 +285,7 @@ def validate_nur_files(file1, file2, precision=7, parameter_rtol=PARAMETER_RTOL,
 
     # the largest relative difference of each parameter shows how tight the tolerance can be
     print("Largest relative difference per parameter (* = noise sensitive):")
+
     for parameter, (rel, name) in sorted(largest_differences.items(), key=lambda item: -item[1][0]):
         print(f"  {rel:9.2e} {parameter}  (at {name})")
 

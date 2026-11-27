@@ -12,8 +12,10 @@ else
     mv station23_run325.root "$DATA_DIR/combined.root"
 fi
 
-python3 NuRadioReco/examples/RNOG/data_analysis_example.py "$DATA_DIR/combined.root" --outputfile NuRadioReco/examples/RNOG/processed.nur
+python3 NuRadioReco/examples/RNOG/data_analysis_example.py "$DATA_DIR/combined.root" --outputfile NuRadioReco/examples/RNOG/processed.parquet
+# parquet round trip of the measured data (traces of the events the example writes with channels)
+python3 NuRadioReco/test/io/test_parquet_roundtrip.py NuRadioReco/examples/RNOG/processed.parquet
 
 # cleanup
-rm -v NuRadioReco/examples/RNOG/processed.nur
+rm -v NuRadioReco/examples/RNOG/processed.parquet NuRadioReco/examples/RNOG/processed_event.parquet
 rm -fv channel_traces_*.png  # number of plots depends on the data

@@ -18,10 +18,10 @@ import matplotlib.pyplot as plt
 this unit test checks a full emitter simulation with birefringence
 """
 
-#creating the reference traces
+# creating the reference traces
 """
 event_reader = reader.eventReader()
-nur = 'emitter_sim_test/test_output.nur'
+nur = 'emitter_sim_test/test_output.parquet'
 event_reader.begin([nur])
 list_traces = []
 
@@ -45,7 +45,7 @@ np.save('reference_emitter.npy', traces)
 """
 
 event_reader = reader.eventReader()
-nur = 'emitter_sim_test/test_output.nur'
+nur = 'emitter_sim_test/test_output.parquet'
 event_reader.begin([nur])
 list_traces = []
 
@@ -68,10 +68,8 @@ traces = np.transpose(traces, (2, 0, 1))
 reference_array = np.load('reference_emitter.npy')
 
 # The tolerance was chosen to be 0.002V. The amplitudes of the pulses are above 1V.
-# This tolerance is necessary as there are small numerical instabilities in the polarization calculation of the birefringence functions. 
+# This tolerance is necessary as there are small numerical instabilities in the polarization calculation of the birefringence functions.
 # Over the propagation these differences can add up but seem to remain below 1% of the original pulse amplitude.
 
 testing.assert_allclose(traces, reference_array, atol=4e-3  * units.V, rtol=1e-7)
 print('T08test_emitter_birefringence passed without issues')
-
-

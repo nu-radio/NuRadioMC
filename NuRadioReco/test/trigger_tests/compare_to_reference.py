@@ -11,7 +11,7 @@ parser.add_argument('--create_reference', help='create new reference instead of 
 args = parser.parse_args()
 
 event_reader = NuRadioReco.modules.io.eventReader.eventReader()
-event_reader.begin('NuRadioReco/test/trigger_tests/trigger_test_output.nur')
+event_reader.begin('NuRadioReco/test/trigger_tests/trigger_test_output.parquet')
 
 trigger_names = ['default_simple_threshold', 'default_high_low', 'default_multi_high_low', 'simple_phased_threshold']
 properties = ['triggered', 'trigger_time', 'triggered_channels']

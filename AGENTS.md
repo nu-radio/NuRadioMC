@@ -67,10 +67,20 @@ Event (run number, event id, event_time)
 - **Traces** (`base_trace.BaseTrace`, parent of `Channel`/`ElectricField`): Store waveforms in either the time or frequency domain; `get_frequency_spectrum()` uses `utilities.fft`. `get_times()` / `trace_start_time` are relative to the station time. `+` sums traces (resampling/padding as needed).
 - **ElectricField**: has a position and associated channel ids; several per channel (one per ray solution). Components are on-sky (r, θ, φ) polarisations.
 - **Parameter storage**: `obj[stnp.zenith] = 45 * units.deg`, `get_parameter_error(...)`. Enums live in `framework/parameters.py` (`stationParameters`, `channelParameters`, `electricFieldParameters`, `showerParameters`, `particleParameters`, `eventParameters`, ...). Add new enum members **at the bottom**, never reuse values, document with a `#:` comment.
-- **Files**: `.nur` is the full event format (every class implements `serialize`/`deserialize`; read with `modules/io/eventReader` or `NuRadioRecoio`, write with `eventWriter`). NuRadioMC additionally writes a summary **HDF5** file (see `documentation/.../HDF5_structure.rst`).
+- **Files**: events are stored as parquet (`modules/io/eventWriter` writes, `modules/io/eventReader` reads; `<name>.parquet` one row per event × station + `<name>_event.parquet` one row per event; one typed column per parameter). `.nur` (pickle) is deprecated and read-only. NuRadioMC additionally writes a summary **HDF5** file (see `documentation/.../HDF5_structure.rst`).
 - **Times**: absolute times are `astropy.time.Time` (event/station time); everything inside a station is a float relative to it. See `documentation/source/NuRadioReco/pages/times.rst`.
 
 Docs: `NuRadioReco/pages/event_structure.rst`, `detector/detector.rst`, `detector/rnog.rst`.
+
+## I/O (parquet)
+
+Spec and rules: `documentation/source/NuRadioReco/pages/parquet_format.rst`.
+
+- Every parameter enum member gets a concrete type (`name = id, dtype`; types the writer maps: see the doc). `Any` or a bare `dict`/`list` gets no column: its values are dropped with only a warning. Dicts with fixed keys: a `TypedDict`; values of one of several types (e.g. a float or a per-channel dict): `OneOf(name=type, ...)`.
+- Store values of the declared type: the writer writes non-convertible values (also floats with a fractional part, NaN, inf or out-of-range numbers in `int` columns) as null (one warning per column; such an `int` element of a list/dict/struct raises `ElementTypeError`). Ids (run, event, station, channel, object) must be int64 ints (run/event/station/channel not None), else `TypeError`; a raising event is not written at all.
+- New framework classes or attributes: add columns in `eventWriter` and restore them in `eventReader` via public constructors/getters/setters. Nothing is pickled or goes through `serialize`/`deserialize`.
+- After changing the framework or the I/O, run `NuRadioReco/test/io/test_parquet_roundtrip.py` and `NuRadioReco/test/io/test_event_writer_parquet.py`; extend `_synthetic_events` in the round trip for new data.
+- `.nur` files: read only, through `eventReader` (routes to the deprecated `eventReaderNur`); convert with `modules/io/nur_to_parquet.convert_nur`.
 
 ## Modules
 

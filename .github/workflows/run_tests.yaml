@@ -257,7 +257,19 @@ jobs:
       run: |
         python NuRadioReco/test/framework/test_parameter_storage.py
 
-    - name: "Test trigger write / read via .nur"
+    - name: "Test Station and Event accessors"
+      if: always()
+      run: |
+        python NuRadioReco/test/framework/test_station_event.py
+
+    - name: "Test parquet writer and reader"
+      if: always()
+      run: |
+        python NuRadioReco/test/io/test_event_writer_parquet.py
+        python NuRadioReco/test/io/test_parquet_roundtrip.py
+        python NuRadioReco/test/io/test_io_utilities_json.py
+        python NuRadioReco/test/io/test_nur_to_parquet.py
+    - name: "Test trigger write / read"
       if: always()
       run: |
         python NuRadioReco/test/framework/test_trigger_io.py
@@ -350,8 +362,8 @@ jobs:
         jupyter execute NuRadioMC/examples/Interactive/W02-reading-nur-files.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_lofar_data.ipynb
         jupyter execute NuRadioReco/examples/Interactive/read_RNOG_data.ipynb
-        rm -v NuRadioMC/examples/Interactive/{1e19_n1e3.hdf5,1e19_n1e3_output.hdf5,1e19_n1e3_output.nur}
-        rm -v NuRadioReco/examples/Interactive/92380604.nur NuRadioReco/examples/Interactive/*_92380604.png
+        rm -v NuRadioMC/examples/Interactive/{1e19_n1e3.hdf5,1e19_n1e3_output.hdf5,1e19_n1e3_output.parquet,1e19_n1e3_output_event.parquet}
+        rm -v NuRadioReco/examples/Interactive/92380604*.parquet NuRadioReco/examples/Interactive/*_92380604.png
 
     - name: "Simulation examples"
       if: always()

@@ -2,7 +2,9 @@
 import argparse
 from NuRadioMC.utilities._test_helpers import validate_nur_files, PARAMETER_RTOL
 
-parser = argparse.ArgumentParser(description="Compare traces and channel/station parameters of two .nur files")
+parser = argparse.ArgumentParser(
+    description="Compare traces and channel/station parameters of two event files " "(parquet or .nur, read with eventReader)"
+)
 parser.add_argument('file1')
 parser.add_argument('file2', help="reference file")
 parser.add_argument('precision', type=int, nargs='?', default=7, help="decimals to which the traces have to agree")

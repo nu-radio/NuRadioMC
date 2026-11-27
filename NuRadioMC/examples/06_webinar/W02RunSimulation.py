@@ -27,13 +27,13 @@ if __name__ == "__main__":
     Otherwise, the arguments need to be specified as follows:
 
     python W02RunSimulation.py --inputfilename input.hdf5 --detectordescription detector.json
-    --config config.yaml --outputfilename out.hdf5 --outputfilenameNuRadioReco out.nur
+    --config config.yaml --outputfilename out.hdf5 --outputfilenameNuRadioReco out.parquet
 
-    The last argument is optional, only needed if the user wants a nur file. nur files
+    The last argument is optional, only needed if the user wants an event file. Event files
     contain lots of information on triggering events, so they're a great tool for
     reconstruction (see NuRadioReco documentation and Christoph's webinar). However,
     because of their massive amount of information, they can be really heavy. So, when
-    running NuRadioMC with millions of events, most of the time nur files should not
+    running NuRadioMC with millions of events, most of the time event files should not
     be created.
 
     Be sure to read the comments in the config.yaml file and also the file
@@ -72,7 +72,6 @@ if __name__ == "__main__":
     _detector_simulation_filter_amp and _detector_simulation_trigger
     function with all the characteristics of our detector setup.
     """
-
 
     class mySimulation(simulation.simulation):
         """

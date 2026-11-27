@@ -42,6 +42,7 @@ uproot = "*"
 importlib-metadata = {version = ">=4.8.1", python = "<3.8"}
 numba = "*"
 filelock = "*"
+pyarrow = "*"
 Sphinx = {version = "*", optional = true}
 sphinx-rtd-theme = {version = "*", optional = true}
 numpydoc = {version = "*", optional = true}
@@ -56,6 +57,7 @@ pre-commit = {version = "*", optional = true}
 iminuit = {version = "*", optional = true}
 scikit-optimize = {version = "*", optional = true}
 noisyopt = {version = "*", optional = true}
+polars = {version = ">=2.0", optional = true}
 
 [tool.poetry.dev-dependencies]
 pre-commit = "*"
@@ -67,6 +69,7 @@ galacticnoise = ['pylfmap', 'pygdsm', 'healpy']
 muon-flux = ['MCEq', 'crflux']
 cr_interpolator = ["cr-pulse-interpolator"]
 minimizers = ["iminuit", "scikit-optimize", "noisyopt"]
+analysis = ["polars"]
 ALL = ["proposal", "pygdsm", "pylfmap", "healpy", "MCEq", "crflux", "cr-pulse-interpolator", "iminuit", "scikit-optimize", "noisyopt"]
 
 [tool.coverage.run]

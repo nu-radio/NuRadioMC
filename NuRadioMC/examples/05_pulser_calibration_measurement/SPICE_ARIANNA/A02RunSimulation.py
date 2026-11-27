@@ -19,7 +19,7 @@ channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelGenericNoiseAdder = NuRadioReco.modules.channelGenericNoiseAdder.channelGenericNoiseAdder()
 hardwareResponseIncorporator = NuRadioReco.modules.ARIANNA.hardwareResponseIncorporator.hardwareResponseIncorporator()
 triggerSimulator = NuRadioReco.modules.trigger.highLowThreshold.triggerSimulator()
-#triggerSimulator.begin(log_level=logging.WARNING)
+# triggerSimulator.begin(log_level=logging.WARNING)
 triggerSimulator.begin(log_level=logging.ERROR)
 
 
@@ -53,14 +53,15 @@ args = parser.parse_args()
 """
 
 if __name__ == "__main__":
-    sim = mySimulation(inputfilename='SPICE_drop_event_list.hdf5',
-                                outputfilename='output_MC.hdf5',
-                                detectorfile='detector_db.json',
-                                outputfilenameNuRadioReco='output_reco.nur',
-                                config_file='config_spice.yaml',
-                                #log_level=logging.WARNING,
-                                log_level=logging.INFO,
-                                evt_time=datetime.datetime(2019, 12, 30),
-                                file_overwrite=True)
+    sim = mySimulation(
+        inputfilename='SPICE_drop_event_list.hdf5',
+        outputfilename='output_MC.hdf5',
+        detectorfile='detector_db.json',
+        outputfilenameNuRadioReco='output_reco.parquet',
+        config_file='config_spice.yaml',
+        # log_level=logging.WARNING,
+        log_level=logging.INFO,
+        evt_time=datetime.datetime(2019, 12, 30),
+        file_overwrite=True,
+    )
     sim.run()
-

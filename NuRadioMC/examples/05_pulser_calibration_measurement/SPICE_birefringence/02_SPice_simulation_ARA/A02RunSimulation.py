@@ -36,14 +36,15 @@ class mySimulation(simulation.simulation):
                            triggered_channels=range(8))
 
 if __name__ == "__main__":
-    sim = mySimulation(inputfilename='input_spice.hdf5',
-                                outputfilename='output_MC.hdf5',
-                                detectorfile='ara_SP_A5.json',
-                                outputfilenameNuRadioReco='output_reco.nur',
-                                config_file='config_spice.yaml',
-                                #log_level=logging.WARNING,
-                                log_level=logging.ERROR,
-                                evt_time=datetime.datetime(2018, 12, 30),
-                                file_overwrite=True)
+    sim = mySimulation(
+        inputfilename='input_spice.hdf5',
+        outputfilename='output_MC.hdf5',
+        detectorfile='ara_SP_A5.json',
+        outputfilenameNuRadioReco='output_reco.parquet',
+        config_file='config_spice.yaml',
+        # log_level=logging.WARNING,
+        log_level=logging.ERROR,
+        evt_time=datetime.datetime(2018, 12, 30),
+        file_overwrite=True,
+    )
     sim.run()
-

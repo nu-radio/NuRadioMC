@@ -110,8 +110,8 @@ channelResampler = NuRadioReco.modules.channelResampler.channelResampler()
 channelResampler.begin()
 
 eventWriter = NuRadioReco.modules.io.eventWriter.eventWriter()
-output_filename = "MC_example_station_{}.nur".format(station_id)
-eventWriter.begin(output_filename)
+output_filename = "MC_example_station_{}.parquet".format(station_id)
+eventWriter.begin(output_filename, overwrite=True)
 
 # Loop over all events in file as initialized in readCoRREAS and perform analysis
 # Generate random core positions in a 20x10 rectangle around the origin
