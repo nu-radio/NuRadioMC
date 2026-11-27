@@ -504,10 +504,12 @@ class PhasedArrayBase():
                 # Create a sliding window
                 sig_trace, _ = self.power_sum(
                     coh_sum=phased_trace, window=window, step=step, averaging_divisor=averaging_divisor, adc_output=adc_output)
+                bin_step = step
             elif mode == "hilbert_env":
                 coeff_gain = upsampling_kwargs.get("coeff_gain")
                 sig_trace = self.hilbert_envelope(
                     coh_sum=phased_trace, adc_output=adc_output, **hilbert_transformer_kwargs)
+                bin_step = 1  # one envelope value per sample
             else:
                 raise ValueError("mode must be either 'power_sum' or 'hilbert_env'")
 
@@ -521,7 +523,7 @@ class PhasedArrayBase():
                     for channel_id in beam_rolls[iTrace]}
 
                 triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(sig_trace > threshold)))
-                trigger_times[iTrace] = np.abs(np.min(list(trigger_delays[iTrace]))) + triggered_bins * step * time_step + channel_trace_start_time
+                trigger_times[iTrace] = np.abs(np.min(list(trigger_delays[iTrace]))) + triggered_bins * bin_step * time_step + channel_trace_start_time
 
                 logger.debug(
                     "Station has triggered, at bins {}\n".format(triggered_bins) +

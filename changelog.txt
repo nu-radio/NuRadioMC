@@ -51,6 +51,12 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
 
 bugfixes:
+- Fixing several trigger bugs: `.nur` files with an `EnvelopePhasedTrigger` (type 'analog_envelope_phased') could not be read;
+  `powerIntegration` stored its channels, coincidence window and number of coincidences in the wrong trigger attributes;
+  `digitalBeamformedEnvelopeTrigger` failed with a TypeError when creating its trigger object and, for triggered events,
+  when calculating the trigger times;
+  `Trigger.get_trigger_times` failed when no trigger time was set (now returns None);
+  `SimplePhasedTrigger` stored the step size as `_step_side` (now `_step_size`, also when reading old files).
 - The on-the-fly compilation of the C++ ray tracer uses the running Python interpreter instead of `python` from PATH
   (failed e.g. when calling an environment's interpreter directly without activating it).
 - `NuRadioReco.utilities` light modules (units, fft, trace_utilities, ...; listed in the package docstring) can now be imported
