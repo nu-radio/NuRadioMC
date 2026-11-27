@@ -1,46 +1,157 @@
-import pickle
-from NuRadioReco.utilities.io_utilities import _dumps
-import numpy as np
-from six import iteritems
+"""
+Trigger classes: the result and configuration of a trigger, stored in a `Station` (see `BaseStation.get_trigger`).
 
+All values of a trigger except its name and type are stored as `triggerParameters`
+(``trigger[triggerParameters.threshold]``); the getters / setters of the classes are wrappers around them.
+`deserialize` creates the class registered for the trigger type string.
+"""
+import logging
+import pickle
+import warnings
+
+import numpy as np
+
+from NuRadioReco.framework.parameter_storage import ParameterStorage
+from NuRadioReco.framework.parameters import triggerParameters as trp
+from NuRadioReco.utilities.io_utilities import _dumps
 from NuRadioReco.utilities import units
+
+logger = logging.getLogger('NuRadioReco.framework.trigger')
+
+_TRIGGER_CLASSES = {}  # trigger type string -> class, filled by `Trigger.__init_subclass__`
 
 
 def deserialize(triggers_pkl):
+    """
+    Create the triggers from their serialized (pickled) form, see `Trigger.serialize`.
+
+    Parameters
+    ----------
+    triggers_pkl : list of bytes
+        The serialized triggers.
+
+    Returns
+    -------
+    triggers : dict
+        Trigger name -> trigger object (of the class registered for its type; unknown types
+        are read as `Trigger`).
+    """
     triggers = {}
     for data_pkl in triggers_pkl:
-        trigger_type = pickle.loads(data_pkl)['_trigger_type']
-        if trigger_type == 'default':
-            trigger = Trigger(None)
-        elif trigger_type == 'simple_threshold':
-            trigger = SimpleThresholdTrigger(None, None)
-        elif trigger_type == 'high_low':
-            trigger = HighLowTrigger(None, None, None, None, None)
-        elif trigger_type == 'simple_phased':
-            trigger = SimplePhasedTrigger(None, None)
-        elif trigger_type == 'envelope_trigger':
-            trigger = EnvelopeTrigger(None, None, None, None)
-        elif trigger_type == 'int_power':
-            trigger = IntegratedPowerTrigger(None, None, None)
-        elif trigger_type == 'envelope_phased':
-            trigger  = EnvelopePhasedTrigger(None, None, None, None)
-        elif trigger_type == 'digital_envelope_phased':
-            trigger  = DigitalEnvelopePhasedTrigger(None, None, None, None)
-        elif trigger_type == 'rnog_surface_trigger':
-            trigger = RNOGSurfaceTrigger(None, None, None, None)
-        else:
-            raise ValueError("unknown trigger type")
-
-        trigger.deserialize(data_pkl)
+        data = pickle.loads(data_pkl)
+        trigger_type = data['_trigger_type']
+        cls = _TRIGGER_CLASSES.get(trigger_type)
+        if cls is None:
+            logger.warning(f"Unknown trigger type '{trigger_type}': read as base class `Trigger`.")
+            cls = Trigger
+        trigger = cls.__new__(cls)
+        Trigger.__init__(trigger, None, trigger_type=trigger_type)  # defaults for values missing in legacy files
+        trigger._set_state(data)
         triggers[trigger.get_name()] = trigger
 
     return triggers
 
 
-class Trigger:
+# Attributes of triggers in .nur files written before the triggerParameters were introduced
+# (the pickled ``__dict__`` of the trigger) -> parameter. Special cases are handled in `Trigger._set_legacy_state`.
+_LEGACY_ATTRIBUTES = {
+    '_channels': trp.channels,
+    '_triggered': trp.triggered,
+    '_trigger_time': trp.trigger_time,
+    '_trigger_times': trp.trigger_times,
+    '_pre_trigger_times': trp.pre_trigger_times,
+    '_threshold': trp.threshold,
+    '_threshold_high': trp.threshold_high,
+    '_threshold_low': trp.threshold_low,
+    '_trigger_delays': trp.trigger_delays,
+    '_triggered_channels': trp.triggered_channels,
+    '_primary_trigger': trp.primary,
+    '_sample_block_size': trp.sample_block_size,
+    '_gaussian_jitter': trp.gaussian_jitter,
+    '_threshold_factor': trp.threshold_factor,
+    '_number_of_coincidences': trp.number_of_coincidences,
+    '_high_low_window': trp.high_low_window,
+    '_integration_window': trp.integration_window,
+    '_power_mean': trp.power_mean,
+    '_power_std': trp.power_std,
+    '_passband': trp.passband,
+    '_output_passband': trp.output_passband,
+    '_order': trp.filter_order,
+    '_phasing_angles': trp.phasing_angles,
+    '_primary_angles': trp.phasing_angles,
+    '_maximum_amps': trp.maximum_amps,
+    '_window_size': trp.window_size,
+    '_step_size': trp.step_size,
+    '_step_side': trp.step_size,  # typo in files written before NuRadioReco 3.2
+    '_temperature': trp.temperature,
+    '_Vbias': trp.bias_voltage,
+    '_secondary_channels': trp.secondary_channels,
+    '_secondary_angles': trp.secondary_angles,
+    '_sec_trigger_delays': trp.sec_trigger_delays,
+}
+
+# Legacy attributes that were copies of `_channels` (dropped)
+_LEGACY_DUPLICATES = ('_primary_channels', '_trigger_channels')
+
+_warned_legacy_attributes = set()
+
+# Keys of `Trigger.get_trigger_settings` before the triggerParameters were introduced -> current key
+_DEPRECATED_SETTINGS_KEYS = {
+    'primary_trigger': 'primary',
+    'order': 'filter_order',
+    'primary_angles': 'phasing_angles',
+    'Vbias': 'bias_voltage',
+    'primary_channels': 'channels',
+    'trigger_channels': 'channels',
+    'step_side': 'step_size',  # typo in NuRadioReco before 3.2
+}
+
+
+class _TriggerSettings(dict):
+    """
+    The dict returned by `Trigger.get_trigger_settings`. The keys used before the triggerParameters were
+    introduced (`_DEPRECATED_SETTINGS_KEYS`) still work with ``[]`` and ``get``, with a ``DeprecationWarning``;
+    they are not listed by ``keys()`` / ``in``. An old key works for every trigger type that has the new key, also for
+    types that did not have the old one.
+    """
+
+    def _deprecated(self, key, stacklevel):
+        new_key = _DEPRECATED_SETTINGS_KEYS.get(key)
+        if new_key is None or new_key not in self:
+            raise KeyError(key)
+        warnings.warn(f"The trigger settings key '{key}' is deprecated, use '{new_key}'.",
+                      DeprecationWarning, stacklevel=stacklevel + 1)
+        return dict.__getitem__(self, new_key)
+
+    def __missing__(self, key):
+        return self._deprecated(key, stacklevel=2)
+
+    def get(self, key, default=None):
+        if key in self:
+            return dict.__getitem__(self, key)
+        try:
+            return self._deprecated(key, stacklevel=2)
+        except KeyError:
+            return default
+
+
+class Trigger(ParameterStorage):
     """
     base class to store different triggers
+
+    Subclasses register their trigger type string with ``class MyTrigger(Trigger, trigger_type='my_type')``.
+    They keep all their state except name and type in `triggerParameters` (add a member there for a new value):
+    `serialize` stores only the parameters, and `deserialize` creates the object without calling the
+    subclass ``__init__``.
     """
+
+    _TRIGGER_TYPE = 'default'
+
+    def __init_subclass__(cls, trigger_type=None, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if trigger_type is not None:
+            cls._TRIGGER_TYPE = trigger_type
+            _TRIGGER_CLASSES[trigger_type] = cls
 
     def __init__(self, name, channels=None, trigger_type='default', pre_trigger_times=55 * units.ns,
                  sample_block_size=0, gaussian_jitter=0 * units.ns):
@@ -71,40 +182,40 @@ class Trigger:
             Default: 0 samples (no Gaussian jitter)
 
         """
+        ParameterStorage.__init__(self, trp)
         self._name = name
-        self._channels = channels
-        self._triggered = False
-        self._trigger_time = None
-        self._trigger_times = None
         self._trigger_type = trigger_type
-        self._triggered_channels = []
-        self._pre_trigger_times = pre_trigger_times
-        self._primary_trigger = False
-        self._sample_block_size = sample_block_size
-        self._gaussian_jitter = gaussian_jitter
+        self[trp.channels] = channels
+        self[trp.triggered] = False
+        self[trp.trigger_time] = None
+        self[trp.trigger_times] = None
+        self[trp.triggered_channels] = []
+        self.set_pre_trigger_times(pre_trigger_times)
+        self[trp.primary] = False
+        self.set_jitter_params(sample_block_size, gaussian_jitter)
 
     def set_primary(self, primary_trigger=True):
         """
         set the trigger to be the primary trigger.
         The trigger time of the primary trigger is used to define the readout window. There should only be one primary trigger.
         """
-        self._primary_trigger = primary_trigger
+        self[trp.primary] = primary_trigger
 
     def is_primary(self):
         """
         return True if this trigger is the primary trigger
         """
-        return self._primary_trigger
+        return self[trp.primary]
 
     def has_triggered(self):
         """
         returns true if station has trigger, false otherwise
         """
-        return self._triggered
+        return self[trp.triggered]
 
     def set_triggered(self, triggered=True):
         """ set the trigger to True or False """
-        self._triggered = triggered
+        self[trp.triggered] = triggered
 
     def set_trigger_time(self, time):
         """ set the trigger time
@@ -114,7 +225,7 @@ class Trigger:
         time: float
             the trigger time from the beginning of the trace
         """
-        self._trigger_time = time
+        self[trp.trigger_time] = time
 
     def get_trigger_time(self):
         """
@@ -132,7 +243,7 @@ class Trigger:
         --------
         get_trigger_times : function to return all times where the trigger condition was fulfilled
         """
-        return self._trigger_time
+        return self[trp.trigger_time]
 
     def set_trigger_times(self, times):
         """ set the trigger times
@@ -142,7 +253,7 @@ class Trigger:
         times: array
             all trigger times
         """
-        self._trigger_times = times
+        self[trp.trigger_times] = times
 
     def get_trigger_times(self):
         """
@@ -159,16 +270,19 @@ class Trigger:
 
         Returns
         -------
-        trigger_times : np.ndarray
-            Array of all times where the trigger condition was satisfied
+        trigger_times : np.ndarray or None
+            Array of all times where the trigger condition was satisfied.
+            None if no trigger time is set.
 
         See Also
         --------
         get_trigger_time : method to return the (first) trigger time
         """
-        if self._trigger_times is None and not np.isnan(self._trigger_time):
-            return np.array(self._trigger_time)
-        return self._trigger_times
+        trigger_times = self.get_parameter(trp.trigger_times, copy=False)
+        trigger_time = self.get_trigger_time()
+        if trigger_times is None and trigger_time is not None and not np.isnan(trigger_time):
+            return np.array(trigger_time)
+        return trigger_times
 
     def get_name(self):
         """ get trigger name """
@@ -180,10 +294,10 @@ class Trigger:
 
     def get_triggered_channels(self):
         """ get IDs of channels that have triggered """
-        return self._triggered_channels
+        return self.get_parameter(trp.triggered_channels, copy=False)
 
     def set_triggered_channels(self, triggered_channels):
-        self._triggered_channels = triggered_channels
+        self[trp.triggered_channels] = triggered_channels
 
     def set_pre_trigger_times(self, pre_trigger_times):
         """
@@ -197,7 +311,7 @@ class Trigger:
             start of the trace and the trigger time.
             if only a float is given, the same pre_trigger_time is used for all channels
         """
-        self._pre_trigger_times = pre_trigger_times
+        self[trp.pre_trigger_times] = pre_trigger_times
 
     def get_pre_trigger_times(self):
         """
@@ -212,8 +326,7 @@ class Trigger:
             if only a float is given, the same pre_trigger_time is used for all channels
 
         """
-
-        return self._pre_trigger_times
+        return self.get_parameter(trp.pre_trigger_times, copy=False)
 
     def get_pre_trigger_time_channel(self, channel_id):
         """
@@ -231,9 +344,10 @@ class Trigger:
         trigger_time: float
             the trigger time for the channel
         """
-        if isinstance(self._pre_trigger_times, dict):
-            return self._pre_trigger_times[channel_id]
-        return self._pre_trigger_times
+        pre_trigger_times = self.get_pre_trigger_times()
+        if isinstance(pre_trigger_times, dict):
+            return pre_trigger_times[channel_id]
+        return pre_trigger_times
 
     def set_jitter_params(self, sample_block_size=0, gaussian_jitter=0):
         """
@@ -247,31 +361,81 @@ class Trigger:
             Default: 0 (no block jitter)
         gaussian_jitter : float
             Standard deviation of a Gaussian time smear applied to the
-            readout window position (in NuRadioReco time units).
+            readout window position (in samples).
             Default: 0 (no Gaussian jitter)
         """
-        self._sample_block_size = sample_block_size
-        self._gaussian_jitter = gaussian_jitter
+        self[trp.sample_block_size] = sample_block_size
+        self[trp.gaussian_jitter] = gaussian_jitter
 
     def get_sample_block_size(self):
         """Return the sample block size for readout-window jitter."""
-        return self._sample_block_size
+        return self[trp.sample_block_size]
 
     def get_gaussian_jitter(self):
         """Return the Gaussian jitter spread for readout-window jitter."""
-        return self._gaussian_jitter
+        return self[trp.gaussian_jitter]
 
     def serialize(self):
-        return _dumps(self.__dict__, protocol=4)
+        data = ParameterStorage.serialize(self)
+        data['_name'] = self._name
+        data['_trigger_type'] = self._trigger_type
+        return _dumps(data, protocol=4)
 
     def deserialize(self, data_pkl):
-        for key, value in iteritems(pickle.loads(data_pkl)):
-            setattr(self, key, value)
+        self._set_state(pickle.loads(data_pkl))
+
+    def _set_state(self, data):
+        """ Set name, type and parameters from the unpickled output of `serialize` (or a legacy ``__dict__``). """
+        self._name = data['_name']
+        self._trigger_type = data['_trigger_type']
+        if '_parameters' in data:
+            self._parameters = {}
+            self._parameter_covariances = {}
+            ParameterStorage.deserialize(self, data)
+        else:
+            self._set_legacy_state(data)
+
+    def _set_legacy_state(self, data):
+        """
+        Map the attributes of a trigger written before the triggerParameters were introduced
+        (pickled ``__dict__``) onto the parameters. Values are taken as stored (no type conversion).
+        Attributes without a parameter are dropped with a warning (once per trigger type and attribute).
+        """
+        if self._trigger_type == 'int_power' and isinstance(data.get('_channels'), (int, float, np.number)) \
+                and not isinstance(data.get('_channels'), (bool, np.bool_)):
+            # powerIntegration before NuRadioReco 3.2 passed (channels, number_of_coincidences) by position into
+            # (channel_coincidence_window, channels): undo the swap. Its coincidence window was not stored.
+            data = dict(data)
+            data['_number_of_coincidences'] = data.pop('_channels')
+            data['_channels'] = data.pop('_coinc_window', None)
+            data['_coinc_window'] = None
+            if (self._trigger_type, '_channels') not in _warned_legacy_attributes:
+                _warned_legacy_attributes.add((self._trigger_type, '_channels'))
+                logger.warning(
+                    "Trigger of type 'int_power' from an old file stores the number of coincidences as its "
+                    "channels (bug in powerIntegration before NuRadioReco 3.2): corrected, the coincidence window "
+                    "is unknown (None).")
+
+        for key, value in data.items():
+            if key in ('_name', '_trigger_type') or key in _LEGACY_DUPLICATES:
+                continue
+            elif key in _LEGACY_ATTRIBUTES:
+                self[_LEGACY_ATTRIBUTES[key]] = value
+            elif key == '_coinc_window' and (value is None or isinstance(value, (int, float, np.number))):
+                self[trp.coinc_window] = value
+            else:
+                # e.g. `_coinc_window` holding the channel list in an int_power trigger whose `_channels` is not
+                # a number (the swap above does not apply)
+                if (self._trigger_type, key) not in _warned_legacy_attributes:
+                    _warned_legacy_attributes.add((self._trigger_type, key))
+                    logger.warning(
+                        f"Trigger of type '{self._trigger_type}' from an old file has the attribute "
+                        f"'{key}' ({value!r}) without a corresponding triggerParameter. It is dropped.")
 
     def __str__(self):
         output = ""
-        for key, value in iteritems(self.__dict__):
-            output += "{}: {}\n".format(key[1:], value)
+        for key, value in self.get_trigger_settings().items():
+            output += "{}: {}\n".format(key, value)
         return output
 
     def show(self, print_stdout=True, **kwargs):
@@ -304,13 +468,27 @@ class Trigger:
         return self_string
 
     def get_trigger_settings(self):
-        output = {}
-        for key, value in iteritems(self.__dict__):
-            output[key[1:]] = value
+        """
+        Return name, type and all parameters of the trigger.
+
+        Returns
+        -------
+        settings : dict
+            Keys ``name``, ``trigger_type`` and the names of the set `triggerParameters`
+            (e.g. ``triggered``, ``trigger_time``, ``triggered_channels``, ``threshold``). Values are not copied.
+            The keys used before the triggerParameters (e.g. ``primary_trigger``, ``Vbias``) still work,
+            deprecated.
+        """
+        output = _TriggerSettings(name=self._name, trigger_type=self._trigger_type)
+        for key, value in self._parameters.items():
+            output[key.name] = value
         return output
 
 
-class SimpleThresholdTrigger(Trigger):
+_TRIGGER_CLASSES['default'] = Trigger
+
+
+class SimpleThresholdTrigger(Trigger, trigger_type='simple_threshold'):
 
     def __init__(self, name, threshold, channels=None, number_of_coincidences=1,
                  channel_coincidence_window=None, pre_trigger_times=55 * units.ns):
@@ -338,13 +516,13 @@ class SimpleThresholdTrigger(Trigger):
             if only a float is given, the same pre_trigger_time is used for all channels
 
         """
-        Trigger.__init__(self, name, channels, 'simple_threshold', pre_trigger_times=pre_trigger_times)
-        self._threshold = threshold
-        self._number_of_coincidences = number_of_coincidences
-        self._coinc_window = channel_coincidence_window
+        Trigger.__init__(self, name, channels, self._TRIGGER_TYPE, pre_trigger_times=pre_trigger_times)
+        self[trp.threshold] = threshold
+        self[trp.number_of_coincidences] = number_of_coincidences
+        self[trp.coinc_window] = channel_coincidence_window
 
 
-class EnvelopePhasedTrigger(Trigger):
+class EnvelopePhasedTrigger(Trigger, trigger_type='analog_envelope_phased'):
 
     def __init__(self, name, threshold_factor, power_mean, power_std,
                  triggered_channels=None, phasing_angles=None, trigger_delays=None,
@@ -382,16 +560,20 @@ class EnvelopePhasedTrigger(Trigger):
             if only a float is given, the same pre_trigger_time is used for all channels
 
         """
-        Trigger.__init__(self, name, triggered_channels, 'analog_envelope_phased', pre_trigger_times=pre_trigger_times)
-        self._triggered_channels = triggered_channels
-        self._phasing_angles = phasing_angles
-        self._threshold_factor = threshold_factor
-        self._power_mean = power_mean
-        self._power_std = power_std
-        self._trigger_delays = trigger_delays
-        self._output_passband = output_passband
+        Trigger.__init__(self, name, triggered_channels, self._TRIGGER_TYPE, pre_trigger_times=pre_trigger_times)
+        self[trp.triggered_channels] = triggered_channels  # as before: the configured channels
+        self[trp.phasing_angles] = phasing_angles
+        self[trp.threshold_factor] = threshold_factor
+        self[trp.power_mean] = power_mean
+        self[trp.power_std] = power_std
+        self[trp.trigger_delays] = trigger_delays
+        self[trp.output_passband] = output_passband
 
-class DigitalEnvelopePhasedTrigger(Trigger):
+
+_TRIGGER_CLASSES['envelope_phased'] = EnvelopePhasedTrigger  # type string used by older versions
+
+
+class DigitalEnvelopePhasedTrigger(Trigger, trigger_type='digital_envelope_phased'):
 
     def __init__(self, name, threshold, trigger_channels=None,
                   phasing_angles=None, trigger_delays=None,
@@ -423,15 +605,14 @@ class DigitalEnvelopePhasedTrigger(Trigger):
             Frequencies for a 6th-order Butterworth filter to be applied after
             the diode filtering.
         """
-        Trigger.__init__(self, name, trigger_channels, 'digital_envelope_phased', pre_trigger_times=pre_trigger_times)
-        self._trigger_channels = trigger_channels
-        self._phasing_angles = phasing_angles
-        self._threshold = threshold
-        self._trigger_delays = trigger_delays
-        self._maximum_amps = maximum_amps
+        Trigger.__init__(self, name, trigger_channels, self._TRIGGER_TYPE, pre_trigger_times=pre_trigger_times)
+        self[trp.phasing_angles] = phasing_angles
+        self[trp.threshold] = threshold
+        self[trp.trigger_delays] = trigger_delays
+        self[trp.maximum_amps] = maximum_amps
 
 
-class SimplePhasedTrigger(Trigger):
+class SimplePhasedTrigger(Trigger, trigger_type='simple_phased'):
 
     def __init__(self, name, threshold, channels=None, secondary_channels=None,
                  primary_angles=None, secondary_angles=None,
@@ -476,20 +657,19 @@ class SimplePhasedTrigger(Trigger):
             if only a float is given, the same pre_trigger_time is used for all channels
 
         """
-        Trigger.__init__(self, name, channels, 'simple_phased', pre_trigger_times=pre_trigger_times)
-        self._primary_channels = channels
-        self._primary_angles = primary_angles
-        self._secondary_channels = secondary_channels
-        self._secondary_angles = secondary_angles
-        self._threshold = threshold
-        self._trigger_delays = trigger_delays
-        self._sec_trigger_delays = sec_trigger_delays
-        self._window_size = window_size
-        self._step_side = step_size
-        self._maximum_amps = maximum_amps
+        Trigger.__init__(self, name, channels, self._TRIGGER_TYPE, pre_trigger_times=pre_trigger_times)
+        self[trp.phasing_angles] = primary_angles
+        self[trp.secondary_channels] = secondary_channels
+        self[trp.secondary_angles] = secondary_angles
+        self[trp.threshold] = threshold
+        self[trp.trigger_delays] = trigger_delays
+        self[trp.sec_trigger_delays] = sec_trigger_delays
+        self[trp.window_size] = window_size
+        self[trp.step_size] = step_size
+        self[trp.maximum_amps] = maximum_amps
 
 
-class HighLowTrigger(Trigger):
+class HighLowTrigger(Trigger, trigger_type='high_low'):
 
     def __init__(self, name, threshold_high, threshold_low, high_low_window,
                  channel_coincidence_window, channels=None, number_of_coincidences=1, pre_trigger_times=55 * units.ns):
@@ -521,15 +701,15 @@ class HighLowTrigger(Trigger):
             if only a float is given, the same pre_trigger_time is used for all channels
 
         """
-        Trigger.__init__(self, name, channels, 'high_low', pre_trigger_times=pre_trigger_times)
-        self._number_of_coincidences = number_of_coincidences
-        self._threshold_high = threshold_high
-        self._threshold_low = threshold_low
-        self._high_low_window = high_low_window
-        self._coinc_window = channel_coincidence_window
+        Trigger.__init__(self, name, channels, self._TRIGGER_TYPE, pre_trigger_times=pre_trigger_times)
+        self[trp.number_of_coincidences] = number_of_coincidences
+        self[trp.threshold_high] = threshold_high
+        self[trp.threshold_low] = threshold_low
+        self[trp.high_low_window] = high_low_window
+        self[trp.coinc_window] = channel_coincidence_window
 
 
-class IntegratedPowerTrigger(Trigger):
+class IntegratedPowerTrigger(Trigger, trigger_type='int_power'):
 
     def __init__(self, name, threshold, channel_coincidence_window, channels=None, number_of_coincidences=1,
                  power_mean=None, power_std=None, integration_window=None, pre_trigger_times=55 * units.ns):
@@ -557,16 +737,16 @@ class IntegratedPowerTrigger(Trigger):
             if only a float is given, the same pre_trigger_time is used for all channels
 
         """
-        Trigger.__init__(self, name, channels, 'int_power', pre_trigger_times=pre_trigger_times)
-        self._number_of_coincidences = number_of_coincidences
-        self._threshold = threshold
-        self._coinc_window = channel_coincidence_window
-        self._power_mean = power_mean
-        self._power_std = power_std
-        self._integration_window = integration_window
+        Trigger.__init__(self, name, channels, self._TRIGGER_TYPE, pre_trigger_times=pre_trigger_times)
+        self[trp.number_of_coincidences] = number_of_coincidences
+        self[trp.threshold] = threshold
+        self[trp.coinc_window] = channel_coincidence_window
+        self[trp.power_mean] = power_mean
+        self[trp.power_std] = power_std
+        self[trp.integration_window] = integration_window
 
 
-class EnvelopeTrigger(Trigger):
+class EnvelopeTrigger(Trigger, trigger_type='envelope_trigger'):
 
     def __init__(self, name, passband, order, threshold, number_of_coincidences=2,
                  channel_coincidence_window=None, channels=None, pre_trigger_times=55 * units.ns):
@@ -598,14 +778,15 @@ class EnvelopeTrigger(Trigger):
             if only a float is given, the same pre_trigger_time is used for all channels
 
         """
-        Trigger.__init__(self, name, channels, 'envelope_trigger', pre_trigger_times=pre_trigger_times)
-        self._passband = passband
-        self._order = order
-        self._threshold = threshold
-        self._number_of_coincidences = number_of_coincidences
-        self._coinc_window = channel_coincidence_window
+        Trigger.__init__(self, name, channels, self._TRIGGER_TYPE, pre_trigger_times=pre_trigger_times)
+        self[trp.passband] = passband
+        self[trp.filter_order] = order
+        self[trp.threshold] = threshold
+        self[trp.number_of_coincidences] = number_of_coincidences
+        self[trp.coinc_window] = channel_coincidence_window
 
-class RNOGSurfaceTrigger(Trigger):
+
+class RNOGSurfaceTrigger(Trigger, trigger_type='rnog_surface_trigger'):
 
     def __init__(self, name, threshold, number_of_coincidences=1,
                  channel_coincidence_window=60*units.ns, channels=[13, 16, 19],
@@ -638,9 +819,9 @@ class RNOGSurfaceTrigger(Trigger):
             if only a float is given, the same pre_trigger_time is used for all channels
 
         """
-        Trigger.__init__(self, name, channels, 'rnog_surface_trigger', pre_trigger_times=pre_trigger_times)
-        self._threshold = threshold
-        self._number_of_coincidences = number_of_coincidences
-        self._coinc_window = channel_coincidence_window
-        self._temperature = temperature
-        self._Vbias = Vbias
+        Trigger.__init__(self, name, channels, self._TRIGGER_TYPE, pre_trigger_times=pre_trigger_times)
+        self[trp.threshold] = threshold
+        self[trp.number_of_coincidences] = number_of_coincidences
+        self[trp.coinc_window] = channel_coincidence_window
+        self[trp.temperature] = temperature
+        self[trp.bias_voltage] = Vbias

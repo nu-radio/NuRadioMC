@@ -43,6 +43,14 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   The `AntennaPattern.VEL`, `AntennaPattern.VEL_theta` and `AntennaPattern.VEL_phi` attributes are deprecated, the cube is
   stored in `AntennaPattern._vel`.
 - Added `impulsiveSignalReconstructor` module to reconstruct 'generic' impulsive signals
+- Triggers store their values as `triggerParameters` (`Trigger` is a `ParameterStorage`), e.g.
+  `trigger[triggerParameters.threshold]`; only name and type remain attributes. Constructors and getters/setters are
+  unchanged; `.nur` files written before are read into the new parameters. API changes: the keys of
+  `get_trigger_settings()` follow the parameter names (`triggered`, `trigger_time`, `triggered_channels` unchanged; the
+  old keys `primary_trigger`, `order`, `primary_angles`, `Vbias`, `primary_channels`, `trigger_channels`, `step_side`
+  still work, deprecated); the private attributes (`_threshold`, ...) are gone. `.nur` files written with this version
+  are not read correctly by older NuRadioReco versions: their triggers come back with default values (e.g. not
+  triggered), without an error.
 - New module `NuRadioMC.utilities.neutrino_fluxes` with neutrino flux models (IceCube fits, cosmogenic models of van Vliet,
   Heinze and TA, source populations, AGN, GRB afterglows, blazars) as all-flavour dN/dE. The event generator uses it for its
   GZK spectra instead of importing them from an example script.
@@ -51,6 +59,12 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
 
 bugfixes:
+- Fixing several trigger bugs: `.nur` files with an `EnvelopePhasedTrigger` (type 'analog_envelope_phased') could not be read;
+  `powerIntegration` stored its channels, coincidence window and number of coincidences in the wrong trigger attributes;
+  `digitalBeamformedEnvelopeTrigger` failed with a TypeError when creating its trigger object and, for triggered events,
+  when calculating the trigger times;
+  `Trigger.get_trigger_times` failed when no trigger time was set (now returns None);
+  `SimplePhasedTrigger` stored the step size as `_step_side` (now `triggerParameters.step_size`, also when reading old files).
 - The trigger times of the phased array triggers (`beamformedPowerIntegrationTrigger`, `phasedArrayTrigger`,
   `digitalBeamformedEnvelopeTrigger`) were shifted by the smallest phased channel id in ns (a minimum over the
   channel ids instead of the delays). No effect for phased arrays that include channel 0 (e.g. RNO-G channels 0-3).
