@@ -161,7 +161,7 @@ class ShowerSimulator:
         # Calculate trace start times if not provided:
         if trace_start_times is None:
             start_point = showers[0][shp.vertex]
-            end_point = self.det.get_relative_position(self.station_id, self.reference_channel)
+            end_point = self.det.get_relative_position(self.station_id, self.reference_channel) + self.det.get_absolute_position(self.station_id)
             self.propagator.set_start_and_end_point(start_point, end_point)
             self.propagator.find_solutions()
             if self.propagator.get_number_of_solutions() > 0:
@@ -186,9 +186,9 @@ class ShowerSimulator:
             if len(sim_station.get_electric_fields()) != 0:
                 sim.apply_det_response_sim(sim_station, self.det, self.config, self.detector_simulation_filter_amp)
 
-            # Add cable delays:
-            if self.add_cable_delay:
-                channelAddCableDelay.run(evt, sim_station, self.det, mode="add")
+            # Remove cable delays:
+            if not self.add_cable_delay:
+                channelAddCableDelay.run(evt, sim_station, self.det, mode="subtract")
 
             # Make empty channel and add sim channels to it:
             readout_channel = NuRadioReco.framework.channel.Channel(channel_id)
@@ -377,11 +377,11 @@ class ShowerSimulator:
         shower[shp.zenith] = zenith
         shower[shp.azimuth] = azimuth
         shower[shp.energy] = energy
-        shower[shp.vertex] = hp.spherical_to_cartesian(vertex_theta_rel, vertex_phi_rel) * vertex_r_rel + self.det.get_relative_position(self.station_id, self.reference_channel)
+        shower[shp.vertex] = hp.spherical_to_cartesian(vertex_theta_rel, vertex_phi_rel) * vertex_r_rel + self.det.get_relative_position(self.station_id, self.reference_channel) + self.det.get_absolute_position(self.station_id)
         shower[shp.type] = type
 
         # Run ray-tracer to get travel time for reference antenna:
-        self.propagator.set_start_and_end_point(self.det.get_relative_position(self.station_id, self.reference_channel), shower[shp.vertex])
+        self.propagator.set_start_and_end_point(self.det.get_relative_position(self.station_id, self.reference_channel) + self.det.get_absolute_position(self.station_id), shower[shp.vertex])
         self.propagator.find_solutions()
 
         if self.propagator.get_number_of_solutions() > 0:
