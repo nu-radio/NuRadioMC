@@ -66,6 +66,8 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   The `AntennaPattern.VEL`, `AntennaPattern.VEL_theta` and `AntennaPattern.VEL_phi` attributes are deprecated, the cube is
   stored in `AntennaPattern._vel`.
 - Added `impulsiveSignalReconstructor` module to reconstruct 'generic' impulsive signals
+- The eventbrowser opens parquet files (random access per row group via `eventReader.get_event_i`;
+  files are chosen by their ending unless `--rnog_file` is given).
 - Triggers store their values as `triggerParameters` (`Trigger` is a `ParameterStorage`), e.g.
   `trigger[triggerParameters.threshold]`; only name and type remain attributes. Constructors and getters/setters are
   unchanged; `.nur` files written before are read into the new parameters. API changes: the keys of
