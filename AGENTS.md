@@ -26,7 +26,8 @@ python documentation/make_docs.py                                     # build do
 - CI: `.github/workflows/run_tests.yaml` (flake8 + test jobs: single events, signal processing, Veff/Aeff with fixed seeds, RNO-G, examples, module structure). Coverage is combined across jobs and commented on PRs.
 - Python: write code for Python 3.8+ (currently the minimum). The supported versions are set by `.github/workflows/python_version_compatibility.yaml`, which runs `run_tests.yaml` for each version only on pushes to `develop`, not on PRs; PR CI runs only 3.10.
 - Many tests are scripts compared against reference output (fixed seeds). A change in physics output breaks them intentionally; update references only with a justification.
-- Antenna models (up to ~700 MB each) are downloaded on first use into `NuRadioReco/detector/AntennaModels/` (sha1-checked, see `antenna_models_hash.json`, `utilities/dataservers.py`). They are not in git.
+- A new test script runs in CI only once it is added as a step in `run_tests.yaml`. The `*.sh` test scripts call `python3`; if that is not your env's interpreter, run their lines with the env's `python`.
+- Antenna models (up to ~700 MB each) are downloaded on first use into `NuRadioReco/detector/AntennaModels/` (sha1-checked, see `antenna_models_hash.json`, `utilities/dataservers.py`). They are not in git, so a new worktree or clone downloads them again; symlink the folder from an existing checkout instead.
 
 ## Code map
 
@@ -104,6 +105,7 @@ Manuals: `documentation/source/NuRadioMC/pages/Manuals/` (config, event generati
 
 - **Units**: always use `NuRadioReco.utilities.units`. Base units: m, ns, GHz, eV, V, rad. Multiply on input (`10 * units.m`), divide on output (`x / units.MHz`).
 - **FFT**: use `NuRadioReco.utilities.fft` (`freqs`, `time2freq`, `freq2time`), never bare `numpy.fft`. Convention: `rfft / sampling_rate * sqrt(2)` → spectra in V/GHz, energy-conserving (`sum(trace**2) * dt ≈ sum(|spec|**2) * df`, up to DC/Nyquist bins).
+- **Random numbers**: draw only from a dedicated generator made by `NuRadioReco.utilities.random_generator.get_rng` (a `Generator(Philox(seed))`; a passed `Generator` is returned as is). Modules: `begin(..., seed=None)` with `self._rng = get_rng(seed)`; functions: an `rng=None` argument with `rng = get_rng(rng)`. New code uses neither numpy's global random state (`np.random.normal`, `np.random.seed`, ...), `np.random.RandomState`, stdlib `random`, nor an unseeded `np.random.default_rng()` without a `seed`/`rng` parameter.
 - **Coordinates**: x = East, y = North, z = up; origin at the surface. Zenith 0° = up, 180° = down; azimuth counted from East towards North. Directions point to where the signal *came from* (exception: `launch_vector`). See `Introduction/pages/conventions.rst`.
 - **Particles**: PDG codes (12/14/16 = νe/νμ/ντ, negative = anti).
 - **Style**: PEP-8, space after commas, numpydoc docstrings (blank line before lists). Don't restyle untouched legacy code. In docstrings, the default Sphinx role resolves single backticks as Python references; use double backticks for anything that isn't an importable object (module lists, file paths, package names), or the docs build fails.
@@ -126,6 +128,7 @@ Manuals: `documentation/source/NuRadioMC/pages/Manuals/` (config, event generati
 - **FFT filtering is circular**: multiplying spectra wraps pulses around short traces; pad or use `channelStopFilter`.
 - **Filter-then-sum ≠ sum-then-filter** on short windows; changes to the order of detector-response steps can alter trigger rates / Veff.
 - `AntennaPattern.get_antenna_response_vectorized` returns 0-d values for a single frequency.
+- `channelGalacticNoiseAdder`: the `passband` of `run()` must lie within the `freq_range` of `begin()` (default 10–1000 MHz), else the interpolation raises `ValueError`.
 
 ## Working as an agent
 
@@ -134,3 +137,4 @@ Manuals: `documentation/source/NuRadioMC/pages/Manuals/` (config, event generati
 - For changes that can affect physics output, show before/after numbers (e.g. a Veff or trigger-rate test with fixed seed, or bit-identical HDF5 output for pure refactors).
 - Run the relevant tests from `run_all_tests.sh` / CI before proposing a PR. Format and lint the changed lines of a branch with `pre-commit run --from-ref origin/develop --to-ref HEAD`.
 - For new code or when you modify untested code, add a test before you apply your changes.
+- Task procedures are skills in `.agents/skills/`: `nuradio-tests` (adding tests, updating references), `nuradio-pr` (writing a PR title and description) and `nuradio-pr-review` (reviewing a PR). Agents without skill support read the matching `SKILL.md` when the task comes up. `.claude/skills` is a symlink to that folder for Claude Code; in a checkout without symlink support (possible on Windows) it is a plain text file and Claude Code finds no repo skills.
