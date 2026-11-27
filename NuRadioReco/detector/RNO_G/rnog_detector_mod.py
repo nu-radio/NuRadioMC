@@ -1,8 +1,7 @@
-from NuRadioReco.utilities import fft
 from NuRadioReco.detector.response import Response
 
 from NuRadioReco.detector.RNO_G.rnog_detector import \
-    Detector, _keys_not_in_dict, _check_detector_time
+    Detector, _keys_not_in_dict, _check_detector_time, _component_entry_to_response
 
 import copy
 import logging
@@ -35,6 +34,42 @@ def replace_value_in_dict(d, keys, value):
         else:
             d_tmp = d_tmp[key]
 
+def build_time_delay_component(time_delay, weight=1, name="MOD_manual_time_delay"):
+    """
+    Build a signal chain component which applies only a time delay.
+
+    The component is described by an entry of the ``time_delays`` collection.
+
+    Parameters
+    ----------
+    time_delay: float
+        The (signed) time delay in ns.
+
+    weight: float (default: 1)
+        The weight of the component in the signal chain (either 1 or -1).
+
+    name: str (default: "MOD_manual_time_delay")
+        The name of the component.
+
+    Returns
+    -------
+    component: dict
+        The component description, to be passed to `ModDetector.add_component` or
+        `ModDetector.set_component`.
+    """
+    if weight not in (-1, 1):
+        raise ValueError(f"Only a weight of -1 or 1 is allowed (value is {weight}).")
+
+    if not np.isfinite(time_delay):
+        raise ValueError(f"Expect a finite time delay (value is {time_delay}).")
+
+    return {
+        'collection': 'time_delays',
+        'name': name,
+        'time_delay': float(time_delay),
+        'time_delay_unit': 'ns',
+        'weight': weight
+    }
 
 class ModDetector(Detector):
     def __init__(self, *args, **kwargs):
@@ -171,19 +206,12 @@ class ModDetector(Detector):
             The channel id
 
         componennt: dict
-            A dictionary with the properties of the component to be added
+            A dictionary with the properties of the component to be added.
 
         """
 
         # generate a response object from the component dict
-        component_response = Response(
-            component["frequencies"], 
-            [component["mag"], component["phase"]],
-            component["y-axis_units"], name = component["name"],
-            weight = component["weight"], time_delay = component["time_delay"],
-            station_id=station_id,
-            channel_id=channel_id
-        )
+        component_response = _component_entry_to_response(component, station_id, channel_id)
 
         orig_response = self.get_signal_chain_response(station_id, channel_id)
         signal_chain_dict = self.get_channel_signal_chain(station_id, channel_id)
@@ -194,6 +222,46 @@ class ModDetector(Detector):
 
         # write the modified signal chain back to the buffered station
         self._Detector__buffered_stations[station_id]["channels"][channel_id]['signal_chain'] = signal_chain_dict
+
+    def remove_component(self, station_id, channel_id, component):
+
+        signal_chain_dict = self.get_channel_signal_chain(station_id, channel_id)
+
+        # Remove the element from the signal chain, if it exists
+        try:
+            signal_chain_dict["response_chain"].remove(component)
+        except ValueError:
+            return
+
+        # Invalidate the cached total response
+        signal_chain_dict.pop("total_response", None)
+
+        # write the modified signal chain back to the buffered station
+        self._Detector__buffered_stations[station_id]["channels"][channel_id]['signal_chain'] = signal_chain_dict
+
+    def get_component_by_name(self, station_id, channel_id, component_name):
+        signal_chain_dict = self.get_channel_signal_chain(station_id, channel_id)
+        for ind, existing_component in enumerate(signal_chain_dict["response_chain"]):
+            if component_name == existing_component["name"]:
+                return existing_component
+        return None
+
+    def remove_component_by_name(self, station_id, channel_id, component_name):
+        component = self.get_component_by_name(station_id, channel_id, component_name)
+        if component is not None:
+            self.remove_component(station_id, channel_id, component)
+
+    def set_component(self, station_id, channel_id, component):
+
+        # Check if there already is a component with the same name in the signal chain. If so, remove it.
+        existing_component = self.get_component_by_name(station_id, channel_id, component["name"])
+
+        if existing_component is not None:
+            self.remove_component(station_id, channel_id, existing_component)
+
+        # Add the new component back in
+        self.add_component(station_id, channel_id, component)
+
 
     def add_manual_time_delay(self, station_id, channel_id, time_delay, weight=1, name="MOD_manual_time_delay"):
         """ Add an additional time delay to the signal chain and total response
@@ -207,7 +275,7 @@ class ModDetector(Detector):
             The channel id
 
         time_delay: float
-            The manual time delay to be added
+            The (signed) time delay to be added, in ns.
 
         weight: float (default: 1)
             The weight of the time delay in the total response (either 1 or -1)
@@ -216,32 +284,39 @@ class ModDetector(Detector):
             The name of the component to be added
         """
 
-        if time_delay < 0.0:
-            raise ValueError("Expect positive additional delay; use 'weight = -1' to implement a negative delay.")
-
-        sampling_rate = self.get_sampling_frequency(station_id, channel_id)
-
-        # number of samples a trace would have with a length at least that of the time delay
-        # also make sure that we have at least three frequency bins to avoid a degenerate frequency axis
-        n_samples = int(time_delay * 2.0 * sampling_rate) + 3
-        freqs = fft.freqs(n_samples, sampling_rate)
-
-        # pseudo data
-        phase = -2 * np.pi * time_delay * freqs
-        mag = np.ones_like(phase)
-
-        component = {
-            'weight': weight,
-            'y-axis_units': ['mag', 'rad'],
-            'mag': list(mag),
-            'phase': list(phase),
-            'frequencies': list(freqs),
-            'name': name,
-            'time_delay': time_delay
-        }
+        component = build_time_delay_component(time_delay, weight, name)
 
         # add the component to the response chain
         self.add_component(station_id, channel_id, component)
+
+    def set_manual_time_delay(self, station_id, channel_id, time_delay, weight=1, name="MOD_manual_time_delay"):
+        """ Set an additional time delay in the signal chain and total response
+
+        Unlike `add_manual_time_delay`, an already existing component with the same name is
+        replaced instead of being added a second time.
+
+        Parameters
+        ----------
+        station_id: int
+            The station id
+
+        channel_id: int
+            The channel id
+
+        time_delay: float
+            The manual time delay to be set, in ns. A negative value advances the signal.
+
+        weight: float (default: 1)
+            The weight of the time delay in the total response (either 1 or -1)
+
+        name: str (default: "MOD_manual_time_delay")
+            The name of the component to be set
+        """
+
+        component = build_time_delay_component(time_delay, weight, name)
+
+        # add the component to the response chain
+        self.set_component(station_id, channel_id, component)
 
     def set_channel_position(self, station_id, channel_id, value):
         """

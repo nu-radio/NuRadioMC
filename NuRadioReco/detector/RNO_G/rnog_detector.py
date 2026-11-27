@@ -65,6 +65,66 @@ def _format_t(t, f="%Y-%m-%d %H:%M:%S"):
     return t.strftime(f)
 
 
+def _component_entry_to_response(component_entry, station_id, channel_id, logger = None, log_level = logging.NOTSET):
+
+    if logger is None:
+        logger = logging.getLogger("NuRadioReco.RNOGDetector")
+
+    # Skip drab_board if its equal with iglu (see warning above)
+    # if is_equal and component_entry["collection"] == "drab_board":
+    #     continue
+
+    if "collection" not in component_entry:
+        component_entry["collection"] = "default"
+
+    if component_entry['collection'] == "gain_calibration":
+        ydata = component_entry["gain_factor"]
+        y_units = component_entry["gain_factor_unit"]
+        frequencies = None
+        time_delay = 0
+        weight = component_entry.get("weight", 1)  # returns 1 as the default if weight is not included
+
+    elif component_entry['collection'] == "time_delays":
+        ydata = 1  # Fake gain factor of 1 in magitude (does nothing)
+        y_units = "mag"
+        frequencies = None
+        time_delay = component_entry["time_delay"] * getattr(units, component_entry["time_delay_unit"])
+        weight = component_entry.get("weight", 1)  # returns 1 as the default if weight is not included
+
+    else:
+        # Get the response data
+        ydata = [component_entry["mag"], component_entry["phase"]]
+        y_units = component_entry["y-axis_units"]
+        frequencies = component_entry["frequencies"]
+
+        weight = component_entry.get("weight", 1) # returns 1 as the default if weight is not included
+        attenuator = component_entry.get("attenuator", 0) # returns 0 as the default if attenuator is not included
+
+        if "time_delay" in component_entry:
+            time_delay = component_entry["time_delay"]
+        else:
+            logger.warning(
+                f"The signal chain component \"{component_entry['collection']}\" with the name \"{component_entry['name']}\" of station.channel "
+                f"{station_id}.{channel_id} has no time delay stored... "
+                "Set component time delay to 0")
+            time_delay = 0
+
+        # Apply the addtional attenuator (stored in dB) to the response if present in measurement
+        if attenuator:
+            if y_units[0] == "dB":
+                ydata[0] = np.asarray(ydata[0]) + attenuator
+            elif y_units[0].lower() == "mag":
+                ydata[0] = np.asarray(ydata[0]) * 10 ** (attenuator / 20)
+            else:
+                raise KeyError
+
+    return Response(
+            frequencies, ydata, y_units,
+            time_delay=time_delay, weight=weight,
+            name=f'{component_entry["collection"]}:{component_entry["name"]}',
+            station_id=station_id, channel_id=channel_id,
+            log_level=log_level)
+
 class Detector():
     def __init__(self, database_connection='RNOG_public', log_level=logging.NOTSET, over_write_handset_values=None,
                  database_time=None, always_query_entire_description=False, detector_file=None,
@@ -95,8 +155,10 @@ class Detector():
             If True, query the entire detector describtion all at once when calling Detector.update(...) (if necessary).
             This value is currently set to ``False`` by default to avoid errors due to missing information in the database.
 
-        detector_file : str
-            File to import detector description instead of querying from DB. (Default: None -> query from DB)
+        detector_file : str or dict
+            File to import detector description instead of querying from DB, or an in-memory
+            detector description (as written by ``Detector.export`` / ``Detector.export_as_string``).
+            (Default: None -> query from DB)
 
         select_stations : int or list(int) (Default: None)
             Select a station or list of stations using their station ids for which the describtion is provided.
@@ -185,7 +247,10 @@ class Detector():
         else:
             self._query_all = None  # specific case for file imported detector descriptions
             self._det_imported_from_file = True
-            self._import_from_file(detector_file)
+            if isinstance(detector_file, dict):
+                self._import_from_dict(detector_file)
+            else:
+                self._import_from_file(detector_file)
 
         # This should be set with Detector.update(..) and corresponds to the time of a measurement.
         # It will be use to decide which components are commissioned at the time of the measurement
@@ -209,6 +274,27 @@ class Detector():
 
         self.assume_inf = None  # Compatibility with other detectors classes
         self.antenna_by_depth = None  # Compatibility with other detectors classes
+
+    @classmethod
+    def from_dict(cls, detector_dict, **kwargs):
+        """
+        Construct a detector description from an in-memory dictionary rather than from the DB or a file.
+
+        Parameters
+        ----------
+        detector_dict: dict
+            Detector description as exported by ``Detector.export``
+
+        **kwargs:
+            Further arguments passed on to the ``Detector`` constructor (e.g. ``log_level`` or
+            ``select_stations``).
+
+        Returns
+        -------
+        detector: ``Detector``
+            Detector description described by ``detector_dict``
+        """
+        return cls(detector_file = detector_dict, **kwargs)
 
     @property
     def signal_chain_measurement_name(self):
@@ -348,18 +434,20 @@ class Detector():
 
         return json.dumps(export_dir, **dumps_kwargs)
 
-    def _import_from_file(self, detector_file):
+    def _import_from_dict(self, import_dict, source = "in-memory dict"):
+        """
+        Populate the internal buffers of the detector from an in-memory detector description.
 
-        if detector_file.endswith(".json.xz"):
-            with lzma.open(detector_file, "r") as f:
-                import_dict = json.load(f)
-        elif detector_file.endswith(".json"):
-            with open(detector_file, "r") as f:
-                import_dict = json.load(f)
-        else:
-            raise ValueError(f"Unknown filetype (extension), can not import detector from {detector_file}. "
-                                "Allowed are only: \".json\" and \".json.xz\"")
+        Parameters
+        ----------
+        import_dict: dict
+            Detector description with entries ``version``, ``stations``, ``default_values``,
+            ``periods``, ...
 
+        source: str
+            Description of where ``import_dict`` was imported from, used for logging only.
+            (Default: "in-memory dict")
+        """
         if "version" in import_dict and import_dict["version"] == 1:
             self.__buffered_stations = {}
             self.additional_data = import_dict.get("additional_data", None)
@@ -407,12 +495,34 @@ class Detector():
                 st_id: 1 for st_id in self.__buffered_stations}
             self.__default_values = import_dict["default_values"]
         else:
-            self.logger.error(f"{detector_file} with unknown version.")
-            raise ReferenceError(f"{detector_file} with unknown version.")
+            self.logger.error(f"{source} with unknown version.")
+            raise ReferenceError(f"{source} with unknown version.")
 
         # print any potential comment present in this detector description
         if self.comment is not None and self.comment != "":
             self.logger.info("\n".join(["Loaded detector description with comment:", self.comment]))
+
+    def _import_from_file(self, detector_file):
+        """
+        Read a detector description from a file and populate the internal buffers with it.
+
+        Parameters
+        ----------
+        detector_file: str
+            Filename of the detector description. Allowed extensions are ".json" and ".json.xz".
+        """
+
+        if detector_file.endswith(".json.xz"):
+            with lzma.open(detector_file, "r") as f:
+                import_dict = json.load(f)
+        elif detector_file.endswith(".json"):
+            with open(detector_file, "r") as f:
+                import_dict = json.load(f)
+        else:
+            raise ValueError(f"Unknown filetype (extension), can not import detector from {detector_file}. "
+                                "Allowed are only: \".json\" and \".json.xz\"")
+
+        self._import_from_dict(import_dict, source = detector_file)
 
     def _check_update_buffer(self):
         """
@@ -885,6 +995,9 @@ class Detector():
 
         model_spec = self.__buffered_stations[station_id]["ice_model"]
 
+        print("ice model")
+        print(model_spec)
+
         import importlib
         module = importlib.import_module("NuRadioMC.utilities.medium_base")
         class_ = getattr(module, model_spec["type"])
@@ -1067,64 +1180,8 @@ class Detector():
             #             "responses are the same (because we measure them together in the lab). "
             #             "Skip the drab board response.")
 
-            responses = []
-            for component_entry in measurement_components_list:
-                # Skip drab_board if its equal with iglu (see warning above)
-                # if is_equal and component_entry["collection"] == "drab_board":
-                #     continue
-
-                if "collection" not in component_entry:
-                    component_entry["collection"] = "default"
-
-                if component_entry['collection'] == "gain_calibration":
-                    ydata = component_entry["gain_factor"]
-                    y_units = component_entry["gain_factor_unit"]
-                    frequencies = None
-                    time_delay = 0
-                    weight = component_entry.get("weight", 1)  # returns 1 as the default if weight is not included
-
-                elif component_entry['collection'] == "time_delays":
-                    ydata = 1  # Fake gain factor of 1 in magitude (does nothing)
-                    y_units = "mag"
-                    frequencies = None
-                    time_delay = component_entry["time_delay"] * getattr(units, component_entry["time_delay_unit"])
-                    weight = component_entry.get("weight", 1)  # returns 1 as the default if weight is not included
-
-                else:
-                    # Get the response data
-                    ydata = [component_entry["mag"], component_entry["phase"]]
-                    y_units = component_entry["y-axis_units"]
-                    frequencies = component_entry["frequencies"]
-
-                    weight = component_entry.get("weight", 1) # returns 1 as the default if weight is not included
-                    attenuator = component_entry.get("attenuator", 0) # returns 0 as the default if attenuator is not included
-
-                    if "time_delay" in component_entry:
-                        time_delay = component_entry["time_delay"]
-                    else:
-                        self.logger.warning(
-                            f"The signal chain component \"{component_entry['collection']}\" with the name \"{component_entry['name']}\" of station.channel "
-                            f"{station_id}.{channel_id} has no time delay stored... "
-                            "Set component time delay to 0")
-                        time_delay = 0
-
-                    # Apply the addtional attenuator (stored in dB) to the response if present in measurement
-                    if attenuator:
-                        if y_units[0] == "dB":
-                            ydata[0] = np.asarray(ydata[0]) + attenuator
-                        elif y_units[0].lower() == "mag":
-                            ydata[0] = np.asarray(ydata[0]) * 10 ** (attenuator / 20)
-                        else:
-                            raise KeyError
-
-                response = Response(
-                    frequencies, ydata, y_units,
-                    time_delay=time_delay, weight=weight,
-                    name=f'{component_entry["collection"]}:{component_entry["name"]}',
-                    station_id=station_id, channel_id=channel_id,
-                    log_level=self.__log_level)
-
-                responses.append(response)
+            responses = [_component_entry_to_response(entry, station_id, channel_id, self.logger, self.__log_level) 
+                         for entry in measurement_components_list]
 
             # Buffer object
             signal_chain_dict[response_key] = np.prod(responses)
@@ -1539,6 +1596,11 @@ class Detector():
                 if key == "gain_calibration":
                     continue  # skip gain calibration, it has no time delay
 
+                weight = component_dic.get("weight", 1)
+                if key == "time_delay":
+                    time_delay += weight * component_dic["time_delay"] * getattr(units, component_dic["time_delay_unit"])
+                    continue
+
                 ydata = [component_dic["mag"], component_dic["phase"]]
                 # This is different from within `get_signal_chain_response` because we do set the time delay here
                 # and thus we do not remove it from the response.
@@ -1546,7 +1608,6 @@ class Detector():
                                     name=key, station_id=station_id, channel_id=channel_id,
                                     log_level=self.__log_level)
 
-                weight = component_dic.get("weight", 1)
                 time_delay += weight * response.calculate_time_delay()
 
         return time_delay
