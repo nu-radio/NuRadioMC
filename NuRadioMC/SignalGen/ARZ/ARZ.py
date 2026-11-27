@@ -8,7 +8,6 @@ from radiotools import coordinatesystems as cstrafo
 from NuRadioReco.utilities.metaclasses import Singleton
 import os
 import logging
-import six
 try:
     from numba import jit, config as numba_config
     numba_available = not numba_config.DISABLE_JIT  # NUMBA_DISABLE_JIT turns jit into a no-op
@@ -318,8 +317,7 @@ def theta_to_thetaprime(theta, xmax, R):
     return np.arctan2(b, a)
 
 
-@six.add_metaclass(Singleton)
-class ARZ(object):
+class ARZ(metaclass=Singleton):
 
     def __init__(self, seed=1234, interp_factor=1, interp_factor2=100, library=None,
                  arz_version='ARZ2020', use_numba=True):

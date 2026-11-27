@@ -3,7 +3,6 @@ import NuRadioReco.framework.base_station
 import NuRadioReco.framework.sim_station
 import NuRadioReco.framework.channel
 import NuRadioReco.framework.parameters
-from six import iteritems
 import pickle
 from NuRadioReco.utilities.io_utilities import _dumps
 import logging
@@ -119,7 +118,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
         NuRadioReco.framework.station.Station.iter_channels
         """
 
-        for channel_id, channel in iteritems(self.__channels):
+        for channel_id, channel in self.__channels.items():
             if use_channels is None:
                 yield channel.get_trigger_channel()
             else:
@@ -150,7 +149,7 @@ class Station(NuRadioReco.framework.base_station.BaseStation):
 
     def iter_channel_group(self, channel_group_id):
         found_channel_group = False
-        for channel_id, channel in iteritems(self.__channels):
+        for channel_id, channel in self.__channels.items():
             if(channel.get_group_id() == channel_group_id):
                 found_channel_group = True
                 yield channel
