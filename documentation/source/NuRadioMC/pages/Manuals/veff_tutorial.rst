@@ -63,9 +63,9 @@ If you also want to save the pulse forms just add another command line argument.
 
 .. code-block:: bash
 
-    python T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml 1e19_n1e3_output.hdf5 1e19_n1e3_output.nur
+    python T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml 1e19_n1e3_output.hdf5 1e19_n1e3_output.parquet
 
-The waveforms are saved in a :doc:`custom binary format (.nur) that serializes the complete NuRadioReco event structure into a file</NuRadioReco/pages/event_structure>`. 
+The waveforms are saved in :doc:`parquet files that store the complete NuRadioReco event structure</NuRadioReco/pages/event_structure>` (``1e19_n1e3_output.parquet`` and ``1e19_n1e3_output_event.parquet``).
 This has the advantage that you can read it into NuRadioReco again to e.g. perform a reconstruction on the simulated data. 
 
 You can run the same simulation on the other input file with 10,000 events 

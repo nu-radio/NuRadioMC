@@ -1,10 +1,10 @@
 Overview of times
 =================
 This page provides an overview of the different times defined in different places in NuRadioMC/NuRadioReco.
-Generally speaking, the global time of an `Event <NuRadioReco.framework.event.Event>` is stored as
-a :ref:`station or event time <NuRadioReco/pages/times:Station time (Event time)>`. The times corresponding to the `voltage time trace <NuRadioReco.framework.channel.Channel>`,
+Generally speaking, the absolute time of a `Station <NuRadioReco.framework.station.Station>` is stored as
+its :ref:`station time <NuRadioReco/pages/times:Station time and event time>`. The times corresponding to the `voltage time trace <NuRadioReco.framework.channel.Channel>`,
 `electric fields <NuRadioReco.framework.electric_field.ElectricField>` or `triggers <NuRadioReco.framework.trigger.Trigger>`
-are then stored as floats relative to this global time inside each object. They can be obtained by the
+are then stored as floats relative to this station time inside each object. They can be obtained by the
 `get_times() <NuRadioReco.framework.base_trace.BaseTrace.get_times>` method for trace-like objects (`ElectricField <NuRadioReco.framework.electric_field.ElectricField>` ,
 `Channel <NuRadioReco.framework.channel.Channel>`), or by the `get_trigger_time <NuRadioReco.framework.trigger.Trigger.get_trigger_time>`
 method for `Trigger <NuRadioReco.framework.trigger.Trigger>` objects.
@@ -22,21 +22,20 @@ and applies a Tukey window to taper the ends of the trace towards zero.
   During read in of the snowshovel calibrated data files, the trace is rolled such that the physical beginning (the STOP position) is at sample zero of the trace.
   This glitch is removed by the `channelStopFilter <NuRadioReco.modules.channelStopFilter>` procedure described in the :ref:`module overview below <NuRadioReco/pages/times:Overview of modules that affect time>` .
 
-Station time (Event time)
--------------------------
-The global time at which the event takes place is stored as the `event time <NuRadioReco.framework.event.Event.get_event_time>`
-in the `Event <NuRadioReco.framework.event.Event>` object.
-This time usually corresponds to the "vertex time" of the first interaction for simulations,
-and the time at which the data was recorded in the DAQ for data.
-It is stored as an `astropy.time.Time` object to enable sub-ns precision on the absolute time.
-
-In **simulated data**, the `event time <NuRadioReco.framework.event.Event.get_event_time>`
-is generally the same as the `station_time <NuRadioReco.framework.station.Station.get_station_time>` stored
-in the `Station <NuRadioReco.framework.station.Station>` object.
-In **experimental data**, the `station_time <NuRadioReco.framework.station.Station.get_station_time>`
-usually corresponds to the time the data was read out (recorded), and the `event time <NuRadioReco.framework.event.Event.get_event_time>` may not always be defined.
-In this case, because different stations may operate and trigger independently,
+Station time and event time
+---------------------------
+The `station_time <NuRadioReco.framework.station.Station.get_station_time>` stored in each
+`Station <NuRadioReco.framework.station.Station>` object is the reference for all times inside this station
+(see below). In **experimental data**, it usually corresponds to the time the data was read out (recorded).
+Because different stations may operate and trigger independently,
 the station_times of different stations are not guaranteed to agree, even if they were triggered by the same source.
+
+The `event time <NuRadioReco.framework.event.Event.get_event_time>` is stored in the
+`Event <NuRadioReco.framework.event.Event>` object. In **simulated data**, it usually corresponds to the
+"vertex time" of the first interaction and is generally the same as the station_time.
+In **experimental data**, it may not always be defined.
+
+Both are stored as `astropy.time.Time` objects to enable sub-ns precision on the absolute time.
 
 
 Times in `Channel <NuRadioReco.framework.channel.Channel>`, `ElectricField <NuRadioReco.framework.electric_field.ElectricField>` and
