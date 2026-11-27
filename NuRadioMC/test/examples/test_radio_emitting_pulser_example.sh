@@ -9,9 +9,9 @@ python "$EXAMPLE/runARA02.py" \
     emitter_event_list.hdf5 \
     "$EXAMPLE/ARA02Alt.json" \
     "$EXAMPLE/config.yaml" \
-    output.hdf5 output.nur
+    output.hdf5 output.parquet
 
 python NuRadioMC/test/examples/validate_radio_emitter_allmost_equal.py output.hdf5 \
     NuRadioMC/test/examples/radio_emitter_output_reference.hdf5
 
-rm emitter_event_list.hdf5 output.hdf5 output.nur
+rm emitter_event_list.hdf5 output.hdf5 output.parquet output_event.parquet

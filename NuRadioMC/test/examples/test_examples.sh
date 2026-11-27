@@ -2,7 +2,7 @@ set -e
 cd NuRadioMC/examples/01_Veff_simulation
 mkdir -p output
 python3 T01generate_event_list.py
-python3 T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml output/output.hdf5 output/output.nur
+python3 T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml output/output.hdf5 output/output.parquet
 python3 T03visualizeVeff.py
 rm 1e18_n1e4.hdf5
 rm 1e19_n1e3.hdf5
@@ -13,8 +13,8 @@ rm -r output
 cd ../01_Veff_simulation_B
 mkdir -p output
 python3 T01generate_event_list.py
-python3 T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml output/output.hdf5 output/output.nur
-python3 T04PlotTraces.py output/output.nur
+python3 T02RunSimulation.py 1e19_n1e3.hdf5 surface_station_1GHz.json config.yaml output/output.hdf5 output/output.parquet
+python3 T04PlotTraces.py output/output.parquet
 rm 1e18_n1e4.hdf5
 rm 1e19_n1e3.hdf5
 rm Veff.pdf
@@ -28,21 +28,21 @@ rm -r output
 
 cd ../05_pulser_calibration_measurement
 python3 A01generate_pulser_events.py
-python3 A02RunSimulation.py input_spice.hdf5 detector_db.json config_spice.yaml output.hdf5 output.nur
-python3 A03reconstruct_sim.py output.nur
+python3 A02RunSimulation.py input_spice.hdf5 detector_db.json config_spice.yaml output.hdf5 output.parquet
+python3 A03reconstruct_sim.py output.parquet
 python3 A04plot_results.py
 rm input_spice.hdf5
-rm output.nur
+rm output.parquet output_event.parquet
 rm -r plots
 rm sim_results_02.pkl
 
 cd SPICE_ARIANNA
 python3 A01generate_pulser_events.py
 python3 A02RunSimulation.py
-python3 A03reconstruct_sim.py output_reco.nur
+python3 A03reconstruct_sim.py output_reco.parquet
 python3 A04plot_results.py
 rm SPICE_drop_event_list.hdf5
-rm output_reco.nur
+rm output_reco.parquet output_reco_event.parquet
 rm output_MC.hdf5
 rm -r plots
 rm sim_results_03.pkl
@@ -52,14 +52,14 @@ python3 A01generate_pulser_events.py
 python3 A02RunSimulation.py
 rm input_spice.hdf5
 rm output_MC.hdf5
-rm output_reco.nur
+rm output_reco.parquet output_reco_event.parquet
 
 cd ../02_SPice_simulation_ARA
 python3 A01generate_pulser_events.py
 python3 A02RunSimulation.py
 rm input_spice.hdf5
 rm output_MC.hdf5
-rm output_reco.nur
+rm output_reco.parquet output_reco_event.parquet
 
 cd ../../../06_webinar
 python3 W01_create_input.py

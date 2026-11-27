@@ -819,10 +819,12 @@ def build_NuRadioEvents_from_hdf5(fin, fin_attrs, idxs):
             emitter_obj[ep.position] = np.array([fin['xx'][idx], fin['yy'][idx], fin['zz'][idx]])
             emitter_obj[ep.model] = fin['emitter_model'][idx]
             emitter_obj[ep.amplitude] = fin['emitter_amplitudes'][idx]
+
             for key in ep:
                 if not emitter_obj.has_parameter(key):
                     if 'emitter_' + key.name in fin:
                         emitter_obj[key] = fin['emitter_' + key.name][idx]
+
             event_group.add_sim_emitter(emitter_obj)
 
     time_logger.stop_time('event builder')
@@ -1159,7 +1161,7 @@ class simulation:
     Base class for NuRadioMC end-to-end simulation
 
     Base class for the simulation of an in-ice radio detector, starting from
-    particle showers in ice and including the antenna response, 
+    particle showers in ice and including the antenna response,
     (optionally) noise, detector signal chain (filters, amplifiers, cables),
     and trigger logic.
 
@@ -1170,11 +1172,11 @@ class simulation:
         methods ``_detector_simulation_filter_amp`` and ``_detector_simulation_trigger``
         need to be defined!
 
-    
+
     Examples
     --------
     .. code-block:: Python
-    
+
         import NuRadioReco.modules.RNO_G.hardwareResponseIncorporator
         import NuRadioReco.modules.trigger.highLowThreshold
 
@@ -1194,36 +1196,38 @@ class simulation:
             inputfilename="input.hdf5",
             outputfilename="output.hdf5",
             detectorfile="RNO_G/RNO_single_station.json",
-            outputfilenameNuRadioReco="output.nur",
+            outputfilenameNuRadioReco="output.parquet",
             config_file='config.yaml',
             trigger_channels=[0,1,2,3])
 
         # run the simulation: this will produce the output files 'output.hdf5'
-        # and 'output.nur' containing the triggering events
+        # and 'output.parquet' (+ 'output_event.parquet') containing the triggering events
         sim.run()
 
     """
 
     def __init__(
-            self, inputfilename,
-            outputfilename,
-            detectorfile=None,
-            det=None,
-            det_kwargs={},
-            outputfilenameNuRadioReco=None,
-            debug=False,
-            evt_time=datetime.datetime(2018, 1, 1),
-            config_file=None,
-            log_level=logging.NOTSET,
-            default_detector_station=None,
-            default_detector_channel=None,
-            file_overwrite=False,
-            write_detector=True,
-            event_list=None,
-            log_level_propagation=logging.NOTSET,
-            ice_model=None,
-            trigger_channels = None,
-            **kwargs):
+        self,
+        inputfilename,
+        outputfilename,
+        detectorfile=None,
+        det=None,
+        det_kwargs={},
+        outputfilenameNuRadioReco=None,
+        debug=False,
+        evt_time=datetime.datetime(2018, 1, 1),
+        config_file=None,
+        log_level=logging.NOTSET,
+        default_detector_station=None,
+        default_detector_channel=None,
+        file_overwrite=False,
+        write_detector=None,
+        event_list=None,
+        log_level_propagation=logging.NOTSET,
+        ice_model=None,
+        trigger_channels=None,
+        **kwargs,
+    ):
         """
         initialize the NuRadioMC end-to-end simulation
 
@@ -1244,8 +1248,9 @@ class simulation:
             the station id for which the simulation is performed. Must match a station
             defined in the detector description
         outputfilenameNuRadioReco: string or None
-            outputfilename of NuRadioReco detector sim file, this file contains all
-            waveforms of the triggered events
+            outputfilename of NuRadioReco detector sim file (parquet, see `NuRadioReco.modules.io.eventWriter`),
+            this file contains all waveforms of the triggered events. A ``.nur`` extension (deprecated) is
+            replaced by ``.parquet``.
             default: None, i.e., no output file will be written which is useful for
             effective volume calculations
         debug: bool
@@ -1263,9 +1268,9 @@ class simulation:
             DEPRECATED: Define reference channels in the detector JSON file instead
         file_overwrite: bool
             True allows overwriting of existing files, default False
-        write_detector: bool
-            If true, the detector description is written into the .nur files along with the events
-            default True
+        write_detector: bool or None
+            Deprecated and ignored: the parquet event files store no detector description (the ``.nur`` files did).
+            Default None
         event_list: None or list of ints
             if provided, only the event listed in this list are being simulated
         log_level_propagation: logging.LEVEL
@@ -1305,11 +1310,25 @@ class simulation:
             if file_overwrite is False:
                 logger.error(msg)
                 raise FileExistsError(msg)
+
             logger.warning(msg)
 
+        if outputfilenameNuRadioReco is not None and outputfilenameNuRadioReco.endswith(".nur"):
+            outputfilenameNuRadioReco = outputfilenameNuRadioReco[: -len(".nur")] + ".parquet"
+            warnings.warn(
+                f"The event output is written as parquet: {outputfilenameNuRadioReco} "
+                "(outputfilenameNuRadioReco with the extension .nur is deprecated).",
+                FutureWarning,
+                stacklevel=2,
+            )
+        if write_detector:
+            warnings.warn(
+                "write_detector is ignored: the parquet event output stores no detector description.",
+                FutureWarning,
+                stacklevel=2,
+            )
         self._outputfilenameNuRadioReco = outputfilenameNuRadioReco
         self._evt_time = evt_time
-        self.__write_detector = write_detector
         self._event_group_list = event_list
 
         # initialize detector simulation modules
@@ -1354,6 +1373,7 @@ class simulation:
             if ice_model is None:
                 logger.error("ice model is set to 'custom' in config file but no custom ice model is provided.")
                 raise AttributeError("ice model is set to 'custom' in config file but no custom ice model is provided.")
+
             self._ice = ice_model
         else:
             self._ice = NuRadioMC.utilities.medium.get_ice_model(self._config['propagation']['ice_model'])
@@ -1369,7 +1389,6 @@ class simulation:
 
         self._station_ids = self._det.get_station_ids()
         self._event_ids_counter = {station_id: -1 for station_id in self._station_ids} # we initialize with -1 becaue we increment the counter before we use it the first time
-
 
         logger.status(
             f"\n\tSetting event time to {evt_time}"
@@ -1425,6 +1444,7 @@ class simulation:
             for channel_id in np.sort(self._det.get_channel_ids(station_id)):
                 ff = np.linspace(0, 0.5 * self._config['sampling_rate'], 10000)
                 filt = np.ones_like(ff, dtype=complex)
+
                 for i, (name, instance, kwargs) in enumerate(evt.iter_modules(station_id)):
                     if hasattr(instance, "get_filter"):
                         filt *= instance.get_filter(ff, station_id, channel_id, self._det, **kwargs)
@@ -1454,7 +1474,6 @@ class simulation:
         self._Vrms_efield_per_channel = collections.defaultdict(dict)
         self._Vrms_per_trigger_channel = collections.defaultdict(dict)  # Only used for trigger channels in a custom trigger simulation (optional)
 
-
         if noise_temp is not None:
             if noise_temp == "detector":
                 logger.status("Use noise temperature from detector description to determine noise Vrms in each channel.")
@@ -1476,6 +1495,7 @@ class simulation:
         status_message = '\n' + ' | '.join(status_columns)
 
         self._noiseless_channels = collections.defaultdict(list)
+
         for station_id in self._integrated_channel_response:
             for channel_id in self._integrated_channel_response[station_id]:
                 if self._noise_temp is None and Vrms is None:
@@ -1534,6 +1554,7 @@ class simulation:
             def get_distance_cut(shower_energy):
                 if shower_energy <= 0:
                     return 100 * units.m
+
                 return max(100 * units.m, 10 ** distance_cut_polynomial(np.log10(shower_energy)))
 
             self._get_distance_cut = get_distance_cut
@@ -1550,8 +1571,8 @@ class simulation:
         efieldToVoltageConverter.begin(caching=False)
         channelGenericNoiseAdder.begin(seed=self._config['seed'])
         if self._outputfilenameNuRadioReco is not None:
-            eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level)
-
+            # always overwrite, as the .nur writer did (file_overwrite only applies to the hdf5 output)
+            eventWriter.begin(self._outputfilenameNuRadioReco, log_level=self._log_level, overwrite=True)
 
     def run(self):
         """
@@ -1600,6 +1621,7 @@ class simulation:
                 continue
 
             output_buffer = {}
+
             # loop over all stations (each station is treated independently)
             for iSt, station_id in enumerate(self._station_ids):
                 output_buffer[station_id] = {}
@@ -1624,6 +1646,7 @@ class simulation:
 
                 # loop over all trigger channels
                 candidate_station = False
+
                 for iCh, channel_id in enumerate(channel_ids):
                     min_amplitude = float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[station_id][channel_id]
                     if particle_mode:
@@ -1678,6 +1701,7 @@ class simulation:
                     station, event_group, particle_mode, self._config['split_event_time_diff'], bool(self._config['signal']['zerosignal']))
 
                 evt_group_triggered = False
+
                 for evt in events:
                     station = evt.get_station()
                     apply_det_response(
@@ -1713,6 +1737,7 @@ class simulation:
                 non_trigger_channels = list(set(self._det.get_channel_ids(station_id)) - set(channel_ids))
                 if len(non_trigger_channels):
                     logger.debug(f"Simulating non-trigger channels for station {station_id}: {non_trigger_channels}")
+
                     for iCh, channel_id in enumerate(non_trigger_channels):
                         min_amplitude = float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[station_id][channel_id]
                         if particle_mode:
@@ -1772,6 +1797,7 @@ class simulation:
 
                 for evt in output_buffer[station_id].values():
                     station = evt.get_station()
+
                     # we might not have a channel object in case there was no ray tracing solution
                     # to this channel, or if the timing did not match the readout window. In this
                     # case we need to create a channel object and add it to the station
@@ -1794,7 +1820,7 @@ class simulation:
                     i_triggered_events += 1 # count the number of triggered events
 
                     if self._outputfilenameNuRadioReco is not None:
-                        time_logger.start_time('event writer (nur)')
+                        time_logger.start_time('event writer')
                         # downsample traces to detector sampling rate to save file size
                         sampling_rate_detector = self._det.get_sampling_frequency(
                             station_id, self._det.get_channel_ids(station_id)[0])
@@ -1820,11 +1846,8 @@ class simulation:
                             'SimChannels': self._config['output']['sim_channel_traces'],
                             'SimElectricFields': self._config['output']['sim_electric_field_traces']}
 
-                        if self.__write_detector:
-                            eventWriter.run(evt, self._det, mode=output_mode)
-                        else:
-                            eventWriter.run(evt, mode=output_mode)
-                        time_logger.stop_time('event writer (nur)')
+                        eventWriter.run(evt, mode=output_mode)
+                        time_logger.stop_time('event writer')
 
                     remove_all_traces(evt)  # remove all traces to save memory
 
@@ -1834,7 +1857,7 @@ class simulation:
 
         if self._outputfilenameNuRadioReco is not None:
             eventWriter.close()
-            logger.debug("closing nur file")
+            logger.debug("closed the event output file")
 
         self._output_writer_hdf5.calculate_Veff()
         if not self._output_writer_hdf5.write_output_file():
@@ -1902,7 +1925,6 @@ class simulation:
                 channel[chp.Vrms_trigger_NuRadioMC_simulation] = \
                     self._Vrms_per_trigger_channel[station_id][channel.get_id()]
 
-
     def _is_in_fiducial_volume(self, pos):
         """ Checks if pos is in fiducial volume """
 
@@ -1924,7 +1946,6 @@ class simulation:
                     self._fin_attrs["fiducial_ymin"] < pos[1] < self._fin_attrs["fiducial_ymax"])
         else:
             raise ValueError("Could not contruct fiducial volume from input file.")
-
 
     def _check_vertex_times(self):
 

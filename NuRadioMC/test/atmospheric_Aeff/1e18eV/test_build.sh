@@ -8,7 +8,7 @@ DIR=NuRadioMC/test/atmospheric_Aeff/1e18eV
 "$DIR/T01generate_event_list.py"
 
 # resolves all paths relative to $DIR
-"$DIR/T02RunSimulation.py" 1e18_full.hdf5  ../dipole_100m.json ../config.yaml output.hdf5 output.nur
+"$DIR/T02RunSimulation.py" 1e18_full.hdf5  ../dipole_100m.json ../config.yaml output.hdf5 output.parquet
 
 # path relative to the working directory
 "$DIR/T03check_output.py" "$DIR/output.hdf5"

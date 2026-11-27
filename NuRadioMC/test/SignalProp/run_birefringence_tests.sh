@@ -10,7 +10,7 @@ cd ..
 python3 T08test_emitter_birefringence.py
 rm emitter_sim_test/test_input.hdf5
 rm emitter_sim_test/test_output.hdf5
-rm emitter_sim_test/test_output.nur
+rm emitter_sim_test/test_output.parquet emitter_sim_test/test_output_event.parquet
 
 
 cd ../../examples/SignalProp/birefringence_examples
