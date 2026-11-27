@@ -94,6 +94,10 @@ RadioPropa is a modular ray tracing code that solves the eikonal equation for a 
 
 For now, this method can be used for a refractive index with any profile depending on the depth (only z, no x or y dependence) in the ice and some additional features like discontinuities or reflective/transmissive layers. In the future, more effect and the handling of more complex profiles will become available.
 
+Not supported at the moment (they raise a ``NotImplementedError``): reflections off a reflective bottom layer (``n_reflections > 0``),
+start or end points above the ice surface (the travel times of rays crossing the surface are wrong, see issue #968),
+and the ``minimizing`` mode (``config['propagation']['radiopropa']['mode']``).
+
 Example scripts
 ---------------
 
