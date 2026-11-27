@@ -1,13 +1,27 @@
-PLEASE EDIT AND DELETE THIS TEXT WHEN MAKING A PR.
-THIS IS A REMINDER OF WHAT THE PR SHOULD CONTAIN.
+<!--
+Before opening, check (https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html):
+- the PR targets `develop` and has at least one label (a component such as NuRadioMC / NuRadioReco / RNO-G plus a type such as Bug / New Feature / cleanup)
+- new functions and classes have docstrings
+- changelog.txt has a line under the current -dev version
+Once approved, wait at least 24 hours after the last change before merging, so others can still comment.
+-->
 
-Issue being addressed:
+## Summary
 
-Did you remember to:
-* read the instructions on contributing at https://nu-radio.github.io/NuRadioMC/Introduction/pages/contributing.html?
-* add at least one label to your PR?
-* include doc strings in all new functions/classes?
-* edit the changelog.txt file describing your changes?
+<!-- 1-3 sentences: what was wrong or missing, what changes. Link the issue if there is one. Optional: a small diagram, diff sketch or call tree. -->
 
-Once your PR got approved please wait at least 24 hours
-before merging to give time to other people to look at your PR!
+## Evidence
+
+<!-- The test or check you ran and its result. If physics output changes (Veff, trigger rates, amplitudes, reference files): by how much, on which data or test. List what you did not test. -->
+
+- 
+- Not tested: 
+
+## Backwards compatibility & downstream impact
+
+<!-- Do user scripts, stored .nur/HDF5 files, detector descriptions and configs keep working and give the same answer after the merge? -->
+
+- **API:** unchanged / extended / breaking — 
+- **Data:** unchanged / changed — 
+- **Results:** unchanged / changed — 
+- **Migration:** <!-- what users do to adapt or keep the old behaviour; delete if nothing -->

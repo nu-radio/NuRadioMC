@@ -13,6 +13,7 @@ Most relevant modules:
 - `NuRadioReco.utilities.interferometry`: beam-forming / interferometry helper functions
 - `NuRadioReco.utilities.matched_filter`: matched-filter implementation
 - `NuRadioReco.utilities.minimization`: wrapper around several minimizers (scipy, iminuit, ...)
+- `NuRadioReco.utilities.coding_helper`: coding helpers, e.g. arrays from functions and random number generators (use instead of ``np.random.*``)
 
 Dependencies
 ------------
@@ -22,7 +23,7 @@ NuRadioReco framework), so that they can be used in other projects without a ful
 Individual functions in these modules can still need additional packages, which are then imported lazily
 (e.g. radiotools in `geometryUtilities`). This subset is:
 
-`units`, `fft`, `constants`, `geometryUtilities`, `trace_utilities`, `signal_processing`, `analytic_pulse`, `cr_flux`.
+`units`, `fft`, `constants`, `geometryUtilities`, `trace_utilities`, `signal_processing`, `analytic_pulse`, `cr_flux`, `coding_helper`.
 
 It is defined in ``NuRadioReco/test/utilities/test_light_imports.py``, which checks that it stays importable.
 Other modules may require additional dependencies already at import.

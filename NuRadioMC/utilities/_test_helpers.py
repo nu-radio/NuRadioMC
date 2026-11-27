@@ -23,7 +23,7 @@ from NuRadioReco.utilities import units
 TIME_ATOL = 1e-3 * units.ns
 
 #: Default relative tolerance for floating point quantities.
-DEFAULT_RTOL = 5e-4
+DEFAULT_RTOL = 1e-4
 
 #: Default relative tolerance for channel/station parameters in ``.nur`` files (e.g. from the
 #: ``channelSignalReconstructor``): tiny platform-dependent trace differences are amplified for

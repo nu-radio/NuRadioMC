@@ -1,11 +1,12 @@
 #!/bin/bash
 
 set -e
-python3 NuRadioReco/test/trigger_tests/generate_events.py
-python3 NuRadioReco/test/trigger_tests/trigger_tests.py
-python3 NuRadioReco/test/trigger_tests/compare_to_reference.py
 
-# clean up 
-rm -v NuRadioReco/test/trigger_tests/trigger_test_input.hdf5
-rm -v NuRadioReco/test/trigger_tests/trigger_test_input.nur
-rm -v NuRadioReco/test/trigger_tests/trigger_test_output.nur
+DIR=NuRadioReco/test/trigger_tests
+
+python3 "$DIR/generate_events.py"
+python3 "$DIR/trigger_tests.py"
+python3 "$DIR/compare_to_reference.py"
+
+# clean up
+rm -v "$DIR"/{trigger_test_input.hdf5,trigger_test_input.nur,trigger_test_output.nur}

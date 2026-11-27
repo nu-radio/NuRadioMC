@@ -11,7 +11,7 @@ import subprocess
 import sys
 
 LIGHT_MODULES = ["units", "fft", "constants", "geometryUtilities", "trace_utilities", "signal_processing",
-                 "analytic_pulse", "cr_flux"]
+                 "analytic_pulse", "cr_flux", "coding_helper"]
 
 BLOCKED = ["astropy", "radiotools", "aenum", "pyarrow", "polars", "h5py", "pandas", "numba", "toml", "requests"]
 # NuRadioReco subpackages that must not be loaded by the light modules
