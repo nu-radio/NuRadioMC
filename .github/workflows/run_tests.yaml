@@ -267,6 +267,7 @@ jobs:
       run: |
         python NuRadioReco/test/io/test_event_writer_parquet.py
         python NuRadioReco/test/io/test_parquet_roundtrip.py
+        python NuRadioReco/test/io/test_eventbrowser_parquet.py
         python NuRadioReco/test/io/test_io_utilities_json.py
         python NuRadioReco/test/io/test_nur_to_parquet.py
         python NuRadioReco/test/io/test_analysis_reader.py

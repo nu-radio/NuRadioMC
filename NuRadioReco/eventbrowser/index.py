@@ -38,7 +38,8 @@ if parsed_args.open_window:
 
 
 provider = NuRadioReco.eventbrowser.dataprovider.DataProvider()
-provider.set_filetype(parsed_args.rnog_file)
+if parsed_args.rnog_file:  # otherwise 'auto': the reader is chosen by the file ending
+    provider.set_filetype(True)
 
 app.title = 'NuRadioViewer'
 
@@ -290,7 +291,12 @@ def set_filename_dropdown(folder):
     if parsed_args.rnog_file:
         return [{'label': ll.split('/')[-1], 'value': ll} for ll in sorted(glob.glob(os.path.join(folder, '*.root*')))]
     else:
-        return [{'label': ll.split('/')[-1], 'value': ll} for ll in sorted(glob.glob(os.path.join(folder, '*.nur*')))]
+        files = glob.glob(os.path.join(folder, '*.nur*')) + glob.glob(os.path.join(folder, '*.parquet'))
+        # event files of parquet pairs are opened via their station file
+        files = [
+            f for f in files if not (f.endswith('_event.parquet') and os.path.exists(f[: -len('_event.parquet')] + '.parquet'))
+        ]
+        return [{'label': ll.split('/')[-1], 'value': ll} for ll in sorted(files)]
 
 
 @app.callback(
@@ -430,4 +436,6 @@ if __name__ == '__main__':
     if not parsed_args.debug:
         werkzeug_logger = logging.getLogger('werkzeug')
         werkzeug_logger.setLevel(logging.WARNING)
-    app.run_server(debug=parsed_args.debug, port=parsed_args.port)
+    # Dash >= 3 removed `run_server` (older versions may lack `run`)
+    run = app.run if hasattr(app, 'run') else app.run_server
+    run(debug=parsed_args.debug, port=parsed_args.port)

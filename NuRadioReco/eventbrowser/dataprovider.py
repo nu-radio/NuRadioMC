@@ -5,6 +5,7 @@ import NuRadioReco.utilities.metaclasses
 import os
 import time
 from NuRadioReco.modules.io import NuRadioRecoio
+from NuRadioReco.eventbrowser.parquet_file_handler import ParquetFileHandler
 
 logger = logging.getLogger('NuRadioReco.eventbrowser.dataprovider')
 logger.setLevel(logging.INFO)
@@ -25,18 +26,22 @@ class DataProvider(object):
     __lock = threading.Lock()
 
     def __init__(self, filetype='auto', max_user_instances=6):
-        """"
-        Interface to .nur or .root file IO for the eventbrowser
+        """ "
+        Interface to .nur, .parquet or .root file IO for the eventbrowser
 
         Parameters
         ----------
-        filetype: 'auto' | 'nur' | 'root'
+        filetype: 'auto' | 'nur' | 'parquet' | 'root'
             Which IO module to use:
 
             * 'nur': The standard `NuRadioRecoio` module for reading `.nur` files
             * 'root': Read RNO-G root files with the
               :mod:`NuRadioReco.modules.io.RNO_G.readRNOGDataMattak` module (requires
               `mattak` to be installed from https://github.com/RNO-G/mattak)
+            * 'parquet': Read the parquet files of
+              :mod:`NuRadioReco.modules.io.eventWriter` with
+              :class:`NuRadioReco.eventbrowser.parquet_file_handler.ParquetFileHandler`
+              (an ``_event.parquet`` file is replaced by its station file)
             * 'auto' (default): determine the appropriate file reader based on the
               file endings
 
@@ -111,6 +116,9 @@ class DataProvider(object):
             use_root = self.__filetype == 'root'
             if (self.__filetype == 'auto') and any([f.endswith('.root') for f in filename]):
                 use_root = True
+            use_parquet = self.__filetype == 'parquet'
+            if (self.__filetype == 'auto') and any([f.endswith('.parquet') for f in filename]):
+                use_parquet = True
 
             if filename != self.__user_instances[user_id]['filename']:
                 # user is requesting new file -> close current file and open new one
@@ -121,9 +129,12 @@ class DataProvider(object):
                             " is not available, so .root files can not be read. Make sure you have a working installation"
                             " of mattak (https://github.com/RNO-G/mattak)."
                         )
+
                     reader = _readRNOGData_eventbrowser(load_run_table=False)
                     reader.begin([os.path.dirname(f) for f in filename], overwrite_sampling_rate=3.2)
                     reader.get_event_ids()
+                elif use_parquet:
+                    reader = ParquetFileHandler(filename)
                 else:
                     reader = NuRadioRecoio.NuRadioRecoio(filename) # NuRadioRecoio takes filenames as argument to __init__
                 self.__user_instances[user_id] = dict(
@@ -144,4 +155,5 @@ class DataProvider(object):
                 self.__user_instances.pop(oldest_user)
 
         logger.debug(f"Returning file_handler and releasing lock")
+
         return self.__user_instances[user_id]['reader']
