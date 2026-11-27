@@ -32,7 +32,7 @@ class stationCoherentlySummedWaveforms:
         pass
 
     def begin(self, coincidence_window_size=6 * units.ns, pad_length=500, channel_ids=[0, 1, 2, 3], time_lag_range=None,
-              ref_time_window=None, crop_to_overlap=False):
+              ref_time_window=None, crop_to_overlap=False, power_width_fractions=(0.1, 0.3, 0.5)):
         """
         Parameters
         ----------
@@ -63,6 +63,10 @@ class stationCoherentlySummedWaveforms:
             at one end re-enter at the other (the cross correlation itself uses zero padding).
             If True, traces are shifted with zero filling and the coherent sum is cropped to the
             samples covered by all channels. See `NuRadioReco.utilities.trace_utilities.get_coherent_sum`.
+
+        power_width_fractions: list of floats (default: (0.1, 0.3, 0.5))
+            Fractions of the power excess for the widths of the coherently summed waveform
+            (``coherent_power_widths``), see `NuRadioReco.utilities.trace_utilities.get_power_widths`.
         """
         self.__coincidence_window_size = coincidence_window_size
         self.__pad_length = pad_length
@@ -70,6 +74,7 @@ class stationCoherentlySummedWaveforms:
         self.__time_lag_range = time_lag_range
         self.__ref_time_window = ref_time_window
         self.__crop_to_overlap = crop_to_overlap
+        self.__power_width_fractions = power_width_fractions
 
 
     @register_run()
@@ -131,12 +136,16 @@ class stationCoherentlySummedWaveforms:
         coherent_correlations = {ch.get_id(): float(corr) for ch, corr in zip(channels, correlations)}
         rms = trace_utilities.get_split_trace_noise_RMS(sum_trace, segments=4, lowest=2)
         snr = trace_utilities.get_signal_to_noise_ratio(sum_trace, rms, window_size=coincidence_window_size_bins_ref)
-        impulsivity = trace_utilities.get_impulsivity(sum_trace)
+        envelope = trace_utilities.get_hilbert_envelope(sum_trace)
+        impulsivity = trace_utilities.get_impulsivity(sum_trace, envelope=envelope)
+        power_widths = trace_utilities.get_power_widths(
+            sum_trace, sampling_rate, self.__power_width_fractions, envelope=envelope)
         entropy = trace_utilities.get_entropy(sum_trace)
         kurtosis = trace_utilities.get_kurtosis(sum_trace)
         
         station.set_parameter(stpRNOG.coherent_snr, snr)
         station.set_parameter(stpRNOG.coherent_impulsivity, impulsivity)
+        station.set_parameter(stpRNOG.coherent_power_widths, {q: float(w) for q, w in power_widths.items()})
         station.set_parameter(stpRNOG.coherent_entropy, entropy)
         station.set_parameter(stpRNOG.coherent_kurtosis, kurtosis)
         station.set_parameter(stpRNOG.coherent_time_lags, time_lags)

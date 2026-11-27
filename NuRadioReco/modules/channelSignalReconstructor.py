@@ -36,7 +36,8 @@ class channelSignalReconstructor:
         signal_window_length = 120 * units.ns,
         noise_window_start = None,
         noise_window_length = None,
-        coincidence_window_size = 6 * units.ns
+        coincidence_window_size = 6 * units.ns,
+        root_power_ratio_windows = (25 * units.ns,)
     ):
         """
         Parameters
@@ -56,12 +57,17 @@ class channelSignalReconstructor:
             If noise_window_start or noise_window_length are None, the noise window is the part of the trace outside the signal window
         coincidence_window_size : float (default: 6ns)
             Window size used for calculating the maximum peak to peak amplitude used for the max_a_norm variable
+        root_power_ratio_windows : list of floats (default: [25ns])
+            Lengths of the sliding window over which the power is averaged for the root power ratio,
+            see `NuRadioReco.utilities.trace_utilities.get_root_power_ratio`. The root power ratio is
+            stored as a dict with the window length as key.
         """
         self.__signal_window_start = signal_window_start
         self.__signal_window_length = signal_window_length
         self.__noise_window_start = noise_window_start
         self.__noise_window_length = noise_window_length
         self.__coincidence_window_size = coincidence_window_size
+        self.__root_power_ratio_windows = [float(window) for window in root_power_ratio_windows]
         self.__debug = debug
 
     def get_SNR(self, station_id, channel, det, stored_noise = False, rms_stage = None):
@@ -288,7 +294,9 @@ class channelSignalReconstructor:
             if not snr_only:
                 # Calculate additional properties of the signal
                 impulsivity = trace_utilities.get_impulsivity(traces, envelope=envelopes)
-                root_power_ratio = trace_utilities.get_root_power_ratio(traces, times[0], noise_rms)
+                root_power_ratio = {
+                    window: trace_utilities.get_root_power_ratio(traces, times[0], noise_rms, window=window)
+                    for window in self.__root_power_ratio_windows}
                 entropy = np.array([trace_utilities.get_entropy(trace) for trace in traces])
                 kurtosis = trace_utilities.get_kurtosis(traces)
 
@@ -309,7 +317,8 @@ class channelSignalReconstructor:
 
                 if not snr_only:
                     channel[chp.impulsivity] = impulsivity[i]
-                    channel[chp.root_power_ratio] = root_power_ratio[i]
+                    channel[chp.root_power_ratio] = {
+                        window: float(values[i]) for window, values in root_power_ratio.items()}
                     channel[chp.entropy] = entropy[i]
                     channel[chp.kurtosis] = kurtosis[i]
 

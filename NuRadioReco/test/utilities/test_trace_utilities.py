@@ -19,12 +19,12 @@ RTOL = 1e-9
 
 # trace_utilities functions: {n_samples: {quantity: value}}
 TRACE_REFERENCE = {2048: {'split_noise_rms': 9.898692049030199,
-        'impulsivity': 0.06342103193285986,
+        'impulsivity': 0.06381637831171671,
         'entropy': 4.741095212558004,
         'kurtosis': 0.2843839755880788,
         'root_power_ratio': 1.6301143531420976},
  2047: {'split_noise_rms': 9.862525689802917,
-        'impulsivity': 0.0783866824963344,
+        'impulsivity': 0.07877693419707232,
         'entropy': 4.446984496983265,
         'kurtosis': 0.39681458829264793,
         'root_power_ratio': 1.764072041408105}}

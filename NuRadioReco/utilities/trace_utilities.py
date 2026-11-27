@@ -503,12 +503,12 @@ def get_signal_to_noise_ratio(trace, noise_rms, window_size=3):
     return signal_to_noise_ratio
 
 
-def get_root_power_ratio(trace, times, noise_rms):
+def get_root_power_ratio(trace, times, noise_rms, window=25 * units.ns):
     """
     Computes the Root Power Ratio (RPR) of a given trace.
 
     It compares the peak signal strength to the baseline noise.
-    The waveform’s power is smoothed using a 25 ns sliding window,
+    The waveform’s power is smoothed using a sliding window (25 ns by default),
     and the square root of this smoothed power gives the rolling root power.
     The RPR is the maximum root power divided by the noise RMS
 
@@ -520,6 +520,8 @@ def get_root_power_ratio(trace, times, noise_rms):
         Times of a waveform (1D, shared by all rows for 2D input)
     noise_rms: float or array of floats
         noise root mean square (RMS) (one value per row for 2D input)
+    window: float, default 25 ns
+        Length of the sliding window over which the power is averaged, with time units
 
     Returns
     -------
@@ -527,10 +529,9 @@ def get_root_power_ratio(trace, times, noise_rms):
         Root Power Ratio (RPR) value (inf where the noise RMS is zero)
     """
 
-    # Calculate the smoothing window size based on sampling rate
+    # Convert the window length to a number of samples
     dt = times[1] - times[0]
-    sum_win = 25  # Smoothing window in ns
-    sum_win_idx = int(np.round(sum_win / dt))  # Convert window size to sample points
+    sum_win_idx = int(np.round(window / dt))
 
     smoothed_root_power = np.sqrt(scipy.ndimage.uniform_filter1d(trace ** 2, size=sum_win_idx, axis=-1, mode='constant'))
     max_val = np.max(smoothed_root_power, axis=-1)
@@ -587,20 +588,75 @@ def get_impulsivity(trace, envelope=None):
 
     if envelope is None:
         envelope = get_hilbert_envelope(trace)
-    maxv = np.argmax(envelope, axis=-1, keepdims=True)
-    distance_to_max = np.abs(np.arange(envelope.shape[-1]) - maxv)
-    # sort by index distance to the maximum, ties are ordered by envelope value (low to high):
-    # the envelope scaled to [0, 0.5] only shifts the (integer) distance by less than 1
-    # (a single argsort is ~4x faster than a lexsort)
-    sort_key = distance_to_max + envelope / (2 * np.max(envelope, axis=-1, keepdims=True))
-    order = np.argsort(sort_key, axis=-1)
-    sorted_envelope = np.take_along_axis(envelope, order, axis=-1)
-    cdf = np.cumsum(sorted_envelope ** 2, axis=-1)
-    cdf = cdf / cdf[..., -1:]
 
+    cdf = _power_cdf(envelope)
     impulsivity = np.maximum(np.mean(cdf, axis=-1) * 2.0 - 1.0, 0.0)
 
     return impulsivity
+
+
+def _power_cdf(envelope):
+    """
+    Cumulative power fraction of the envelope samples, sorted by their distance to the envelope maximum
+    (the CDF of `get_impulsivity`): ``cdf[k - 1]`` is the fraction of the total power (envelope**2) in
+    the k samples closest to the maximum (both sides together).
+    """
+    maxv = np.argmax(envelope, axis=-1, keepdims=True)
+    distance_to_max = np.abs(np.arange(envelope.shape[-1]) - maxv)
+    # sort by index distance to the maximum, ties (left and right of the maximum) are ordered by
+    # envelope value (high to low): the envelope scaled to [0, 0.5] only shifts the (integer)
+    # distance by less than 1 (a single argsort is ~4x faster than a lexsort)
+    sort_key = distance_to_max - envelope / (2 * np.max(envelope, axis=-1, keepdims=True))
+    order = np.argsort(sort_key, axis=-1)
+    sorted_envelope = np.take_along_axis(envelope, order, axis=-1)
+    cdf = np.cumsum(sorted_envelope ** 2, axis=-1)
+    return cdf / cdf[..., -1:]
+
+
+def get_power_widths(trace, sampling_rate, fractions=(0.1, 0.3, 0.5), envelope=None):
+    """
+    Width of the signal around the envelope maximum from the power excess of `get_impulsivity`.
+
+    With the samples sorted by distance to the envelope maximum (both sides together) and
+    ``CDF_k`` the fraction of the total power in the k closest samples, the power excess
+    ``Δ_k = CDF_k - k / N`` is the power concentrated closer to the maximum than an even spread
+    over the N samples of the trace would put there; its maximum D is the total excess. The width
+    for a fraction q is ``min{k : Δ_k >= q D} / sampling_rate``, i.e. the q-quantile of the excess
+    power in time. It needs a signal: for noise, D is small and the widths are random.
+
+    Parameters
+    ----------
+    trace: array of floats
+        Trace of a waveform (or a 2D array of traces, one per row)
+    sampling_rate: float
+        Sampling rate of the trace
+    fractions: list of floats, default (0.1, 0.3, 0.5)
+        Fractions q of the power excess D
+    envelope: array of floats, optional
+        Hilbert envelope of the trace, if already available (avoids recomputing it)
+
+    Returns
+    -------
+    widths: dict of float or array of floats
+        Width (with time units) per fraction (one value per row for 2D input; nan for a trace
+        without power)
+    """
+    if envelope is None:
+        envelope = get_hilbert_envelope(trace)
+
+    cdf = _power_cdf(envelope)
+    n_samples = cdf.shape[-1]
+    excess = cdf - np.arange(1, n_samples + 1) / n_samples
+    total_excess = np.max(excess, axis=-1, keepdims=True)
+
+    widths = {}
+    for fraction in fractions:
+        # first sample where the excess reaches the fraction (argmax of a boolean: first True)
+        k = np.argmax(excess >= fraction * total_excess, axis=-1) + 1
+        width = np.where(np.isnan(total_excess[..., 0]), np.nan, k / sampling_rate)
+        widths[float(fraction)] = width[()]  # [()] turns a 0-d array into a scalar
+
+    return widths
 
 
 def get_coherent_sum(trace_set, ref_trace, use_envelope = False, lag_range = None, ref_window = None,

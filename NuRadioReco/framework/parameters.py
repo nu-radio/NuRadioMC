@@ -91,7 +91,7 @@ class channelParameters(TypedEnum):
     Vrms_NuRadioMC_simulation = 19, float  #: the noise rms used in the MC simulation
     bandwidth_NuRadioMC_simulation = 20, float  #: the integrated channel response (=bandwidth for signal chains without amplification) used in the MC simulation
     Vrms_trigger_NuRadioMC_simulation = 21, float  #: the noise rms of the trigger channels (optional) used in the MC simulation
-    root_power_ratio = 22, float #: the root power ratio (float)
+    root_power_ratio = 22, dict[float, float]  #: the root power ratio per window length (key: window length in NuRadio time units, i.e. ns)
     impulsivity = 23, float  #: average of the CDF about the peak of the coherently summed waveform
     entropy = 24, float  #: Shannon entropy of a waveform
     kurtosis = 25, float  #: kurtosis of a waveform
@@ -113,6 +113,7 @@ class stationParametersRNOG(TypedEnum):
     coherent_kurtosis = 4, float  #: kurtosis of the coherently summed waveform
     coherent_time_lags = 5, dict[int, float]  #: time lags (in units of time, not samples) by which each channel was shifted (rolled) to align with the reference channel for the coherent sum, dict with channel id as key
     coherent_correlations = 6, dict[int, float]  #: correlation coefficients (in [-1, 1]) between each channel and the reference channel at the selected time lag, dict with channel id as key
+    coherent_power_widths = 7, dict[float, float]  #: widths (in units of time) of the coherently summed waveform around its envelope maximum, dict with the fraction of the power excess as key (see `NuRadioReco.utilities.trace_utilities.get_power_widths`)
 
     trigger_beam_mask = 50, int  #: bit mask (int) of the phased-array beams which were over the trigger threshold (DiDAQ only)
     trigger_channel_mask = 51, int  #: bit mask (int) of the channels which contributed to the trigger (DiDAQ only)
