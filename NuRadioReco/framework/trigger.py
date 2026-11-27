@@ -7,6 +7,7 @@ All values of a trigger except its name and type are stored as `triggerParameter
 """
 import logging
 import pickle
+import warnings
 
 import numpy as np
 
@@ -94,12 +95,52 @@ _LEGACY_DUPLICATES = ('_primary_channels', '_trigger_channels')
 
 _warned_legacy_attributes = set()
 
+# Keys of `Trigger.get_trigger_settings` before the triggerParameters were introduced -> current key
+_DEPRECATED_SETTINGS_KEYS = {
+    'primary_trigger': 'primary',
+    'order': 'filter_order',
+    'primary_angles': 'phasing_angles',
+    'Vbias': 'bias_voltage',
+    'primary_channels': 'channels',
+    'trigger_channels': 'channels',
+}
+
+
+class _TriggerSettings(dict):
+    """
+    The dict returned by `Trigger.get_trigger_settings`. The keys used before the triggerParameters were
+    introduced (`_DEPRECATED_SETTINGS_KEYS`) still work with ``[]`` and ``get``, with a ``DeprecationWarning``;
+    they are not listed by ``keys()`` / ``in``.
+    """
+
+    def _deprecated(self, key, stacklevel):
+        new_key = _DEPRECATED_SETTINGS_KEYS.get(key)
+        if new_key is None or new_key not in self:
+            raise KeyError(key)
+        warnings.warn(f"The trigger settings key '{key}' is deprecated, use '{new_key}'.",
+                      DeprecationWarning, stacklevel=stacklevel + 1)
+        return dict.__getitem__(self, new_key)
+
+    def __missing__(self, key):
+        return self._deprecated(key, stacklevel=2)
+
+    def get(self, key, default=None):
+        if key in self:
+            return dict.__getitem__(self, key)
+        try:
+            return self._deprecated(key, stacklevel=2)
+        except KeyError:
+            return default
+
 
 class Trigger(ParameterStorage):
     """
     base class to store different triggers
 
     Subclasses register their trigger type string with ``class MyTrigger(Trigger, trigger_type='my_type')``.
+    They keep all their state except name and type in `triggerParameters` (add a member there for a new value):
+    `serialize` stores only the parameters, and `deserialize` creates the object without calling the
+    subclass ``__init__``.
     """
 
     _TRIGGER_TYPE = 'default'
@@ -358,6 +399,19 @@ class Trigger(ParameterStorage):
         (pickled ``__dict__``) onto the parameters. Values are taken as stored (no type conversion).
         Attributes without a parameter are dropped with a warning (once per trigger type and attribute).
         """
+        if self._trigger_type == 'int_power' and isinstance(data.get('_channels'), (int, np.integer)):
+            # powerIntegration before NuRadioReco 3.2 passed (channels, number_of_coincidences) by position into
+            # (channel_coincidence_window, channels): undo the swap. Its coincidence window was not stored.
+            data = dict(data)
+            data['_number_of_coincidences'] = data.pop('_channels')
+            data['_channels'] = data.pop('_coinc_window', None)
+            data['_coinc_window'] = None
+            if (self._trigger_type, '_channels') not in _warned_legacy_attributes:
+                _warned_legacy_attributes.add((self._trigger_type, '_channels'))
+                logger.warning(
+                    "Trigger of type 'int_power' from an old file stores the number of coincidences as its channels "
+                    "(bug in powerIntegration before NuRadioReco 3.2): corrected, the coincidence window is unknown (None).")
+
         for key, value in data.items():
             if key in ('_name', '_trigger_type') or key in _LEGACY_DUPLICATES:
                 continue
@@ -417,8 +471,10 @@ class Trigger(ParameterStorage):
         settings : dict
             Keys ``name``, ``trigger_type`` and the names of the set `triggerParameters`
             (e.g. ``triggered``, ``trigger_time``, ``triggered_channels``, ``threshold``). Values are not copied.
+            The keys used before the triggerParameters (e.g. ``primary_trigger``, ``Vbias``) still work,
+            deprecated.
         """
-        output = {'name': self._name, 'trigger_type': self._trigger_type}
+        output = _TriggerSettings(name=self._name, trigger_type=self._trigger_type)
         for key, value in self._parameters.items():
             output[key.name] = value
         return output
