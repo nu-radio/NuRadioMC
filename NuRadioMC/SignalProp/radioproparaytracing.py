@@ -107,6 +107,13 @@ class radiopropa_ray_tracing(ray_tracing_base):
                          config=config,
                          detector=detector)
 
+        if self._n_reflections > 0:
+            msg = ("Bottom reflections (n_reflections > 0) are not supported by the RadioPropa ray tracer: "
+                   "RadioPropa does not count the reflections off a reflective layer. "
+                   "Use the analytic ray tracer for ice models with a reflective bottom.")
+            self.__logger.error(msg)
+            raise NotImplementedError(msg)
+
         self.set_config(config=config)
         self._ice_model = self._medium.get_ice_model_radiopropa()
 
@@ -150,6 +157,16 @@ class radiopropa_ray_tracing(ray_tracing_base):
             False if the start and end points are unchanged with respect to the previous
             ray tracing (in which case the existing solutions are kept), True otherwise.
         """
+        z_surface = self._medium.z_air_boundary
+        if x1[2] > z_surface or x2[2] > z_surface:
+            # the travel time of rays crossing the ice surface is wrong and depends on the direction,
+            # see https://github.com/nu-radio/NuRadioMC/issues/968
+            msg = ("Start or end points above the ice surface are not supported by the RadioPropa ray tracer "
+                   f"(z_start = {x1[2] / units.m:.2f} m, z_end = {x2[2] / units.m:.2f} m, "
+                   f"surface at {z_surface / units.m:.2f} m).")
+            self.__logger.error(msg)
+            raise NotImplementedError(msg)
+
         self._source = x1
         self._antenna = x2
 
@@ -263,9 +280,13 @@ class radiopropa_ray_tracing(ray_tracing_base):
     def raytracer_iterative(self, n_reflections=0):
         """
         Uses RadioPropa to find all the numerical ray tracing solutions between sphere X1 and X2.
-        If reflections is bigger than 0, also bottom reflected rays are searched for with a max
-        of n_reflections of the bottom
+        Bottom reflections (n_reflections > 0) are not supported and raise a NotImplementedError.
         """
+        if n_reflections > 0:
+            msg = "Bottom reflections (n_reflections > 0) are not supported by the RadioPropa ray tracer."
+            self.__logger.error(msg)
+            raise NotImplementedError(msg)
+
         try:
             X1 = self._X1 * (radiopropa.meter/units.meter)
             X2 = self._X2 * (radiopropa.meter/units.meter)
@@ -288,27 +309,6 @@ class radiopropa_ray_tracing(ray_tracing_base):
         ## regions of theta with posible solutions (radians)
         launch_lower = [0]
         launch_upper = [theta_direct + delta_theta] # below theta_direct no solutions are possible without upward reflections
-
-        if n_reflections > 0:
-            if self.medium.reflection is None:
-                self.__logger.error("a solution for {:d} reflection(s) off the bottom reflective layer is requested,"
-                                    +"but ice model does not specify a reflective layer".format(n_reflections))
-                raise AttributeError("a solution for {:d} reflection(s) off the bottom reflective layer is requested,"
-                                    +"but ice model does not specify a reflective layer".format(n_reflections))
-            else:
-                z_refl = self._medium.reflection
-                rho_channel = np.linalg.norm(u)
-                if self._X2[2] > self._X1[2]:
-                    z_up = self._X2[2]
-                    z_down = self._X1[2]
-                else:
-                    z_up = self._X1[2]
-                    z_down = self._X2[2]
-                rho_bottom = (rho_channel * (z_refl - z_down)) / (2*z_refl - z_up - z_down)
-                alpha = np.arctan((z_down - z_refl)/rho_bottom)
-                ## when reflection on the bottom are allowed, a initial region for theta from 180-alpha to 180 degrees is added
-                launch_lower.append(((np.pi/2 + alpha) - 2*abs(self.delta_theta_bottom(dz=self._sphere_sizes[0], z_refl=z_refl) / units.radian)))
-                launch_upper.append(np.pi)
 
         for s,sphere_size in enumerate(self._sphere_sizes):
             sphere_size = sphere_size * (radiopropa.meter/units.meter)
@@ -369,14 +369,7 @@ class radiopropa_ray_tracing(ray_tracing_base):
                         for ray in current_rays:
                             if channel.checkDetection(ray.get()) == radiopropa.DETECTED:
                                 detected_rays.append(ray)
-                                result = {}
-                                if n_reflections == 0:
-                                    result['reflection']=0
-                                    result['reflection_case']=1
-                                elif self._ice_model.get_modules()["bottom reflection"].get_times_reflectedoff(ray.get()) <= n_reflections:
-                                    result['reflection']=self._ice_model.get_modules()["bottom reflection"].get_times_reflectedoff(ray.get())
-                                    result['reflection_case']=int(np.ceil(theta/np.deg2rad(90)))
-                                results.append(result)
+                                results.append({'reflection': 0, 'reflection_case': 1})
                             for secondary in ray.secondaries:
                                 next_rays.append(secondary)
                         current_rays = next_rays
@@ -1330,6 +1323,13 @@ class radiopropa_ray_tracing(ray_tracing_base):
                 delta_C_cut = 40 * units.degree
             )
         super().set_config(config)
+
+        if self._config['propagation']['radiopropa']['mode'] == 'minimizing':
+            # find_solutions never reached the minimizer: its check for a reflective bottom was always true
+            msg = ("The 'minimizing' mode of the RadioPropa ray tracer is currently not supported. "
+                   "Use the 'iterative' mode (config['propagation']['radiopropa']['mode']).")
+            self.__logger.error(msg)
+            raise NotImplementedError(msg)
 
         self._cut_viewing_angle = self._config['speedup']['delta_C_cut'] * units.radian
         self._max_traj_length = self._config['propagation']['radiopropa']['max_traj_length'] * units.meter

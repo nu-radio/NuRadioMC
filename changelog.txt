@@ -81,6 +81,10 @@ bugfixes:
 - Fix bug in the readRNOGDataMattak where the trigger dependend readout delays were applied with the
   the wrong sign to the trace_start_time
 - Limit plot for source populations (`diffuse=False`): the energy axis was left in GeV and the plot was empty.
+- The RadioPropa ray tracer raises a NotImplementedError for cases it does not handle instead of crashing or returning
+  wrong results: bottom reflections (`n_reflections > 0`; crashed with an AttributeError), start or end points above the
+  ice surface (travel times of rays crossing the surface were wrong and depended on the direction, #968) and the
+  'minimizing' mode (crashed with a TypeError).
 
 deprecations:
 - Remove default values for `use_channels` and `bandpass` in voltageToAnalyticEfieldConverter.py and voltageToEfieldConverter.py which were suitable for ARIANNA.
