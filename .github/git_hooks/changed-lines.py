@@ -17,6 +17,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 from typing import NoReturn
 
 # Explicit output formats: user configs (e.g. diff.noprefix, flake8 format=) must not change what is parsed.
@@ -74,10 +75,14 @@ def changed_hunks():
 def format_files(filenames, hunks):
     """Run black on the changed lines; black takes line ranges only for a single file per call."""
     returncode = 0
-    for filename in filenames:
-        ranges = [f"--line-ranges={start}-{start + count - 1}" for start, count in hunks[filename] if count]
-        if ranges:
-            returncode |= subprocess.run([sys.executable, "-m", "black"] + ranges + [filename]).returncode
+    # Empty cache: black's cache ignores the line ranges, so a file checked before with other ranges (e.g. by a
+    # commit, then with --from-ref) would be skipped as formatted
+    with tempfile.TemporaryDirectory() as cache:
+        env = dict(os.environ, BLACK_CACHE_DIR=cache)
+        for filename in filenames:
+            ranges = [f"--line-ranges={start}-{start + count - 1}" for start, count in hunks[filename] if count]
+            if ranges:
+                returncode |= subprocess.run([sys.executable, "-m", "black"] + ranges + [filename], env=env).returncode
 
     return returncode
 
