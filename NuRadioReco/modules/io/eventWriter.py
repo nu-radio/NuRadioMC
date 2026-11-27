@@ -189,7 +189,7 @@ def _nested_array(items, arrow_type):
     if pa.types.is_list(value_type):
         values = _nested_array([child for item in items if item is not None for child in item], value_type)
     else:
-        arrays = [np.asarray(item, dtype=value_type.to_pandas_dtype()) for item in items if item is not None]
+        arrays = [np.asarray(item, dtype=pu.to_numpy_dtype(value_type)) for item in items if item is not None]
         values = pa.array(np.concatenate(arrays) if arrays else np.empty(0), type=value_type)
 
     return pa.ListArray.from_arrays(pa.array(offsets), values, type=arrow_type, mask=pa.array(mask) if mask.any() else None)
