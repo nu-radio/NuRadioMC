@@ -15,12 +15,12 @@ Before opening, the checks in the comment at the top of `pull_request_template.m
 
 **Length:** scale the body to the PR's complexity and risk.
 
-- **Lean** for a small, low-risk change (typo, docs, a local fix that changes no results): the TL;DR, one Evidence bullet, the compatibility lines in a few words each. Drop the Summary section when the TL;DR already says it.
+- **Lean** for a small, low-risk change (typo, docs, a local fix that changes no results): the TL;DR, one Evidence bullet plus the "Not tested" line, the compatibility lines in a few words each. Drop the Summary section when the TL;DR already says it.
 - **Long** for a complex change (several modules, a new concept, a reworked core path) or a critical one (any ⚠️ line, a silent change): Summary and Evidence in full. Mark the few sentences a reviewer must not miss (a changed result, a required migration step, a decision the reviewer must confirm): bold the sentence, or start its line with ❗. Mark at most three, so they stand out.
 
 ## TL;DR
 
-Three bullets, fragments fine, each within the template's sentence limit. **Goal** is what the PR is for, not how; **Done** is the change itself (new option, fixed bug, changed default); **Blast radius** condenses the backwards compatibility section and starts with the symbol of its worst line (`✅ none` when every line there is unchanged).
+Three bullets, fragments fine, each within the template's sentence limit. **Goal** is what the PR is for, not how; **Done** is the change itself (new option, fixed bug, changed default); **Blast radius** condenses the backwards compatibility section and starts with the worst of the API, Data and Results symbols (`✅ none` when all three are unchanged). Link the issue there if there is one (`Fixes #n`), so it survives a dropped Summary.
 
 ## Summary
 
