@@ -262,7 +262,7 @@ jobs:
       run: |
         python NuRadioReco/test/framework/test_trigger_io.py
 
-    - name: "Test trigger parameters (round trip, legacy .nur files)"
+    - name: "Test trigger parameters (round trip, legacy .nur files, parameter types)"
       if: always()
       run: |
         python NuRadioReco/test/framework/test_trigger_parameters.py
