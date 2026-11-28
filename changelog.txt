@@ -42,6 +42,7 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
   buffered. The antenna response lookup is 2-6x faster depending on the number of frequency bins, results are unchanged.
   The `AntennaPattern.VEL`, `AntennaPattern.VEL_theta` and `AntennaPattern.VEL_phi` attributes are deprecated, the cube is
   stored in `AntennaPattern._vel`.
+- The channelResampler resamples all channels with the same number of samples and sampling rate together as one 2D array (faster).
 - Added `impulsiveSignalReconstructor` module to reconstruct 'generic' impulsive signals
 - New module `NuRadioMC.utilities.neutrino_fluxes` with neutrino flux models (IceCube fits, cosmogenic models of van Vliet,
   Heinze and TA, source populations, AGN, GRB afterglows, blazars) as all-flavour dN/dE. The event generator uses it for its
