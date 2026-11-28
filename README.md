@@ -164,7 +164,7 @@
 | NuRadioReco/modules/channelBandPassFilter.py                                                             |      128 |       38 |     70% |52, 57, 62, 136, 247-292, 325, 331 |
 | NuRadioReco/modules/channelCWNotchFilter.py                                                              |      108 |       58 |     46% |35-40, 146, 153-156, 176-184, 202-210, 243-297 |
 | NuRadioReco/modules/channelGalacticNoiseAdder.py                                                         |      265 |       95 |     64% |36-41, 47, 146, 154, 165, 178-179, 184-185, 188-189, 193-209, 260-263, 267-270, 307-308, 311-313, 320-321, 342-357, 363, 383-385, 392-397, 418, 421, 442-443, 452-456, 471, 491, 535-567, 630-631, 639-671 |
-| NuRadioReco/modules/channelGenericNoiseAdder.py                                                          |      185 |       91 |     51% |38-39, 51-70, 111-113, 115-118, 134-135, 138, 150-151, 156, 164-165, 171, 221-250, 292-305, 335-337, 339-342, 349, 357-359, 363, 368-369, 376, 388, 452-467 |
+| NuRadioReco/modules/channelGenericNoiseAdder.py                                                          |      185 |       92 |     50% |38-39, 51-70, 111-113, 115-118, 134-135, 138, 150-151, 156, 164-165, 171, 221-250, 292-305, 335-337, 339-342, 349, 357-359, 363, 368-369, 376, 388, 433, 452-467 |
 | NuRadioReco/modules/channelIceThermalNoiseAdder.py                                                       |      152 |      129 |     15% |29-30, 35, 38, 50-63, 94-124, 153-239, 243-290 |
 | NuRadioReco/modules/channelLengthAdjuster.py                                                             |       38 |       22 |     42% | 52-77, 80 |
 | NuRadioReco/modules/channelReadoutWindowCutter.py                                                        |      114 |       26 |     77% |61-63, 76-77, 109-113, 125-132, 179-204, 250, 330, 337-338 |
@@ -250,8 +250,8 @@
 | NuRadioReco/modules/trigger/multiHighLowThreshold.py                                                     |       84 |       11 |     87% |120-121, 128-130, 137, 139, 142, 146, 163-164 |
 | NuRadioReco/modules/trigger/powerIntegration.py                                                          |       62 |       45 |     27% |33-39, 87-134, 137 |
 | NuRadioReco/modules/trigger/rnog\_surface\_trigger.py                                                    |      104 |       86 |     17% |39-83, 91, 94, 127-191, 194 |
-| NuRadioReco/modules/trigger/simpleThreshold.py                                                           |       60 |        3 |     95% |102, 107, 129 |
-| NuRadioReco/modules/voltageToAnalyticEfieldConverter.py                                                  |      479 |      225 |     53% |77-81, 84, 87-89, 92-133, 139-221, 230-237, 301-304, 307-310, 320-323, 340-341, 343-345, 382, 398-401, 404-406, 416, 432, 434, 438, 441-451, 454-456, 466, 482, 484, 488, 491-500, 502-509, 512-514, 529, 558, 573, 661-739 |
+| NuRadioReco/modules/trigger/simpleThreshold.py                                                           |       60 |        5 |     92% |98-99, 102, 107, 129 |
+| NuRadioReco/modules/voltageToAnalyticEfieldConverter.py                                                  |      479 |      224 |     53% |77-81, 84, 87-89, 92-133, 139-221, 230-237, 301-304, 307-310, 320-323, 340-341, 343-345, 382, 398-401, 404-406, 416, 432, 434, 438, 441-451, 454-456, 466, 482, 484, 488, 491-500, 502-509, 512-514, 558, 573, 661-739 |
 | NuRadioReco/modules/voltageToEfieldConverter.py                                                          |      122 |       11 |     91% |57, 78, 148, 203-206, 208-211, 236, 238 |
 | NuRadioReco/modules/voltageToEfieldConverterPerChannel.py                                                |       46 |        3 |     93% |     55-57 |
 | NuRadioReco/modules/voltageToEfieldConverterPerChannelGroup.py                                           |       62 |       47 |     24% |22-25, 36-37, 55-103, 106 |
@@ -284,7 +284,7 @@
 | NuRadioReco/utilities/trace\_utilities.py                                                                |      272 |      167 |     39% |40-42, 49-51, 57-59, 66-68, 75-77, 84-86, 154-190, 230-285, 321-345, 411, 413, 423, 499-506, 637-659, 726-729, 753-763, 793-862 |
 | NuRadioReco/utilities/units.py                                                                           |      166 |        0 |    100% |           |
 | NuRadioReco/utilities/version.py                                                                         |       27 |        5 |     81% |16, 25-27, 47 |
-| **TOTAL**                                                                                                | **32393** | **16427** | **49%** |           |
+| **TOTAL**                                                                                                | **32393** | **16429** | **49%** |           |
 
 
 ## Setup coverage badge
