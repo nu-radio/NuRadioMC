@@ -49,6 +49,8 @@ from the NOAA ETOPO1 dataset via www.opentopodata.org.
 - The Sensitivities example `E2_fluxes3.py` is now `limit_plot.py` (`get_limit_figure`, `add_limit`) with a command line,
   options for the models of the RNO-G multimessenger figure and no side effects on import (no data loading, no change of
   matplotlib's rc). Its data files are reorganised into `experiments/` and `veffs/`.
+- Analytic ray tracing: `set_start_and_end_point` builds its debug messages only if debug logging is enabled. Before,
+  numpy arrays were formatted into strings for every call, which took about as long as the ray tracing itself.
 
 bugfixes:
 - The trigger times of the phased array triggers (`beamformedPowerIntegrationTrigger`, `phasedArrayTrigger`,
