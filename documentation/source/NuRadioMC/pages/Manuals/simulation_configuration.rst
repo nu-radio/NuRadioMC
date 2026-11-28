@@ -121,6 +121,10 @@ The available options for weight mode are:
           # and Cherenkov angle (corrected by ray tracing) is larger, the event is skipped
           redo_raytracing: False  # redo ray tracing even if previous calculated ray 
           # tracing solutions are present
+          reuse_efields_for_identical_positions: True  # reuse the electric fields of a
+          # channel for all channels of the same station at the same position and with the
+          # same trace length (e.g. noiseless copies of a channel) instead of recalculating
+          # them. The results are identical. Only used for particle (not emitter) simulations.
           min_efield_amplitude: 2  # the minimum signal amplitude of the efield as a factor 
           # of the noise RMS. If the value is smaller, no detector simulation is 
           # performed. As the vector effective length of antennas is typically less 

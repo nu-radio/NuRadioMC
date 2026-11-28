@@ -316,6 +316,79 @@ def calculate_sim_efield(
     return sim_station
 
 
+def _calculate_sim_efield_cached(
+        efield_cache, showers, station_id, channel_id,
+        det, propagator, medium, config,
+        min_efield_amplitude=None,
+        distance_cut=None):
+    """
+    Calculate the simulated electric fields, reusing them for channels at identical positions.
+
+    The electric fields calculated by `calculate_sim_efield` depend on the channel only through its
+    position and the number of samples of its trace (the antenna response, orientation and cable delay
+    are applied later). Hence, for a channel at the same position and with the same trace length as a
+    channel that was already simulated for the same showers, copies of the cached electric fields
+    are returned instead of recalculating them. As the speedup cut ``min_efield_amplitude`` is channel
+    dependent, the candidate flag is determined again for every channel. The result is identical to
+    calling `calculate_sim_efield`.
+
+    Parameters
+    ----------
+    efield_cache : dict or None
+        The cache, which is filled by this function. It must only be shared between calls for the same
+        showers, i.e., it has to be reset for every event group. If None, `calculate_sim_efield` is
+        called directly.
+    showers, station_id, channel_id, det, propagator, medium, config, min_efield_amplitude, distance_cut
+        See `calculate_sim_efield`.
+
+    Returns
+    -------
+    sim_station : NuRadioReco.framework.sim_station.SimStation
+        The sim station with the electric fields of the channel ``channel_id``.
+    """
+    sim_efield_kwargs = dict(
+        showers=showers, station_id=station_id, channel_id=channel_id,
+        det=det, propagator=propagator, medium=medium, config=config,
+        min_efield_amplitude=min_efield_amplitude, distance_cut=distance_cut)
+
+    if efield_cache is None:
+        return calculate_sim_efield(**sim_efield_kwargs)
+
+    # the same number of samples as in calculate_sim_efield
+    dt = 1. / config['sampling_rate']
+    n_samples = det.get_number_of_samples(station_id, channel_id) / det.get_sampling_frequency(station_id, channel_id) / dt
+    n_samples = int(np.ceil(n_samples / 2.) * 2)
+    key = (station_id, tuple(det.get_relative_position(station_id, channel_id)), n_samples)
+
+    if key not in efield_cache:
+        sim_station = calculate_sim_efield(**sim_efield_kwargs)
+        # Store copies: the returned electric fields are passed on to the (user-defined) detector
+        # simulation, which could modify them.
+        electric_fields = [copy.deepcopy(efield) for efield in sim_station.get_electric_fields()]
+        # Determine the maximum on further copies: get_trace() may change the internal representation
+        # (time or frequency domain), which then would differ from a recalculated electric field.
+        max_amplitude = max([np.max(np.abs(copy.deepcopy(efield).get_trace())) for efield in electric_fields],
+                            default=0)
+        efield_cache[key] = (electric_fields, max_amplitude)
+        return sim_station
+
+    time_logger.start_time('efield reuse')
+    electric_fields, max_amplitude = efield_cache[key]
+    sim_station = NuRadioReco.framework.sim_station.SimStation(station_id)
+    sim_station.set_is_neutrino()  # see calculate_sim_efield
+    # identical to the candidate check in calculate_sim_efield, i.e., "any efield above the threshold"
+    sim_station.set_candidate(bool(min_efield_amplitude is None or max_amplitude > min_efield_amplitude))
+
+    for efield in electric_fields:
+        efield = copy.deepcopy(efield)
+        efield.set_channel_ids([channel_id])
+        sim_station.add_electric_field(efield)
+
+    time_logger.stop_time('efield reuse')
+    logger.debug(f"Reused {len(electric_fields)} electric fields for station {station_id}, channel {channel_id}")
+    return sim_station
+
+
 def calculate_sim_efield_for_emitter(
         emitters, station_id, channel_id,
         det, propagator, medium, config,
@@ -1604,6 +1677,12 @@ class simulation:
                     det=self._det, propagator=self._propagator, medium=self._ice, config=self._config
                 )
 
+                # Cache of the electric fields per channel position (only used in particle mode), shared by the
+                # trigger and non-trigger channels of this station and event group, see _calculate_sim_efield_cached
+                efield_cache = None
+                if self._config['speedup']['reuse_efields_for_identical_positions']:
+                    efield_cache = {}
+
                 # we allow to first only simualte trigger channels. As the trigger channels might be different per station,
                 # we need to determine the channels to simulate first per station
                 channel_ids = self._det.get_channel_ids(station_id)
@@ -1618,8 +1697,8 @@ class simulation:
                 for iCh, channel_id in enumerate(channel_ids):
                     min_amplitude = float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[station_id][channel_id]
                     if particle_mode:
-                        sim_station = calculate_sim_efield(
-                            showers=event_group.get_sim_showers(),
+                        sim_station = _calculate_sim_efield_cached(
+                            efield_cache, showers=event_group.get_sim_showers(),
                             station_id=station_id, channel_id=channel_id,
                             min_efield_amplitude=min_amplitude,
                             distance_cut=self._get_distance_cut,
@@ -1707,8 +1786,8 @@ class simulation:
                     for iCh, channel_id in enumerate(non_trigger_channels):
                         min_amplitude = float(self._config['speedup']['min_efield_amplitude']) * self._Vrms_efield_per_channel[station_id][channel_id]
                         if particle_mode:
-                            sim_station = calculate_sim_efield(
-                                showers=event_group.get_sim_showers(),
+                            sim_station = _calculate_sim_efield_cached(
+                                efield_cache, showers=event_group.get_sim_showers(),
                                 station_id=station_id, channel_id=channel_id,
                                 min_efield_amplitude=min_amplitude,
                                 distance_cut=self._get_distance_cut,
