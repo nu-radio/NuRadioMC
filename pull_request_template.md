@@ -6,9 +6,19 @@ Before opening, check (https://nu-radio.github.io/NuRadioMC/Introduction/pages/c
 Once approved, wait at least 24 hours after the last change before merging, so others can still comment.
 -->
 
+<!-- Length follows complexity and risk. A small, low-risk PR stays lean: TL;DR, one evidence line plus "Not tested", the compatibility lines; drop Summary if the TL;DR says it all. A complex or critical PR explains more and bolds (or starts with ❗) the few sentences a reviewer must not miss, at most three. -->
+
+## TL;DR
+
+<!-- Fragments fine. Link the issue if there is one (Fixes #n). Blast radius: the verdict of the backwards compatibility section below, or "✅ none". -->
+
+- **Goal:** <!-- 1 sentence -->
+- **Done:** <!-- max 2 sentences -->
+- **Blast radius:** <!-- 1 sentence, starting with the worst of the API, Data and Results symbols below: API change, changed results or data, what users must do -->
+
 ## Summary
 
-<!-- 1-3 sentences: what was wrong or missing, what changes. Link the issue if there is one. Optional: a small diagram, diff sketch or call tree. -->
+<!-- Detail beyond the TL;DR, without repeating it: context, the problem, how the fix works. Optional: a small diagram, diff sketch or call tree. -->
 
 ## Evidence
 
@@ -19,9 +29,9 @@ Once approved, wait at least 24 hours after the last change before merging, so o
 
 ## Backwards compatibility & downstream impact
 
-<!-- Do user scripts, stored .nur/HDF5 files, detector descriptions and configs keep working and give the same answer after the merge? -->
+<!-- Do user scripts, stored .nur/HDF5 files, detector descriptions and configs keep working and give the same answer after the merge? Keep one symbol per line. A change that fails silently (no error, wrong answer: results shift, older versions misread new files) also gets a "> [!WARNING]" alert below the list. -->
 
-- **API:** unchanged / extended / breaking — 
-- **Data:** unchanged / changed — 
-- **Results:** unchanged / changed — 
+- **API:** ✅ unchanged / ➕ extended / ⚠️ breaking — 
+- **Data:** ✅ unchanged / ➕ extended / ⚠️ changed — 
+- **Results:** ✅ unchanged / ⚠️ changed — 
 - **Migration:** <!-- what users do to adapt or keep the old behaviour; delete if nothing -->
