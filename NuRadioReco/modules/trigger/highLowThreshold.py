@@ -53,7 +53,9 @@ def get_high_low_triggers(trace, high_threshold, low_threshold,
     else:
         padded_trace = trace
 
-    num_frames = int((len(padded_trace) - n_bins_coincidence) / step)
+    # A trace of N samples contains (N - window) // step + 1 complete windows. The last window ends
+    # exactly at the last sample, so as_strided stays in bounds.
+    num_frames = int((len(padded_trace) - n_bins_coincidence) / step) + 1
     num_real_frames = int(len(trace) / step)
 
     logger.debug("length of trace {} samples, coincidence window {}, num window bins {}".format(
@@ -124,7 +126,8 @@ def get_majority_logic(tts, number_of_coincidences=2, time_coincidence=32 * unit
         else:
             trace = tts[i]
 
-        num_frames = int((len(trace) - n_bins_coincidence) / step)
+        # same as in get_high_low_triggers: keep the last complete window
+        num_frames = int((len(trace) - n_bins_coincidence) / step) + 1
 
         # Use the stride trick again.
         trace_windowed = np.lib.stride_tricks.as_strided(

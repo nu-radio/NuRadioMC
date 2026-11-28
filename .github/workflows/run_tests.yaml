@@ -136,6 +136,10 @@ jobs:
       run: |
         NuRadioReco/test/trigger_tests/run_trigger_test.sh
 
+    - name: "Test high/low and majority logic trigger functions"
+      if: always()
+      run: |
+        python NuRadioReco/test/trigger_tests/test_highLowThreshold.py
     - name: "Test phased array trigger time does not depend on channel ids"
       if: always()
       run: |
