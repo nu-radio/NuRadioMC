@@ -405,7 +405,7 @@ def _get_vector_potential_loops(
     """
     Same as `get_vector_potential`, but written with explicit loops for numba (`get_vector_potential_numba`).
 
-    Uses the same time grid, profile refinement (`_prepare_vector_potential`, `_refine_profile`) and
+    Uses the same time grid, profile refinement (``_prepare_vector_potential``, ``_refine_profile``) and
     trapezoid integration as `get_vector_potential`; the results agree up to floating point rounding.
     It avoids temporary arrays and skips observer times for which no part of the shower can contribute
     (the vector potential is zero there). It is only fast if compiled with numba, use `get_vector_potential`
