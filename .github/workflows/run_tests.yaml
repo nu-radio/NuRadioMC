@@ -140,6 +140,10 @@ jobs:
       if: always()
       run: |
         python NuRadioReco/test/trigger_tests/test_highLowThreshold.py
+    - name: "Test phased array trigger time does not depend on channel ids"
+      if: always()
+      run: |
+        python NuRadioReco/test/trigger_tests/test_phased_trigger_channel_ids.py
 
     - name: Upload coverage data
       if: always()

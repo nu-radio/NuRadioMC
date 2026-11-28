@@ -82,7 +82,9 @@ class PhasedArrayBase():
 
         Returns
         -------
-        beam_rolls: array of dicts of keys=antenna and content=delay
+        beam_rolls: list of dicts
+            One dict per phasing angle, mapping channel id to its delay in samples (int, "roll").
+            The delays of each beam are shifted so that the smallest one is 0, i.e. all rolls are non-negative.
         """
 
         if station.get_id() in self.buffered_delays:
@@ -521,7 +523,8 @@ class PhasedArrayBase():
                     for channel_id in beam_rolls[iTrace]}
 
                 triggered_bins = np.atleast_1d(np.squeeze(np.argwhere(sig_trace > threshold)))
-                trigger_times[iTrace] = np.abs(np.min(list(trigger_delays[iTrace]))) + triggered_bins * step * time_step + channel_trace_start_time
+                # smallest roll is 0 (see calculate_time_delays): phased trace keeps the undelayed time axis
+                trigger_times[iTrace] = triggered_bins * step * time_step + channel_trace_start_time
 
                 logger.debug(
                     "Station has triggered, at bins {}\n".format(triggered_bins) +
