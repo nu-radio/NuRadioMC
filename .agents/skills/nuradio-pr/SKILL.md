@@ -13,9 +13,18 @@ Before opening, the checks in the comment at the top of `pull_request_template.m
 
 **Body:** fill in the sections of `pull_request_template.md` and drop its HTML comments. After the sections, optionally: merge order, related PRs, follow-ups. Use the terms of `GLOSSARY.md`. Every claim is something verified; anything else is left out.
 
+**Length:** scale the body to the PR's complexity and risk.
+
+- **Lean** for a small, low-risk change (typo, docs, a local fix that changes no results): the TL;DR, one Evidence bullet plus the "Not tested" line, the compatibility lines in a few words each. Drop the Summary section when the TL;DR already says it.
+- **Long** for a complex change (several modules, a new concept, a reworked core path) or a critical one (any ⚠️ line, a silent change): Summary and Evidence in full. Mark the few sentences a reviewer must not miss (a changed result, a required migration step, a decision the reviewer must confirm): bold the sentence, or start its line with ❗. Mark at most three, so they stand out.
+
+## TL;DR
+
+Three bullets, fragments fine, each within the template's sentence limit. **Goal** is what the PR is for, not how; **Done** is the change itself (new option, fixed bug, changed default); **Blast radius** condenses the backwards compatibility section and starts with the worst of the API, Data and Results symbols (`✅ none` when all three are unchanged). Link the issue there if there is one (`Fixes #n`), so it survives a dropped Summary.
+
 ## Summary
 
-State the problem and the fix in the reader's terms: the quantity or behaviour a user sees. Add a visual only when it is clearer than the sentence, and keep it small: pseudocode for logic, a call tree for control flow, a `diff` sketch for what changes in an existing shape, a file tree for a new layout.
+The detail behind the TL;DR, without repeating it: the context, the problem and how the fix works, in the reader's terms (the quantity or behaviour a user sees). Add a visual only when it is clearer than the sentence, and keep it small: pseudocode for logic, a call tree for control flow, a `diff` sketch for what changes in an existing shape, a file tree for a new layout.
 
 ## Evidence
 
@@ -29,3 +38,10 @@ Does code, data or analysis outside the repo (user scripts, `.nur`/HDF5 files, d
 - **Data:** `.nur` and HDF5 output, detector JSON, YAML configs. Inputs that loaded before and now fail (or the reverse); outputs older versions can no longer read.
 - **Results:** whether unchanged code on unchanged input now gives different numbers or trigger decisions, for which settings, by how much. A silent change in results deserves the most attention: it raises no error downstream.
 - **Migration:** the concrete step for affected users (rename a call, set an option to restore the old behaviour, regenerate a file).
+
+Mark each line with the template's symbol (✅ unchanged, ➕ extended, ⚠️ breaking or changed) so the verdict reads at a glance. Every silent change (no error, wrong answer: results shift, older versions misread new files) also gets a GitHub alert below the list, stating what goes wrong, for whom, and how you checked:
+
+```markdown
+> [!WARNING]
+> NuRadioReco versions before this PR read triggers in new `.nur` files without an error but with default values (`has_triggered()` returns `False`).
+```
